@@ -1,0 +1,78 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #0a0f22; 
+    color: #33d9ff; 
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 90%;
+    margin: 0 auto;
+    padding-top: 2em;
+}
+
+h1, h2 {
+    border-bottom: 2px solid #33d9ff;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+h1 {
+    font-size: 2.5em;
+    text-align: center;
+}
+
+h2 {
+    font-size: 2em;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    margin-bottom: 10px;
+}
+
+/* Neon Green for emphasis */
+.green-highlight {
+    color: #33ff57;
+}
+
+/* Neon Red for warnings/important info */
+.red-highlight {
+    color: #ff4d4d;
+}
+
+/* Neon Yellow for points system */
+.yellow-highlight {
+    color: #ffff4d;
+}
+.orange-highlight {
+    color:darkorange;
+}
+
+.back-button-container {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.back-button {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 1.2em;
+    text-decoration: none;
+    color: #33d9ff; /* Neon light blue text */
+    background-color: #17203a; /* A deep blue for button background */
+    border: 2px solid #33d9ff; /* Neon light blue border */
+    border-radius: 8px;
+    transition: transform 0.2s, background-color 0.2s; /* Animation for hover */
+}
+
+.back-button:hover {
+    background-color: #33d9ff; /* Neon light blue */
+    color: #17203a; /* A deep blue */
+    transform: translateY(-3px);
+}

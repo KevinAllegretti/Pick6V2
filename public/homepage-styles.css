@@ -1,0 +1,226 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #0a0f22; /* Darker background for contrast */
+   /* background-image: url('P6.png');*/
+   background-image: url('P6.png');
+    background-size: 1500px;      /* Resize the background image to cover the entire container */
+    background-repeat: no-repeat; /* Prevents the background image from repeating */
+    background-position: center -290px;  /* Centers the background image */
+    color: #33d9ff; /* Neon light blue text */
+    margin: 0;
+    padding: 0;
+    justify-content: center;
+}
+
+.container {
+    width: 90%;
+    margin: 0 auto;
+    padding-top: 1em;
+}
+
+.containerbutton {
+    display: flex;
+    justify-content: center; /* Center the buttons horizontally */
+    padding-top: 1em;
+}
+
+.containerbutton .rules-button {
+    margin: 0 10px; /* This adds a margin to the left and right of each button */
+}
+
+h1 {
+   /* -webkit-text-stroke: 3px rgb(255, 255, 255); /* Add a 1px black stroke */
+    text-shadow: none; /* Optionally, remove the text shadow if it's not needed */
+    /* Your existing styles */
+    font-size: 2.5em;
+    text-align: center;
+    color: #33d9ff; /* Neon light blue */
+    border-bottom: 2px solid #33d9ff;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+.underline {
+    height: 4px; /* Or however thick you want it */
+    background-color: #33d9ff; /* Neon light blue */
+    width: 100%; /* Or a specific width if you prefer */
+    margin-top: 5px; /* Space between the text and the line */
+}
+
+
+.players {
+    display: flex;
+    flex-wrap: wrap;
+    overflow-y: auto; /* Allow vertical scrolling */
+    justify-content: space-around;
+}
+
+.player-card {
+    position: relative;
+    width: 220px;
+    border: 2px solid #33d9ff; /* Neon light blue border */
+    border-radius: 8px;
+    margin: 10px;
+    padding: 10px;
+    background-color: #17203a; /* A deep blue for card background */
+    box-shadow: 0px 0px 20px #33d9ff; /* Neon light blue shadow for depth */
+    transition: transform 0.2s, box-shadow 0.2s; /* Animation for hover */
+}
+
+
+@media (max-width: 768px) {
+    .players {
+        max-height: 50vh; /* Adjust the height on mobile to make it less than the viewport height */
+        overflow-y: scroll; /* Explicitly set scrolling for touch devices */
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS */
+    }
+}
+
+.total-points {
+    font-style: oblique;
+    position: absolute; /* This will position the element relative to its nearest positioned ancestor */
+    top: 2px; /* Adjust this value if you want to move it up or down */
+    right: 50px; /* Adjust this value if you want to move it left or right */
+    background-color: rgba(23, 32, 58, 0.8); /* A slightly transparent deep blue background */
+    padding: 5px 10px;
+    border-radius: 4px;
+    color: #d0e5f2; /* Neon light blue text */
+    font-weight: bold;
+    z-index: 1; /* Ensure it's above other content */
+}
+
+.player-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 0px 25px #33d9ff, 0px 0px 5px #33d9ff; /* Enhanced shadow on hover */
+}
+
+h2 {
+    font-size: 1.4em;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.picks, .immortal-lock {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Aligns children in the center of the container along the cross axis */
+    justify-content: center; /* Aligns children in the center of the container along the main axis */
+    width: 100%; /* Set width to fill the parent container */
+}
+
+.pick {
+    display: flex;
+    align-items: center; /* Vertically center the items */
+    justify-content: center; /* Horizontally center the items */
+    margin: 5px 0;
+    width: 100%; /* Ensure the pick takes full width of its container */
+}
+
+
+
+
+.immortal-lock {
+    color: #30b830; /* A bright red for contrast */
+    font-style: initial;
+}
+
+
+.rules-button {
+   /* display: inline-block; */
+    background-color: #33d9ff;
+    color: #0a0f22;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    text-align: center;
+    transition: background-color 0.3s;
+}
+
+.rules-button:hover {
+    background-color: #1bb1d5;
+}
+
+.neon-sign {
+    font-size: 2rem; /* Adjust as needed */
+    font-family: "Arial", sans-serif; /* Use any font you like, this is just a placeholder */
+    color: rgb(255, 255, 255);
+    text-align: center;
+    text-shadow: 0 0 5px rgb(254, 237, 237), 0 0 10px rgb(246, 239, 239), 0 0 15px #00a2ff, 0 0 20px #00a2ff, 0 0 25px #00a2ff, 0 0 30px #00a2ff, 0 0 35px #00a2ff;
+    animation: neonFlicker 1.5s infinite alternate;
+    margin-top: 20px; /* Add space below the "teams" */
+}
+
+@keyframes neonFlicker {
+    0% { opacity: 0.2; }
+    50% { opacity: 1; }
+    100% { opacity: 0.8; }
+}
+
+.crown-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    transform: rotate(45deg);
+    font-size: 1.5rem;  /* Adjust as needed */
+    z-index: 10;
+    color: gold;
+}
+
+
+/* The dunce cap */
+.dunce-icon {
+    color: rgb(142, 93, 2);
+    font-size: 30px;  /* Adjust size */
+    position: absolute;
+    top: 10px;  /* Adjust positioning */
+    right: 0%;
+    transform: translateX(-50%) rotate(45deg); /* Rotate by 45 degrees */
+}
+
+/* Digital Clock Container */
+.digital-clock-container {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+  }
+  
+  /* Digital Clock Styling */
+  .digital-clock {
+    font-family: 'Orbitron', sans-serif;
+    color: #ffffff; /* Change text color to white */
+    background: #333333; /* Dark background for contrast */
+    padding: 10px 20px;
+    border-radius: 5px; /* Smoother border radius */
+    text-align: center;
+    font-size: 1.5em;
+    letter-spacing: 2px;
+    box-shadow: 0px 0px 10px #222222; /* Softer shadow for depth */
+    border: 1px solid #444444; /* Subtle border color */
+  }
+  
+  /* You can add media queries as needed for responsiveness */
+  @media (max-width: 600px) {
+    .digital-clock {
+      font-size: 1em;
+      padding: 5px 10px;
+    }
+  }
+  
+  
+  /* Initial State */
+.player-card, .digital-clock, .neon-sign, .rules-button {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  
+  /* Transition Effect */
+  .player-card, .digital-clock, .neon-sign, .rules-button {
+    transition: opacity 1s ease-out, transform 1s ease-out;
+  }
+  
+  .team-logo {
+    width: 35px; /* Or your desired width */
+    height: auto;
+    margin-right: 5px;
+    margin-bottom: -5px;
+    /* Add any other styling you need */
+}

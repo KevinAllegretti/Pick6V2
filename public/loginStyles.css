@@ -1,0 +1,69 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #16161a;
+    background-image: radial-gradient(circle at center, #23233b, #16161a 70%);
+    height: 100vh;
+    margin: 0;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.login-container {
+    background: rgba(34, 34, 59, 0.9);
+    padding: 2em;
+    border-radius: 8px;
+    width: 300px;
+    box-shadow: 0px 0px 25px rgba(0, 123, 255, 0.7);  /* Neon light blue shadow */
+}
+
+h1 {
+    text-align: center;
+    color: #00a8e8;  /* Neon light blue */
+    margin-bottom: 1em;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-field {
+    position: relative;
+    margin: 0.3em 0;
+}
+
+input {
+    padding: 0.8em;
+    border: none;
+    border-radius: 4px;
+    outline: none;
+    border: 2px solid #2a2a3b;
+    background: #2a2a3b;
+    color: white;
+    width: 100%;
+    transition: all 0.3s;
+}
+
+.input-field input:focus {
+    border-color: #00a8e8;  /* Neon light blue border on focus */
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);  /* Neon light blue glow on focus */
+}
+
+button {
+    padding: 0.8em;
+    border: none;
+    border-radius: 4px;
+    margin-top: 0.5em;
+    cursor: pointer;
+    background: #00a8e8;  /* Neon light blue */
+    color: #16161a;  /* Contrast against neon color */
+    transition: background 0.3s, transform 0.3s;
+}
+
+button:hover {
+    background: #0078a5;  /* A darker blue for hover effect */
+    transform: scale(1.05);  /* Slight zoom on hover */
+}

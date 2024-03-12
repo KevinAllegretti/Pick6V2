@@ -1,0 +1,5 @@
+# Redirect root to the login page
+/               /login.html   200
+
+# Catch-all rule to redirect any unknown paths back to the login page
+/*              /login.html   404

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pick-6 Homepage</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <link rel="stylesheet" href="homepage-styles.css">
+</head>
+<body>
+
+    <div class="digital-clock-container">
+        <div id="countdownDisplay" class="digital-clock">
+          <!-- Countdown will be injected here -->
+        </div>
+      </div>
+      
+    <div class="containerbutton">
+        <!-- ... possibly your list of teams or player cards ... -->
+        <a href="rules.html" class="rules-button">View Rules</a>
+        <a href="standings.html" class="rules-button">View Standings</a>
+    </div>
+    <div class="container">
+        <div class="neon-sign">
+            PLAYOFF WEEK 2
+        </div>
+        
+        <div class="players">
+            
+                <!-- TheDiggler -->
+                <div class="player-card" data-username="TheDiggler" data-points="68.5">
+                    <div class="total-points">Total Points: <span class ="points-value">0</span></div>
+                    <h2>TheDiggler</h2>
+                    <div class="picks">
+                        <!-- Empty pick placeholders -->
+                    </div>
+                    <div class="immortal-lock">
+                        Immortal Lock: ---
+                    </div>
+                </div>
+
+                 <!-- Midnight Professional -->
+  <div class="player-card" data-username="Midnight Professional" data-points="64">
+    <div class="total-points">Total Points: <span class ="points-value">0</span></div>
+    <h2>Midnight Professional</h2>
+    <div class="picks">
+        <!-- Empty pick placeholders -->
+    </div>
+    <div class="immortal-lock">
+        Immortal Lock: ---
+    </div>
+</div>
+
+                <div class="player-card" data-username="porkSkinGooner" data-points="59.5">
+                    <div class="total-points">Total Points: <span class ="points-value">0</span></div>
+                    <h2>porkSkinGooner</h2>
+                    <div class="picks">
+                        <!-- Empty pick placeholders -->
+                    </div>
+                    <div class="immortal-lock">
+                        Immortal Lock: ---
+                    </div>
+                </div>
+    
+
+
+    <!-- Primitive Picks -->
+    <div class="player-card" data-username="Primitive Picks" data-points="59.5">
+        <div class="total-points">Total Points: <span class ="points-value">0</span></div>
+        <h2>Primitive Picks</h2>
+        <div class="picks">
+            <!-- Empty pick placeholders -->
+        </div>
+        <div class="immortal-lock">
+            Immortal Lock: ---
+        </div>
+    </div>
+
+
+           
+        </div>
+    </div>
+
+<script>
+    window.addEventListener('load', () => {
+      document.querySelectorAll('.player-card, .digital-clock, .neon-sign, .rules-button').forEach(el => {
+        el.style.opacity = 1;
+        el.style.transform = 'translateY(0)';
+      });
+    });
+    </script>
+    <script src="homepage.js"></script>
+</body>
+</html>

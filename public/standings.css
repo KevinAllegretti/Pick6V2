@@ -1,0 +1,35 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    background: #0a0f22 url('standings.PNG') no-repeat center center;
+    background-size: contain;
+    color: #ddd;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: flex-end; /* Aligns the button at the bottom */
+    align-items: center;
+    flex-direction: column;
+}
+
+.rules-button {
+    font-family: 'Oswald', sans-serif;
+    display: inline-block;
+    background-color: #33d9ff;
+    color: #0a0f22;
+    padding: 15px 30px;
+    font-size: 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    text-align: center;
+    transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    margin-top: auto; /* Pushes the button to the bottom */
+    margin-bottom: 20px; /* Gives some space from the bottom */
+    box-shadow: 0 5px 15px rgba(0, 229, 255, 0.4);
+}
+
+.rules-button:hover {
+    background-color: #1bb1d5;
+    transform: translateY(-5px);
+    box-shadow: 0 3px 10px rgba(0, 229, 255, 0.5);
+}
