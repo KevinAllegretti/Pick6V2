@@ -43,7 +43,7 @@ router.post('/register', async (req, res) => {
 
         const msg = {
             to: email,
-            from: 'kevinallegretti17@gmail.com', // This should be a verified sender in SendGrid
+            from: 'pick6NoREPLY@gmail.com', // This should be a verified sender in SendGrid
             subject: 'Please verify your email',
             html: `<p>Please click this link to verify your email: <a href="${verificationUrl}">${verificationUrl}</a></p>`,
         };

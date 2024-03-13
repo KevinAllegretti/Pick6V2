@@ -1,5 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Pick 6</title>
+    <link rel="stylesheet" href="loginStyles.css">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-content">
+                <div class="forms">
+                    <div class="form login active">
+                        <span class="title">Login</span>
+                        <form action="/users/login" method="post">
+                            <div class="input-field">
+                                <input type="text" name="username" placeholder="Username" required>
+                            </div>
+                            <div class="input-field">
+                                <input type="password" name="password" placeholder="Password" required>
+                            </div>
+                            <div class="action">
+                                <button type="submit">Login</button>
+                            </div>
+                        </form>
+                        <div class="form-link">
+                            <span>Don't have an account? <a href="#" id="show-register">Register here</a></span>
+                        </div>
+                    </div>
+                    <div class="form register" id="registration-container">
+                        <span class="title">Register</span>
+                        <form action="/users/register" method="post">
+                            <div class="input-field">
+                                <input type="text" name="username" placeholder="Username" required>
+                            </div>
+                            <div class="input-field">
+                                <input type="password" name="password" placeholder="Password" required>
+                            </div>
+                            <div class="input-field">
+                                <input type="email" name="email" placeholder="Email" required>
+                            </div>
+                            <div class="action">
+                                <button type="submit">Register</button>
+                            </div>
+                        </form>
+                        <div class="form-link">
+                            <span>Already have an account? <a href="#" id="show-login">Login here</a></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="login.js"></script>
+</body>
+</html>
+
+
+<!--
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -25,7 +86,6 @@
         <button type="button" onclick="toggleForms()">Register</button>
     </div>
     
-    <!-- Registration Form -->
     <div class="login-container" id="registration-container" style="display:none;">
         <h1>Register</h1>
         <form action="/users/register" method="post">
@@ -56,5 +116,5 @@
 
 
 
-
-
+    
+-->
