@@ -80,7 +80,7 @@ body, html {
 .action button {
     padding: 10px 0;
     background: #00a8e8;
-    color: #16161a;
+    color: #31314e;
     font-size: 16px;
     font-weight: 600;
     border: none;
@@ -96,6 +96,7 @@ body, html {
 .form-link {
     text-align: center;
     margin-top: 20px;
+    color: white;
 }
 
 .form-link a {
