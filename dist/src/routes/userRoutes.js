@@ -37,7 +37,7 @@ router.post('/register', async (req, res) => {
         const verificationUrl = `http://localhost:3000/users/verify/${verificationToken}`;
         const msg = {
             to: email,
-            from: 'kevinallegretti17@gmail.com', // This should be a verified sender in SendGrid
+            from: 'pick6NoREPLY@gmail.com', // This should be a verified sender in SendGrid
             subject: 'Please verify your email',
             html: `<p>Please click this link to verify your email: <a href="${verificationUrl}">${verificationUrl}</a></p>`,
         };
@@ -78,22 +78,28 @@ router.post('/login', async (req, res) => {
             const passwordMatch = await bcrypt_1.default.compare(password, user.password);
             if (passwordMatch) {
                 if (!user.verified) {
-                    return res.status(403).send("Please verify your email to login.");
+                    // User email not verified
+                    res.status(403).json({ error: true, message: "Please verify your email to login." });
                 }
-                console.log(`[Login Success] User logged in: ${username}`);
-                res.redirect(`/homepage.html?username=${username}`);
+                else {
+                    // Login successful
+                    console.log(`[Login Success] User logged in: ${username}`);
+                    res.json({ error: false, redirect: `/homepage.html?username=${username}` });
+                }
             }
             else {
-                return res.status(401).send('Invalid credentials. Please try again.');
+                // Password does not match
+                res.status(401).json({ error: true, message: "Invalid credentials. Please try again." });
             }
         }
         else {
-            return res.status(401).send('Invalid credentials. Please try again.');
+            // User not found
+            res.status(401).json({ error: true, message: "Invalid credentials. Please try again." });
         }
     }
     catch (error) {
         console.error('[Login Error]', error);
-        res.status(500).send("An error occurred during the login process. Please try again.");
+        res.status(500).json({ error: true, message: "An error occurred during the login process. Please try again." });
     }
 });
 // Other routes...

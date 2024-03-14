@@ -11,6 +11,8 @@ const PORT = process.env.PORT || 3000;
 
 // 1. Middleware to parse JSON
 app.use(express.json());
+
+
 app.use(express.urlencoded({ extended: true }));
 require('dotenv').config();
 
