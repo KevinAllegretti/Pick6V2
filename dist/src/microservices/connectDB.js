@@ -42,7 +42,6 @@ clientPromise = global._mongoClientPromise;
 async function connectToDatabase() {
     try {
         await clientPromise;
-        console.log("Successfully connected to the database!");
         // Get the database object
         const db = client.db('Pick6');
         // Set up unique index for the username field in the users collection

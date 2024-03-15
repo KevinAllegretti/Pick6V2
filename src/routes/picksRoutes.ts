@@ -67,7 +67,7 @@ router.get('/api/getPicks/:username', async (req, res) => {
 
         // Connect to database
         const database = await connectToDatabase();
-        console.log("Fetching picks for username:", username);
+       // console.log("Fetching picks for username:", username);
         const picksCollection = database.collection('userPicks');
 
         // Fetch user's picks

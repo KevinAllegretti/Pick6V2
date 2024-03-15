@@ -11,6 +11,7 @@ const saltRounds = 10;
 sgMail.setApiKey('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'); // Should ideally be an environment variable
 
 router.post('/register', async (req, res) => {
+    console.log('Register endpoint hit with data:', req.body);
     try {
       const { username, email, password } = req.body;
   
@@ -70,6 +71,7 @@ router.post('/register', async (req, res) => {
     });
 
 router.get('/verify/:token', async (req, res) => {
+    console.log('Verification endpoint hit with token:', req.params.token);
     try {
         const { token } = req.params;
         const db = await connectToDatabase();
@@ -89,12 +91,48 @@ router.get('/verify/:token', async (req, res) => {
     }
 });
 
-  
-
 router.post('/login', async (req, res) => {
+    console.log('Login endpoint hit with data:', req.body);
     try {
         const { username, password } = req.body;
+        console.log('Attempting login with', { username, password });
 
+        const db = await connectToDatabase();
+        const usersCollection = db.collection("users");
+        const user = await usersCollection.findOne({ username: username.toLowerCase() }); // Lowercase the username
+
+        console.log('User found:', user);
+
+        if (user) {
+            const passwordMatch = await bcrypt.compare(password, user.password);
+            console.log('Password match:', passwordMatch);
+            if (passwordMatch) {
+                console.log('User verified:', user.verified);
+                if (!user.verified) {
+                    return res.status(403).json({ error: true, message: "Please verify your email to login." });
+                }
+                console.log(`Redirecting ${username} to homepage`);
+                res.json({ error: false, redirect: `/homepage.html?username=${username}` });
+            } else {
+                console.log('Invalid password for username:', username);
+                return res.status(401).json({ error: true, message: "Invalid credentials. Please try again." });
+            }
+        } else {
+            console.log('Username not found:', username);
+            return res.status(401).json({ error: true, message: "Invalid credentials. Please try again." });
+        }
+    } catch (error) {
+        console.error('[Login Error]', error);
+        res.status(500).json({ error: true, message: "An error occurred during the login process. Please try again." });
+    }
+});
+
+/*
+router.post('/login', async (req, res) => {
+    console.log('Login endpoint hit with data:', req.body);
+    try {
+        const { username, password } = req.body;
+        console.log(username, password)
         const db = await connectToDatabase();
         const usersCollection = db.collection("users");
         const user = await usersCollection.findOne({ username });
@@ -103,21 +141,22 @@ router.post('/login', async (req, res) => {
 
             const passwordMatch = await bcrypt.compare(password, user.password);
             if (passwordMatch) {
+                if (user.verified){res.json({ error: false, redirect: `/homepage.html?username=${username}` });}
+                console.log("user verification status: ", user.verified);
                 if (!user.verified) {
                     return res.status(403).json({ error: true, message: "Please verify your email to login." });
                 }
-                res.json({ error: false, redirect: `/homepage.html?username=${username}` });
             } else {
                 return res.status(401).json({ error: true, message: "Invalid credentials. Please try again." });
             }
         } else {
-            return res.status(401).json({ error: true, message: "Invalid credentials. Please try again." });
+            return res.status(401).json({ error: true, message: "Invalid credentials. Please try again." }),  console.log("hit point");
         }
     } catch (error) {
         console.error('[Login Error]', error);
         res.status(500).json({ error: true, message: "An error occurred during the login process. Please try again." });
     }
-});
+}); */
 
 
 
