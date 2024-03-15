@@ -117,6 +117,9 @@ body, html {
     display:
 block;
 }
+.form.register.active {
+    display: block !important; /* Force display to block */
+}
 
 /* Additional styling for responsiveness */
 @media (max-width: 768px) {

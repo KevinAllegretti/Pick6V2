@@ -5,6 +5,7 @@ import path from 'path';
 import picksRoutes from '../src/routes/picksRoutes'; 
 import bodyParser from 'body-parser';
 
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -19,13 +20,11 @@ require('dotenv').config();
 app.use(express.static('public/logos/'));
 // 2. Logging middleware
 app.use((req: Request, res: Response, next: NextFunction) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
 
 // Middleware for logging incoming requests
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`, req.body);
   next();
 });
 

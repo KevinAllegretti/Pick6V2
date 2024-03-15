@@ -17,12 +17,10 @@ require('dotenv').config();
 app.use(express_1.default.static('public/logos/'));
 // 2. Logging middleware
 app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     next();
 });
 // Middleware for logging incoming requests
 app.use((req, res, next) => {
-    console.log(`${req.method} ${req.url}`, req.body);
     next();
 });
 // 3. Body parser

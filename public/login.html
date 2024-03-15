@@ -30,9 +30,10 @@
                             <span>Don't have an account? <a href="#" id="show-register">Register here</a></span>
                         </div>
                     </div>
-                    <div class="form register" id="registration-container">
+                    <!-- Registration Form -->
+                    <div class="form register" id="registration-container" style="display:none;">
                         <span class="title">Register</span>
-                        <form action="/users/register" method="post">
+                        <form id="registration-form"> <!-- Updated to use id for JS targeting -->
                             <div class="input-field">
                                 <input type="text" name="username" placeholder="Username" required>
                             </div>
