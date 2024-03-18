@@ -11,22 +11,53 @@
 </head>
 <body>
 
-    <div class="digital-clock-container">
-        <div id="countdownDisplay" class="digital-clock">
-          <!-- Countdown will be injected here -->
-        </div>
-      </div>
-      
     <div class="containerbutton">
+
+        <div class="profile-icon-container">
+            <img src="\Test.png" alt="User Profile" id="profileIcon" class="profile-icon" />
+        </div>
+
+
+
+
+        <div id="slideOutPanel" class="slide-out-panel">
+            <!-- Panel Content Here -->
+            <div class="panel-content">
+
+                <button id="closePanelBtn" class="close-panel-btn">&times;</button>
+                <!-- Add other account customization options here -->
+
+                 <!-- Centered Profile Icon Inside the Slide-out Panel -->
+                <div class="profile-icon-container-center">
+                    <img src="\Test.png" alt="User Profile" class="profile-icon-center" />
+                </div>
+
+
+                <div class="account-options">
+                    <div class="option">
+                        <label for="displayName">Display Name:</label>
+                        <input type="text" id="displayName" name="displayName" />
+                    </div>
+                    <div class="option">
+                        <label for="profilePic">Profile Picture:</label>
+                        <input type="file" id="profilePic" name="profilePic" />
+                    </div>
+                    <!-- Add more options as needed -->
+                </div>
+            </div>
+        </div>
         <!-- ... possibly your list of teams or player cards ... -->
         <a href="rules.html" class="rules-button">View Rules</a>
         <a href="standings.html" class="rules-button">View Standings</a>
     </div>
+
     <div class="container">
         <div class="neon-sign">
             PLAYOFF WEEK 2
         </div>
-        
+        <!-- Slide-Out Panel -->
+
+
         <div class="players">
             
                 <!-- TheDiggler -->
@@ -92,5 +123,6 @@
     });
     </script>
     <script src="homepage.js"></script>
+
 </body>
 </html>

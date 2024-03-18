@@ -107,28 +107,3 @@ document.addEventListener('DOMContentLoaded', (event) => {
         alert('Your account has been successfully verified. Please log in.');
     }
 });
-
-
-/*
-document.getElementById('registration-form').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const formData = new FormData(this);
-    fetch('/users/register', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.text())
-    .then(data => {
-        if (data.startsWith('User Already Exist')) {
-            alert(data);
-        } else if (data.startsWith('User created successfully')) {
-            alert(data);
-        } else {
-            alert('An error occurred during the registration process. Please try again.');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred during the registration process. Please try again.');
-    });
-});*/

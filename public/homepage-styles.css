@@ -28,6 +28,80 @@ body {
     margin: 0 10px; /* This adds a margin to the left and right of each button */
 }
 
+.profile-icon-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 50px; /* Adjust the size as needed */
+    height: 50px;
+    border-radius: 50%;
+    box-shadow: 0 0 5px #0af, 0 0 10px #0af, 0 0 15px #0af; /* This creates the neon glow */
+    cursor: pointer;
+    z-index: 100; /* Make sure it's above other elements */
+  }
+  
+  .profile-icon {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover; /* This ensures the image covers the area without being stretched */
+}
+
+
+/* Styles for the profile icon inside the slide-out panel */
+.profile-icon-container-center {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    margin-top: 20px; /* Add some space from the top of the panel */
+}
+
+.profile-icon-center {
+    width: 120px; /* Larger than the one on the homepage */
+    height: 120px; /* Keep the aspect ratio the same */
+    border-radius: 50%; /* Circular shape */
+    box-shadow: 0 0 5px #0af, 0 0 10px #0af, 0 0 15px #0af; /* Neon glow */
+    object-fit: cover;
+    border: 3px solid #33d9ff; /* Light blue border, made slightly thicker */
+    cursor: pointer; /* Optional: if you want it to indicate it's clickable */
+    background-color: #0a0f22; /* Dark blue background, to match the slide-out panel */
+}
+
+
+.slide-out-panel {
+    position: fixed;
+    top: 0;
+    left: -100%; /* Start off-screen to the left */
+    width: 35%; /* Takes up half the screen width */
+    height: 100%; /* Full screen height */
+    background-color: #191e35; /* Dark background */
+    border-right: 2px solid #33d9ff; /* Neon blue border */
+    box-shadow: 5px 0 10px rgba(0, 0, 0, 0.5); /* Soft shadow to the right */
+    overflow-y: auto; /* In case the content overflows */
+    transition: left 0.3s ease-out; /* Smooth slide-in transition */
+    z-index: 100; /* Above everything except the profile icon */
+}
+
+.slide-out-panel.visible {
+    left: 0; /* Slide in from the left */
+}
+
+
+.close-panel-btn {
+    font-size: 1.5rem;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+.panel-content {
+    padding: 20px;
+}
+
+.account-options .option {
+    margin-bottom: 10px;
+}
+
 h1 {
    /* -webkit-text-stroke: 3px rgb(255, 255, 255); /* Add a 1px black stroke */
     text-shadow: none; /* Optionally, remove the text shadow if it's not needed */
@@ -176,35 +250,7 @@ h2 {
     transform: translateX(-50%) rotate(45deg); /* Rotate by 45 degrees */
 }
 
-/* Digital Clock Container */
-.digital-clock-container {
-    display: flex;
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
-  }
-  
-  /* Digital Clock Styling */
-  .digital-clock {
-    font-family: 'Orbitron', sans-serif;
-    color: #ffffff; /* Change text color to white */
-    background: #333333; /* Dark background for contrast */
-    padding: 10px 20px;
-    border-radius: 5px; /* Smoother border radius */
-    text-align: center;
-    font-size: 1.5em;
-    letter-spacing: 2px;
-    box-shadow: 0px 0px 10px #222222; /* Softer shadow for depth */
-    border: 1px solid #444444; /* Subtle border color */
-  }
-  
-  /* You can add media queries as needed for responsiveness */
-  @media (max-width: 600px) {
-    .digital-clock {
-      font-size: 1em;
-      padding: 5px 10px;
-    }
-  }
-  
+
   
   /* Initial State */
 .player-card, .digital-clock, .neon-sign, .rules-button {

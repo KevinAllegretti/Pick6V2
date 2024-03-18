@@ -1,68 +1,5 @@
 
-    const now = new Date();
-    let thursdayDeadline = new Date(now);
-    thursdayDeadline.setDate(now.getDate() + ((4 + 7 - now.getDay()) % 7));
-    thursdayDeadline.setHours(19, 0, 0, 0); // 7 PM EST
-    thursdayDeadline.setMinutes(thursdayDeadline.getMinutes() + thursdayDeadline.getTimezoneOffset());
-    thursdayDeadline.setHours(thursdayDeadline.getHours() - 5); // Convert UTC to EST (UTC-5)
-
-    // Define the end time for Tuesday 12 AM EST
-    let tuesdayEndTime = new Date(now);
-    tuesdayEndTime.setDate(now.getDate() + ((2 + 7 - now.getDay()) % 7));
-    tuesdayEndTime.setHours(0, 0, 0, 0); // 12 AM EST
-    tuesdayEndTime.setMinutes(tuesdayEndTime.getMinutes() + tuesdayEndTime.getTimezoneOffset());
-    tuesdayEndTime.setHours(tuesdayEndTime.getHours() - 5); // Convert UTC to EST (UTC-5)
-    
-    function getLastThursday() {
-        var now = new Date();
-        var dayOfWeek = now.getDay(); // Day of the week (0 is Sunday)
-        var daysSinceThursday;
-    
-        // If it's Thursday, determine whether it's before or after 7 PM
-        if (dayOfWeek === 4) {
-            now.setMinutes(now.getMinutes() + now.getTimezoneOffset()); // Convert to UTC
-            now.setHours(now.getHours() - 5); // Assuming Eastern Standard Time (EST)
-            now.setHours(19, 0, 0, 0); // Set to 7 PM on the current day
-    
-            var sevenPM = new Date(now);
-            now = new Date(); // Reset to the current time
-            
-            if (now >= sevenPM) {
-                // If it's past 7 PM, today is "last Thursday"
-                daysSinceThursday = 0;
-            } else {
-                // If it's before 7 PM, last Thursday was 7 days ago
-                daysSinceThursday = 7;
-            }
-        } else {
-            // If it's not Thursday, calculate the days since last Thursday
-            daysSinceThursday = dayOfWeek > 4 ? dayOfWeek - 4 : 7 - (4 - dayOfWeek);
-        }
-    
-        // Calculate last Thursday date by subtracting the days since last Thursday
-        var lastThursday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysSinceThursday);
-        lastThursday.setHours(19, 0, 0, 0); // Set to 7 PM
-    
-        // Adjust for daylight saving time in Eastern Time if needed
-        if (isDstObserved(lastThursday)) {
-            lastThursday.setHours(lastThursday.getHours() + 1); // EDT is UTC-4
-        }
-    
-        return lastThursday;
-    }
-    
-    // Helper function to check if DST is observed on the given date in Eastern Time
-    function isDstObserved(date) {
-        var jan = new Date(date.getFullYear(), 0, 1);
-        var jul = new Date(date.getFullYear(), 6, 1);
-        return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset()) > date.getTimezoneOffset();
-    }
-    
-    var lastThursdayDate = getLastThursday();
-    console.log(lastThursdayDate); // This will log the last Thursday at 7 PM EST/EDT
-    
-      
-document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
     // Handling username and redirection
     const urlParams = new URLSearchParams(window.location.search);
     const username = urlParams.get('username');
@@ -114,82 +51,44 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log("Logged in user:", loggedInUsername);
 
 
+    //PROFILE AND SLIDE
+    const profileIcon = document.getElementById('profileIcon');
+    const slideOutPanel = document.getElementById('slideOutPanel');
+    const closePanelBtn = document.getElementById('closePanelBtn');
 
- // Function to calculate time remaining until next Thursday at 7 PM EST/EDT
- function getTimeRemaining() {
-    const now = new Date();
+    
+    profileIcon.addEventListener('click', () => {
+        console.log('Profile icon clicked'); // Log on click
+        slideOutPanel.classList.add('visible'); // Show the slide-out panel
+    });
 
-    // Set the target time to 7 PM EST Thursday
-    let targetTime = new Date(now);
-    targetTime.setDate(now.getDate() + ((4 + 7 - now.getDay()) % 7));
-    targetTime.setHours(19, 0, 0, 0); // 7 PM EST
-    targetTime.setMinutes(targetTime.getMinutes() + targetTime.getTimezoneOffset()); // Convert to UTC
-    targetTime.setHours(targetTime.getHours() - 5); // Convert UTC to EST (UTC-5)
+    closePanelBtn.addEventListener('click', () => {
+        slideOutPanel.classList.remove('visible'); // Hide the slide-out panel
 
-    // Determine if it's Daylight Saving Time in Eastern Time Zone
-    const isDst = now.dst();
-    if (isDst) {
-        targetTime.setHours(targetTime.getHours() + 1); // Adjust for EDT (UTC-4)
-    }
-
-    // Calculate the time remaining until the target time
-    const total = targetTime - now;
-    const seconds = Math.floor((total / 1000) % 60);
-    const minutes = Math.floor((total / 1000 / 60) % 60);
-    const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
-    const days = Math.floor(total / (1000 * 60 * 60 * 24));
-
-    return {
-        total,
-        days,
-        hours,
-        minutes,
-        seconds
-    };
-}
-
-// Add a method to Date.prototype to determine if DST is in effect
-Date.prototype.dst = function() {
-    const jan = new Date(this.getFullYear(), 0, 1).getTimezoneOffset();
-    const jul = new Date(this.getFullYear(), 6, 1).getTimezoneOffset();
-    return Math.max(jan, jul) != this.getTimezoneOffset();    
-};
-
-let timeInterval; // Declare this at the top of your script or outside your functions
-
-function initializeCountdown() {
-    const countdownDisplay = document.getElementById('countdownDisplay');
-
-    function updateCountdown() {
-        const t = getTimeRemaining();
-
-        countdownDisplay.innerHTML = 
-            'Time until Pick deadline: ' +
-            `${t.days} days: ` +
-            `${t.hours} hours: ` +
-            `${t.minutes} minutes: ` +
-            `${t.seconds} seconds`;
-
-        // If countdown finished, stop updating
-        if (t.total <= 0) {
-            clearInterval(timeInterval);
-            countdownDisplay.innerHTML = 'Deadline passed!';
+    });
+    
+    document.addEventListener('click', (event) => {
+        const withinBoundaries = event.composedPath().includes(slideOutPanel);
+        const clickedOnProfileIcon = event.composedPath().includes(profileIcon);
+    
+        if (!withinBoundaries && !clickedOnProfileIcon && slideOutPanel.classList.contains('visible')) {
+            slideOutPanel.classList.remove('visible');
         }
-    }
+    });
+    
+    profileIcon.addEventListener('click', (event) => {
+        event.stopPropagation(); // Prevent the click from propagating to the document
+        slideOutPanel.classList.add('visible');
+    });
+    
+    slideOutPanel.addEventListener('click', (event) => {
+        event.stopPropagation(); // Prevent the click from propagating to the document
+    });
+    
+      
 
-    // Update the countdown every second
-    updateCountdown(); // Run once immediately
-    timeInterval = setInterval(updateCountdown, 1000);
-}
-
-// The rest of your script...
 
 
-  
-  // Call initializeCountdown somewhere in your code when you want to start the timer
-  // For example, in a window.onload or document.addEventListener('DOMContentLoaded', ...) handler
-  initializeCountdown();
-  
 
     const cards = document.querySelectorAll('.player-card');
     cards.forEach(card => {
@@ -199,24 +98,23 @@ function initializeCountdown() {
             
             //comment out during play time
      
-            if ((now > thursdayDeadline && now < tuesdayEndTime && cardUsername && cardUsername === loggedInUsername)) {
+            //if ((now > thursdayDeadline && now < tuesdayEndTime && cardUsername && cardUsername === loggedInUsername)) {
                 console.log("Redirecting to dashboard");
                 window.location.href = `/dashboard?username=${cardUsername}`;
-            }
+           /* }
             else{
                 console.log("Cannot access selection page during game hours");
-            }
+            } */
         
         });
     });
     
+    tuesdayEndTime = 5;
+    now = 4;
+    thursdayDeadline = 6;
 
 
     async function pickWindowPlayerCard(){
-
-        console.log(tuesdayEndTime);
-        console.log(thursdayDeadline);
-        console.log(now);
         if (now > thursdayDeadline && now < tuesdayEndTime){
             const loggedInUsername = localStorage.getItem('username');
             const userCard = document.querySelector(`.player-card[data-username="${loggedInUsername}"]`);
