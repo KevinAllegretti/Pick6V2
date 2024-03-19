@@ -18,11 +18,13 @@ app.use(express.urlencoded({ extended: true }));
 require('dotenv').config();
 
 app.use(express.static('public/logos/'));
-// 2. Logging middleware
+
+// 2. Logging middleware\
+/*
 app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
-
+*/
 // Middleware for logging incoming requests
 app.use((req, res, next) => {
   next();
@@ -62,5 +64,51 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
+const session = require('express-session');
+const mongoose = require('mongoose');
+const MongoDBSession = require('connect-mongodb-session')(session);
+
+
+const mongoURI = 'mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/sessions'
+
+mongoose
+  .connect(mongoURI)
+  .then(() => {
+    console.log("MongoDB connected");
+  })
+  .catch(err => console.log(err)); // It's important to catch any errors here
+
+const store = new MongoDBSession({
+  uri: mongoURI,
+  collection: "mySessions",
+})
+
+app.use(session({
+  secret: 'your secret key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: 'auto' }, // 'auto' will secure cookies if the site is accessed over HTTPS
+  store: store,
+}));
+
+app.get('/', (req, res) => {
+  req.session.isAuth = true;
+})
+/*
+app.post('/login', (req, res) => {
+  // ... after successful login:
+  req.session.username = req.body.username; // Store the username in the session
+  res.redirect('/homepage');
+});
+
+app.get('/homepage', (req, res) => {
+  if (req.session.username) {
+    // The user is logged in, proceed with serving the homepage
+  } else {
+    // The user is not logged in, redirect to the login page
+    res.redirect('/login');
+  }
+});
+*/
 
 export default app;
