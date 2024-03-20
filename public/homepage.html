@@ -31,17 +31,19 @@
               <!-- Begin form for profile updates -->
               <form id="profileForm" action="/profile/uploadProfilePicture" method="post" enctype="multipart/form-data">
                 <div class="account-options">
-                  <div class="option">
-                    <label for="displayName">Display Name:</label>
-                    <input type="text" id="displayName" name="displayName" />
-                  </div>
-                  <div class="option">
-                    <label for="profilePic">Profile Picture:</label>
-                    <input type="file" id="profilePic" name="profilePic" />
-                  </div>
+                    
+                    <div class="welcome-message">
+                       <span id="displayName" class="neon-text"></span>
+                    </div>
+
+
+                    <label for="profilePic" class="custom-file-upload">
+                        <i class="fa fa-cloud-upload"></i> Upload Profile Picture
+                    </label>
+
+                    <input type="file" id="profilePic" name="profilePic" style="display: none;"/>
+                    
           
-                  <!-- Upload Button -->
-                  <button type="button" id="uploadButton" class="upload-btn">Upload Picture</button>
                 </div>
               </form>
             </div>

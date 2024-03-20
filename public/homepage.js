@@ -84,41 +84,50 @@ document.addEventListener('DOMContentLoaded', function() {
         event.stopPropagation(); // Prevent the click from propagating to the document
     });
     
-    //gets user profile
-    window.addEventListener('load', async () => {
-        // Rest of your load event code...
-      
-        const username = localStorage.getItem('username').toLowerCase(); // Get the username from local storage
-      
-        try {
-          // Fetch user data from the server
-          const response = await fetch(`/api/getUserProfile/${username}`); // Make sure to create this GET endpoint on your server
-          const userData = await response.json();
-      
-          if (response.ok) {
-            // Set the user's profile image if it exists
-            if (userData.profilePicture) {
-              document.querySelector('.profile-icon').src = userData.profilePicture;
-              document.querySelector('.profile-icon-center').src = userData.profilePicture;
-            }
-          } else {
-            throw new Error('Could not fetch user data');
-          }
-        } catch (error) {
-          console.error('Error fetching user data:', error);
+
+    window.addEventListener('load', () => {
+        const storedUsername = localStorage.getItem('username');
+        if (storedUsername) {
+            document.getElementById('displayName').textContent = storedUsername;
         }
-      });
+    });
+    
+  // Gets user profile
+window.addEventListener('load', async () => {
+    // Rest of your load event code...
+
+    const username = localStorage.getItem('username').toLowerCase(); // Get the username from local storage
+
+    try {
+        // Fetch user data from the server
+        const response = await fetch(`/api/getUserProfile/${username}`);
+        if (!response.ok) {
+            throw new Error('Network response was not ok.');
+        }
+        const userData = await response.json();
+
+        // Set the user's profile image if it exists, otherwise set to default
+        const profilePicSrc = userData.profilePicture || 'Default.png';
+        document.querySelector('.profile-icon').src = profilePicSrc;
+        document.querySelector('.profile-icon-center').src = profilePicSrc;
+    } catch (error) {
+        console.error('Error fetching user data:', error);
+        // Set to default image in case of an error
+        document.querySelector('.profile-icon').src = 'Default.png';
+        document.querySelector('.profile-icon-center').src = 'Default.png';
+    }
+});
+
     
     // Add event listener for file input to handle the upload
-    document.getElementById('uploadButton').addEventListener('click', async () => {
-        const fileInput = document.getElementById('profilePic');
+    document.getElementById('profilePic').addEventListener('change', async (event) => {
+        const fileInput = event.target;
         const file = fileInput.files[0];
     
         if (file) {
-            // Create a FormData object and append the file
             const formData = new FormData();
             formData.append('profilePic', file);
-            formData.append('username', localStorage.getItem('username').toLowerCase()); // Get the username from local storage
+            formData.append('username', localStorage.getItem('username').toLowerCase());
     
             try {
                 // Make the request to the server
@@ -131,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error('Network response was not ok.');
                 }
     
-                const result = await response.json(); // Parse the body stream as JSON
+                const result = await response.json();
     
                 // Upload was successful
                 console.log(result.message);

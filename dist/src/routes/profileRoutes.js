@@ -58,7 +58,7 @@ router.get('/api/getUserProfile/:username', async (req, res) => {
         if (!user) {
             return res.status(404).send({ message: 'User not found.' });
         }
-        res.json({ profilePicture: user.profilePicture }); // Send the profile picture URL back to the client
+        res.json({ profilePicture: user.profilePicture || 'Default.png' }); // Send the profile picture URL back to the client
     }
     catch (error) {
         console.error('Error getting user profile:', error);

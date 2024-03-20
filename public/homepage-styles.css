@@ -102,6 +102,68 @@ body {
     margin-bottom: 10px;
 }
 
+
+.custom-file-upload {
+    padding: 10px 15px;
+    background-color: #00BFFF; /* Neon blue */
+    border: 2px solid #00BFFF;
+    border-radius: 5px;
+    color: #111;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    text-align: center;
+    display: block; /* Makes it a block element */
+    width: max-content; /* Only as wide as it needs to be */
+    margin: 20px auto; /* Centers it in the side panel */
+    text-decoration: none; /* Removes underline text */
+}
+
+.custom-file-upload:hover {
+    background-color: #0099CC; /* A slightly darker neon blue */
+    color: #FFF;
+}
+
+/* Hide the file input visually but remain accessible to screen readers. */
+/* Source: https://www.scottohara.me/blog/2017/04/14/inclusively-hidden.html */
+input[type="file"] {
+    border: 0;
+    clip: rect(0, 0, 0, 0);
+    height: 1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+}
+
+.welcome-message {
+    text-align: center; /* Center the text horizontally */
+    font-size: 24px; /* Increase font size or adjust as needed */
+    margin: 20px 0; /* Add some margin around the text for spacing */
+}
+
+.neon-text {
+    color: #00BFFF; /* Light neon blue */
+    font-weight: bold;
+    text-shadow:
+        0 0 5px #00BFFF,
+        0 0 10px #00BFFF,
+        0 0 20px #00BFFF,
+        0 0 40px #00BFFF,
+        0 0 80px #00BFFF; /* Glowing effect */
+    transition: text-shadow 0.3s ease-in-out;
+}
+
+.neon-text:hover {
+    text-shadow:
+        0 0 10px #00BFFF,
+        0 0 20px #00BFFF,
+        0 0 30px #00BFFF,
+        0 0 40px #00BFFF,
+        0 0 90px #00BFFF; /* Enhanced glowing effect on hover */
+}
+
 h1 {
    /* -webkit-text-stroke: 3px rgb(255, 255, 255); /* Add a 1px black stroke */
     text-shadow: none; /* Optionally, remove the text shadow if it's not needed */
