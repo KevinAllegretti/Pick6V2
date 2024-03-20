@@ -8,6 +8,7 @@ const userRoutes_1 = __importDefault(require("../src/routes/userRoutes"));
 const path_1 = __importDefault(require("path"));
 const picksRoutes_1 = __importDefault(require("../src/routes/picksRoutes"));
 const body_parser_1 = __importDefault(require("body-parser"));
+const profileRoutes_1 = __importDefault(require("../src/routes/profileRoutes"));
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
 // 1. Middleware to parse JSON
@@ -41,6 +42,8 @@ app.get('/dashboard', (req, res) => {
     res.sendFile(path_1.default.join(__dirname, '../public/dashboard.html'));
 });
 app.use(picksRoutes_1.default);
+app.use(profileRoutes_1.default);
+app.use('/uploads', express_1.default.static('uploads'));
 // 6. Serve static files
 app.use(express_1.default.static(path_1.default.join(__dirname, '../public')));
 // Start the server
@@ -54,7 +57,6 @@ const mongoURI = 'mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net
 mongoose
     .connect(mongoURI)
     .then(() => {
-    console.log("MongoDB connected");
 })
     .catch(err => console.log(err)); // It's important to catch any errors here
 const store = new MongoDBSession({
@@ -69,7 +71,7 @@ app.use(session({
     store: store,
 }));
 app.get('/', (req, res) => {
-    req.session.isAuth = true;
+    // req.session.isAuth = true;
 });
 /*
 app.post('/login', (req, res) => {

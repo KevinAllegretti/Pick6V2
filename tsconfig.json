@@ -9,6 +9,8 @@
       "noImplicitAny": false,
     },
     "moduleResolution": "node",
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "types": ["types.d.ts"],
     "include": ["src/**/*", "api/**/*", "types.d.ts"],
     "exclude": ["node_modules"]
   }

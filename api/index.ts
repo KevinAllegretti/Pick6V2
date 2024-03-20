@@ -4,6 +4,7 @@ import userRoutes from '../src/routes/userRoutes';
 import path from 'path';
 import picksRoutes from '../src/routes/picksRoutes'; 
 import bodyParser from 'body-parser';
+import profileRoutes from '../src/routes/profileRoutes';
 
 
 const app = express();
@@ -56,6 +57,10 @@ app.get('/dashboard', (req, res) => {
 
 app.use(picksRoutes);
 
+app.use(profileRoutes);
+
+app.use('/uploads', express.static('uploads'));
+
 // 6. Serve static files
 app.use(express.static(path.join(__dirname, '../public')));
 
@@ -74,7 +79,6 @@ const mongoURI = 'mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net
 mongoose
   .connect(mongoURI)
   .then(() => {
-    console.log("MongoDB connected");
   })
   .catch(err => console.log(err)); // It's important to catch any errors here
 
@@ -92,7 +96,7 @@ app.use(session({
 }));
 
 app.get('/', (req, res) => {
-  req.session.isAuth = true;
+// req.session.isAuth = true;
 })
 /*
 app.post('/login', (req, res) => {

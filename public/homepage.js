@@ -1,5 +1,5 @@
 
-    document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     // Handling username and redirection
     const urlParams = new URLSearchParams(window.location.search);
     const username = urlParams.get('username');
@@ -50,7 +50,6 @@
     console.log("Script is loaded!");
     console.log("Logged in user:", loggedInUsername);
 
-
     //PROFILE AND SLIDE
     const profileIcon = document.getElementById('profileIcon');
     const slideOutPanel = document.getElementById('slideOutPanel');
@@ -85,8 +84,69 @@
         event.stopPropagation(); // Prevent the click from propagating to the document
     });
     
+    //gets user profile
+    window.addEventListener('load', async () => {
+        // Rest of your load event code...
       
-
+        const username = localStorage.getItem('username').toLowerCase(); // Get the username from local storage
+      
+        try {
+          // Fetch user data from the server
+          const response = await fetch(`/api/getUserProfile/${username}`); // Make sure to create this GET endpoint on your server
+          const userData = await response.json();
+      
+          if (response.ok) {
+            // Set the user's profile image if it exists
+            if (userData.profilePicture) {
+              document.querySelector('.profile-icon').src = userData.profilePicture;
+              document.querySelector('.profile-icon-center').src = userData.profilePicture;
+            }
+          } else {
+            throw new Error('Could not fetch user data');
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      });
+    
+    // Add event listener for file input to handle the upload
+    document.getElementById('uploadButton').addEventListener('click', async () => {
+        const fileInput = document.getElementById('profilePic');
+        const file = fileInput.files[0];
+    
+        if (file) {
+            // Create a FormData object and append the file
+            const formData = new FormData();
+            formData.append('profilePic', file);
+            formData.append('username', localStorage.getItem('username')); // Get the username from local storage
+    
+            try {
+                // Make the request to the server
+                const response = await fetch('/api/uploadProfilePicture', {
+                    method: 'POST',
+                    body: formData, // Send the form data
+                });
+    
+                if (!response.ok) {
+                    throw new Error('Network response was not ok.');
+                }
+    
+                const result = await response.json(); // Parse the body stream as JSON
+    
+                // Upload was successful
+                console.log(result.message);
+                // Update the profile picture on the page
+                document.querySelector('.profile-icon').src = result.filePath;
+                document.querySelector('.profile-icon-center').src = result.filePath;
+    
+            } catch (error) {
+                console.error('Upload error:', error);
+            }
+        } else {
+            console.log('No file selected.');
+        }
+    });
+    
 
 
 

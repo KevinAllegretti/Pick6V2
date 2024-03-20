@@ -1,5 +1,7 @@
+import session = require("express-session");
+
 declare module 'express-session' {
-    interface SessionData {
+    export interface SessionData {
       username?: string; // Add other custom session properties here if needed
       isAuth?: boolean;
     }
