@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Create a FormData object and append the file
             const formData = new FormData();
             formData.append('profilePic', file);
-            formData.append('username', localStorage.getItem('username')); // Get the username from local storage
+            formData.append('username', localStorage.getItem('username').toLowerCase()); // Get the username from local storage
     
             try {
                 // Make the request to the server
