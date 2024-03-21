@@ -57,7 +57,7 @@ router.post('/register', async (req, res) => {
         await sgMail.send(msg);
 
         // Log and respond with success
-        console.log('[Email Attempt] Email sent successfully to:', email);
+     //   console.log('[Email Attempt] Email sent successfully to:', email);
         res.status(201).json({ error: false, message: "User created successfully. Please check your email to verify your account." });
         
     } catch (error: any) {
@@ -65,7 +65,7 @@ router.post('/register', async (req, res) => {
           // This is the error code for duplicate key violation (i.e., username not unique)
           return res.status(409).send("Username is already taken.");
         }
-        console.error('[Registration Error]', error);
+     //   console.error('[Registration Error]', error);
         res.status(500).json({ message: "Internal Server Error", type: "error" });
       }
     });
@@ -83,10 +83,10 @@ router.get('/verify/:token', async (req, res) => {
         }
 
         await usersCollection.updateOne({ _id: user._id }, { $set: { verified: true }, $unset: { verificationToken: "" } });
-        console.log(`[Email Verification] User verified: ${user.username}`);
+       // console.log(`[Email Verification] User verified: ${user.username}`);
         res.redirect('/login.html?verified=true');
     } catch (error) {
-        console.error('[Email Verification Error]', error);
+      //  console.error('[Email Verification Error]', error);
         res.redirect('/login.html?verified=error');
     }
 });
@@ -95,34 +95,34 @@ router.post('/login', async (req, res) => {
     console.log('Login endpoint hit with data:', req.body);
     try {
         const { username, password } = req.body;
-        console.log('Attempting login with', { username, password });
+       // console.log('Attempting login with', { username, password });
 
         const db = await connectToDatabase();
         const usersCollection = db.collection("users");
         const user = await usersCollection.findOne({ username: username.toLowerCase() }); // Lowercase the username
 
-        console.log('User found:', user);
+       // console.log('User found:', user);
 
         if (user) {
             const passwordMatch = await bcrypt.compare(password, user.password);
             console.log('Password match:', passwordMatch);
             if (passwordMatch) {
-                console.log('User verified:', user.verified);
+                //console.log('User verified:', user.verified);
                 if (!user.verified) {
                     return res.status(403).json({ error: true, message: "Please verify your email to login." });
                 }
-                console.log(`Redirecting ${username} to homepage`);
+              //  console.log(`Redirecting ${username} to homepage`);
                 res.json({ error: false, redirect: `/homepage.html?username=${username}` });
             } else {
-                console.log('Invalid password for username:', username);
+             //   console.log('Invalid password for username:', username);
                 return res.status(401).json({ error: true, message: "Invalid credentials. Please try again." });
             }
         } else {
-            console.log('Username not found:', username);
+         //   console.log('Username not found:', username);
             return res.status(401).json({ error: true, message: "Invalid credentials. Please try again." });
         }
     } catch (error) {
-        console.error('[Login Error]', error);
+      //  console.error('[Login Error]', error);
         res.status(500).json({ error: true, message: "An error occurred during the login process. Please try again." });
     }
 });

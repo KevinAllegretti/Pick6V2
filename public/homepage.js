@@ -92,31 +92,31 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-  // Gets user profile
-window.addEventListener('load', async () => {
-    // Rest of your load event code...
+    // Gets user profile
+    window.addEventListener('load', async () => {
+        // Rest of your load event code...
 
-    const username = localStorage.getItem('username').toLowerCase(); // Get the username from local storage
+        const username = localStorage.getItem('username').toLowerCase(); // Get the username from local storage
 
-    try {
-        // Fetch user data from the server
-        const response = await fetch(`/api/getUserProfile/${username}`);
-        if (!response.ok) {
-            throw new Error('Network response was not ok.');
+        try {
+            // Fetch user data from the server
+            const response = await fetch(`/api/getUserProfile/${username}`);
+            if (!response.ok) {
+                throw new Error('Network response was not ok.');
+            }
+            const userData = await response.json();
+
+            // Set the user's profile image if it exists, otherwise set to default
+            const profilePicSrc = userData.profilePicture || 'Default.png';
+            document.querySelector('.profile-icon').src = profilePicSrc;
+            document.querySelector('.profile-icon-center').src = profilePicSrc;
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+            // Set to default image in case of an error
+            document.querySelector('.profile-icon').src = 'Default.png';
+            document.querySelector('.profile-icon-center').src = 'Default.png';
         }
-        const userData = await response.json();
-
-        // Set the user's profile image if it exists, otherwise set to default
-        const profilePicSrc = userData.profilePicture || 'Default.png';
-        document.querySelector('.profile-icon').src = profilePicSrc;
-        document.querySelector('.profile-icon-center').src = profilePicSrc;
-    } catch (error) {
-        console.error('Error fetching user data:', error);
-        // Set to default image in case of an error
-        document.querySelector('.profile-icon').src = 'Default.png';
-        document.querySelector('.profile-icon-center').src = 'Default.png';
-    }
-});
+    });
 
     
     // Add event listener for file input to handle the upload

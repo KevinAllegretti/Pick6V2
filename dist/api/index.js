@@ -9,6 +9,7 @@ const path_1 = __importDefault(require("path"));
 const picksRoutes_1 = __importDefault(require("../src/routes/picksRoutes"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const profileRoutes_1 = __importDefault(require("../src/routes/profileRoutes"));
+const poolRoutes_1 = __importDefault(require("../src/routes/poolRoutes"));
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
 // 1. Middleware to parse JSON
@@ -44,6 +45,7 @@ app.get('/dashboard', (req, res) => {
 app.use(picksRoutes_1.default);
 app.use(profileRoutes_1.default);
 app.use('/uploads', express_1.default.static('uploads'));
+app.use('/pools', poolRoutes_1.default);
 // 6. Serve static files
 app.use(express_1.default.static(path_1.default.join(__dirname, '../public')));
 // Start the server

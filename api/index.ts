@@ -5,7 +5,7 @@ import path from 'path';
 import picksRoutes from '../src/routes/picksRoutes'; 
 import bodyParser from 'body-parser';
 import profileRoutes from '../src/routes/profileRoutes';
-
+import poolRoutes from '../src/routes/poolRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -60,7 +60,7 @@ app.use(picksRoutes);
 app.use(profileRoutes);
 
 app.use('/uploads', express.static('uploads'));
-
+app.use('/pools', poolRoutes);
 // 6. Serve static files
 app.use(express.static(path.join(__dirname, '../public')));
 
