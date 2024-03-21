@@ -116,6 +116,21 @@
         </div>
     </div>
 
+    <form id="create-pool-form">
+        <input type="text" id="pool-name" placeholder="Pool Name" required />
+        <label for="is-private">Private Pool</label>
+        <input type="checkbox" id="is-private" />
+        <input type="password" id="pool-password" placeholder="Password" style="display: none;" />
+        <button type="submit">Create Pool</button>
+      </form>
+      
+      <script>
+        // Show the password field only if the pool is set to private
+        document.getElementById('is-private').addEventListener('change', function() {
+          document.getElementById('pool-password').style.display = this.checked ? 'block' : 'none';
+        });
+      </script>
+      
 <script>
     window.addEventListener('load', () => {
       document.querySelectorAll('.player-card, .digital-clock, .neon-sign, .rules-button').forEach(el => {

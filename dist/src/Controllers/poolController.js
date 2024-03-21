@@ -16,11 +16,14 @@ const findUserByUsername = async (username) => {
 };
 // Create a new pool
 const createPool = async (req, res) => {
+    console.log('Request to create pool received:', req.body);
     try {
         const { name, isPrivate, password, username } = req.body;
+        console.log(`Creating pool: ${name} by user: ${username}`);
         // Find the user by username
         const user = await findUserByUsername(username);
         if (!user) {
+            console.log('User not found:', username);
             return res.status(404).json({ message: 'User not found' });
         }
         let hashedPassword = null;
@@ -34,11 +37,14 @@ const createPool = async (req, res) => {
             password: hashedPassword,
             // members: initialized with admin as the first member if needed
         });
+        console.log('Pool object created:', newPool);
         // Save the new pool to the database
         await newPool.save();
+        console.log('Pool saved to database:', newPool);
         res.status(201).json({ message: 'Pool created successfully', pool: newPool });
     }
     catch (error) {
+        console.error('Error creating pool:', error);
         res.status(500).json({ message: 'Error creating pool', error });
     }
 };

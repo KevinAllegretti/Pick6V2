@@ -429,3 +429,51 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+document.getElementById('create-pool-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const poolName = document.getElementById('pool-name').value;
+    const isPrivate = document.getElementById('is-private').checked;
+    const poolPassword = document.getElementById('pool-password').value;
+    let username = localStorage.getItem('username'); // Assuming the username is stored in local storage
+
+    // Ensure username exists and convert it to lowercase
+    if (username) {
+        username = username.toLowerCase();
+    } else {
+        alert('Username not found. Please log in again.');
+        return; // Stop the function here
+    }
+
+    // Construct the request payload
+    const payload = {
+      name: poolName,
+      isPrivate: isPrivate,
+      username: username, // Include the username in lowercase
+      ...(isPrivate && poolPassword && { password: poolPassword }) // Include the password only if the pool is private and it's provided
+    };
+    
+    // Send the POST request with fetch
+    fetch('/pools/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data.message) {
+        alert(data.message); // Display a success message or handle as appropriate
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('An error occurred while creating the pool.'); // Display an error message or handle as appropriate
+    });
+});
