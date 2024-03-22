@@ -190,17 +190,6 @@ h1 {
     justify-content: space-around;
 }
 
-.player-card {
-    position: relative;
-    width: 220px;
-    border: 2px solid #33d9ff; /* Neon light blue border */
-    border-radius: 8px;
-    margin: 10px;
-    padding: 10px;
-    background-color: #17203a; /* A deep blue for card background */
-    box-shadow: 0px 0px 20px #33d9ff; /* Neon light blue shadow for depth */
-    transition: transform 0.2s, box-shadow 0.2s; /* Animation for hover */
-}
 
 
 @media (max-width: 768px) {
@@ -331,4 +320,76 @@ h2 {
     margin-right: 5px;
     margin-bottom: -5px;
     /* Add any other styling you need */
+}
+
+#main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centers children horizontally */
+    margin: 0 auto;
+    padding: 0; /* Remove padding that could affect centering */
+    width: 100%; /* Ensures full width */
+  }
+  
+  .pool-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Aligns children to the center */
+    width: 1150px; /* Gives a fixed width to the wrapper */
+    margin: 20px 0; /* Adds top and bottom margin */
+  }
+  
+  .pool-name {
+    text-align: left; /* Align text to the left */
+    width: 100%; /* Takes the full width of its parent */
+    margin-bottom: 5px; /* Space between pool name and container */
+  }
+  
+  .pool-container {
+    width: 100%; /* Takes the full width of its parent */
+    padding: 20px; /* Padding inside the container */
+    box-shadow: 0px 0px 10px #33d9ff;
+    border: 2px solid #33d9ff; /* Neon light blue border */
+    background-color: #17203a; /* Example background color */
+    color: #fff; /* Text color */
+    border-radius: 8px;
+    width: 1150px; /* Adjust this to control the width of the containers */
+    max-width: 1150px; /* Set a max-width for larger screens */
+    margin-bottom: 20px; /* Adds space between the pools */
+    text-align: left; /* Align text to the left */
+    transition: transform 0.2s, box-shadow 0.2s; /* Animation for hover */
+}
+
+
+.pool-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: #fff; /* White background for the header */
+    color: #000; /* Text color */
+    border-bottom: 2px solid #ccc; /* Separator line */
+}
+
+.pool-header span {
+    flex: 1; /* Distribute space evenly */
+    text-align: center;
+}
+
+/* You can assign specific flex values to give more space to certain fields if needed */
+.header-user {
+    flex: 2; /* Give the 'User' section more space */
+}
+.header-rank{
+    flex: .5
+}
+.player-card {
+    position: relative;
+    width: 220px;
+    border: 2px solid #33d9ff; /* Neon light blue border */
+    border-radius: 8px;
+    margin: 10px;
+    padding: 10px;
+    background-color: #17203a; /* A deep blue for card background */
+    box-shadow: 0px 0px 20px #33d9ff; /* Neon light blue shadow for depth */
+    transition: transform 0.2s, box-shadow 0.2s; /* Animation for hover */
 }

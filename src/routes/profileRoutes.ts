@@ -59,14 +59,14 @@ router.post('/api/uploadProfilePicture', upload.single('profilePic'), async (req
 router.get('/api/getUserProfile/:username', async (req, res) => {
  //   console.log(`Received request for user profile: ${req.params.username}`);
  //   console.log("params", req.params);
-console.log("body", req.body);
+//console.log("body", req.body);
 
     try {
       const db = await connectToDatabase();
       const usersCollection = db.collection('users');
       const username = req.params.username.toLowerCase();
       
-      console.log('Looking up user in database', username);
+      //console.log('Looking up user in database', username);
       const user = await usersCollection.findOne({ username });
       if (!user) {
         return res.status(404).send({ message: 'User not found.' });

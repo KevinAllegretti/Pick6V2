@@ -429,51 +429,151 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+document.getElementById('show-create-pool-form').addEventListener('click', function() {
+    const formContainer = document.getElementById('create-pool-form-container');
+    formContainer.style.display = formContainer.style.display === 'none' ? 'block' : 'none';
+});
+
+document.getElementById('is-private').addEventListener('change', function() {
+    const passwordInput = document.getElementById('pool-password');
+    const passwordLabel = document.querySelector('label[for="pool-password"]');
+    const displayStyle = this.checked ? 'block' : 'none';
+
+    passwordInput.style.display = displayStyle;
+    passwordLabel.style.display = displayStyle;
+});
+
 document.getElementById('create-pool-form').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    const poolName = document.getElementById('pool-name').value;
+    const poolName = document.getElementById('pool-name').value.trim();
     const isPrivate = document.getElementById('is-private').checked;
     const poolPassword = document.getElementById('pool-password').value;
-    let username = localStorage.getItem('username'); // Assuming the username is stored in local storage
+    let username = localStorage.getItem('username'); // Retrieve username from local storage
 
-    // Ensure username exists and convert it to lowercase
-    if (username) {
-        username = username.toLowerCase();
-    } else {
+    if (!username) {
         alert('Username not found. Please log in again.');
-        return; // Stop the function here
+        return;
     }
 
-    // Construct the request payload
+    username = username.toLowerCase(); // Ensure username is in lowercase
+
     const payload = {
       name: poolName,
       isPrivate: isPrivate,
-      username: username, // Include the username in lowercase
-      ...(isPrivate && poolPassword && { password: poolPassword }) // Include the password only if the pool is private and it's provided
+      username: username,
+      ...(isPrivate && { password: poolPassword })
     };
     
-    // Send the POST request with fetch
     fetch('/pools/create', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload)
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
     })
     .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      return response.json();
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
     })
     .then(data => {
-      if (data.message) {
-        alert(data.message); // Display a success message or handle as appropriate
-      }
+        if (data.message && data.pool) {
+            document.getElementById('create-pool-form-container').style.display = 'none';
+            displayNewPoolContainer(data.pool);
+            document.getElementById('pool-name').value = '';
+            document.getElementById('is-private').checked = false;
+            document.getElementById('pool-password').value = '';
+        }
     })
     .catch(error => {
-      console.error('Error:', error);
-      alert('An error occurred while creating the pool.'); // Display an error message or handle as appropriate
+        console.error('Error:', error);
+        alert('An error occurred while creating the pool.');
     });
 });
+
+
+function displayNewPoolContainer(pool) {
+    console.log(pool);
+    const poolContainerWrapper = document.getElementById('pool-container-wrapper');
+
+    // Create the pool wrapper
+    const poolWrapper = document.createElement('div');
+    poolWrapper.className = 'pool-wrapper';
+
+    // Create the pool name div
+    const poolNameDiv = document.createElement('div');
+    poolNameDiv.className = 'pool-name';
+    poolNameDiv.innerText = pool.name;
+
+    // Create the pool container
+    const poolContainer = document.createElement('div');
+    poolContainer.className = 'pool-container';
+
+    // Create and append the pool header to the pool container
+    const poolHeader = document.createElement('div');
+    poolHeader.className = 'pool-header';
+    poolHeader.innerHTML = `
+        <span class="header-rank">Rank</span>
+        <span class="header-user">User</span>
+        <span class="header-points">Points</span>
+        <span class="header-picks">Picks</span>
+        <span class="header-win">Win</span>
+        <span class="header-loss">Loss</span>
+        <span class="header-push">Push</span>
+    `;
+    poolContainer.appendChild(poolHeader);
+
+    // Add player rows to the pool container here...
+    // ...
+
+    // Append the pool name div and the pool container to the pool wrapper
+    poolWrapper.appendChild(poolNameDiv);
+    poolWrapper.appendChild(poolContainer);
+
+    // Append the pool wrapper to the main pool container wrapper
+    poolContainerWrapper.appendChild(poolWrapper);
+}
+
+
+function loadAndDisplayPools() {
+    fetch('/pools/get-all') // Make sure this endpoint exists and returns pool data
+        .then(response => response.json())
+        .then(pools => {
+            pools.forEach(pool => {
+                displayNewPoolContainer(pool); // Ensure this is the correct data structure
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching pools:', error);
+        });
+}
+
+// Initiate the pool loading when the page is ready.
+document.addEventListener('DOMContentLoaded', loadAndDisplayPools);
+
+function createPlayerRow(player, isAdmin) {
+    const playerRow = document.createElement('div');
+    playerRow.className = 'player-row';
+  
+    // Add an admin icon if the player is an admin
+    if (isAdmin) {
+      playerRow.classList.add('player-admin'); // Apply admin-specific styling
+      // Insert admin icon HTML here, if you have an icon
+    }
+  
+    // Populate player row with data
+    playerRow.innerHTML = `
+      <span class="player-rank">${player.rank}</span>
+      <div class="player-user">
+        <img class="player-profile-pic" src="${player.profilePic}" alt="${player.username}" />
+        <span class="player-name">${player.username}</span>
+      </div>
+      <span class="player-points">${player.points}</span>
+      <div class="player-picks">${player.picks}</div>
+      <span class="player-win">${player.wins}</span>
+      <span class="player-loss">${player.losses}</span>
+      <span class="player-push">${player.pushes}</span>
+    `;
+  
+    return playerRow;
+  }

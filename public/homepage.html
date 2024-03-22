@@ -115,14 +115,33 @@
            
         </div>
     </div>
+    <div id="main-content">
+        <!-- This button will trigger the form to display -->
+        <button id="show-create-pool-form">Create Pool</button>
 
-    <form id="create-pool-form">
-        <input type="text" id="pool-name" placeholder="Pool Name" required />
-        <label for="is-private">Private Pool</label>
-        <input type="checkbox" id="is-private" />
-        <input type="password" id="pool-password" placeholder="Password" style="display: none;" />
-        <button type="submit">Create Pool</button>
-      </form>
+        <div id="create-pool-form-container" style="display: none;">
+            <form id="create-pool-form">
+                <label for="pool-name">Pool Name:</label>
+                <input type="text" id="pool-name" name="poolName" required>
+        
+                <label for="is-private">Private Pool:</label>
+                <input type="checkbox" id="is-private" name="isPrivate">
+        
+                <label for="pool-password" style="display: none;">Password:</label>
+                <input type="password" id="pool-password" name="poolPassword" style="display: none;">
+        
+                <input type="submit" value="Create Pool">
+            </form>
+        </div>
+
+        <div id="pool-container-wrapper">
+            <!-- New pool containers will be added here -->
+        </div>
+    
+    </div>
+
+
+    
       
       <script>
         // Show the password field only if the pool is set to private
