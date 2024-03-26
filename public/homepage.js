@@ -638,6 +638,8 @@ function deletePool(poolName) {
         if (data.message) {
             console.log('Pool deleted successfully:', poolName);
             // Here you would also remove the pool from the UI
+             // Remove the pool from the UI
+
         }
     })
     .catch(error => {

@@ -17,7 +17,8 @@ const findUserByUsername = async (username) => {
 const createPool = async (req, res) => {
     console.log('Request to create pool received:', req.body);
     try {
-        const { name, adminUsername, isPrivate, password } = req.body;
+        let { name, adminUsername, isPrivate, password } = req.body;
+        name = name.toLowerCase();
         // Find the admin user by adminUsername
         const adminUser = await findUserByUsername(adminUsername);
         if (!adminUser) {
