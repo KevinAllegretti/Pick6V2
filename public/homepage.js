@@ -609,38 +609,38 @@ function createPlayerRow(player, isAdmin) {
   
     return playerRow;
   }
-
+  
+  
   function deletePool(poolId) {
-    // Confirm with the user before deleting the pool
     if (!confirm('Are you sure you want to delete this pool?')) {
-        return;
+      return;
     }
-
+  
     fetch(`/pools/delete/${poolId}`, {
-        method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-            'x-username': localStorage.getItem('username') // Send username for server-side verification
-        }
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-username': localStorage.getItem('username').toLowerCase() // Ensure username is lowercase
+      }
     })
     .then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to delete the pool.');
-        }
-        return response.json();
+      if (!response.ok) {
+        throw new Error(`Failed to delete the pool. Status: ${response.status}`);
+      }
+      return response.json();
     })
     .then(data => {
-        if (data.message) {
-            // Remove the pool container from the DOM
-            document.querySelector(`.pool-container[data-pool-id="${poolId}"]`).remove();
-            alert('Pool deleted successfully.');
-        }
+      if (data.message) {
+        document.querySelector(`.pool-container[data-pool-id="${poolId}"]`).remove();
+        alert('Pool deleted successfully.');
+      }
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while deleting the pool.');
+      console.error('Error:', error);
+      alert('An error occurred while deleting the pool.');
     });
-}
+  }
+  
 
 
   

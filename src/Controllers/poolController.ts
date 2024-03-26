@@ -31,6 +31,7 @@ export const createPool = async (req: Request, res: Response) => {
       hashedPassword = await bcrypt.hash(password, 10);
     }
 
+    
     const newPool = new Pool({
       name,
       admin: adminUser._id, // Set the admin to the adminUser's ObjectId
