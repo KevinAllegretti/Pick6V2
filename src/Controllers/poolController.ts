@@ -11,12 +11,18 @@ const findUserByUsername = async (username: string) => {
   const user = await usersCollection.findOne({ username: username.toLowerCase() });
   return user;
 };
-
 export const createPool = async (req: Request, res: Response) => {
   console.log('Request to create pool received:', req.body);
   try {
-    let { name, adminUsername, isPrivate, password } = req.body;
-    name = name.toLowerCase();
+    const { name, adminUsername, isPrivate, password } = req.body;
+
+    // Check if a pool with the same name already exists
+    const existingPool = await Pool.findOne({ name });
+    if (existingPool) {
+      console.log('A pool with this name already exists:', name);
+      return res.status(409).json({ message: 'Pool name already taken' });
+    }
+
     // Find the admin user by adminUsername
     const adminUser = await findUserByUsername(adminUsername);
     if (!adminUser) {
@@ -30,7 +36,6 @@ export const createPool = async (req: Request, res: Response) => {
     if (isPrivate && password) {
       hashedPassword = await bcrypt.hash(password, 10);
     }
-
     
     const newPool = new Pool({
       name,
@@ -40,14 +45,19 @@ export const createPool = async (req: Request, res: Response) => {
       password: hashedPassword,
     });
 
-    await newPool.save();
-    console.log('Pool saved to database:', newPool);
-    res.status(201).json({ message: 'Pool created successfully', pool: newPool });
-  } catch (error) {
+    const savedPool = await newPool.save();
+    console.log('Pool saved to database:', savedPool);
+    res.status(201).json({ message: 'Pool created successfully', pool: savedPool });
+  } catch (error: any) {
+    if (error.code === 11000) {
+      // This error code indicates a duplicate key error (i.e., a unique index has been violated)
+      return res.status(409).json({ message: 'Pool name already taken' });
+    }
     console.error('Error creating pool:', error);
     res.status(500).json({ message: 'Error creating pool', error });
   }
 };
+
 
 
 // User requests to join a pool

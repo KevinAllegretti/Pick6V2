@@ -472,7 +472,10 @@ document.getElementById('create-pool-form').addEventListener('submit', function(
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            if (response.status === 409){
+                alert('The pool name is already taken. Please choose another name.')
+            } else {
+            throw new Error(`HTTP error! Status: ${response.status}`);}
         }
         return response.json();
     })
