@@ -516,7 +516,7 @@ function displayNewPoolContainer(pool) {
         // Create the pool wrapper
         const poolWrapper = document.createElement('div');
         poolWrapper.className = 'pool-wrapper';
-
+        poolWrapper.id = `pool-${pool._id}`; 
         // Create the pool name div
         const poolNameDiv = document.createElement('div');
         poolNameDiv.className = 'pool-name';
@@ -553,8 +553,8 @@ function displayNewPoolContainer(pool) {
             });
             poolWrapper.appendChild(deleteButton);
             console.log("Delete button should be added for:", pool.name);
+            
         }
-
         // Append the pool name div and the pool container to the pool wrapper
         poolWrapper.appendChild(poolNameDiv);
         poolWrapper.appendChild(poolContainer);
@@ -639,6 +639,9 @@ function deletePool(poolName) {
             console.log('Pool deleted successfully:', poolName);
             // Here you would also remove the pool from the UI
              // Remove the pool from the UI
+             const poolWrapper = document.getElementById(`pool-${poolName}`);
+             if (poolWrapper) {
+                 poolWrapper.remove();}
 
         }
     })
