@@ -542,6 +542,7 @@ function displayNewPoolContainer(pool) {
 
         // Add player rows to the pool container here...
         // ...
+
         if (isAdmin) {
             // Create and append the delete button for admins
             const deleteButton = document.createElement('button');
@@ -549,12 +550,17 @@ function displayNewPoolContainer(pool) {
             deleteButton.className = 'delete-pool-button';
             deleteButton.setAttribute('data-pool-name', pool.name); // Set the pool's name as a data attribute
             deleteButton.addEventListener('click', function() {
-                deletePool(this.getAttribute('data-pool-name')); // Use the pool's name for deletion
+                const confirmation = confirm(`Are you sure you want to delete the pool "${this.getAttribute('data-pool-name')}"?`);
+                if (confirmation) {
+                    deletePool(this.getAttribute('data-pool-name')); // Use the pool's name for deletion
+                } else {
+                    console.log('Pool deletion cancelled by the user.');
+                }
             });
             poolWrapper.appendChild(deleteButton);
             console.log("Delete button should be added for:", pool.name);
-            
         }
+        
         // Append the pool name div and the pool container to the pool wrapper
         poolWrapper.appendChild(poolNameDiv);
         poolWrapper.appendChild(poolContainer);
