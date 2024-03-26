@@ -4,7 +4,7 @@ import express from 'express';
 import { createPool, joinPool, manageJoinRequest } from '../Controllers/poolController';
 import Pool from '../models/Pool';
 import { connectToDatabase } from '../microservices/connectDB';
-import { ObjectId } from 'mongodb';
+//import { ObjectId } from 'mongodb';
 
 const router = express.Router();
 
@@ -27,61 +27,55 @@ router.get('/get-all', async (req, res) => {
   }
 });
 
+router.delete('/delete/:poolName', async (req, res) => {
+  const poolName = req.params.poolName.toLowerCase();
+  console.log(`Received delete request for pool with name: '${poolName}'`);
 
-router.delete('/delete/:poolId', async (req, res) => {
-  console.log('All headers:', req.headers); // See all headers to verify the presence and case
-  const usernameHeader = req.headers['x-username']; // or 'X-Username' if the case is an issue
-  console.log('Username from header:', usernameHeader); // Log the username received in the header
-
+  const usernameHeader = req.headers['x-username'];
   if (typeof usernameHeader !== 'string' || !usernameHeader) {
-    console.log('Username header is missing or not a string'); // Log if there's an issue with the header
+    console.log('Username header is missing or not a string');
     return res.status(400).json({ message: 'Username header is required' });
   }
 
-  const username = usernameHeader.toLowerCase();
-  console.log('Username after conversion to lowercase:', username); // Log the converted username
-
   try {
     const db = await connectToDatabase();
-    console.log('Connected to database'); // Log after successful database connection
-
     const usersCollection = db.collection('users');
     const poolsCollection = db.collection('pools');
-
-    const user = await usersCollection.findOne({ username: username });
-    if (!user) {
-      console.log('User not found in the database:', username); // Log if the user wasn't found
-      return res.status(404).json({ message: 'User not found.' });
+    const username = usernameHeader.toLowerCase();
+    
+    console.log(`Looking for admin user with username: '${username}'`);
+    const adminUser = await usersCollection.findOne({ username });
+    if (!adminUser) {
+      console.log(`Admin user '${username}' not found.`);
+      return res.status(404).json({ message: 'Admin user not found' });
     }
-
-    const { poolId } = req.params;
-
-    const pool = await db.collection('pools').findOne({ _id: new ObjectId(poolId) });
-    console.log('Pool found with MongoDB native driver:', pool);
-
-        
-    if (pool) {
-      const deleteResult = await db.collection('pools').deleteOne({ _id: new ObjectId(poolId) });
-      console.log('Delete result:', deleteResult);
-    }
-
+    
+    console.log(`Looking for pool with name: '${poolName}'`);
+    const pool = await poolsCollection.findOne({ name: poolName });
     if (!pool) {
-      console.log('Pool not found with ID:', poolId); // Log if the pool wasn't found
-      return res.status(404).json({ message: 'Pool not found.' });
+      console.log(`Pool with name '${poolName}' not found.`);
+      return res.status(404).json({ message: 'Pool not found' });
+    }
+    
+    console.log(`Found pool with name '${poolName}':`, pool);
+    if (pool.admin.toString() !== adminUser._id.toString()) {
+      console.log(`User '${username}' is not authorized to delete pool with name '${poolName}'`);
+      return res.status(403).json({ message: 'Not authorized to delete this pool' });
     }
 
-    console.log('Pool found:', pool); // Log the found pool
+    console.log(`Attempting to delete pool with name '${poolName}'`);
+    const result = await poolsCollection.deleteOne({ name: poolName });
+    console.log(`Delete result for pool with name '${poolName}':`, result);
 
-    if (pool.admin.toString() !== user._id.toString()) {
-      console.log('User is not authorized to delete this pool:', username); // Log if the user is not the admin
-      return res.status(403).json({ message: 'Not authorized to delete this pool.' });
+    if (result.deletedCount === 0) {
+      console.log(`No pool was deleted for name '${poolName}'`);
+      return res.status(404).json({ message: 'No pool was deleted' });
     }
 
-    await poolsCollection.deleteOne({ _id: new ObjectId(poolId) });
-    console.log('Pool deleted successfully:', poolId); // Log successful deletion
-    res.json({ message: 'Pool deleted successfully.' });
+    console.log(`Pool with name '${poolName}' deleted successfully.`);
+    res.json({ message: 'Pool deleted successfully' });
   } catch (error) {
-    console.error('Error deleting pool:', error); // Log any caught errors
+    console.error(`Error deleting pool with name '${poolName}':`, error);
     res.status(500).json({ message: 'Error deleting pool', error });
   }
 });

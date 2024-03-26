@@ -542,14 +542,16 @@ function displayNewPoolContainer(pool) {
 
         // Add player rows to the pool container here...
         // ...
-
         if (isAdmin) {
             // Create and append the delete button for admins
             const deleteButton = document.createElement('button');
             deleteButton.textContent = 'Delete Pool';
             deleteButton.className = 'delete-pool-button';
-            deleteButton.onclick = () => deletePool(pool._id);
-            poolWrapper.appendChild(deleteButton); // Append the delete button to the pool wrapper
+            deleteButton.setAttribute('data-pool-name', pool.name); // Set the pool's name as a data attribute
+            deleteButton.addEventListener('click', function() {
+                deletePool(this.getAttribute('data-pool-name')); // Use the pool's name for deletion
+            });
+            poolWrapper.appendChild(deleteButton);
             console.log("Delete button should be added for:", pool.name);
         }
 
@@ -611,36 +613,36 @@ function createPlayerRow(player, isAdmin) {
   }
   
   
-  function deletePool(poolId) {
-    if (!confirm('Are you sure you want to delete this pool?')) {
-      return;
+// Assume this function is called when you want to delete a pool
+function deletePool(poolName) {
+    const username = localStorage.getItem('username'); // Assuming username is stored in local storage
+    if (!username) {
+        alert('Username not found. Please log in again.');
+        return;
     }
-  
-    fetch(`/pools/delete/${poolId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-username': localStorage.getItem('username').toLowerCase() // Ensure username is lowercase
-      }
+
+    fetch(`/pools/delete/${encodeURIComponent(poolName)}`, { // Encode the poolName to ensure a valid URL
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-username': username.toLowerCase() // Send username for server-side verification
+        }
     })
     .then(response => {
-      if (!response.ok) {
-        throw new Error(`Failed to delete the pool. Status: ${response.status}`);
-      }
-      return response.json();
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
     })
     .then(data => {
-      if (data.message) {
-        document.querySelector(`.pool-container[data-pool-id="${poolId}"]`).remove();
-        alert('Pool deleted successfully.');
-      }
+        if (data.message) {
+            console.log('Pool deleted successfully:', poolName);
+            // Here you would also remove the pool from the UI
+        }
     })
     .catch(error => {
-      console.error('Error:', error);
-      alert('An error occurred while deleting the pool.');
+        console.error('Error:', error);
+        alert('An error occurred while deleting the pool.');
     });
-  }
-  
-
-
+}
   

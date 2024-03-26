@@ -69,12 +69,13 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
+const mongoURI = 'mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/Pick6'
+
 const session = require('express-session');
 const mongoose = require('mongoose');
 const MongoDBSession = require('connect-mongodb-session')(session);
 
 
-const mongoURI = 'mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/sessions'
 
 mongoose
   .connect(mongoURI)
