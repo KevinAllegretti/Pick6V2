@@ -461,7 +461,7 @@ document.getElementById('create-pool-form').addEventListener('submit', function(
     const payload = {
       name: poolName,
       isPrivate: isPrivate,
-      username: username,
+      adminUsername: username.toLowerCase(),
       ...(isPrivate && { password: poolPassword })
     };
     
@@ -493,45 +493,77 @@ document.getElementById('create-pool-form').addEventListener('submit', function(
 
 
 function displayNewPoolContainer(pool) {
-    console.log(pool);
-    const poolContainerWrapper = document.getElementById('pool-container-wrapper');
 
-    // Create the pool wrapper
-    const poolWrapper = document.createElement('div');
-    poolWrapper.className = 'pool-wrapper';
+   
 
-    // Create the pool name div
-    const poolNameDiv = document.createElement('div');
-    poolNameDiv.className = 'pool-name';
-    poolNameDiv.innerText = pool.name;
 
-    // Create the pool container
-    const poolContainer = document.createElement('div');
-    poolContainer.className = 'pool-container';
+    let currentUsername = localStorage.getItem('username'); // Retrieve username from local storage
 
-    // Create and append the pool header to the pool container
-    const poolHeader = document.createElement('div');
-    poolHeader.className = 'pool-header';
-    poolHeader.innerHTML = `
-        <span class="header-rank">Rank</span>
-        <span class="header-user">User</span>
-        <span class="header-points">Points</span>
-        <span class="header-picks">Picks</span>
-        <span class="header-win">Win</span>
-        <span class="header-loss">Loss</span>
-        <span class="header-push">Push</span>
-    `;
-    poolContainer.appendChild(poolHeader);
+    if (currentUsername) {
+        currentUsername = currentUsername.toLowerCase(); // Convert to lower case
 
-    // Add player rows to the pool container here...
-    // ...
+        // Verify we have the admin's username in the pool object and log it
+        // Make sure to convert to lowercase for comparison
+        const isAdmin = currentUsername === pool.adminUsername.toLowerCase();
 
-    // Append the pool name div and the pool container to the pool wrapper
-    poolWrapper.appendChild(poolNameDiv);
-    poolWrapper.appendChild(poolContainer);
+        console.log("Current username from local storage:", currentUsername);
+        console.log("Admin username from pool object:", pool.adminUsername);
+        console.log("Is admin:", isAdmin);
 
-    // Append the pool wrapper to the main pool container wrapper
-    poolContainerWrapper.appendChild(poolWrapper);
+        console.log(pool);
+        const poolContainerWrapper = document.getElementById('pool-container-wrapper');
+
+        // Create the pool wrapper
+        const poolWrapper = document.createElement('div');
+        poolWrapper.className = 'pool-wrapper';
+
+        // Create the pool name div
+        const poolNameDiv = document.createElement('div');
+        poolNameDiv.className = 'pool-name';
+        poolNameDiv.innerText = pool.name;
+
+        // Create the pool container
+        const poolContainer = document.createElement('div');
+        poolContainer.className = 'pool-container';
+
+        // Create and append the pool header to the pool container
+        const poolHeader = document.createElement('div');
+        poolHeader.className = 'pool-header';
+        poolHeader.innerHTML = `
+            <span class="header-rank">Rank</span>
+            <span class="header-user">User</span>
+            <span class="header-points">Points</span>
+            <span class="header-picks">Picks</span>
+            <span class="header-win">Win</span>
+            <span class="header-loss">Loss</span>
+            <span class="header-push">Push</span>
+        `;
+        poolContainer.appendChild(poolHeader);
+
+        // Add player rows to the pool container here...
+        // ...
+
+        if (isAdmin) {
+            // Create and append the delete button for admins
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete Pool';
+            deleteButton.className = 'delete-pool-button';
+            deleteButton.onclick = () => deletePool(pool._id);
+            poolWrapper.appendChild(deleteButton); // Append the delete button to the pool wrapper
+            console.log("Delete button should be added for:", pool.name);
+        }
+
+        // Append the pool name div and the pool container to the pool wrapper
+        poolWrapper.appendChild(poolNameDiv);
+        poolWrapper.appendChild(poolContainer);
+
+        // Append the pool wrapper to the main pool container wrapper
+        poolContainerWrapper.appendChild(poolWrapper);
+
+    }else{
+        console.log("No username found in localStorage");
+    }
+
 }
 
 
@@ -577,3 +609,38 @@ function createPlayerRow(player, isAdmin) {
   
     return playerRow;
   }
+
+  function deletePool(poolId) {
+    // Confirm with the user before deleting the pool
+    if (!confirm('Are you sure you want to delete this pool?')) {
+        return;
+    }
+
+    fetch(`/pools/delete/${poolId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-username': localStorage.getItem('username') // Send username for server-side verification
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to delete the pool.');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.message) {
+            // Remove the pool container from the DOM
+            document.querySelector(`.pool-container[data-pool-id="${poolId}"]`).remove();
+            alert('Pool deleted successfully.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while deleting the pool.');
+    });
+}
+
+
+  

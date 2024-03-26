@@ -12,18 +12,19 @@ const findUserByUsername = async (username: string) => {
   return user;
 };
 
-// Create a new pool
 export const createPool = async (req: Request, res: Response) => {
-    console.log('Request to create pool received:', req.body);
+  console.log('Request to create pool received:', req.body);
   try {
-    const { name, isPrivate, password, username } = req.body;
-    console.log(`Creating pool: ${name} by user: ${username}`);
-    // Find the user by username
-    const user = await findUserByUsername(username);
-    if (!user) {
-        console.log('User not found:', username);
-      return res.status(404).json({ message: 'User not found' });
+    const { name, adminUsername, isPrivate, password } = req.body;
+
+    // Find the admin user by adminUsername
+    const adminUser = await findUserByUsername(adminUsername);
+    if (!adminUser) {
+      console.log('Admin user not found:', adminUsername);
+      return res.status(404).json({ message: 'Admin user not found' });
     }
+
+    console.log(`Creating pool: ${name} by admin user: ${adminUsername}`);
 
     let hashedPassword = null;
     if (isPrivate && password) {
@@ -32,14 +33,12 @@ export const createPool = async (req: Request, res: Response) => {
 
     const newPool = new Pool({
       name,
-      admin: user._id, // Set the admin to the user's ObjectId
+      admin: adminUser._id, // Set the admin to the adminUser's ObjectId
+      adminUsername: adminUsername, // Use the adminUsername directly from the request
       isPrivate,
       password: hashedPassword,
-      // members: initialized with admin as the first member if needed
     });
 
-    console.log('Pool object created:', newPool);
-    // Save the new pool to the database
     await newPool.save();
     console.log('Pool saved to database:', newPool);
     res.status(201).json({ message: 'Pool created successfully', pool: newPool });
@@ -48,6 +47,7 @@ export const createPool = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Error creating pool', error });
   }
 };
+
 
 // User requests to join a pool
 export const joinPool = async (req: Request, res: Response) => {

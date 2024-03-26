@@ -18,6 +18,10 @@ const poolSchema = new mongoose_1.default.Schema({
         ref: 'User',
         required: true,
     },
+    adminUsername: {
+        type: String,
+        required: true
+    },
     members: [{
             type: mongoose_1.default.Schema.Types.ObjectId,
             ref: 'User',
