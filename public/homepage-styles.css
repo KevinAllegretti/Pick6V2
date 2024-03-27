@@ -364,16 +364,49 @@ h2 {
 
 .pool-header {
     display: flex;
-    justify-content: space-between;
-    padding: 10px;
-    background-color: #fff; /* White background for the header */
-    color: #000; /* Text color */
-    border-bottom: 2px solid #ccc; /* Separator line */
+    background-color: #17203a; /* Adjust the background color as needed */
+    color: #fff; /* Adjust text color as needed */
+    padding: 10px 0; /* Vertical padding */
 }
 
 .pool-header span {
-    flex: 1; /* Distribute space evenly */
+    flex-grow: 1; /* Allow each header item to fill the space equally */
     text-align: center;
+    border-right: 1px solid #33d9ff; /* Add lines between the headers */
+    padding: 0 10px; /* Add some padding on the sides */
+}
+
+.pool-header .header-rank, .player-row .player-rank {
+    flex: 1; /* Rank takes up 1 part of the space */
+}
+
+.pool-header .header-user, .player-row .player-user {
+    flex: 3; /* User takes up 3 parts of the space */
+}
+
+.pool-header .header-points, .player-row .player-points {
+    flex: 1; /* Points takes up 1 part of the space */
+}
+
+.pool-header .header-picks, .player-row .player-picks {
+    flex: 7; /* Picks takes up 7 parts of the space */
+}
+
+.pool-header .header-win, .player-row .player-win {
+    flex: 1; /* Win takes up 1 part of the space */
+}
+
+.pool-header .header-loss, .player-row .player-loss {
+    flex: 1; /* Loss takes up 1 part of the space */
+}
+
+.pool-header .header-push, .player-row .player-push {
+    flex: 1; /* Push takes up 1 part of the space */
+}
+
+/* Remove border from the last child */
+.pool-header span:last-child {
+    border-right: none;
 }
 
 /* You can assign specific flex values to give more space to certain fields if needed */
