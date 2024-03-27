@@ -19,6 +19,7 @@ body {
 }
 
 .containerbutton {
+    margin-bottom: 20px; 
     display: flex;
     justify-content: center; /* Center the buttons horizontally */
     padding-top: 1em;
@@ -392,4 +393,205 @@ h2 {
     background-color: #17203a; /* A deep blue for card background */
     box-shadow: 0px 0px 20px #33d9ff; /* Neon light blue shadow for depth */
     transition: transform 0.2s, box-shadow 0.2s; /* Animation for hover */
+}
+/* Input fields styling */
+input[type="text"], input[type="password"], input[type="checkbox"] {
+    background-color: #022; /* Dark background for the input */
+    border: 1px solid #0af; /* Neon border color */
+    padding: 10px;
+    margin: 0 8px 0 0;
+    color: #0ff; /* Neon text color */
+    border-radius: 5px;
+    box-shadow: 0 0 5px #0af, /* Neon glow effect */
+                 0 0 10px #0af,
+                 0 0 15px #0af;
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+/* Enhance the neon glow when the input is focused */
+input[type="text"]:focus, input[type="password"]:focus {
+    box-shadow: 0 0 10px #0af,
+                0 0 20px #0af,
+                0 0 30px #0af;
+}
+
+/* Styling for checkboxes to match the neon theme */
+input[type="checkbox"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background-color: #022;
+    border-radius: 5px;
+    border: 2px solid #0af;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+input[type="checkbox"]:checked {
+    background-color: #0af;
+    box-shadow: inset 0 0 5px #0af, /* Inner shadow for a glowing effect */
+                 0 0 5px #0af, /* Outer glow */
+                 0 0 10px #0af;
+}
+
+/* Labels for a cleaner, professional look */
+label {
+    color: #33d9ff; /* Neon text color */
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+/* Button Styling */
+button {
+    background-color: #033; /* Dark button background */
+    color: #0ff; /* Neon text color */
+    border: 1px solid #0af; /* Neon border */
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 0 5px #0af, /* Neon glow effect */
+                 0 0 10px #0af,
+                 0 0 15px #0af;
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
+}
+
+/* Hover effect for the button to make it pop */
+button:hover {
+    box-shadow: 0 0 10px #0af,
+                0 0 20px #0af,
+                0 0 30px #0af;
+    transform: scale(1.05);
+}
+
+/* Styling for the form container */
+.form-container {
+    background-color: #011; /* Slightly lighter form background */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 20px #0af, /* Neon glow effect */
+                 0 0 40px #0af,
+                 0 0 60px #0af;
+}
+
+/* Enhances the layout of form elements */
+.form-field {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* Give the create pool section a distinct look */
+#create-pool-section {
+    padding: 20px;
+    background: rgba(10, 15, 34, 0.85); /* Translucent background */
+    border: 2px solid #33d9ff; /* Neon border */
+    border-radius: 10px;
+    box-shadow: 0 0 10px #33d9ff, /* Outer neon glow */
+                 0 0 20px #33d9ff;
+    margin: 20px 0;
+}
+
+/* Increase spacing between form elements */
+#pool-name, #pool-password {
+    margin-bottom: 15px; /* Adds more space below the input fields */
+}
+
+/* Style for the checkbox label */
+#private-pool-label {
+    display: inline-block;
+    margin-right: 10px; /* Adds space between the label and the checkbox */
+    vertical-align: middle; /* Aligns label with the checkbox */
+}
+
+/* Style for the checkbox */
+#is-private {
+    vertical-align: middle; /* Aligns checkbox vertically with the label */
+    margin-right: 15px; /* Adds space between the checkbox and the 'Create Pool' button */
+}
+
+/* Style for the 'Create Pool' button when it is used to go back */
+#toggle-create-button {
+    background-color: #f00; /* Red background for 'go back' appearance */
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    margin-left: 15px; /* Add space before the 'go back' button */
+}
+
+/* Transform 'Create Pool' button into 'Go Back' button */
+#toggle-create-button.reverse {
+    background-color: #33d9ff; /* Neon blue for a 'go back' symbol */
+    transform: rotate(180deg); /* Rotate the button to indicate 'go back' */
+}
+
+/* Hide password field initially */
+#pool-password {
+    display: none;
+}
+
+/* Additional styling for the container to fix position issue */
+.create-pool-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* This centers the button in the flex container */
+    justify-content: space-between; /* This will add space between your elements */
+    width: 100%; /* Adjust width to fit content */
+}
+
+/* Style for the secondary 'Create Pool' button */
+.secondary-create-button {
+    display: none; /* Hidden by default */
+    background-color: #0a0f22;
+    color: #33d9ff;
+    border: 2px solid #33d9ff;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    margin-top: 15px; /* Space above the secondary button */
+}
+
+.secondary-create-button.visible {
+    display: block; /* Show the button when it should be visible */
+}
+#main-content button {
+    margin-bottom: 20px; /* Adjust the value to suit your design */
+}
+
+#main-content form {
+    display: flex;
+    flex-wrap: wrap; /* This will allow items to wrap to the next line if needed */
+    gap: 10px; /* This adds some space between your form items */
+}
+
+#main-content label,
+#main-content input[type="text"],
+#main-content input[type="password"],
+#main-content input[type="checkbox"],
+#main-content input[type="submit"] {
+    margin-bottom: 10px; /* Add space below each form element */
+}
+
+#main-content .form-field {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* This class should be added to your label and input elements for password */
+.form-field-row {
+    flex-basis: 50%; /* Adjust as needed */
+}
+
+/* Adjust the styles for the password label and input to display them inline */
+#main-content label[for="pool-password"],
+#main-content #pool-password {
+    display: inline-block; /* This makes the label and input align horizontally */
+    width: auto; /* Adjust width as needed or use flex-grow property */
 }

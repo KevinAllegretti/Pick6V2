@@ -430,9 +430,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 document.getElementById('show-create-pool-form').addEventListener('click', function() {
-    const formContainer = document.getElementById('create-pool-form-container');
+    // This line toggles the form's visibility.
+    var formContainer = document.getElementById('create-pool-form-container');
     formContainer.style.display = formContainer.style.display === 'none' ? 'block' : 'none';
+    
+    // These lines change the button text depending on the form's visibility.
+    if (formContainer.style.display === 'block') {
+        this.textContent = 'Go Back';
+    } else {
+        this.textContent = 'Create Pool';
+    }
 });
+
 
 document.getElementById('is-private').addEventListener('change', function() {
     const passwordInput = document.getElementById('pool-password');
