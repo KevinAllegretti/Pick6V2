@@ -15,7 +15,7 @@ export const createPool = async (req: Request, res: Response) => {
   console.log('Request to create pool received:', req.body);
   try {
     let { name, adminUsername, isPrivate, password } = req.body;
-    name = name.toLowerCase();
+    name = name//.toLowerCase();
     // Check if a pool with the same name already exists
     const existingPool = await Pool.findOne({ name });
     if (existingPool) {

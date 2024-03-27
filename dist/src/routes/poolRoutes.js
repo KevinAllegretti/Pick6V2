@@ -26,7 +26,7 @@ router.get('/get-all', async (req, res) => {
     }
 });
 router.delete('/delete/:poolName', async (req, res) => {
-    const poolName = req.params.poolName.toLowerCase();
+    const poolName = req.params.poolName; //.toLowerCase();
     console.log(`Received delete request for pool with name: '${poolName}'`);
     const usernameHeader = req.headers['x-username'];
     if (typeof usernameHeader !== 'string' || !usernameHeader) {
