@@ -519,7 +519,7 @@ function displayNewPoolContainer(pool) {
         // Create the pool wrapper
         const poolWrapper = document.createElement('div');
         poolWrapper.className = 'pool-wrapper';
-        poolWrapper.id = `pool-${pool._id}`; 
+        poolWrapper.setAttribute('data-pool-name', pool.name);
         // Create the pool name div
         const poolNameDiv = document.createElement('div');
         poolNameDiv.className = 'pool-name';
