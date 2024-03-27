@@ -628,13 +628,6 @@ function deletePool(poolName) {
     // Since you're using the pool's name, let's ensure it's URI-encoded to handle special characters
     const encodedPoolName = encodeURIComponent(poolName);
 
-    // Confirmation dialog before sending the delete request
-    const confirmation = confirm(`Are you sure you want to delete the pool "${poolName}"?`);
-    if (!confirmation) {
-        console.log('Pool deletion cancelled by the user.');
-        return;
-    }
-
     // Proceed with the delete request if the user confirmed
     fetch(`/pools/delete/${encodedPoolName}`, {
         method: 'DELETE',
