@@ -622,19 +622,25 @@ function createPlayerRow(player, isAdmin) {
   }
   
   
+  
 // Assume this function is called when you want to delete a pool
 function deletePool(poolName) {
-    const username = localStorage.getItem('username'); // Assuming username is stored in local storage
-    if (!username) {
-        alert('Username not found. Please log in again.');
+    // Since you're using the pool's name, let's ensure it's URI-encoded to handle special characters
+    const encodedPoolName = encodeURIComponent(poolName);
+
+    // Confirmation dialog before sending the delete request
+    const confirmation = confirm(`Are you sure you want to delete the pool "${poolName}"?`);
+    if (!confirmation) {
+        console.log('Pool deletion cancelled by the user.');
         return;
     }
 
-    fetch(`/pools/delete/${encodeURIComponent(poolName)}`, { // Encode the poolName to ensure a valid URL
+    // Proceed with the delete request if the user confirmed
+    fetch(`/pools/delete/${encodedPoolName}`, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',
-            'x-username': username.toLowerCase() // Send username for server-side verification
+            'x-username': localStorage.getItem('username')
         }
     })
     .then(response => {
@@ -646,12 +652,8 @@ function deletePool(poolName) {
     .then(data => {
         if (data.message) {
             console.log('Pool deleted successfully:', poolName);
-            // Here you would also remove the pool from the UI
-             // Remove the pool from the UI
-             const poolWrapper = document.getElementById(`pool-${poolName}`);
-             if (poolWrapper) {
-                 poolWrapper.remove();}
-
+            // Remove the pool from the UI
+            removePoolFromUI(poolName);
         }
     })
     .catch(error => {
@@ -659,4 +661,13 @@ function deletePool(poolName) {
         alert('An error occurred while deleting the pool.');
     });
 }
-  
+
+function removePoolFromUI(poolName) {
+    const poolElement = document.querySelector(`[data-pool-name='${CSS.escape(poolName)}']`);
+    if (poolElement && poolElement.parentNode) {
+        // This will remove the pool element from the UI
+        poolElement.parentNode.removeChild(poolElement);
+    } else {
+        console.error('Pool element not found:', poolName);
+    }
+}
