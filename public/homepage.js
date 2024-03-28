@@ -573,6 +573,23 @@ function displayNewPoolContainer(pool) {
             console.log("Delete button should be added for:", pool.name);
         }
         
+        if (isAdmin) {
+            // Admin's player data object (this would ideally come from your backend/server)
+            const adminPlayerData = {
+                rank: 1, // Admin starts at rank 1
+                username: pool.adminUsername, // Admin's username
+                points: 0, // Starting points
+                picks: '', // Picks can be an empty string or initial pick data
+                wins: 0,
+                losses: 0,
+                pushes: 0,
+                profilePic: '/path/to/admin/profile/pic.png' // Profile pic path
+            };
+    
+            // Create the admin's player row and add to the pool container
+            const adminPlayerRow = createPlayerRow(adminPlayerData, true); // true indicates admin status
+            poolContainer.appendChild(adminPlayerRow);
+        }
         // Append the pool name div and the pool container to the pool wrapper
         poolWrapper.appendChild(poolNameDiv);
         poolWrapper.appendChild(poolContainer);
@@ -606,29 +623,36 @@ document.addEventListener('DOMContentLoaded', loadAndDisplayPools);
 function createPlayerRow(player, isAdmin) {
     const playerRow = document.createElement('div');
     playerRow.className = 'player-row';
-  
+
     // Add an admin icon if the player is an admin
     if (isAdmin) {
       playerRow.classList.add('player-admin'); // Apply admin-specific styling
       // Insert admin icon HTML here, if you have an icon
     }
   
+    
     // Populate player row with data
     playerRow.innerHTML = `
-      <span class="player-rank">${player.rank}</span>
-      <div class="player-user">
+      <div class="player-rank" style="flex-grow: 1;">${player.rank}</div>
+      <div class="player-user" style="flex-grow: 3;">
         <img class="player-profile-pic" src="${player.profilePic}" alt="${player.username}" />
         <span class="player-name">${player.username}</span>
       </div>
-      <span class="player-points">${player.points}</span>
-      <div class="player-picks">${player.picks}</div>
-      <span class="player-win">${player.wins}</span>
-      <span class="player-loss">${player.losses}</span>
-      <span class="player-push">${player.pushes}</span>
+      <div class="player-points" style="flex-grow: 1;">${player.points}</div>
+      <div class="player-picks" style="flex-grow: 7;">${player.picks}</div>
+      <div class="player-win" style="flex-grow: 1;">${player.wins}</div>
+      <div class="player-loss" style="flex-grow: 1;">${player.losses}</div>
+      <div class="player-push" style="flex-grow: 1;">${player.pushes}</div>
     `;
-  
+
+    // Apply flex styling to each child
+    playerRow.querySelectorAll('.player-rank, .player-user, .player-points, .player-picks, .player-win, .player-loss, .player-push').forEach(div => {
+      div.style.flexBasis = '0';
+    });
+
     return playerRow;
-  }
+}
+
   
   
   

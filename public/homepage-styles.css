@@ -643,3 +643,60 @@ button:hover {
                  0 0 15px #0af;
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
 }
+
+
+.player-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #33d9ff; /* Adds a line between rows */
+}
+
+.player-row:last-child {
+    border-bottom: none; /* Removes the line from the last row */
+}
+
+ .player-rank {
+    flex-grow: 1;
+    flex-basis: 0;
+    text-align: center;
+}
+
+.player-user {
+    flex-grow: 3;
+    flex-basis: 0;
+    display: flex;
+    align-items: center;
+}
+
+.player-profile-pic {
+    width: 30px; /* Adjust as needed */
+    height: 30px; /* Adjust as needed */
+    border-radius: 50%; /* Circular image */
+    margin-right: 10px; /* Space between image and username */
+}
+
+.player-points,
+.player-win,
+ .player-loss,
+.player-push {
+    flex-grow: 1;
+    flex-basis: 0;
+    text-align: center;
+}
+
+.player-picks {
+    flex-grow: 7;
+    flex-basis: 0;
+    display: flex;
+    justify-content: flex-start;
+}
+
+/* Additional styling to visually separate the headers from the rows */
+.pool-header {
+    background-color: #17203a; /* Adjust color as needed */
+    padding: 10px 0;
+    border-top: 2px solid #33d9ff;
+    border-bottom: 2px solid #33d9ff;
+    font-weight: bold;
+}
