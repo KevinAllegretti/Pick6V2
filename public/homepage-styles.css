@@ -615,12 +615,6 @@ button:hover {
     align-items: center;
 }
 
-.player-profile-pic {
-    width: 30px; /* Adjust as needed */
-    height: 30px; /* Adjust as needed */
-    border-radius: 50%; /* Circular image */
-    margin-right: 10px; /* Space between image and username */
-}
 
 .player-points,
 .player-win,
@@ -652,26 +646,6 @@ button:hover {
     align-items: center; /* Align the items vertically */
 }
 
-/* Define the flex-basis for each of the child elements */
-.header-rank, .player-rank,
-.header-user, .player-user,
-.header-points, .player-points,
-.header-picks, .player-picks,
-.header-win, .player-win,
-.header-loss, .player-loss,
-.header-push, .player-push {
-    text-align: center; /* Center align the text */
-    /* The flex-grow should be the same as the flex-basis values below for consistency */
-}
-
-/* Align the flex-basis with the desired width for each type of cell */
-.header-rank, .player-rank { flex: 0.5; }
-.header-user, .player-user { flex: 3; }
-.header-points, .player-points { flex: 1; }
-.header-picks, .player-picks { flex: 5; }
-.header-win, .player-win { flex: 1; }
-.header-loss, .player-loss { flex: 1; }
-.header-push, .player-push { flex: 1; }
 
 /* This ensures that the rightmost header cell does not have a right border */
 .pool-header span:last-child {
@@ -684,45 +658,160 @@ button:hover {
 }
 
 /* This will create a vertical line to the right of each header, except for the last child */
-.pool-header span:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 60%; /* Adjust the height as needed */
-    width: 1px; /* Width of the line */
-    background-color: #33d9ff; /* Color of the line */
-}
 
 
-/* This will create a vertical line to the right of each header, except for the last child */
-.pool-header span:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 60%; /* Adjust the height as needed */
-    width: 1px; /* Width of the line */
-    background-color: #33d9ff; /* Color of the line */
-}
 
-
-.player-profile-pic {
-    width: 43px; /* Adjust as needed */
-    height: 43px; /* Adjust as needed */
-    border-radius: 50%; /* Circular image */
-    background-size: cover; /* Cover the container with the image */
-    background-position: center; /* Center the image */
-    margin-right: 10px; /* Space between image and username */
-    border: 2px solid #33d9ff; /* Blue border around the profile pic */
-    box-shadow: 0 0 5px #33d9ff; /* Shadow for depth */
-}
 .player-row {
     border-bottom: 1px solid #33d9ff; /* Adds a line between rows */
 }
 
 .player-row:last-child {
     border-bottom: none; /* Removes the line from the last row */
+}
+
+/* Flex properties for pool header */
+.pool-header span {
+    text-align: center;
+    position: relative; /* Needed for the vertical lines */
+}/* Reset styles */
+*,
+*:before,
+*:after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Base styles for the pool container */
+.pool-container {
+    display: flex;
+    flex-direction: column;
+    margin: 20px;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Pool header styles */
+.pool-header {
+    display: flex;
+    background-color: #17203a;
+    color: #fff;
+    padding: 10px 0;
+    border-top: 2px solid #33d9ff;
+    border-bottom: 2px solid #33d9ff;
+}
+
+/* Pool header items */
+.pool-header span {
+    text-align: center;
+    position: relative;
+    padding: 0 10px;
+}
+
+/* Vertical lines for the header */
+.pool-header span:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background-color: #33d9ff;
+}
+
+/* Player row styles */
+.player-row {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #33d9ff;
+    padding: 10px 0;
+}
+
+.player-row:last-child {
+    border-bottom: none;
+}
+
+/* Player profile picture */
+.player-profile-pic {
+    width: 43px;
+    height: 43px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    border: 2px solid #33d9ff;
+    box-shadow: 0 0 5px #33d9ff;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+/* Flex settings for player row items */
+.player-rank,
+.player-user,
+.player-points,
+.player-picks,
+.player-win,
+.player-loss,
+.player-push {
+    flex: 1;
+    text-align: center;
+    position: relative;
+}
+
+/* Adjustments for larger flex items */
+.player-user { flex: 3; }
+.player-picks { flex: 5; }
+
+/* Vertical lines for player items */
+.player-row div:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background-color: #33d9ff;
+}
+
+.player-row div:last-child::after {
+    content: none;
+}
+
+/* Flex properties for pool header and player row items */
+.header-rank, .player-rank,
+.header-user, .player-user,
+.header-points, .player-points,
+.header-picks, .player-picks,
+.header-win, .player-win,
+.header-loss, .player-loss,
+.header-push, .player-push {
+    flex-basis: 0;
+    flex-grow: 1;
+    text-align: center;
+}
+
+/* Specific adjustments for header and player row items to line up under each other */
+.header-rank, .player-rank { flex: 0.5; }
+.header-user, .player-user { flex: 3; }
+.header-points, .player-points { flex: 1; }
+.header-picks, .player-picks { flex: 5; }
+.header-win, .player-win { flex: 1; }
+.header-loss, .player-loss { flex: 1; }
+.header-push, .player-push { flex: 1; }
+
+/* Vertical lines between header and player items */
+.pool-header span:not(:last-child)::after,
+.player-row > div:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 60%;
+    width: 1px;
+    background-color: #33d9ff;
+}
+
+/* Remove vertical line from the last item */
+.pool-header span:last-child::after,
+.player-row > div:last-child::after {
+    content: none;
 }
