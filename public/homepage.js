@@ -591,8 +591,9 @@ function displayNewPoolContainer(pool) {
             const adminPlayerRow = createPlayerRow(adminPlayerData, true); // true indicates admin status
             poolContainer.appendChild(adminPlayerRow);
         }*/
-          pool.members.forEach(memberUsername => {
+          pool.members.forEach((memberUsername, index) => {
             // Fetch additional member data if needed
+            const rank = index + 1;
             fetch(`/api/getUserProfile/${encodeURIComponent(memberUsername)}`)
               .then(response => {
                   if(!response.ok) {
@@ -604,6 +605,7 @@ function displayNewPoolContainer(pool) {
                 console.log(userProfile);
                 // Create and display the player row for each member
                 const playerRow = createPlayerRow({
+                    rank,
                     username: userProfile.username,
                     profilePic: userProfile.profilePicture,
                     points: userProfile.points,
@@ -664,6 +666,7 @@ function createPlayerRow(memberData, isAdmin) {
     // Populate player row with member data
     // You will need to adapt this to the actual structure of your member data and the required HTML
     playerRow.innerHTML = `
+    <div class="player-rank">${memberData.rank}</div>
       <div class="player-profile-pic" style="background-image: url('${memberData.profilePic}')"></div>
       <div class="player-username">${memberData.username}</div>
       <div class="player-points">${memberData.points}</div>

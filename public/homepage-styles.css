@@ -362,60 +362,6 @@ h2 {
 }
 
 
-.pool-header {
-    display: flex;
-    background-color: #17203a; /* Adjust the background color as needed */
-    color: #fff; /* Adjust text color as needed */
-    padding: 10px 0; /* Vertical padding */
-}
-
-.pool-header span {
-    flex-grow: 1; /* Allow each header item to fill the space equally */
-    text-align: center;
-    border-right: 1px solid #33d9ff; /* Add lines between the headers */
-    padding: 0 10px; /* Add some padding on the sides */
-}
-
-.pool-header .header-rank, .player-row .player-rank {
-    flex: 1; /* Rank takes up 1 part of the space */
-}
-
-.pool-header .header-user, .player-row .player-user {
-    flex: 3; /* User takes up 3 parts of the space */
-}
-
-.pool-header .header-points, .player-row .player-points {
-    flex: 1; /* Points takes up 1 part of the space */
-}
-
-.pool-header .header-picks, .player-row .player-picks {
-    flex: 7; /* Picks takes up 7 parts of the space */
-}
-
-.pool-header .header-win, .player-row .player-win {
-    flex: 1; /* Win takes up 1 part of the space */
-}
-
-.pool-header .header-loss, .player-row .player-loss {
-    flex: 1; /* Loss takes up 1 part of the space */
-}
-
-.pool-header .header-push, .player-row .player-push {
-    flex: 1; /* Push takes up 1 part of the space */
-}
-
-/* Remove border from the last child */
-.pool-header span:last-child {
-    border-right: none;
-}
-
-/* You can assign specific flex values to give more space to certain fields if needed */
-.header-user {
-    flex: 2; /* Give the 'User' section more space */
-}
-.header-rank{
-    flex: .5
-}
 .player-card {
     position: relative;
     width: 220px;
@@ -698,5 +644,85 @@ button:hover {
     padding: 10px 0;
     border-top: 2px solid #33d9ff;
     border-bottom: 2px solid #33d9ff;
+
     font-weight: bold;
+}
+.pool-header, .player-row {
+    display: flex;
+    align-items: center; /* Align the items vertically */
+}
+
+/* Define the flex-basis for each of the child elements */
+.header-rank, .player-rank,
+.header-user, .player-user,
+.header-points, .player-points,
+.header-picks, .player-picks,
+.header-win, .player-win,
+.header-loss, .player-loss,
+.header-push, .player-push {
+    text-align: center; /* Center align the text */
+    /* The flex-grow should be the same as the flex-basis values below for consistency */
+}
+
+/* Align the flex-basis with the desired width for each type of cell */
+.header-rank, .player-rank { flex: 0.5; }
+.header-user, .player-user { flex: 3; }
+.header-points, .player-points { flex: 1; }
+.header-picks, .player-picks { flex: 5; }
+.header-win, .player-win { flex: 1; }
+.header-loss, .player-loss { flex: 1; }
+.header-push, .player-push { flex: 1; }
+
+/* This ensures that the rightmost header cell does not have a right border */
+.pool-header span:last-child {
+    border-right: none;
+}
+.pool-header span {
+    text-align: center;
+    padding: 0 10px; /* Add some padding on the sides */
+    position: relative; /* Needed for the pseudo-element to work */
+}
+
+/* This will create a vertical line to the right of each header, except for the last child */
+.pool-header span:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 60%; /* Adjust the height as needed */
+    width: 1px; /* Width of the line */
+    background-color: #33d9ff; /* Color of the line */
+}
+
+
+/* This will create a vertical line to the right of each header, except for the last child */
+.pool-header span:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 60%; /* Adjust the height as needed */
+    width: 1px; /* Width of the line */
+    background-color: #33d9ff; /* Color of the line */
+}
+
+
+.player-profile-pic {
+    width: 43px; /* Adjust as needed */
+    height: 43px; /* Adjust as needed */
+    border-radius: 50%; /* Circular image */
+    background-size: cover; /* Cover the container with the image */
+    background-position: center; /* Center the image */
+    margin-right: 10px; /* Space between image and username */
+    border: 2px solid #33d9ff; /* Blue border around the profile pic */
+    box-shadow: 0 0 5px #33d9ff; /* Shadow for depth */
+}
+.player-row {
+    border-bottom: 1px solid #33d9ff; /* Adds a line between rows */
+}
+
+.player-row:last-child {
+    border-bottom: none; /* Removes the line from the last row */
 }
