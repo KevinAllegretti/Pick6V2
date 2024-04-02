@@ -20,7 +20,7 @@ const poolSchema = new mongoose.Schema({
     required: true
   },
   members: [{
-    type: mongoose.Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.String,
     ref: 'User',
   }],
   isPrivate: {

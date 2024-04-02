@@ -427,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
         topPlayerCard.appendChild(crownIcon);
     }
 });
-
+//START OF POOLS AND PLAYERROWS
 
 document.getElementById('show-create-pool-form').addEventListener('click', function() {
     // This line toggles the form's visibility.
@@ -573,6 +573,7 @@ function displayNewPoolContainer(pool) {
             console.log("Delete button should be added for:", pool.name);
         }
         
+        /*
         if (isAdmin) {
             // Admin's player data object (this would ideally come from your backend/server)
             const adminPlayerData = {
@@ -589,7 +590,36 @@ function displayNewPoolContainer(pool) {
             // Create the admin's player row and add to the pool container
             const adminPlayerRow = createPlayerRow(adminPlayerData, true); // true indicates admin status
             poolContainer.appendChild(adminPlayerRow);
-        }
+        }*/
+          pool.members.forEach(memberUsername => {
+            // Fetch additional member data if needed
+            fetch(`/api/getUserProfile/${encodeURIComponent(memberUsername)}`)
+              .then(response => {
+                  if(!response.ok) {
+                      throw new Error(`HTTP error! status: ${response.status}`);
+                  }
+                  return response.json();
+              })
+              .then(userProfile => {
+                console.log(userProfile);
+                // Create and display the player row for each member
+                const playerRow = createPlayerRow({
+                    username: userProfile.username,
+                    profilePic: userProfile.profilePicture,
+                    points: userProfile.points,
+                    picks: userProfile.picks,
+                    wins: userProfile.wins,
+                    losses: userProfile.losses,
+                    pushes: userProfile.pushes,
+                  }, memberUsername === pool.adminUsername);
+                poolContainer.appendChild(playerRow);
+              }).catch(e => {
+                console.log(e);
+                // Handle fetch error
+              });
+          });
+          
+
         // Append the pool name div and the pool container to the pool wrapper
         poolWrapper.appendChild(poolNameDiv);
         poolWrapper.appendChild(poolContainer);
@@ -620,41 +650,35 @@ function loadAndDisplayPools() {
 // Initiate the pool loading when the page is ready.
 document.addEventListener('DOMContentLoaded', loadAndDisplayPools);
 
-function createPlayerRow(player, isAdmin) {
+function createPlayerRow(memberData, isAdmin) {
     const playerRow = document.createElement('div');
     playerRow.className = 'player-row';
-
-    // Add an admin icon if the player is an admin
+    // Add an admin badge if the player is an admin
     if (isAdmin) {
-      playerRow.classList.add('player-admin'); // Apply admin-specific styling
-      // Insert admin icon HTML here, if you have an icon
+        const adminBadge = document.createElement('span');
+        adminBadge.textContent = 'Admin';
+        adminBadge.className = 'admin-badge';
+        playerRow.appendChild(adminBadge);
     }
-  
     
-    // Populate player row with data
+    // Populate player row with member data
+    // You will need to adapt this to the actual structure of your member data and the required HTML
     playerRow.innerHTML = `
-      <div class="player-rank" style="flex-grow: 1;">${player.rank}</div>
-      <div class="player-user" style="flex-grow: 3;">
-        <img class="player-profile-pic" src="${player.profilePic}" alt="${player.username}" />
-        <span class="player-name">${player.username}</span>
+      <div class="player-profile-pic" style="background-image: url('${memberData.profilePic}')"></div>
+      <div class="player-username">${memberData.username}</div>
+      <div class="player-points">${memberData.points}</div>
+      <div class="player-picks">${memberData.picks}</div>
+      <div class="player-stats">
+        Wins: ${memberData.wins} / Losses: ${memberData.losses} / Pushes: ${memberData.pushes}
       </div>
-      <div class="player-points" style="flex-grow: 1;">${player.points}</div>
-      <div class="player-picks" style="flex-grow: 7;">${player.picks}</div>
-      <div class="player-win" style="flex-grow: 1;">${player.wins}</div>
-      <div class="player-loss" style="flex-grow: 1;">${player.losses}</div>
-      <div class="player-push" style="flex-grow: 1;">${player.pushes}</div>
     `;
-
-    // Apply flex styling to each child
-    playerRow.querySelectorAll('.player-rank, .player-user, .player-points, .player-picks, .player-win, .player-loss, .player-push').forEach(div => {
-      div.style.flexBasis = '0';
-    });
+    // Add any additional data or elements you need
 
     return playerRow;
 }
 
-  
-  
+
+
   
 // Assume this function is called when you want to delete a pool
 function deletePool(poolName) {

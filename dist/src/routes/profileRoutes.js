@@ -45,23 +45,33 @@ router.post('/api/uploadProfilePicture', upload.single('profilePic'), async (req
 });
 // Get user profile endpoint
 router.get('/api/getUserProfile/:username', async (req, res) => {
-    //   console.log(`Received request for user profile: ${req.params.username}`);
-    //   console.log("params", req.params);
-    //console.log("body", req.body);
     try {
         const db = await (0, connectDB_1.connectToDatabase)();
         const usersCollection = db.collection('users');
         const username = req.params.username.toLowerCase();
-        //console.log('Looking up user in database', username);
+        console.log('Looking up user in database:', username);
         const user = await usersCollection.findOne({ username });
         if (!user) {
+            console.log(`User not found in database: ${username}`);
             return res.status(404).send({ message: 'User not found.' });
         }
-        res.json({ profilePicture: user.profilePicture || 'Default.png' }); // Send the profile picture URL back to the client
+        console.log(`User found: ${user.username}`);
+        // Assuming you have fields like points, picks, etc., in your user document
+        const userProfile = {
+            username: user.username,
+            profilePicture: user.profilePicture || 'Default.png',
+            points: user.points || 0,
+            picks: user.picks || [], // or whatever your data structure looks like
+            wins: user.wins || 0,
+            losses: user.losses || 0,
+            pushes: user.pushes || 0,
+            // ... any other fields you want to include
+        };
+        res.json(userProfile); // Send the expanded user profile back to the client
     }
     catch (error) {
-        //  console.error('Error getting user profile:', error);
-        res.status(500).send({ message: 'Error getting user profile' });
+        console.error('Error getting user profile:', error);
+        res.status(500).send({ message: 'Error getting user profile', error });
     }
 });
 exports.default = router;

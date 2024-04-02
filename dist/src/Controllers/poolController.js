@@ -18,7 +18,7 @@ const createPool = async (req, res) => {
     console.log('Request to create pool received:', req.body);
     try {
         let { name, adminUsername, isPrivate, password } = req.body;
-        name = name; //.toLowerCase();
+        name = name; //.toLowerCase(); // Depending on your requirements, you might uncomment this.
         // Check if a pool with the same name already exists
         const existingPool = await Pool_1.default.findOne({ name });
         if (existingPool) {
@@ -36,12 +36,14 @@ const createPool = async (req, res) => {
         if (isPrivate && password) {
             hashedPassword = await bcrypt_1.default.hash(password, 10);
         }
+        // Automatically include the admin in the members array upon pool creation
         const newPool = new Pool_1.default({
             name,
             admin: adminUser._id, // Set the admin to the adminUser's ObjectId
             adminUsername: adminUsername, // Use the adminUsername directly from the request
             isPrivate,
             password: hashedPassword,
+            members: [adminUsername], // Include the admin's ObjectId in the members array
         });
         const savedPool = await newPool.save();
         console.log('Pool saved to database:', savedPool);
@@ -78,7 +80,7 @@ const joinPool = async (req, res) => {
             }
         }
         // Add the user to the pool's members array
-        pool.members.push(user._id);
+        pool.members.push(username);
         await pool.save();
         res.status(200).json({ message: 'Joined pool successfully', pool });
     }
@@ -113,8 +115,8 @@ const manageJoinRequest = async (req, res) => {
         }
         if (action.type === 'approve') {
             // Add user to members array if not already present
-            if (!pool.members.includes(requestingUser._id)) {
-                pool.members.push(requestingUser._id);
+            if (!pool.members.includes(requestingUser.username)) {
+                pool.members.push(requestingUser.username);
             }
         }
         else if (action.type === 'deny') {

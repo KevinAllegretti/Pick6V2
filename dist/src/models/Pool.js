@@ -23,7 +23,7 @@ const poolSchema = new mongoose_1.default.Schema({
         required: true
     },
     members: [{
-            type: mongoose_1.default.Schema.Types.ObjectId,
+            type: mongoose_1.default.Schema.Types.String,
             ref: 'User',
         }],
     isPrivate: {

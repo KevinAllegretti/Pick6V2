@@ -11,11 +11,14 @@ const findUserByUsername = async (username: string) => {
   const user = await usersCollection.findOne({ username: username.toLowerCase() });
   return user;
 };
+
+
 export const createPool = async (req: Request, res: Response) => {
   console.log('Request to create pool received:', req.body);
   try {
     let { name, adminUsername, isPrivate, password } = req.body;
-    name = name//.toLowerCase();
+    name = name//.toLowerCase(); // Depending on your requirements, you might uncomment this.
+    
     // Check if a pool with the same name already exists
     const existingPool = await Pool.findOne({ name });
     if (existingPool) {
@@ -37,12 +40,14 @@ export const createPool = async (req: Request, res: Response) => {
       hashedPassword = await bcrypt.hash(password, 10);
     }
     
+    // Automatically include the admin in the members array upon pool creation
     const newPool = new Pool({
       name,
       admin: adminUser._id, // Set the admin to the adminUser's ObjectId
       adminUsername: adminUsername, // Use the adminUsername directly from the request
       isPrivate,
       password: hashedPassword,
+      members: [adminUsername], // Include the admin's ObjectId in the members array
     });
 
     const savedPool = await newPool.save();
@@ -85,7 +90,7 @@ export const joinPool = async (req: Request, res: Response) => {
     }
 
     // Add the user to the pool's members array
-    pool.members.push(user._id);
+    pool.members.push(username);
     await pool.save();
     res.status(200).json({ message: 'Joined pool successfully', pool });
   } catch (error) {
@@ -124,8 +129,8 @@ export const manageJoinRequest = async (req: Request, res: Response) => {
 
     if (action.type === 'approve') {
       // Add user to members array if not already present
-      if (!pool.members.includes(requestingUser._id)) {
-        pool.members.push(requestingUser._id);
+      if (!pool.members.includes(requestingUser.username)) {
+        pool.members.push(requestingUser.username);
       }
     } else if (action.type === 'deny') {
       // Remove the request from the 'requests' array or set it to denied
