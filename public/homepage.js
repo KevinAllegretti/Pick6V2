@@ -573,35 +573,49 @@ function displayNewPoolContainer(pool) {
             console.log("Delete button should be added for:", pool.name);
         }
     
-          pool.members.forEach((memberUsername, index) => {
-            // Fetch additional member data if needed
-            const rank = index + 1;
-            fetch(`/api/getUserProfile/${encodeURIComponent(memberUsername)}`)
-              .then(response => {
-                  if(!response.ok) {
-                      throw new Error(`HTTP error! status: ${response.status}`);
-                  }
-                  return response.json();
-              })
-              .then(userProfile => {
+         
+    pool.members.forEach((memberUsername, index) => {
+        // Fetch additional member data if needed
+        const rank = index + 1;
+        fetch(`/api/getUserProfile/${encodeURIComponent(memberUsername)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(userProfile => {
                 console.log(userProfile);
-                // Create and display the player row for each member
-                const playerRow = createPlayerRow({
-                    rank,
-                    username: userProfile.username,
-                    profilePic: userProfile.profilePicture,
-                    points: userProfile.points,
-                    picks: userProfile.picks,
-                    wins: userProfile.wins,
-                    losses: userProfile.losses,
-                    pushes: userProfile.pushes,
-                  }, memberUsername === pool.adminUsername);
-                poolContainer.appendChild(playerRow);
-              }).catch(e => {
-                console.log(e);
-                // Handle fetch error
-              });
-          });
+                // Fetch picks from the userPicks collection
+                fetch(`/api/getPicks/${encodeURIComponent(memberUsername)}`)
+                    .then(picksResponse => {
+                        if (!picksResponse.ok) {
+                            throw new Error(`HTTP error! status: ${picksResponse.status}`);
+                        }
+                        return picksResponse.json();
+                    })
+                    .then(userPicks => {
+                        // Now we have both profile and picks, create and display the player row
+                        const playerRow = createPlayerRow({
+                            rank,
+                            username: userProfile.username,
+                            profilePic: userProfile.profilePicture,
+                            points: userProfile.points,
+                            picks: userPicks.picks, // Assign the picks from userPicks
+                            wins: userProfile.wins,
+                            losses: userProfile.losses,
+                            pushes: userProfile.pushes,
+                        }, memberUsername === pool.adminUsername);
+                        poolContainer.appendChild(playerRow);
+                    }).catch(picksError => {
+                        console.error(picksError);
+                        // Handle error in fetching picks
+                    });
+            }).catch(profileError => {
+                console.error(profileError);
+                // Handle error in fetching user profile
+            });
+    });
           
 
         // Append the pool name div and the pool container to the pool wrapper

@@ -8,7 +8,7 @@ const connectDB_1 = require("../microservices/connectDB");
 const router = express_1.default.Router();
 router.post('/api/savePicks/:username', async (req, res) => {
     try {
-        const username = req.params.username;
+        const username = req.params.username.toLowerCase();
         // Extract data from request
         const { picks, immortalLock } = req.body;
         // Connect to database

@@ -4,7 +4,7 @@ const router = express.Router();
 
 router.post('/api/savePicks/:username', async (req, res) => {
     try {
-        const username = req.params.username;
+        const username = req.params.username.toLowerCase();
 
         // Extract data from request
         const { picks, immortalLock } = req.body;
