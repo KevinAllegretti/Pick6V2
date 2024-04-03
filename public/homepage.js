@@ -572,25 +572,7 @@ function displayNewPoolContainer(pool) {
             poolWrapper.appendChild(deleteButton);
             console.log("Delete button should be added for:", pool.name);
         }
-        
-        /*
-        if (isAdmin) {
-            // Admin's player data object (this would ideally come from your backend/server)
-            const adminPlayerData = {
-                rank: 1, // Admin starts at rank 1
-                username: pool.adminUsername, // Admin's username
-                points: 0, // Starting points
-                picks: '', // Picks can be an empty string or initial pick data
-                wins: 0,
-                losses: 0,
-                pushes: 0,
-                profilePic: '/path/to/admin/profile/pic.png' // Profile pic path
-            };
     
-            // Create the admin's player row and add to the pool container
-            const adminPlayerRow = createPlayerRow(adminPlayerData, true); // true indicates admin status
-            poolContainer.appendChild(adminPlayerRow);
-        }*/
           pool.members.forEach((memberUsername, index) => {
             // Fetch additional member data if needed
             const rank = index + 1;
@@ -667,14 +649,26 @@ function createPlayerRow(memberData, isAdmin) {
     // You will need to adapt this to the actual structure of your member data and the required HTML
     playerRow.innerHTML = `
     <div class="player-rank">${memberData.rank}</div>
-      <div class="player-profile-pic" style="background-image: url('${memberData.profilePic}')"></div>
-      <div class="player-username">${memberData.username}</div>
-      <div class="player-points">${memberData.points}</div>
-      <div class="player-picks">${memberData.picks}</div>
-      <div class="player-stats">
-        Wins: ${memberData.wins} / Losses: ${memberData.losses} / Pushes: ${memberData.pushes}
-      </div>
-    `;
+    <div class="player-user">
+        <div class="player-profile-pic" style="background-image: url('${memberData.profilePic}')"></div>
+        <span class="player-username">${memberData.username}</span>
+    </div>
+    <div class="player-points">${memberData.points}</div>
+    <div class="player-picks"></div>
+    <div class="player-win">${memberData.wins}</div>
+    <div class="player-loss">${memberData.losses}</div>
+    <div class="player-push">${memberData.pushes}</div>
+`;
+
+ // Create and append picks to the player-picks container
+ const picksContainer = playerRow.querySelector('.player-picks');
+ memberData.picks.forEach(pick => {
+     const pickElement = document.createElement('div');
+     pickElement.className = 'pick';
+     pickElement.textContent = pick; // Replace with actual content/formatting
+     picksContainer.appendChild(pickElement);
+ });
+
     // Add any additional data or elements you need
 
     return playerRow;
