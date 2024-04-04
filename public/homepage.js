@@ -809,7 +809,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
         const poolName = poolNameInput.value;
         const poolPassword = passwordInput.value;
-        const currentUsername = localStorage.getItem('username');
+        const currentUsername = localStorage.getItem('username').toLowerCase();
     
         if (!currentUsername) {
             alert('You must be logged in to join a pool.');
