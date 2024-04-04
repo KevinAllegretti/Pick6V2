@@ -64,6 +64,7 @@ exports.createPool = createPool;
 const joinPoolByName = async (req, res) => {
     try {
         const { poolName, username, poolPassword } = req.body;
+        console.log({ poolName, username, poolPassword });
         // Find the user by username
         const user = await findUserByUsername(username);
         if (!user) {

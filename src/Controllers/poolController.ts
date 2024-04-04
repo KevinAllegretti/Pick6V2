@@ -70,7 +70,7 @@ export const createPool = async (req: Request, res: Response) => {
 export const joinPoolByName = async (req: Request, res: Response) => {
   try {
     const { poolName, username, poolPassword } = req.body;
-
+    console.log({ poolName, username, poolPassword });
     // Find the user by username
     const user = await findUserByUsername(username);
     if (!user) {

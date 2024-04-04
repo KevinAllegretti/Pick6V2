@@ -825,7 +825,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Attempting to join pool with the following details:', joinPayload);
     
         // Make sure the URL matches your API route
-        const apiEndpoint = '/api/joinByName'; // This should match your server route
+        const apiEndpoint = '/pools/joinByName'; // This should match your server route
         console.log(`Making POST request to: ${apiEndpoint}`);
     
         fetch(apiEndpoint, {
