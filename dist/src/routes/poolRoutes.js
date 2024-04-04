@@ -13,7 +13,7 @@ const router = express_1.default.Router();
 // Route to create a new pool
 router.post('/create', poolController_1.createPool);
 // Route to handle join pool requests
-router.post('/join', poolController_1.joinPool);
+router.post('/joinByName', poolController_1.joinPoolByName);
 // Route for admins to manage join requests
 router.post('/manage-join', poolController_1.manageJoinRequest);
 router.get('/get-all', async (req, res) => {

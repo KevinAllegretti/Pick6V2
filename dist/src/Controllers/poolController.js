@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.manageJoinRequest = exports.joinPool = exports.createPool = void 0;
+exports.manageJoinRequest = exports.joinPoolByName = exports.createPool = void 0;
 const connectDB_1 = require("../microservices/connectDB");
 const Pool_1 = __importDefault(require("../models/Pool")); // Assuming you have a Pool model set up as previously discussed
 const bcrypt_1 = __importDefault(require("bcrypt"));
@@ -60,35 +60,38 @@ const createPool = async (req, res) => {
 };
 exports.createPool = createPool;
 // User requests to join a pool
-const joinPool = async (req, res) => {
+// User requests to join a pool by pool name
+const joinPoolByName = async (req, res) => {
     try {
-        const { poolId, username, poolPassword } = req.body;
+        const { poolName, username, poolPassword } = req.body;
         // Find the user by username
         const user = await findUserByUsername(username);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        // Find the pool by ID
-        const pool = await Pool_1.default.findById(poolId);
+        // Find the pool by name
+        const pool = await Pool_1.default.findOne({ name: poolName });
         if (!pool) {
             return res.status(404).json({ message: 'Pool not found' });
         }
-        if (pool.isPrivate) {
+        if (pool.isPrivate && pool.password) {
             const isMatch = await bcrypt_1.default.compare(poolPassword, pool.password);
             if (!isMatch) {
                 return res.status(401).json({ message: 'Incorrect password' });
             }
         }
-        // Add the user to the pool's members array
-        pool.members.push(username);
-        await pool.save();
+        // Add the user to the pool's members array if not already a member
+        if (!pool.members.includes(username)) {
+            pool.members.push(username);
+            await pool.save();
+        }
         res.status(200).json({ message: 'Joined pool successfully', pool });
     }
     catch (error) {
         res.status(500).json({ message: 'Error joining pool', error });
     }
 };
-exports.joinPool = joinPool;
+exports.joinPoolByName = joinPoolByName;
 // Admin manages join requests for a private pool
 const manageJoinRequest = async (req, res) => {
     try {

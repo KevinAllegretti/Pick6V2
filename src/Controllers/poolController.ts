@@ -66,9 +66,10 @@ export const createPool = async (req: Request, res: Response) => {
 
 
 // User requests to join a pool
-export const joinPool = async (req: Request, res: Response) => {
+// User requests to join a pool by pool name
+export const joinPoolByName = async (req: Request, res: Response) => {
   try {
-    const { poolId, username, poolPassword } = req.body;
+    const { poolName, username, poolPassword } = req.body;
 
     // Find the user by username
     const user = await findUserByUsername(username);
@@ -76,27 +77,31 @@ export const joinPool = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Find the pool by ID
-    const pool = await Pool.findById(poolId);
+    // Find the pool by name
+    const pool = await Pool.findOne({ name: poolName });
     if (!pool) {
       return res.status(404).json({ message: 'Pool not found' });
     }
 
-    if (pool.isPrivate) {
+    if (pool.isPrivate && pool.password) {
       const isMatch = await bcrypt.compare(poolPassword, pool.password);
       if (!isMatch) {
         return res.status(401).json({ message: 'Incorrect password' });
       }
     }
 
-    // Add the user to the pool's members array
-    pool.members.push(username);
-    await pool.save();
+    // Add the user to the pool's members array if not already a member
+    if (!pool.members.includes(username)) {
+      pool.members.push(username);
+      await pool.save();
+    }
+
     res.status(200).json({ message: 'Joined pool successfully', pool });
   } catch (error) {
     res.status(500).json({ message: 'Error joining pool', error });
   }
 };
+
 
 // Admin manages join requests for a private pool
 export const manageJoinRequest = async (req: Request, res: Response) => {

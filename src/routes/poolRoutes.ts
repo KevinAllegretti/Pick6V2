@@ -1,7 +1,7 @@
 // src/routes/poolRoutes.ts
 
 import express from 'express';
-import { createPool, joinPool, manageJoinRequest } from '../Controllers/poolController';
+import { createPool, joinPoolByName, manageJoinRequest } from '../Controllers/poolController';
 import Pool from '../models/Pool';
 import { connectToDatabase } from '../microservices/connectDB';
 //import { ObjectId } from 'mongodb';
@@ -12,8 +12,7 @@ const router = express.Router();
 router.post('/create', createPool);
 
 // Route to handle join pool requests
-router.post('/join', joinPool);
-
+router.post('/joinByName', joinPoolByName);
 // Route for admins to manage join requests
 router.post('/manage-join', manageJoinRequest);
 

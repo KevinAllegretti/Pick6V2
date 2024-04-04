@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('username', username);
     }
 
-
     const teamLogos = {
         'ARI Cardinals': '/ARILogo.png',
         'ATL Falcons': '/ATLLogo.png',
@@ -43,9 +42,6 @@ document.addEventListener('DOMContentLoaded', function() {
         'WAS Commanders': '/WASLogo.png'
     };
     
-
-
-
     const loggedInUsername = localStorage.getItem('username');
     console.log("Script is loaded!");
     console.log("Logged in user:", loggedInUsername);
@@ -506,7 +502,43 @@ document.getElementById('create-pool-form').addEventListener('submit', function(
 
 function displayNewPoolContainer(pool) {
 
-   
+    
+    const teamLogos = {
+        'ARI Cardinals': '/ARILogo.png',
+        'ATL Falcons': '/ATLLogo.png',
+        'BAL Ravens': '/BALLogo.png',
+        'BUF Bills': '/BUFLogo.png',
+        'CAR Panthers': '/CARLogo.png',
+        'CHI Bears': '/CHILogo.png',
+        'CIN Bengals': '/CINLogo.png',
+        'CLE Browns': '/CLELogo.png',
+        'DAL Cowboys': '/DALLogo.png',
+        'DEN Broncos': '/DENLogo.png',
+        'DET Lions': '/DETLogo.png',
+        'GB Packers': '/GBLogo.png',
+        'HOU Texans': '/HOULogo.png',
+        'IND Colts': '/INDLogo.png',
+        'JAX Jaguars': '/JAXLogo.png',
+        'KC Chiefs': '/KCLogo.png',
+        'LV Raiders': '/LVLogo.png',
+        'LA Chargers': '/LACLogo.png',
+        'LA Rams': '/LARLogo.png',
+        'MIA Dolphins': '/MIALogo.png',
+        'MIN Vikings': '/MINLogo.png',
+        'NE Patriots': '/NELogo.png',
+        'NO Saints': '/NOLogo.png',
+        'NY Giants': '/NYGLogo.png',
+        'NY Jets': '/NYJLogo.png',
+        'PHI Eagles': '/PHILogo.png',
+        'PIT Steelers': '/PITLogo.png',
+        'SF 49ers': '/SFLogo.png',
+        'SEA Seahawks': '/SEALogo.png',
+        'TB Buccaneers': '/TBLogo.png',
+        'TEN Titans': '/TENLogo.png',
+        'WAS Commanders': '/WASLogo.png'
+    };
+    
+
 
 
     let currentUsername = localStorage.getItem('username'); // Retrieve username from local storage
@@ -574,48 +606,79 @@ function displayNewPoolContainer(pool) {
         }
     
          
-    pool.members.forEach((memberUsername, index) => {
-        // Fetch additional member data if needed
-        const rank = index + 1;
-        fetch(`/api/getUserProfile/${encodeURIComponent(memberUsername)}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(userProfile => {
-                console.log(userProfile);
-                // Fetch picks from the userPicks collection
-                fetch(`/api/getPicks/${encodeURIComponent(memberUsername)}`)
-                    .then(picksResponse => {
-                        if (!picksResponse.ok) {
-                            throw new Error(`HTTP error! status: ${picksResponse.status}`);
-                        }
-                        return picksResponse.json();
-                    })
-                    .then(userPicks => {
-                        // Now we have both profile and picks, create and display the player row
-                        const playerRow = createPlayerRow({
-                            rank,
-                            username: userProfile.username,
-                            profilePic: userProfile.profilePicture,
-                            points: userProfile.points,
-                            picks: userPicks.picks, // Assign the picks from userPicks
-                            wins: userProfile.wins,
-                            losses: userProfile.losses,
-                            pushes: userProfile.pushes,
-                        }, memberUsername === pool.adminUsername);
-                        poolContainer.appendChild(playerRow);
-                    }).catch(picksError => {
-                        console.error(picksError);
-                        // Handle error in fetching picks
-                    });
-            }).catch(profileError => {
-                console.error(profileError);
-                // Handle error in fetching user profile
-            });
-    });
+        pool.members.forEach((memberUsername, index) => {
+            const rank = index + 1;
+            const encodedMemberUsername = encodeURIComponent(memberUsername);
+    
+            // First fetch the user profile
+            fetch(`/api/getUserProfile/${encodedMemberUsername}`)
+                .then(response => response.json())
+                .then(userProfile => {
+                    if (!userProfile) {
+                        throw new Error(`User profile for ${memberUsername} not found`);
+                    }
+                    
+                    // Then fetch the picks
+                    fetch(`/api/getPicks/${encodedMemberUsername}`)
+                        .then(picksResponse => picksResponse.json())
+                        .then(picksData => {
+
+                            console.log(picksData);
+
+                         
+                            // Create the player row here
+                            const playerRow = createPlayerRow({
+                                rank,
+                                username: userProfile.username,
+                                profilePic: userProfile.profilePicture,
+                                points: userProfile.points,
+                                wins: userProfile.wins,
+                                losses: userProfile.losses,
+                                pushes: userProfile.pushes,
+                              }, memberUsername === pool.adminUsername);
+                    
+                              const picksContainer = playerRow.querySelector('.player-picks');
+                            // Populate the picks
+                     
+                            picksContainer.className = 'player-picks';
+                            
+                            picksData.picks.forEach(pick => {
+                                const pickDiv = document.createElement('div');
+                                pickDiv.className = 'pick';
+                                
+                                const teamNameMatch = pick.match(/^(.*?)\s\[/);
+                                const teamName = teamNameMatch ? teamNameMatch[1] : null;
+                                const valueMatch = pick.match(/\[.*?([-+]\d+(?:\.\d+)?)\]/);
+                                const value = valueMatch ? valueMatch[1] : null;
+    
+                                if (teamName && teamLogos[teamName]) {
+                                    const logoImg = document.createElement('img');
+                                    logoImg.src = teamLogos[teamName];
+                                    logoImg.alt = `${teamName}`;
+                                    logoImg.className = 'team-logo';
+                                    pickDiv.appendChild(logoImg);
+                                }
+    
+                                if (value) {
+                                    const valueSpan = document.createElement('span');
+                                    valueSpan.textContent = value;
+                                    pickDiv.appendChild(valueSpan);
+                                }
+    
+                                picksContainer.appendChild(pickDiv);
+                            });
+    
+                           playerRow.appendChild(picksContainer);
+                         poolContainer.appendChild(playerRow);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching picks:', error);
+                        });
+                })
+                .catch(error => {
+                    console.error('Error fetching user profile:', error);
+                });
+        });
           
 
         // Append the pool name div and the pool container to the pool wrapper
@@ -676,12 +739,15 @@ function createPlayerRow(memberData, isAdmin) {
 
  // Create and append picks to the player-picks container
  const picksContainer = playerRow.querySelector('.player-picks');
- memberData.picks.forEach(pick => {
+ if (Array.isArray(memberData.picks)) {
+    memberData.picks.forEach(pick => {
      const pickElement = document.createElement('div');
      pickElement.className = 'pick';
      pickElement.textContent = pick; // Replace with actual content/formatting
      picksContainer.appendChild(pickElement);
- });
+ }); } else {
+    console.error('picks is not an array:', memberData.picks);
+}
 
     // Add any additional data or elements you need
 
@@ -732,3 +798,58 @@ function removePoolFromUI(poolName) {
         console.error('Pool element not found:', poolName);
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const joinPoolForm = document.getElementById('join-pool-form');
+    const poolNameInput = document.getElementById('pool-name2');
+    const passwordInput = document.getElementById('join-password');
+
+    joinPoolForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+    
+        const poolName = poolNameInput.value;
+        const poolPassword = passwordInput.value;
+        const currentUsername = localStorage.getItem('username');
+    
+        if (!currentUsername) {
+            alert('You must be logged in to join a pool.');
+            return;
+        }
+    
+        const joinPayload = {
+            poolName: poolName,
+            username: currentUsername,
+            poolPassword: poolPassword
+        };
+    
+        console.log('Attempting to join pool with the following details:', joinPayload);
+    
+        // Make sure the URL matches your API route
+        const apiEndpoint = '/api/joinByName'; // This should match your server route
+        console.log(`Making POST request to: ${apiEndpoint}`);
+    
+        fetch(apiEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(joinPayload)
+        })
+        .then(response => {
+            console.log(`Received response with status: ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`Network response was not ok ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Server response:', data);
+            // ... rest of your success handling code ...
+        })
+        .catch(error => {
+            console.error('Error joining pool:', error);
+            // ... rest of your error handling code ...
+        });
+    });
+    
+});
