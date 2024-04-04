@@ -49,13 +49,13 @@ router.get('/api/getUserProfile/:username', async (req, res) => {
         const db = await (0, connectDB_1.connectToDatabase)();
         const usersCollection = db.collection('users');
         const username = req.params.username.toLowerCase();
-        console.log('Looking up user in database:', username);
+        // console.log('Looking up user in database:', username);
         const user = await usersCollection.findOne({ username });
         if (!user) {
-            console.log(`User not found in database: ${username}`);
+            // console.log(`User not found in database: ${username}`);
             return res.status(404).send({ message: 'User not found.' });
         }
-        console.log(`User found: ${user.username}`);
+        // console.log(`User found: ${user.username}`);
         // Assuming you have fields like points, picks, etc., in your user document
         const userProfile = {
             username: user.username,
@@ -70,7 +70,7 @@ router.get('/api/getUserProfile/:username', async (req, res) => {
         res.json(userProfile); // Send the expanded user profile back to the client
     }
     catch (error) {
-        console.error('Error getting user profile:', error);
+        // console.error('Error getting user profile:', error);
         res.status(500).send({ message: 'Error getting user profile', error });
     }
 });
