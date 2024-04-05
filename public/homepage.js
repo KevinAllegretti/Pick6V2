@@ -759,6 +759,7 @@ function createPlayerRow(memberData, isAdmin) {
     userSection.appendChild(crownIcon); // Append crown icon to the user div
 }
 
+/*
 if (memberData.rank === totalMembers) {
     const userSection = playerRow.querySelector('.player-user');
     const poopEmoji = document.createElement('span');
@@ -766,7 +767,7 @@ if (memberData.rank === totalMembers) {
     poopEmoji.className = 'poop-icon';
     userSection.appendChild(poopEmoji); // Append poop emoji to the user div
 }
-
+*/
         // Create and append picks to the player-picks container
         const picksContainer = playerRow.querySelector('.player-picks');
         if (Array.isArray(memberData.picks)) {
