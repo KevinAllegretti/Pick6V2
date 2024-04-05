@@ -284,10 +284,8 @@ h2 {
 
 .crown-icon {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    transform: rotate(45deg);
-    font-size: 1.5rem;  /* Adjust as needed */
+    right: 8px;
+    font-size: 1.0rem;  /* Adjust as needed */
     z-index: 10;
     color: gold;
 }
@@ -692,3 +690,8 @@ button:hover {
 .pool-header .header-loss, .player-row .player-loss { flex: 1; }
 .pool-header .header-push, .player-row .player-push { flex: 1; }
 
+
+.admin-badge {
+    color: rgb(1, 211, 1); /* Green color for the admin badge */
+    margin-left: 0.5em; /* Space between the username and the badge */
+}

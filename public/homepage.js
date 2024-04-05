@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     const loggedInUsername = localStorage.getItem('username');
-    console.log("Script is loaded!");
+   // console.log("Script is loaded!");
     console.log("Logged in user:", loggedInUsername);
 
     //PROFILE AND SLIDE
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const result = await response.json();
     
                 // Upload was successful
-                console.log(result.message);
+                //console.log(result.message);
                 // Update the profile picture on the page
                 document.querySelector('.profile-icon').src = result.filePath;
                 document.querySelector('.profile-icon-center').src = result.filePath;
@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Upload error:', error);
             }
         } else {
-            console.log('No file selected.');
+           // console.log('No file selected.');
         }
     });
     
@@ -365,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Animate points
     function triggerAnimation() {
-        console.log("Triggering Animation");
+      //  console.log("Triggering Animation");
         function animateValue(element, end, duration) {
             let startTimestamp = null;
             const start = parseFloat(element.textContent);
@@ -554,7 +554,7 @@ function displayNewPoolContainer(pool) {
         console.log("Admin username from pool object:", pool.adminUsername);
         console.log("Is admin:", isAdmin);
 
-        console.log(pool);
+       // console.log(pool);
         const poolContainerWrapper = document.getElementById('pool-container-wrapper');
 
         // Create the pool wrapper
@@ -623,7 +623,7 @@ function displayNewPoolContainer(pool) {
                         .then(picksResponse => picksResponse.json())
                         .then(picksData => {
 
-                            console.log(picksData);
+                            //console.log(picksData);
 
                          
                             // Create the player row here
@@ -728,14 +728,7 @@ document.addEventListener('DOMContentLoaded', loadAndDisplayUserPools);
 function createPlayerRow(memberData, isAdmin) {
     const playerRow = document.createElement('div');
     playerRow.className = 'player-row';
-    // Add an admin badge if the player is an admin
-    if (isAdmin) {
-        const adminBadge = document.createElement('span');
-        adminBadge.textContent = 'Admin';
-        adminBadge.className = 'admin-badge';
-        playerRow.appendChild(adminBadge);
-    }
-    
+  
     // Populate player row with member data
     // You will need to adapt this to the actual structure of your member data and the required HTML
     playerRow.innerHTML = `
@@ -751,17 +744,40 @@ function createPlayerRow(memberData, isAdmin) {
     <div class="player-push">${memberData.pushes}</div>
 `;
 
- // Create and append picks to the player-picks container
- const picksContainer = playerRow.querySelector('.player-picks');
- if (Array.isArray(memberData.picks)) {
-    memberData.picks.forEach(pick => {
-     const pickElement = document.createElement('div');
-     pickElement.className = 'pick';
-     pickElement.textContent = pick; // Replace with actual content/formatting
-     picksContainer.appendChild(pickElement);
- }); } else {
-    console.error('picks is not an array:', memberData.picks);
+        if (isAdmin) {
+        const userSection = playerRow.querySelector('.player-user');
+        const adminBadge = document.createElement('i');
+        adminBadge.classList.add('fas', 'fa-shield-alt', 'admin-badge');
+        userSection.appendChild(adminBadge);
+        }
+
+ // Add a crown icon to the rank 1 player card
+ if (memberData.rank === 1) {
+    const userSection = playerRow.querySelector('.player-user');
+    const crownIcon = document.createElement('i');
+    crownIcon.classList.add('fas', 'fa-crown', 'crown-icon');
+    userSection.appendChild(crownIcon); // Append crown icon to the user div
 }
+
+if (memberData.rank === totalMembers) {
+    const userSection = playerRow.querySelector('.player-user');
+    const poopEmoji = document.createElement('span');
+    poopEmoji.textContent = '💩'; // Using the Unicode emoji for poop
+    poopEmoji.className = 'poop-icon';
+    userSection.appendChild(poopEmoji); // Append poop emoji to the user div
+}
+
+        // Create and append picks to the player-picks container
+        const picksContainer = playerRow.querySelector('.player-picks');
+        if (Array.isArray(memberData.picks)) {
+        memberData.picks.forEach(pick => {
+            const pickElement = document.createElement('div');
+            pickElement.className = 'pick';
+            pickElement.textContent = pick; // Replace with actual content/formatting
+            picksContainer.appendChild(pickElement);
+        }); } else {
+        //console.error('picks is not an array:', memberData.picks);
+        }
 
     // Add any additional data or elements you need
 
@@ -836,7 +852,7 @@ document.addEventListener('DOMContentLoaded', function() {
             poolPassword: poolPassword
         };
     
-        console.log('Attempting to join pool with the following details:', joinPayload);
+       // console.log('Attempting to join pool with the following details:', joinPayload);
     
         // Make sure the URL matches your API route
         const apiEndpoint = '/pools/joinByName'; // This should match your server route

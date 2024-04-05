@@ -127,38 +127,6 @@ router.post('/login', async (req, res) => {
     }
 });
 
-/*
-router.post('/login', async (req, res) => {
-    console.log('Login endpoint hit with data:', req.body);
-    try {
-        const { username, password } = req.body;
-        console.log(username, password)
-        const db = await connectToDatabase();
-        const usersCollection = db.collection("users");
-        const user = await usersCollection.findOne({ username });
-
-        if (user) {
-
-            const passwordMatch = await bcrypt.compare(password, user.password);
-            if (passwordMatch) {
-                if (user.verified){res.json({ error: false, redirect: `/homepage.html?username=${username}` });}
-                console.log("user verification status: ", user.verified);
-                if (!user.verified) {
-                    return res.status(403).json({ error: true, message: "Please verify your email to login." });
-                }
-            } else {
-                return res.status(401).json({ error: true, message: "Invalid credentials. Please try again." });
-            }
-        } else {
-            return res.status(401).json({ error: true, message: "Invalid credentials. Please try again." }),  console.log("hit point");
-        }
-    } catch (error) {
-        console.error('[Login Error]', error);
-        res.status(500).json({ error: true, message: "An error occurred during the login process. Please try again." });
-    }
-}); */
-
-
 
 
 
