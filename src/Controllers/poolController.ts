@@ -2,7 +2,6 @@
 import { Request, Response } from 'express';
 import { connectToDatabase } from '../microservices/connectDB';
 import Pool from '../models/Pool'; // Assuming you have a Pool model set up as previously discussed
-import bcrypt from 'bcrypt';
 
 // Helper function to find user by username and return the user object
 const findUserByUsername = async (username: string) => {
@@ -35,10 +34,6 @@ export const createPool = async (req: Request, res: Response) => {
 
     console.log(`Creating pool: ${name} by admin user: ${adminUsername}`);
 
-    let hashedPassword = null;
-    if (isPrivate && password) {
-      hashedPassword = await bcrypt.hash(password, 10);
-    }
     
     // Automatically include the admin in the members array upon pool creation
     const newPool = new Pool({
@@ -46,7 +41,7 @@ export const createPool = async (req: Request, res: Response) => {
       admin: adminUser._id, // Set the admin to the adminUser's ObjectId
       adminUsername: adminUsername, // Use the adminUsername directly from the request
       isPrivate,
-      password: hashedPassword,
+      password: password,
       members: [adminUsername], // Include the admin's ObjectId in the members array
     });
 
@@ -84,8 +79,9 @@ export const joinPoolByName = async (req: Request, res: Response) => {
     }
 
     if (pool.isPrivate && pool.password) {
-      const isMatch = await bcrypt.compare(poolPassword, pool.password);
-      if (!isMatch) {
+      console.log("this is the password: ", pool.password);
+      
+      if (poolPassword !== pool.password) {
         return res.status(401).json({ message: 'Incorrect password' });
       }
     }
@@ -150,3 +146,7 @@ export const manageJoinRequest = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Error managing join request', error });
   }
 };
+/*
+export const getPoolsForUser = async (req: Request, res: Response) => {
+ 
+};*/

@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.manageJoinRequest = exports.joinPoolByName = exports.createPool = void 0;
 const connectDB_1 = require("../microservices/connectDB");
 const Pool_1 = __importDefault(require("../models/Pool")); // Assuming you have a Pool model set up as previously discussed
-const bcrypt_1 = __importDefault(require("bcrypt"));
 // Helper function to find user by username and return the user object
 const findUserByUsername = async (username) => {
     const db = await (0, connectDB_1.connectToDatabase)();
@@ -32,17 +31,13 @@ const createPool = async (req, res) => {
             return res.status(404).json({ message: 'Admin user not found' });
         }
         console.log(`Creating pool: ${name} by admin user: ${adminUsername}`);
-        let hashedPassword = null;
-        if (isPrivate && password) {
-            hashedPassword = await bcrypt_1.default.hash(password, 10);
-        }
         // Automatically include the admin in the members array upon pool creation
         const newPool = new Pool_1.default({
             name,
             admin: adminUser._id, // Set the admin to the adminUser's ObjectId
             adminUsername: adminUsername, // Use the adminUsername directly from the request
             isPrivate,
-            password: hashedPassword,
+            password: password,
             members: [adminUsername], // Include the admin's ObjectId in the members array
         });
         const savedPool = await newPool.save();
@@ -76,8 +71,8 @@ const joinPoolByName = async (req, res) => {
             return res.status(404).json({ message: 'Pool not found' });
         }
         if (pool.isPrivate && pool.password) {
-            const isMatch = await bcrypt_1.default.compare(poolPassword, pool.password);
-            if (!isMatch) {
+            console.log("this is the password: ", pool.password);
+            if (poolPassword !== pool.password) {
                 return res.status(401).json({ message: 'Incorrect password' });
             }
         }
@@ -138,3 +133,7 @@ const manageJoinRequest = async (req, res) => {
     }
 };
 exports.manageJoinRequest = manageJoinRequest;
+/*
+export const getPoolsForUser = async (req: Request, res: Response) => {
+ 
+};*/ 

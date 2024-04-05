@@ -1,7 +1,7 @@
 // Pool.ts
 
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
+
 
 // Define the Pool schema
 const poolSchema = new mongoose.Schema({
@@ -36,14 +36,6 @@ const poolSchema = new mongoose.Schema({
   },
 });
 
-// Pre-save hook to hash password for private pools
-poolSchema.pre('save', async function (next) {
-  const pool = this as any; // Cast to 'any' type to avoid type checking issues in this context
-  if (pool.isPrivate && pool.isModified('password')) {
-    pool.password = await bcrypt.hash(pool.password, 10);
-  }
-  next();
-});
 
 // Create the model from the schema
 const Pool = mongoose.model('Pool', poolSchema);

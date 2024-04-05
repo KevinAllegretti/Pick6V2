@@ -694,22 +694,36 @@ function displayNewPoolContainer(pool) {
 
 }
 
+function loadAndDisplayUserPools() {
+    const currentUsername = localStorage.getItem('username'); 
 
-function loadAndDisplayPools() {
-    fetch('/pools/get-all') // Make sure this endpoint exists and returns pool data
-        .then(response => response.json())
-        .then(pools => {
-            pools.forEach(pool => {
-                displayNewPoolContainer(pool); // Ensure this is the correct data structure
-            });
-        })
-        .catch(error => {
-            console.error('Error fetching pools:', error);
+    if (!currentUsername) {
+        console.error('No logged-in user found!');
+        return;
+    }
+
+    fetch(`/pools/userPools/${encodeURIComponent(currentUsername.toLowerCase())}`)
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok.');
+        }
+        return response.json();
+    })
+    .then(pools => {
+        const poolContainerWrapper = document.getElementById('pool-container-wrapper');
+        poolContainerWrapper.innerHTML = '';
+        pools.forEach(pool => {
+            displayNewPoolContainer(pool);
         });
+    })
+    .catch(error => {
+        console.error('Error fetching pools for user:', error);
+    });
 }
 
-// Initiate the pool loading when the page is ready.
-document.addEventListener('DOMContentLoaded', loadAndDisplayPools);
+document.addEventListener('DOMContentLoaded', loadAndDisplayUserPools);
+
+
 
 function createPlayerRow(memberData, isAdmin) {
     const playerRow = document.createElement('div');

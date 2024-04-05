@@ -25,6 +25,20 @@ router.get('/get-all', async (req, res) => {
         res.status(500).json({ message: 'Error fetching pools', error });
     }
 });
+// In your routes file
+router.get('/userPools/:username', async (req, res) => {
+    try {
+        const username = req.params.username;
+        // Find all pools where the current user is a member
+        const pools = await Pool_1.default.find({
+            members: { $in: [username.toLowerCase()] } // Ensure the members array contains the username in lowercase
+        });
+        res.status(200).json(pools);
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Error fetching pools', error });
+    }
+});
 router.delete('/delete/:poolName', async (req, res) => {
     const poolName = req.params.poolName; //.toLowerCase();
     console.log(`Received delete request for pool with name: '${poolName}'`);
