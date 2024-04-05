@@ -748,6 +748,7 @@ function createPlayerRow(memberData, isAdmin) {
         const userSection = playerRow.querySelector('.player-user');
         const adminBadge = document.createElement('i');
         adminBadge.classList.add('fas', 'fa-shield-alt', 'admin-badge');
+        adminBadge.setAttribute('title', 'Admin'); // This sets the hover text
         userSection.appendChild(adminBadge);
         }
 
@@ -756,6 +757,7 @@ function createPlayerRow(memberData, isAdmin) {
     const userSection = playerRow.querySelector('.player-user');
     const crownIcon = document.createElement('i');
     crownIcon.classList.add('fas', 'fa-crown', 'crown-icon');
+    crownIcon.setAttribute('title', '1st Place'); // This sets the hover text
     userSection.appendChild(crownIcon); // Append crown icon to the user div
 }
 
