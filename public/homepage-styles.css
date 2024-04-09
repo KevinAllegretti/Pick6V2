@@ -733,3 +733,46 @@ button:hover {
 .player-username:hover::-webkit-scrollbar-thumb {
     background-color: rgba(0, 255, 34, 0.5); /* Scrollbar thumb color on hover */
 }
+.pool-manager {
+    width: 200px; /* or any fixed width you prefer */
+    padding: 10px 20px; /* Adjust padding to create smaller appearance */
+    background-color: #012; /* adjust the background color as needed */
+    position: absolute; /* or 'fixed' if you want it to stay in place on scroll */
+    top: 300px; /* adjust as needed to move down */
+    left: 10px; /* adjust as needed for horizontal positioning */
+    z-index: 10; /* lower than other main content elements if you want it less prominent */
+    box-shadow: none; /* remove if you don't want a shadow */
+    border-radius: 10px; /* if you want rounded corners */
+    overflow-y: auto; /* for scrollable content if needed */
+    transition: all 0.3s ease-in-out; /* for a smooth transition effect if needed */
+}
+
+
+/* You might also want to adjust the content area so it does not go under the sidebar */
+.content {
+    margin-left: 20%; /* This should match the width of your .pool-manager */
+    flex: 3; /* take up the remaining space */
+    padding: 20px;
+    background-color: #012; /* Change to match your page's theme */
+}
+
+  /* Style your forms within the pool-manager */
+  #join-pool-form, #create-pool-form {
+    margin-bottom: 20px;
+  }
+  
+  /* Add responsive design as needed */
+  @media (max-width: 768px) {
+    .container {
+      flex-direction: column;
+    }
+    
+    .pool-manager {
+      max-width: 100%; /* full width on smaller screens */
+      height: auto; /* adjust height */
+    }
+    
+    .content {
+      flex: 1; /* reset flex */
+    }
+  }

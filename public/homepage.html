@@ -79,35 +79,39 @@
             </div>
         </div>
 
-<!-- This form should be placed inside your HTML body where you want the join feature to appear -->
-<form id="join-pool-form">
-    <label for="pool-name2">Pool Name:</label>
-    <input type="text" id="pool-name2" required>
-  
-    <label for="join-password">Password:</label>
-    <input type="password" id="join-password">
-  
-    <button type="submit">Join Pool</button>
-  </form>
-  
-    <div id="main-content">
-        <!-- This button will trigger the form to display -->
-        <button id="show-create-pool-form">Create Pool</button>
-        <div id="create-pool-form-container" style="display: none;">
-            <form id="create-pool-form">
-                <label for="pool-name">Pool Name:</label>
-                <input type="text" id="pool-name" name="poolName" required>
-        
-                <label for="is-private">Private Pool:</label>
-                <input type="checkbox" id="is-private" name="isPrivate">
-        
-                <label for="pool-password" style="display: none;">Password:</label>
-                <input type="password" id="pool-password" name="poolPassword" style="display: none;">
-        
-                <input type="submit" value="Create Pool">
+        <div class="pool-manager">
+
+            <button id="show-create-pool-form">Create Pool</button>
+            <div id="create-pool-form-container" style="display: none;">
+                <form id="create-pool-form">
+                    <label for="pool-name">Pool Name:</label>
+                    <input type="text" id="pool-name" name="poolName" required>
+            
+                    <label for="is-private">Private Pool:</label>
+                    <input type="checkbox" id="is-private" name="isPrivate">
+            
+                    <label for="pool-password" style="display: none;">Password:</label>
+                    <input type="password" id="pool-password" name="poolPassword" style="display: none;">
+            
+                    <input type="submit" value="Create Pool">
+                </form>
+            </div>
+    
+            <form id="join-pool-form">
+                <label for="pool-name2">Pool Name:</label>
+                <input type="text" id="pool-name2" required>
+            
+                <label for="join-password">Password:</label>
+                <input type="password" id="join-password">
+            
+                <button type="submit">Join Pool</button>
             </form>
+            
         </div>
 
+    <div id="main-content">
+        <!-- This button will trigger the form to display -->
+       
         <div id="pool-container-wrapper">
             <!-- New pool containers will be added here -->
         </div>
