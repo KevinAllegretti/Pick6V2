@@ -848,10 +848,24 @@ function removePoolFromUI(poolName) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    const joinPoolForm = document.getElementById('join-pool-form');
+    const joinPoolForm = document.getElementById('join-pool-form-container'); // Assuming you have a container around your form
+    const toggleJoinFormButton = document.getElementById('show-join-pool-form'); // This is the button to show the join form
     const poolNameInput = document.getElementById('pool-name2');
     const passwordInput = document.getElementById('join-password');
 
+
+            // Initially hide the join pool form
+        joinPoolForm.style.display = 'none';
+   // Toggle the form display on button click
+   toggleJoinFormButton.addEventListener('click', function() {
+    if (joinPoolForm.style.display === 'none') {
+        joinPoolForm.style.display = 'block';
+        this.textContent = 'Go Back'; // Change the text to 'Go Back' when form is visible
+    } else {
+        joinPoolForm.style.display = 'none';
+        this.textContent = 'Join Pool'; // Change the text back to 'Join Pool' when form is hidden
+    }
+});
     joinPoolForm.addEventListener('submit', function(event) {
         event.preventDefault();
     
