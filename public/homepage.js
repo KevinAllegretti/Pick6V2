@@ -663,6 +663,14 @@ function displayNewPoolContainer(pool) {
                 });
         });
           
+
+            const poolAndDeleteContainer = document.createElement('div');
+            poolAndDeleteContainer.className = 'pool-and-delete-container';
+
+            // Append the pool name div and the pool container to the pool wrapper
+            poolWrapper.appendChild(poolNameDiv);
+            poolWrapper.appendChild(poolContainer);
+
         if (isAdmin) {
             // Create and append the delete button for admins
             const deleteButton = document.createElement('button');
@@ -677,6 +685,7 @@ function displayNewPoolContainer(pool) {
                     console.log('Pool deletion cancelled by the user.');
                 }
             });
+            poolAndDeleteContainer.appendChild(deleteButton);
             poolWrapper.appendChild(deleteButton);
             console.log("Delete button should be added for:", pool.name);
         }
@@ -687,6 +696,11 @@ function displayNewPoolContainer(pool) {
 
         // Append the pool wrapper to the main pool container wrapper
         poolContainerWrapper.appendChild(poolWrapper);
+
+        poolAndDeleteContainer.appendChild(poolWrapper);
+
+// Append the new container to the main pool container wrapper
+poolContainerWrapper.appendChild(poolAndDeleteContainer);
 
     }else{
         console.log("No username found in localStorage");

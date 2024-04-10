@@ -373,17 +373,17 @@ input[type="text"], input[type="password"], input[type="checkbox"] {
     margin: 0 8px 0 0;
     color: #0ff; /* Neon text color */
     border-radius: 5px;
-    box-shadow: 0 0 5px #0af, /* Neon glow effect */
-                 0 0 10px #0af,
-                 0 0 15px #0af;
+    box-shadow: 0 0 3px #0af, /* Neon glow effect */
+                 0 0 3px #0af,
+                 0 0 3px #0af;
     transition: box-shadow 0.3s ease-in-out;
 }
 
 /* Enhance the neon glow when the input is focused */
 input[type="text"]:focus, input[type="password"]:focus {
-    box-shadow: 0 0 10px #0af,
-                0 0 20px #0af,
-                0 0 30px #0af;
+    box-shadow: 0 0 6px #0af,
+                0 0 6px #0af,
+                0 0 6px #0af;
 }
 
 /* Styling for checkboxes to match the neon theme */
@@ -431,9 +431,9 @@ button {
 
 /* Hover effect for the button to make it pop */
 button:hover {
-    box-shadow: 0 0 10px #0af,
-                0 0 20px #0af,
-                0 0 30px #0af;
+    box-shadow: 0 0 5px #0af,
+                0 0 5px #0af,
+                0 0 7px #0af;
     transform: scale(1.05);
 }
 
@@ -442,9 +442,9 @@ button:hover {
     background-color: #011; /* Slightly lighter form background */
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 0 20px #0af, /* Neon glow effect */
-                 0 0 40px #0af,
-                 0 0 60px #0af;
+    box-shadow: 0 0 5px #0af, /* Neon glow effect */
+                 0 0 5px #0af,
+                 0 0 5px #0af;
 }
 
 /* Enhances the layout of form elements */
@@ -460,8 +460,8 @@ button:hover {
     background: rgba(10, 15, 34, 0.85); /* Translucent background */
     border: 2px solid #33d9ff; /* Neon border */
     border-radius: 10px;
-    box-shadow: 0 0 10px #33d9ff, /* Outer neon glow */
-                 0 0 20px #33d9ff;
+    box-shadow: 0 0 5px #33d9ff, /* Outer neon glow */
+                 0 0 5px #33d9ff;
     margin: 20px 0;
 }
 
@@ -483,17 +483,6 @@ button:hover {
     margin-right: 15px; /* Adds space between the checkbox and the 'Create Pool' button */
 }
 
-/* Style for the 'Create Pool' button when it is used to go back */
-#toggle-create-button {
-    background-color: #f00; /* Red background for 'go back' appearance */
-    color: #fff;
-    padding: 10px 20px;
-    border-radius: 5px;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
-    margin-left: 15px; /* Add space before the 'go back' button */
-}
 
 /* Transform 'Create Pool' button into 'Go Back' button */
 #toggle-create-button.reverse {
@@ -577,8 +566,8 @@ button:hover {
     border-radius: 5px;
     cursor: pointer;
     box-shadow: 0 0 5px #0af, /* Neon glow effect */
-                 0 0 10px #0af,
-                 0 0 15px #0af;
+                 0 0 5px #0af,
+                 0 0 5px #0af;
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
 }
 
@@ -734,18 +723,18 @@ button:hover {
     background-color: rgba(0, 255, 34, 0.5); /* Scrollbar thumb color on hover */
 }
 .pool-manager {
-    width: 200px; /* or any fixed width you prefer */
-    padding: 10px 20px; /* Adjust padding to create smaller appearance */
-    background-color: #012; /* adjust the background color as needed */
-    position: absolute; /* or 'fixed' if you want it to stay in place on scroll */
-    top: 300px; /* adjust as needed to move down */
-    left: 10px; /* adjust as needed for horizontal positioning */
-    z-index: 10; /* lower than other main content elements if you want it less prominent */
-    box-shadow: none; /* remove if you don't want a shadow */
-    border-radius: 10px; /* if you want rounded corners */
-    overflow-y: auto; /* for scrollable content if needed */
-    transition: all 0.3s ease-in-out; /* for a smooth transition effect if needed */
+    width: 200px; /* Set the width of the box */
+    padding: 20px; /* Padding inside the box */
+    background-color: #012; /* Background color of the box */
+    border: 2px solid #33d9ff; /* Neon light blue border */
+    position: absolute; /* Position it absolutely within its parent */
+    top: 100px; /* Distance from the top of the viewport */
+    left: 10px; /* Distance from the left side of the viewport */
+    z-index: 5; /* Stack order in case it overlaps with other elements */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Optional shadow for some depth */
+    border-radius: 8px; /* Optional border radius for rounded corners */
 }
+
 
 
 /* You might also want to adjust the content area so it does not go under the sidebar */
@@ -776,3 +765,24 @@ button:hover {
       flex: 1; /* reset flex */
     }
   }
+
+  .pool-and-delete-container {
+    position: relative;
+    padding: 10px
+}
+
+.delete-pool-button {
+    position: absolute;
+    right: 10px; /* Adjust as necessary to move it closer to the right edge of the pool */
+    bottom: -20px; /* Adjust this value to move closer to the bottom edge of the pool */
+    padding: 10px 20px; /* Match the padding of your Create Pool button */
+    background-color: #033; /* Background color to match the Create Pool button */
+    color: #0ff; /* Text color to match the Create Pool button */
+    border: 1px solid #0af; /* Border color to match the Create Pool button */
+    border-radius: 5px; /* Border radius to match the Create Pool button */
+    cursor: pointer;
+    box-shadow: 0 0 5px #0af, 0 0 10px #0af, 0 0 15px #0af; /* Box shadow to match the Create Pool button */
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
+    font-weight: bold; /* If the Create Pool button has bold text */
+    font-size: .9em; /* Adjust font size as needed */
+}

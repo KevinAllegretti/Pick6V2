@@ -1,19 +1,4 @@
-//VERSION 1
 
-const now = new Date();
-let thursdayDeadline = new Date(now);
-thursdayDeadline.setDate(now.getDate() + ((4 + 7 - now.getDay()) % 7));
-thursdayDeadline.setHours(19, 0, 0, 0); // 7 PM EST
-thursdayDeadline.setMinutes(thursdayDeadline.getMinutes() + thursdayDeadline.getTimezoneOffset());
-thursdayDeadline.setHours(thursdayDeadline.getHours() - 5); // Convert UTC to EST (UTC-5)
-
-// Define the end time for Tuesday 12 AM EST
-let tuesdayEndTime = new Date(now);
-tuesdayEndTime.setDate(now.getDate() + ((2 + 7 - now.getDay()) % 7));
-tuesdayEndTime.setHours(0, 0, 0, 0); // 12 AM EST
-tuesdayEndTime.setMinutes(tuesdayEndTime.getMinutes() + tuesdayEndTime.getTimezoneOffset());
-tuesdayEndTime.setHours(tuesdayEndTime.getHours() - 5); // Convert UTC to EST (UTC-5)
-// Assuming betOptions is an array of all bet options for the week
 const betOptions = [
   // Steelers vs Ravens
   { teamName: 'HOU Texans', type: 'Spread', value: '+9.5' },
