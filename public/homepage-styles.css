@@ -524,7 +524,9 @@ button:hover {
     display: block; /* Ensure the button is a block element to take up full width */
 }
 
-
+#create-pool-form-container{
+    border-bottom: 2px solid rgb(0, 247, 255); /* Neon border color */
+}
 /* You can also directly apply the styles to the buttons */
 #show-create-pool-form,
 #show-join-pool-form { 
@@ -803,6 +805,7 @@ button:hover {
                  0 0 10px #0af,
                  0 0 15px #0af;
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
+    margin-top: 20px;
 }
 
 #join-pool-form input[type="submit"]:hover {
@@ -812,6 +815,14 @@ button:hover {
     transform: scale(1.05);
 }
 
+/* Style the labels and inputs for a more spaced-out look */
+#join-pool-form label,
+#join-pool-form input {
+    display: block; /* Stack them vertically */
+    width: 100%; /* Full width of the container */
+    margin-bottom: 10px; /* Adjust as necessary for space between form elements */
+    box-sizing: border-box; /* Include padding in width calculation */
+}
   /* Add responsive design as needed */
   @media (max-width: 768px) {
     .container {
