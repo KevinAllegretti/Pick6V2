@@ -503,6 +503,8 @@ button:hover {
     align-items: center; /* This centers the button in the flex container */
     justify-content: space-between; /* This will add space between your elements */
     width: 100%; /* Adjust width to fit content */
+    border-bottom: 1px solid #33d9ff; /* Neon-like blue border */
+    padding-bottom: 20px; /* Space above the border */
 }
 
 #create-pool-form input[type="submit"] {
@@ -521,6 +523,20 @@ button:hover {
     margin-top: 10px; /* Space above the button */
     display: block; /* Ensure the button is a block element to take up full width */
 }
+
+
+/* You can also directly apply the styles to the buttons */
+#show-create-pool-form,
+#show-join-pool-form { 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;/* Make sure to use the correct IDs */
+    width: auto; /* Or specify a width */
+    margin: 20px auto; /* Top and bottom margin with auto horizontal margins */
+}
+
+
 
 /* Hover effect for the 'Create Pool' button */
 #create-pool-form input[type="submit"]:hover {
