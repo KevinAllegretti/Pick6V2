@@ -505,6 +505,30 @@ button:hover {
     width: 100%; /* Adjust width to fit content */
 }
 
+#create-pool-form input[type="submit"] {
+    background-color: #033; /* Dark background for the button */
+    color: #0ff; /* Neon text color */
+    border: 1px solid #0af; /* Neon border color */
+    padding: 10px 20px; /* Padding for the button */
+    font-size: 1em; /* Font size for the button */
+    border-radius: 5px; /* Rounded corners for the button */
+    cursor: pointer; /* Cursor changes to pointer to indicate it's clickable */
+    box-shadow: 0 0 5px #0af, /* Outer neon glow effect */
+                 0 0 10px #0af, /* Middle neon glow effect */
+                 0 0 15px #0af; /* Inner neon glow effect */
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out; /* Smooth transition for hover effects */
+    width: auto; /* Adjust width as necessary */
+    margin-top: 10px; /* Space above the button */
+    display: block; /* Ensure the button is a block element to take up full width */
+}
+
+/* Hover effect for the 'Create Pool' button */
+#create-pool-form input[type="submit"]:hover {
+    box-shadow: 0 0 10px #0af, /* Enhanced outer neon glow effect */
+                 0 0 20px #0af, /* Enhanced middle neon glow effect */
+                 0 0 30px #0af; /* Enhanced inner neon glow effect */
+    transform: scale(1.05); /* Slightly increase the size on hover */
+}
 /* Style for the secondary 'Create Pool' button */
 .secondary-create-button {
     display: none; /* Hidden by default */
