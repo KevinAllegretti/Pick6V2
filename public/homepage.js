@@ -586,7 +586,7 @@ function displayNewPoolContainer(pool) {
             <span class="header-user">User</span>
             <span class="header-points">Points</span>
             <span class="header-picks">
-            <button class="choose-picks-button" onclick="redirectToDashboard('${pool.name}')">Picks</button>
+            <button class="choose-picks-button" onclick="redirectToDashboard('${pool.name}')">Make Picks</button>
         </span>
             <span class="header-win">Win</span>
             <span class="header-loss">Loss</span>
