@@ -585,7 +585,9 @@ function displayNewPoolContainer(pool) {
             <span class="header-rank">Rank</span>
             <span class="header-user">User</span>
             <span class="header-points">Points</span>
-            <span class="header-picks">Picks</span>
+            <span class="header-picks">Picks
+            <button class="choose-picks-button" onclick="redirectToDashboard('${pool.name}')">Choose Picks</button>
+        </span>
             <span class="header-win">Win</span>
             <span class="header-loss">Loss</span>
             <span class="header-push">Push</span>
@@ -722,6 +724,9 @@ poolContainerWrapper.appendChild(poolAndDeleteContainer);
     }
 
 
+}
+function redirectToDashboard(poolName) {
+    window.location.href = `dashboard.html?poolName=${encodeURIComponent(poolName)}`;
 }
 
 function loadAndDisplayUserPools() {

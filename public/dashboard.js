@@ -1,4 +1,5 @@
 //VERSION 1
+let currentPoolName = ''; // Global variable to store the current pool name
 
 const now = new Date();
 let thursdayDeadline = new Date(now);
@@ -347,6 +348,7 @@ function resetPicks() {
         picks: picksAsString,
         immortalLock: userImmortalLockAsString
       };
+      };
     
     fetch(`/api/savePicks/${storedUsername}`, {
       method: 'POST',
@@ -370,7 +372,7 @@ function resetPicks() {
       alert('An error occurred. Please try again later.');
     });
   }
-  }
+  
   
   // Event Listeners
   document.getElementById('immortalLockCheck').addEventListener('change', function() {
