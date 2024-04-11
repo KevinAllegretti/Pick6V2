@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
 body {
     font-family: 'Arial', sans-serif;
     background-color: #0a0f22; /* Darker background for contrast */
@@ -295,7 +297,13 @@ h2 {
 }
 
 
-  
+.player-username{
+    text-transform: uppercase;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 5px; /* or you could specify a size like 0.9em or 14px */
+}
+
+
   /* Initial State */
 .player-card, .digital-clock, .neon-sign, .rules-button {
     opacity: 0;
@@ -307,6 +315,24 @@ h2 {
     transition: opacity 1s ease-out, transform 1s ease-out;
   }
   
+  .logout-button {
+    /* Styling for the logout button */
+    background-color: #033; /* Dark button background */
+    color: #0ff; /* Neon text color */
+    border: 1px solid #0af; /* Neon border */
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 0 5px #0af, /* Neon glow effect */
+                 0 0 10px #0af,
+                 0 0 15px #0af;
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
+    position: absolute; /* Position the button absolutely within the .slide-out-panel */
+    top: 10px; /* Adjust as needed */
+    right: 10px; /* Adjust as needed */
+}
+
   .team-logo {
     width: 35px; /* Or your desired width */
     height: auto;
@@ -330,6 +356,7 @@ h2 {
     align-items: center; /* Aligns children to the center */
     width: 1150px; /* Gives a fixed width to the wrapper */
     margin: 20px 0; /* Adds top and bottom margin */
+    margin-top: 120px
   }
   
   .pool-name {
@@ -495,6 +522,7 @@ button:hover {
 #pool-password {
     display: none;
 }
+
 
 /* Additional styling for the container to fix position issue */
 .create-pool-container {
@@ -771,8 +799,8 @@ button:hover {
     background-color: #012; /* Background color of the box */
     border: 2px solid #33d9ff; /* Neon light blue border */
     position: absolute; /* Position it absolutely within its parent */
-    top: 100px; /* Distance from the top of the viewport */
-    left: 10px; /* Distance from the left side of the viewport */
+    top: 10px; /* Distance from the top of the viewport */
+    right: 10px; /* Distance from the left side of the viewport */
     z-index: 5; /* Stack order in case it overlaps with other elements */
     box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Optional shadow for some depth */
     border-radius: 8px; /* Optional border radius for rounded corners */

@@ -47,11 +47,14 @@
           
                 </div>
               </form>
+
+              <!-- Inside your side panel -->
+            <button id="logout-button" class="logout-button">Logout</button>
+
             </div>
           </div>
         <!-- ... possibly your list of teams or player cards ... -->
         <a href="rules.html" class="rules-button">View Rules</a>
-        <a href="standings.html" class="rules-button">View Standings</a>
     </div>
 
     <div class="container">
@@ -60,15 +63,14 @@
         </div>
         <!-- Slide-Out Panel -->
 
-
+        <!---
         <div class="players">
             
-                <!-- TheDiggler -->
+   
                 <div class="player-card" data-username="TheDiggler" data-points="68.5">
                     <div class="total-points">Total Points: <span class ="points-value">0</span></div>
                     <h2>TheDiggler</h2>
                     <div class="picks">
-                        <!-- Empty pick placeholders -->
                     </div>
                     <div class="immortal-lock">
                         Immortal Lock: ---
@@ -78,7 +80,7 @@
            
             </div>
         </div>
-
+    -->
         <div class="pool-manager">
             <h2>Pool Manager</h2>
             <button id="show-create-pool-form">Create Pool</button>
@@ -105,7 +107,7 @@
                 <label for="pool-name2">Pool Name:</label>
                 <input type="text" id="pool-name2" required>
             
-                <label for="join-password">Password:</label>
+                <label for="join-password">Password: (If private)</label>
                 <input type="password" id="join-password">
             
                 <button type="submit">Join Pool</button>

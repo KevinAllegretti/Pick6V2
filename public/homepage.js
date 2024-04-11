@@ -71,6 +71,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    document.getElementById('logout-button').addEventListener('click', function() {
+        // Clear user session or local storage
+        localStorage.removeItem('username'); 
+    
+        // Redirect to the login page
+        window.location.href = '/login.html'; 
+    });
+    
     profileIcon.addEventListener('click', (event) => {
         event.stopPropagation(); // Prevent the click from propagating to the document
         slideOutPanel.classList.add('visible');
@@ -548,7 +556,7 @@ function displayNewPoolContainer(pool) {
 
         // Verify we have the admin's username in the pool object and log it
         // Make sure to convert to lowercase for comparison
-        const isAdmin = currentUsername === pool.adminUsername.toLowerCase();
+        const isAdmin = currentUsername.toLowerCase() === pool.adminUsername.toLowerCase();
 
         console.log("Current username from local storage:", currentUsername);
         console.log("Admin username from pool object:", pool.adminUsername);
@@ -743,7 +751,6 @@ document.addEventListener('DOMContentLoaded', loadAndDisplayUserPools);
 function createPlayerRow(memberData, isAdmin) {
     const playerRow = document.createElement('div');
     playerRow.className = 'player-row';
-  
     // Populate player row with member data
     // You will need to adapt this to the actual structure of your member data and the required HTML
     playerRow.innerHTML = `
@@ -758,7 +765,6 @@ function createPlayerRow(memberData, isAdmin) {
     <div class="player-loss">${memberData.losses}</div>
     <div class="player-push">${memberData.pushes}</div>
 `;
-
         if (isAdmin) {
         const userSection = playerRow.querySelector('.player-user');
         const adminBadge = document.createElement('i');
