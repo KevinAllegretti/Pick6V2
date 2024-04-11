@@ -31,7 +31,7 @@ router.post('/api/savePicks/:username', async (req, res) => {
 });
 router.post('/api/resetPicks/:username', async (req, res) => {
     try {
-        const username = req.params.username;
+        const username = req.params.username.toLowerCase();
         console.log("Deleting picks for username:", username);
         // Connect to the database
         const database = await (0, connectDB_1.connectToDatabase)();
@@ -53,7 +53,7 @@ router.post('/api/resetPicks/:username', async (req, res) => {
 });
 router.get('/api/getPicks/:username', async (req, res) => {
     try {
-        const username = req.params.username;
+        const username = req.params.username.toLowerCase();
         // Connect to database
         const database = await (0, connectDB_1.connectToDatabase)();
         // console.log("Fetching picks for username:", username);
