@@ -919,11 +919,12 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             console.log('Server response:', data);
-            // ... rest of your success handling code ...
+            alert('You have joined the pool successfully!');
+            window.location.reload();
         })
         .catch(error => {
             console.error('Error joining pool:', error);
-            // ... rest of your error handling code ...
+            alert('An error occurred while attempting to join the pool.');
         });
     });
     
