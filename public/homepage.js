@@ -632,7 +632,8 @@ function displayNewPoolContainer(pool) {
                             // Populate the picks
                      
                             picksContainer.className = 'player-picks';
-                            
+                            if (picksData.picks && Array.isArray(picksData.picks)) {
+
                             picksData.picks.forEach(pick => {
                                 const pickDiv = document.createElement('div');
                                 pickDiv.className = 'pick';
@@ -657,7 +658,13 @@ function displayNewPoolContainer(pool) {
                                 }
     
                                 picksContainer.appendChild(pickDiv);
-                            });
+                            });} else {
+                                // If there are no picks, append a message to the picksContainer
+                                const noPicksMessage = document.createElement('div');
+                                noPicksMessage.className = 'no-picks-message';
+                                noPicksMessage.textContent = ' ';
+                                picksContainer.appendChild(noPicksMessage);
+                            }
     
                            playerRow.appendChild(picksContainer);
                          poolContainer.appendChild(playerRow);
