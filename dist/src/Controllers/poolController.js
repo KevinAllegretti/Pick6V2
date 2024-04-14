@@ -34,8 +34,8 @@ const createPool = async (req, res) => {
         // Automatically include the admin in the members array upon pool creation
         const newPool = new Pool_1.default({
             name,
-            admin: adminUser._id, // Set the admin to the adminUser's ObjectId
-            adminUsername: adminUsername, // Use the adminUsername directly from the request
+            admin: adminUser._id,
+            adminUsername: adminUsername,
             isPrivate,
             password: password,
             members: [adminUsername], // Include the admin's ObjectId in the members array

@@ -61,7 +61,7 @@ router.get('/api/getUserProfile/:username', async (req, res) => {
             username: user.username,
             profilePicture: user.profilePicture || 'Default.png',
             points: user.points || 0,
-            picks: user.picks || [], // or whatever your data structure looks like
+            picks: user.picks || [],
             wins: user.wins || 0,
             losses: user.losses || 0,
             pushes: user.pushes || 0,

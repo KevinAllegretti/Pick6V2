@@ -325,53 +325,53 @@ function resetPicks() {
  
   isDeadline = false;
   function submitUserPicks() {
-    if (now < thursdayDeadline && now < tuesdayEndTime){
-    isDeadline = false;
-    }  
-  if (isDeadline == true){
-    alert('Deadline has passed, can no longer submit picks!')
-  }
-  else {
+    let data; // Declare data at the top of the function
+
+    // Check deadlines first
+    if (now >= thursdayDeadline || now >= tuesdayEndTime) {
+        alert('Deadline has passed, can no longer submit picks!');
+        return; // Exit the function
+    }
+
+    // Continue if the deadline has not passed
     if (userPicks.length === 0) {
         alert('Please add at least one pick before submitting.');
-        return;
-      }
-    
-      // Convert each pick object into a string representation
-      const picksAsString = userPicks.map(pick => `${pick.teamName} [${pick.type}: ${pick.value}]`);
-      
-      const userImmortalLockAsString = userImortalLock.map(pick => `${pick.teamName} [${pick.type}: ${pick.value}]`);
- 
-     console.log(userImortalLock[0]);
+        return; // Exit the function
+    }
 
-      const data = {
+    // Convert each pick object into a string representation
+    const picksAsString = userPicks.map(pick => `${pick.teamName} [${pick.type}: ${pick.value}]`);
+    const userImmortalLockAsString = userImortalLock.map(pick => `${pick.teamName} [${pick.type}: ${pick.value}]`);
+
+    // Create the data object with picks
+    data = {
         picks: picksAsString,
         immortalLock: userImmortalLockAsString
-      };
-      };
-    
+    };
+
+    // Proceed with the fetch call
     fetch(`/api/savePicks/${storedUsername}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
     })
     .then(response => response.json())
     .then(data => {
-      console.log(data);
-      if (data.success) {
-        alert('Picks successfully submitted!');
-        //updatePicksDisplay();
-      } else {
-        alert('Error submitting picks. Please try again.');
-      }
+        if (data.success) {
+            alert('Picks successfully submitted!');
+            // Additional code to handle successful submission
+        } else {
+            alert('Error submitting picks. Please try again.');
+        }
     })
     .catch(error => {
-      console.error('Error:', error);
-      alert('An error occurred. Please try again later.');
+        console.error('Error:', error);
+        alert('An error occurred. Please try again later.');
     });
-  }
+}
+
   
   
   // Event Listeners
