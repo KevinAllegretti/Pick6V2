@@ -230,6 +230,12 @@ document.getElementById('create-pool-form').addEventListener('submit', function(
     });
 });
 
+function sortPlayersByPoints(players) {
+    // Sort players in descending order of points
+    return players.sort((a, b) => b.points - a.points);
+  }
+  
+
 
 function displayNewPoolContainer(pool) {
     const teamLogos = {
@@ -283,23 +289,18 @@ function displayNewPoolContainer(pool) {
         console.log("Admin username from pool object:", pool.adminUsername);
         console.log("Is admin:", isAdmin);
 
-       // console.log(pool);
         const poolContainerWrapper = document.getElementById('pool-container-wrapper');
-
-        // Create the pool wrapper
         const poolWrapper = document.createElement('div');
         poolWrapper.className = 'pool-wrapper';
         poolWrapper.setAttribute('data-pool-name', pool.name);
-        // Create the pool name div
+
         const poolNameDiv = document.createElement('div');
         poolNameDiv.className = 'pool-name';
         poolNameDiv.innerText = pool.name;
 
-        // Create the pool container
         const poolContainer = document.createElement('div');
         poolContainer.className = 'pool-container';
 
-        // Create and append the pool header to the pool container
         const poolHeader = document.createElement('div');
         poolHeader.className = 'pool-header';
         poolHeader.innerHTML = `
@@ -307,152 +308,140 @@ function displayNewPoolContainer(pool) {
             <span class="header-user">User</span>
             <span class="header-points">Points</span>
             <span class="header-picks">
-            <button class="choose-picks-button" onclick="redirectToDashboard('${pool.name}')">Make Picks</button>
-        </span>
+                <button class="choose-picks-button" onclick="redirectToDashboard('${pool.name}')">Make Picks</button>
+            </span>
             <span class="header-win">Win</span>
             <span class="header-loss">Loss</span>
             <span class="header-push">Push</span>
         `;
         poolContainer.appendChild(poolHeader);
-    
-         
-        pool.members.forEach((member, index) => {
-            const rank = index + 1;
-            const encodedMemberUsername = encodeURIComponent(member.username);
-    
-            // First fetch the user profile
-            fetch(`/api/getUserProfile/${encodedMemberUsername}`)
-                .then(response => response.json())
-                .then(userProfile => {
-                    if (!userProfile) {
-                        throw new Error(`User profile for ${member.username} not found`);
-                    }
-                    
-                    // Then fetch the picks
-                    fetch(`/api/getPicks/${encodedMemberUsername}`)
-                        .then(picksResponse => picksResponse.json())
-                        .then(picksData => {
 
-                            //console.log(picksData);
+        // Sort the members
+        pool.members.sort((a, b) => b.points - a.points || a.username.localeCompare(b.username));
 
-                         
-                            // Create the player row here
-                            const playerRow = createPlayerRow({
-                                rank,
-                                username: userProfile.username,
-                                profilePic: userProfile.profilePicture,
-                                points: userProfile.points,
-                                wins: userProfile.wins,
-                                losses: userProfile.losses,
-                                pushes: userProfile.pushes,
-                              }, member.username === pool.adminUsername);
-                    
-                              const picksContainer = playerRow.querySelector('.player-picks');
-                            // Populate the picks
-                     
-                            picksContainer.className = 'player-picks';
-                            if (picksData.picks && Array.isArray(picksData.picks)) {
-
-                            picksData.picks.forEach(pick => {
-                                const pickDiv = document.createElement('div');
-                                pickDiv.className = 'pick';
-                                
-                                const teamNameMatch = pick.match(/^(.*?)\s\[/);
-                                const teamName = teamNameMatch ? teamNameMatch[1] : null;
-                                const valueMatch = pick.match(/\[.*?([-+]\d+(?:\.\d+)?)\]/);
-                                const value = valueMatch ? valueMatch[1] : null;
-    
-                                if (teamName && teamLogos[teamName]) {
-                                    const logoImg = document.createElement('img');
-                                    logoImg.src = teamLogos[teamName];
-                                    logoImg.alt = `${teamName}`;
-                                    logoImg.className = 'team-logo';
-                                    pickDiv.appendChild(logoImg);
-                                }
-    
-                                if (value) {
-                                    const valueSpan = document.createElement('span');
-                                    valueSpan.textContent = value;
-                                    pickDiv.appendChild(valueSpan);
-                                }
-    
-                                picksContainer.appendChild(pickDiv);
-                            });} else {
-                                // If there are no picks, append a message to the picksContainer
-                                const noPicksMessage = document.createElement('div');
-                                noPicksMessage.className = 'no-picks-message';
-                                noPicksMessage.textContent = ' ';
-                                picksContainer.appendChild(noPicksMessage);
-                            }
-    
-                           playerRow.appendChild(picksContainer);
-                         poolContainer.appendChild(playerRow);
-                        })
-                        .catch(error => {
-                            console.error('Error fetching picks:', error);
-                        });
-                })
-                .catch(error => {
-                    console.error('Error fetching user profile:', error);
-                });
+        // Fetch all the additional data for each member
+        const memberDataPromises = pool.members.map(member => {
+        return fetchUserProfile(member.username).then(userProfile => {
+            // Here we construct the full member data with userProfile and member's own data
+            return {
+                rank: pool.members.indexOf(member) + 1,
+                username: userProfile.username,
+                profilePic: userProfile.profilePicture,
+                points: member.points,
+                wins: member.win,
+                losses: member.loss,
+                pushes: member.push
+            };
         });
-          
+    });
 
-            const poolAndDeleteContainer = document.createElement('div');
-            poolAndDeleteContainer.className = 'pool-and-delete-container';
+        Promise.all(memberDataPromises)
+            .then(membersData => {
+                // All data has been fetched, now create and append player rows
+                membersData.forEach(memberData => {
+                    const playerRow = createPlayerRow(memberData, memberData.username === pool.adminUsername);
+                    fetchPicks(memberData.username, playerRow, teamLogos); // Fetch and process picks
+                    poolContainer.appendChild(playerRow); // Append player row to pool container
+                });
 
-            // Append the pool name div and the pool container to the pool wrapper
-            poolWrapper.appendChild(poolNameDiv);
-            poolWrapper.appendChild(poolContainer);
+                // Append the pool name div and the pool container to the pool wrapper
+                poolWrapper.appendChild(poolNameDiv);
+                poolWrapper.appendChild(poolContainer);
 
-        if (isAdmin) {
-            // Create and append the delete button for admins
-            const deleteButton = document.createElement('button');
-            deleteButton.textContent = 'Delete Pool';
-            deleteButton.className = 'delete-pool-button';
-            deleteButton.setAttribute('data-pool-name', pool.name); // Set the pool's name as a data attribute
-            deleteButton.addEventListener('click', function() {
-                const confirmation = confirm(`Are you sure you want to delete the pool "${this.getAttribute('data-pool-name')}"?`);
-                if (confirmation) {
-                    deletePool(this.getAttribute('data-pool-name')); // Use the pool's name for deletion
-                } else {
-                    console.log('Pool deletion cancelled by the user.');
+                // If the user is an admin, create and append the delete button
+                if (isAdmin) {
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete Pool';
+                    deleteButton.className = 'delete-pool-button';
+                    deleteButton.setAttribute('data-pool-name', pool.name);
+                    deleteButton.addEventListener('click', function() {
+                        const confirmation = confirm(`Are you sure you want to delete the pool "${this.getAttribute('data-pool-name')}"?`);
+                        if (confirmation) {
+                            deletePool(this.getAttribute('data-pool-name'));
+                        } else {
+                            console.log('Pool deletion cancelled by the user.');
+                        }
+                    });
+                    poolWrapper.appendChild(deleteButton);
                 }
+
+                // Clear the existing pool container wrapper content and append the new pool container
+                poolContainerWrapper.innerHTML = '';
+                poolContainerWrapper.appendChild(poolWrapper);
+            })
+            .catch(error => {
+                console.error('Error fetching member data:', error);
             });
-            poolAndDeleteContainer.appendChild(deleteButton);
-            poolWrapper.appendChild(deleteButton);
-            //console.log("Delete button should be added for:", pool.name);
-        }
-
-        // Append the pool name div and the pool container to the pool wrapper
-        poolWrapper.appendChild(poolNameDiv);
-        poolWrapper.appendChild(poolContainer);
-
-        // Append the pool wrapper to the main pool container wrapper
-        poolContainerWrapper.appendChild(poolWrapper);
-
-        poolAndDeleteContainer.appendChild(poolWrapper);
-
-// Append the new container to the main pool container wrapper
-poolContainerWrapper.appendChild(poolAndDeleteContainer);
-
-    }else{
+    } else {
         console.log("No username found in localStorage");
     }
+}
 
 
+function fetchUserProfile(username) {
+    const encodedUsername = encodeURIComponent(username);
+    return fetch(`/api/getUserProfile/${encodedUsername}`)
+        .then(response => response.json())
+        .then(userProfile => {
+            if (!userProfile) {
+                throw new Error(`User profile for ${username} not found`);
+            }
+            return userProfile;
+        });
+}
+
+
+function fetchPicks(username, playerRow, teamLogos) {
+    const encodedUsername = encodeURIComponent(username);
+    fetch(`/api/getPicks/${encodedUsername}`)
+        .then(response => response.json())
+        .then(picksData => {
+            const picksContainer = playerRow.querySelector('.player-picks');
+            if (picksData.picks && Array.isArray(picksData.picks)) {
+                picksData.picks.forEach(pick => {
+                    const pickDiv = document.createElement('div');
+                    pickDiv.className = 'pick';
+
+                    const teamNameMatch = pick.match(/^(.*?)\s\[/);
+                    const teamName = teamNameMatch ? teamNameMatch[1] : null;
+                    const valueMatch = pick.match(/\[.*?([-+]\d+(?:\.\d+)?)\]/);
+                    const value = valueMatch ? valueMatch[1] : null;
+
+                    if (teamName && teamLogos[teamName]) {
+                        const logoImg = document.createElement('img');
+                        logoImg.src = teamLogos[teamName];
+                        logoImg.alt = `${teamName}`;
+                        logoImg.className = 'team-logo';
+                        pickDiv.appendChild(logoImg);
+                    }
+
+                    if (value) {
+                        const valueSpan = document.createElement('span');
+                        valueSpan.textContent = value;
+                        pickDiv.appendChild(valueSpan);
+                    }
+
+                    picksContainer.appendChild(pickDiv);
+                });
+            } else {
+                // If there are no picks, append a message to the picksContainer
+                const noPicksMessage = document.createElement('div');
+                noPicksMessage.className = 'no-picks-message';
+                noPicksMessage.textContent = 'No picks made';
+                picksContainer.appendChild(noPicksMessage);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching picks for user:', username, error);
+        });
 }
 function redirectToDashboard(poolName) {
     window.location.href = `dashboard.html?poolName=${encodeURIComponent(poolName)}`;
 }
 
-function sortPlayersByPoints(players) {
-    // Sort players in descending order of points
-    return players.sort((a, b) => b.points - a.points);
-  }
-  
 
 function loadAndDisplayUserPools() {
+
   const currentUsername = localStorage.getItem('username');
   if (!currentUsername) {
     console.error('No logged-in user found!');
@@ -463,18 +452,18 @@ function loadAndDisplayUserPools() {
   fetch(`/pools/userPools/${encodeURIComponent(currentUsername.toLowerCase())}`)
     .then(response => response.json())
     .then(pools => {
-   // const userPools = pools.filter(pool => pool.members.some(member => member.username === currentUsername));
-      pools.forEach(pool => {
-        // Clear previous pools display
         const poolContainerWrapper = document.getElementById('pool-container-wrapper');
         poolContainerWrapper.innerHTML = '';
 
-        
-        // Create the pool container
+       
+      pools.forEach(pool => {
+        pool.members.sort((a, b) => b.points - a.points);
+
+
         const poolContainer = document.createElement('div');
         poolContainer.className = 'pool-container';
 
-        // Fetch the user profiles and user picks for each member
+
       // Fetch the user profiles and user picks for each member
       const membersDataPromises = pool.members.map(member => {
         console.log(`Fetching data for username: ${member.username}`); // This should log the actual username, not [object Object]
@@ -497,13 +486,6 @@ function loadAndDisplayUserPools() {
       
         // When all members data has been fetched
         Promise.all(membersDataPromises).then(membersData => {
-
-            membersData.sort((a, b) => b.userProfile.points - a.userProfile.points);
-            // Then clear the pool container and append sorted player rows
-            const poolContainerWrapper = document.getElementById('pool-container-wrapper');
-            poolContainerWrapper.innerHTML = ''; // Clear previous pools display
-            const poolContainer = document.createElement('div');
-            poolContainer.className = 'pool-container';
 
           membersData.forEach((data, index) => {
             const { userProfile, userPicks } = data;
@@ -715,33 +697,31 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-/*
-
-function updateUserPoints(username, newPoints) {
+function updateUserPoints(username, newPoints, poolName) {
     // This is the URL to your API endpoint
-    const apiUrl = '/pools/updateUserPoints';
+    const apiUrl = '/pools/updateUserPointsInPoolByName';
 
     fetch(apiUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ username, newPoints })
+        body: JSON.stringify({ username, newPoints, poolName })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            console.log('User points updated:', data.message);
-            // Perform additional actions here, like updating the UI
+            console.log('User points updated in pool:', data.message);
+            // Here you could re-render the component that shows the points
+            // Or find the DOM element and update it directly if you're not using a framework that handles reactivity
         } else {
-            console.error('Failed to update user points:', data.message);
+            console.error('Failed to update user points in pool:', data.message);
         }
     })
     .catch(error => {
-        console.error('Error updating user points:', error);
+        console.error('Error updating user points in pool:', error);
     });
 }
 
 // Example usage:
-updateUserPoints('testuser', 5); // Replace with actual username and new points value
-*/
+updateUserPoints('testuser3longestuser3', 25, 'woo'); // Replace with the actual username, new points value, and pool name

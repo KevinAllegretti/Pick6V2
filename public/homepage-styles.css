@@ -703,21 +703,6 @@ button:hover {
     content: none;
 }
 
-/* Apply the vertical line specifically after the 'Picks' column */
-.player-row > div:nth-child(7)::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 30px;
-    width: 1px;
-    background-color: #ff3333;
-}
-
-.player-row > div:nth-child(6)::after {
-    content: none;
-}
 
 /* Other cosmetic styling (background colors, hover effects, etc.) can be added as needed */
 /* Flex settings for player row items */
