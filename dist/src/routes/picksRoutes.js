@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+//pickRoutes.ts
 const express_1 = __importDefault(require("express"));
 const connectDB_1 = require("../microservices/connectDB");
 const router = express_1.default.Router();
@@ -54,12 +55,14 @@ router.post('/api/resetPicks/:username', async (req, res) => {
 router.get('/api/getPicks/:username', async (req, res) => {
     try {
         const username = req.params.username.toLowerCase();
+        console.log("Fetching picks for username:", username);
         // Connect to database
         const database = await (0, connectDB_1.connectToDatabase)();
         // console.log("Fetching picks for username:", username);
         const picksCollection = database.collection('userPicks');
         // Fetch user's picks
         const userPicksData = await picksCollection.findOne({ username });
+        console.log("Picks found:", userPicksData);
         if (userPicksData) {
             res.json(userPicksData);
         }

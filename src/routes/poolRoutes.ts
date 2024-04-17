@@ -1,7 +1,7 @@
 // src/routes/poolRoutes.ts
 
 import express from 'express';
-import { createPool, joinPoolByName, manageJoinRequest } from '../Controllers/poolController';
+import { createPool, joinPoolByName} from '../Controllers/poolController';
 import Pool from '../models/Pool';
 import { connectToDatabase } from '../microservices/connectDB';
 //import { ObjectId } from 'mongodb';
@@ -14,7 +14,7 @@ router.post('/create', createPool);
 // Route to handle join pool requests
 router.post('/joinByName', joinPoolByName);
 // Route for admins to manage join requests
-router.post('/manage-join', manageJoinRequest);
+
 
 
 router.get('/get-all', async (req, res) => {
@@ -25,18 +25,22 @@ router.get('/get-all', async (req, res) => {
     res.status(500).json({ message: 'Error fetching pools', error });
   }
 });
+
+
 // In your routes file
 router.get('/userPools/:username', async (req, res) => {
   try {
     const username = req.params.username;
     
+    console.log(`Fetching pools for user: ${username}`);
     // Find all pools where the current user is a member
-    const pools = await Pool.find({
-      members: { $in: [username.toLowerCase()] } // Ensure the members array contains the username in lowercase
-    });
+    const pools = await Pool.find({});
+
+    console.log(`Found pools for user ${username}:`, pools);
 
     res.status(200).json(pools);
   } catch (error) {
+    console.error(`Error fetching pools for user ${req.params.username}:`, error);
     res.status(500).json({ message: 'Error fetching pools', error });
   }
 });

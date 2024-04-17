@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
+const poolMember_1 = require("./poolMember");
 // Define the Pool schema
 const poolSchema = new mongoose_1.default.Schema({
     name: {
@@ -21,10 +22,7 @@ const poolSchema = new mongoose_1.default.Schema({
         type: String,
         required: true
     },
-    members: [{
-            type: mongoose_1.default.Schema.Types.String,
-            ref: 'User',
-        }],
+    members: [poolMember_1.poolMemberSchema],
     isPrivate: {
         type: Boolean,
         default: false,

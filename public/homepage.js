@@ -7,40 +7,6 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('username', username);
     }
 
-    const teamLogos = {
-        'ARI Cardinals': '/ARILogo.png',
-        'ATL Falcons': '/ATLLogo.png',
-        'BAL Ravens': '/BALLogo.png',
-        'BUF Bills': '/BUFLogo.png',
-        'CAR Panthers': '/CARLogo.png',
-        'CHI Bears': '/CHILogo.png',
-        'CIN Bengals': '/CINLogo.png',
-        'CLE Browns': '/CLELogo.png',
-        'DAL Cowboys': '/DALLogo.png',
-        'DEN Broncos': '/DENLogo.png',
-        'DET Lions': '/DETLogo.png',
-        'GB Packers': '/GBLogo.png',
-        'HOU Texans': '/HOULogo.png',
-        'IND Colts': '/INDLogo.png',
-        'JAX Jaguars': '/JAXLogo.png',
-        'KC Chiefs': '/KCLogo.png',
-        'LV Raiders': '/LVLogo.png',
-        'LA Chargers': '/LACLogo.png',
-        'LA Rams': '/LARLogo.png',
-        'MIA Dolphins': '/MIALogo.png',
-        'MIN Vikings': '/MINLogo.png',
-        'NE Patriots': '/NELogo.png',
-        'NO Saints': '/NOLogo.png',
-        'NY Giants': '/NYGLogo.png',
-        'NY Jets': '/NYJLogo.png',
-        'PHI Eagles': '/PHILogo.png',
-        'PIT Steelers': '/PITLogo.png',
-        'SF 49ers': '/SFLogo.png',
-        'SEA Seahawks': '/SEALogo.png',
-        'TB Buccaneers': '/TBLogo.png',
-        'TEN Titans': '/TENLogo.png',
-        'WAS Commanders': '/WASLogo.png'
-    };
     
     const loggedInUsername = localStorage.getItem('username');
    // console.log("Script is loaded!");
@@ -163,251 +129,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-    const cards = document.querySelectorAll('.player-card');
-    cards.forEach(card => {
-        card.addEventListener('click', function(e) {
-            const cardUsername = e.currentTarget.getAttribute('data-username');
-            console.log("Card clicked:", cardUsername);  
-            
-            //comment out during play time
-     
-            //if ((now > thursdayDeadline && now < tuesdayEndTime && cardUsername && cardUsername === loggedInUsername)) {
-                console.log("Redirecting to dashboard");
-                window.location.href = `/dashboard?username=${cardUsername}`;
-           /* }
-            else{
-                console.log("Cannot access selection page during game hours");
-            } */
-        
-        });
-    });
-    
-    tuesdayEndTime = 5;
-    now = 4;
-    thursdayDeadline = 6;
-
-
-    async function pickWindowPlayerCard(){
-        if (now > thursdayDeadline && now < tuesdayEndTime){
-            const loggedInUsername = localStorage.getItem('username');
-            const userCard = document.querySelector(`.player-card[data-username="${loggedInUsername}"]`);
-    
-               // Populate the picks for the user card
-               const picksDiv = userCard.querySelector('.picks');
-               picksDiv.innerHTML = ''; // Clear existing picks
-                
-               const response = await fetch(`/api/getPicks/${loggedInUsername}`);
-                if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-                } else {
-                const data = await response.json();
-
-               if (data && data.picks) {
-                   data.picks.forEach(pick => {
-                       const pickDiv = document.createElement('div');
-                       pickDiv.classList.add('pick');
-                       // ... rest of your code to populate the pickDiv ...
-                       // Extract the team name using a regular expression
-                       const teamNameMatch = pick.match(/^(.*?)\s\[/);
-                       const teamName = teamNameMatch ? teamNameMatch[1] : null;
-                       const valueMatch = pick.match(/\[.*?([-+]\d+(?:\.\d+)?)\]/);
-                       const value = valueMatch ? valueMatch[1] : null;
-       
-                       if (teamName && teamLogos[teamName]) {
-                           const logoUrl = teamLogos[teamName];
-                           const logoImg = document.createElement('img');
-                           logoImg.src = logoUrl;
-                           logoImg.alt = `${teamName}`;
-                           logoImg.classList.add('team-logo');
-                           pickDiv.appendChild(logoImg);
-                       }
-       
-                       if (value) {
-                           const valueSpan = document.createElement('span');
-                           valueSpan.textContent = value;
-                           pickDiv.appendChild(valueSpan);
-                       }
-       
-                       picksDiv.appendChild(pickDiv);
-                   });
-               }
-       
-               // Populate the immortal lock for the user card
-               const immortalLockDiv = userCard.querySelector('.immortal-lock');
-               immortalLockDiv.innerHTML = ''; // Clear existing content
-           
-               if (data.immortalLock && data.immortalLock[0]) {
-                   const immortalPick = data.immortalLock[0];
-                   const pickDiv = document.createElement('div');
-                   pickDiv.classList.add('pick', 'immortal-pick');
-           
-                   // Create and append the "Immortal Lock:" text
-                   const immortalTextSpan = document.createElement('span');
-                   immortalTextSpan.textContent = 'Immortal Lock: ';
-                   pickDiv.appendChild(immortalTextSpan);
-           
-                   // Extract the team name and value using the same regex as before
-                   const teamNameMatch = immortalPick.match(/^(.*?)\s\[/);
-                   const teamName = teamNameMatch ? teamNameMatch[1] : null;
-                   const valueMatch = immortalPick.match(/\[.*?([-+]\d+(?:\.\d+)?)\]/);
-                   const value = valueMatch ? valueMatch[1] : null;
-           
-                   if (teamName && teamLogos[teamName]) {
-                       const logoUrl = teamLogos[teamName];
-                       const logoImg = document.createElement('img');
-                       logoImg.src = logoUrl;
-                       logoImg.alt = `${teamName}`; // The alt attribute remains for accessibility
-                       logoImg.classList.add('team-logo');
-                       pickDiv.appendChild(logoImg);
-                   }
-           
-                   if (value) {
-                       const valueSpan = document.createElement('span');
-                       valueSpan.textContent = value; // Only the numeric value is displayed
-                       pickDiv.appendChild(valueSpan);
-                   }
-           
-                   // Append the Immortal Lock pick to the container
-                   immortalLockDiv.appendChild(pickDiv);
-               } else {
-                   immortalLockDiv.textContent = 'Immortal Lock: Not Set';
-               }
-           }}
-        else{
-            populateUserData();
-            console.log("Fetch all");
-        }
-        
-    }
-    
-    
-    
-    async function populateUserData() {
-        const userCards = document.querySelectorAll('.player-card');
-        //start here
-        for (let card of userCards) {
-            const username = card.getAttribute('data-username');
-            try {
-                const response = await fetch(`/api/getPicks/${username}`);
-                const data = await response.json();
-                if (data && data.picks && data.immortalLock) {
-                    const picksDiv = card.querySelector('.picks');
-                    data.picks.forEach(pick => {
-                        const pickDiv = document.createElement('div');
-                        pickDiv.classList.add('pick');
-    
-                        // Extract the team name using a regular expression
-                        const teamNameMatch = pick.match(/^(.*?)\s\[/);
-                        const teamName = teamNameMatch ? teamNameMatch[1] : null;
-                        // Extract the numeric value using a regular expression
-                        const valueMatch = pick.match(/\[.*?([-+]\d+(?:\.\d+)?)\]/);
-                        const value = valueMatch ? valueMatch[1] : null;
-    
-                        if (teamName && teamLogos[teamName]) {
-                            const logoUrl = teamLogos[teamName];
-                            const logoImg = document.createElement('img');
-                            logoImg.src = logoUrl;
-                            logoImg.alt = `${teamName}`; // The alt attribute remains for accessibility
-                            logoImg.classList.add('team-logo');
-                            pickDiv.appendChild(logoImg);
-                        }
-    
-                        // Create a span for the numeric value and append it
-                        if (value) {
-                            const valueSpan = document.createElement('span');
-                            valueSpan.textContent = value; // Only the numeric value is displayed
-                            pickDiv.appendChild(valueSpan);
-                        }
-    
-                        picksDiv.appendChild(pickDiv);
-                    });
-
-                    const immortalLockDiv = card.querySelector('.immortal-lock');
-                    // Clear previous content
-                    immortalLockDiv.innerHTML = '';
-                    
-                    if (data.immortalLock && data.immortalLock[0]) {
-                        const immortalPick = data.immortalLock[0];
-                        const pickDiv = document.createElement('div');
-                        pickDiv.classList.add('pick', 'immortal-pick');
-                    
-                        // Create and append the "Immortal Lock:" text
-                        const immortalTextSpan = document.createElement('span');
-                        immortalTextSpan.textContent = 'Immortal Lock: ';
-                        pickDiv.appendChild(immortalTextSpan);
-                        // Extract the team name and value using the same regex as before
-                        const teamNameMatch = immortalPick.match(/^(.*?)\s\[/);
-                        const teamName = teamNameMatch ? teamNameMatch[1] : null;
-                        const valueMatch = immortalPick.match(/\[.*?([-+]\d+(?:\.\d+)?)\]/);
-                        const value = valueMatch ? valueMatch[1] : null;
-                    
-                        if (teamName && teamLogos[teamName]) {
-                            const logoUrl = teamLogos[teamName];
-                            const logoImg = document.createElement('img');
-                            logoImg.src = logoUrl;
-                            logoImg.alt = `${teamName}`; // The alt attribute remains for accessibility
-                            logoImg.classList.add('team-logo');
-                            pickDiv.appendChild(logoImg);
-                        }
-                    
-                        if (value) {
-                            const valueSpan = document.createElement('span');
-                            valueSpan.textContent = value; // Only the numeric value is displayed
-                            pickDiv.appendChild(valueSpan);
-                        }
-                    
-                        // Append the Immortal Lock pick to the container
-                        immortalLockDiv.appendChild(pickDiv);
-                    } else {
-                        immortalLockDiv.textContent = 'Immortal Lock: Not Set';
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching data for', username, error);
-            }
-        } //end here
-        
-    }  //uncomment at 7pm thursday
-    
-    
-    
-    // Animate points
-    function triggerAnimation() {
-      //  console.log("Triggering Animation");
-        function animateValue(element, end, duration) {
-            let startTimestamp = null;
-            const start = parseFloat(element.textContent);
-            const step = (timestamp) => {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                element.textContent = (progress * (end - start) + start).toFixed(1);
-                if (progress < 1) {
-                    window.requestAnimationFrame(step);
-                }
-            };
-            window.requestAnimationFrame(step);
-        }
-
-        document.querySelectorAll('.player-card').forEach(card => {
-            const pointsElement = card.querySelector('.points-value');
-            if (pointsElement) {  // Make sure pointsElement is not null
-                const pointsValue = parseFloat(card.getAttribute('data-points') || "0");
-                if (!isNaN(pointsValue)) {  // Make sure pointsValue is a number
-                    animateValue(pointsElement, pointsValue, 1500);
-                } else {
-                    console.error("Invalid data-points value:", card.getAttribute('data-points'));
-                }
-            } else {
-                console.error("Missing .points-value element in card:", card);
-            }
-        });
-        
-    }
-
-    // Calling the functions
-   // populateUserData();
-    triggerAnimation();
-    pickWindowPlayerCard();
 });
 
 
@@ -431,6 +152,8 @@ document.addEventListener('DOMContentLoaded', () => {
         topPlayerCard.appendChild(crownIcon);
     }
 });
+
+
 //START OF POOLS AND PLAYERROWS
 
 document.getElementById('show-create-pool-form').addEventListener('click', function() {
@@ -509,8 +232,6 @@ document.getElementById('create-pool-form').addEventListener('submit', function(
 
 
 function displayNewPoolContainer(pool) {
-
-    
     const teamLogos = {
         'ARI Cardinals': '/ARILogo.png',
         'ATL Falcons': '/ATLLogo.png',
@@ -593,22 +314,18 @@ function displayNewPoolContainer(pool) {
             <span class="header-push">Push</span>
         `;
         poolContainer.appendChild(poolHeader);
-
-        // Add player rows to the pool container here...
-        // ...
-
     
          
-        pool.members.forEach((memberUsername, index) => {
+        pool.members.forEach((member, index) => {
             const rank = index + 1;
-            const encodedMemberUsername = encodeURIComponent(memberUsername);
+            const encodedMemberUsername = encodeURIComponent(member.username);
     
             // First fetch the user profile
             fetch(`/api/getUserProfile/${encodedMemberUsername}`)
                 .then(response => response.json())
                 .then(userProfile => {
                     if (!userProfile) {
-                        throw new Error(`User profile for ${memberUsername} not found`);
+                        throw new Error(`User profile for ${member.username} not found`);
                     }
                     
                     // Then fetch the picks
@@ -628,7 +345,7 @@ function displayNewPoolContainer(pool) {
                                 wins: userProfile.wins,
                                 losses: userProfile.losses,
                                 pushes: userProfile.pushes,
-                              }, memberUsername === pool.adminUsername);
+                              }, member.username === pool.adminUsername);
                     
                               const picksContainer = playerRow.querySelector('.player-picks');
                             // Populate the picks
@@ -704,7 +421,7 @@ function displayNewPoolContainer(pool) {
             });
             poolAndDeleteContainer.appendChild(deleteButton);
             poolWrapper.appendChild(deleteButton);
-            console.log("Delete button should be added for:", pool.name);
+            //console.log("Delete button should be added for:", pool.name);
         }
 
         // Append the pool name div and the pool container to the pool wrapper
@@ -729,33 +446,83 @@ function redirectToDashboard(poolName) {
     window.location.href = `dashboard.html?poolName=${encodeURIComponent(poolName)}`;
 }
 
+
+
 function loadAndDisplayUserPools() {
-    const currentUsername = localStorage.getItem('username'); 
+  const currentUsername = localStorage.getItem('username');
+  if (!currentUsername) {
+    console.error('No logged-in user found!');
+    return;
+  }
 
-    if (!currentUsername) {
-        console.error('No logged-in user found!');
-        return;
-    }
-
-    fetch(`/pools/userPools/${encodeURIComponent(currentUsername.toLowerCase())}`)
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok.');
-        }
-        return response.json();
-    })
+  // Fetch the pools the user is a part of
+  fetch(`/pools/userPools/${encodeURIComponent(currentUsername.toLowerCase())}`)
+    .then(response => response.json())
     .then(pools => {
+      pools.forEach(pool => {
+        // Clear previous pools display
         const poolContainerWrapper = document.getElementById('pool-container-wrapper');
         poolContainerWrapper.innerHTML = '';
-        pools.forEach(pool => {
-            displayNewPoolContainer(pool);
+
+        
+        // Create the pool container
+        const poolContainer = document.createElement('div');
+        poolContainer.className = 'pool-container';
+
+        // Fetch the user profiles and user picks for each member
+      // Fetch the user profiles and user picks for each member
+      const membersDataPromises = pool.members.map(member => {
+        console.log(`Fetching data for username: ${member.username}`); // This should log the actual username, not [object Object]
+        // Directly use member.username since it is already a direct property of the member object
+        const username = member.username;
+      
+        // Fetch user profile
+        return fetch(`/api/getUserProfile/${member.username}`)
+          .then(response => response.json())
+          .then(userProfile => {
+            // Fetch the user picks
+            return fetch(`/api/getPicks/${member.username}`)
+              .then(response => response.json())
+              .then(userPicks => {
+                return { userProfile, userPicks };
+              });
+          });
+      });
+      
+      
+        // When all members data has been fetched
+        Promise.all(membersDataPromises).then(membersData => {
+          membersData.forEach((data, index) => {
+            const { userProfile, userPicks } = data;
+
+            // Construct the member's player row
+            const playerRow = createPlayerRow({
+              rank: index + 1, // Rank is the index in the array + 1
+              username: userProfile.username,
+              profilePic: userProfile.profilePicture,
+              points: userProfile.points,
+              wins: userProfile.wins,
+              losses: userProfile.losses,
+              pushes: userProfile.pushes,
+              picks: userPicks ? userPicks.picks : [] // Provide an empty array as fallback
+            }, userProfile.username === pool.adminUsername);
+
+            // Append the player row to the pool container
+            poolContainer.appendChild(playerRow);
+          });
+
+          // Display the new pool container
+          displayNewPoolContainer(pool);
+        })
+        .catch(error => {
+          console.error('Error fetching member data:', error);
         });
+      });
     })
-    .catch(error => {
-        console.error('Error fetching pools for user:', error);
-    });
+    .catch(error => console.error('Error fetching pools for user:', error));
 }
 
+  
 document.addEventListener('DOMContentLoaded', loadAndDisplayUserPools);
 
 

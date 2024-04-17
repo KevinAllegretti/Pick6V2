@@ -1,3 +1,4 @@
+//pickRoutes.ts
 import express from 'express';
 import { connectToDatabase } from '../microservices/connectDB';
 const router = express.Router();
@@ -5,7 +6,7 @@ const router = express.Router();
 router.post('/api/savePicks/:username', async (req, res) => {
     try {
         const username = req.params.username.toLowerCase();
-
+        
         // Extract data from request
         const { picks, immortalLock } = req.body;
 
@@ -64,7 +65,7 @@ router.post('/api/resetPicks/:username', async (req, res) => {
 router.get('/api/getPicks/:username', async (req, res) => {
     try {
         const username = req.params.username.toLowerCase();
-
+        console.log("Fetching picks for username:", username);
         // Connect to database
         const database = await connectToDatabase();
        // console.log("Fetching picks for username:", username);
@@ -72,7 +73,7 @@ router.get('/api/getPicks/:username', async (req, res) => {
 
         // Fetch user's picks
         const userPicksData = await picksCollection.findOne({ username });
-
+        console.log("Picks found:", userPicksData);
         if (userPicksData) {
             res.json(userPicksData);
         } else {

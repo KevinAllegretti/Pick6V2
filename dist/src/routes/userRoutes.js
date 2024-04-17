@@ -35,7 +35,7 @@ router.post('/register', async (req, res) => {
         const encryptedPassword = await bcrypt_1.default.hash(password, saltRounds);
         const verificationToken = (0, uuid_1.v4)();
         await usersCollection.insertOne({
-            username: username.toLowerCase(),
+            username: username.toLowerCase(), // Store usernames in lowercase to ensure uniqueness
             email: email.toLowerCase(),
             password: encryptedPassword,
             verificationToken,

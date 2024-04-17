@@ -69,7 +69,7 @@ app.use(session({
     secret: 'your secret key',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: 'auto' },
+    cookie: { secure: 'auto' }, // 'auto' will secure cookies if the site is accessed over HTTPS
     store: store,
 }));
 app.get('/', (req, res) => {

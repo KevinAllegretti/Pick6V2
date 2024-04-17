@@ -1,7 +1,7 @@
 // Pool.ts
 
 import mongoose from 'mongoose';
-
+import {poolMemberSchema} from './poolMember';
 
 // Define the Pool schema
 const poolSchema = new mongoose.Schema({
@@ -19,10 +19,7 @@ const poolSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  members: [{
-    type: mongoose.Schema.Types.String,
-    ref: 'User',
-  }],
+  members: [poolMemberSchema],
   isPrivate: {
     type: Boolean,
     default: false,
