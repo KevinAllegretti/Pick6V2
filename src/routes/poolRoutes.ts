@@ -102,4 +102,30 @@ router.delete('/delete/:poolName', async (req, res) => {
   }
 });
 
+
+router.post('/updateUserPoints', async (req, res) => {
+  const { username, newPoints } = req.body;
+
+  try {
+      // Connect to the database and access the users collection
+      const database = await connectToDatabase();
+      const usersCollection = database.collection('users');
+
+      // Update the points for the given user
+      const updateResult = await usersCollection.updateOne(
+          { username: username },
+          { $set: { points: newPoints } }
+      );
+
+      if (updateResult.modifiedCount === 0) {
+          throw new Error("User not found or points are the same");
+      }
+
+      res.json({ success: true, message: 'User points updated' });
+  } catch (error:any) {
+      res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+  }
+});
+
+
 export default router;

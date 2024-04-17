@@ -55,14 +55,14 @@ router.post('/api/resetPicks/:username', async (req, res) => {
 router.get('/api/getPicks/:username', async (req, res) => {
     try {
         const username = req.params.username.toLowerCase();
-        console.log("Fetching picks for username:", username);
+        //console.log("Fetching picks for username:", username);
         // Connect to database
         const database = await (0, connectDB_1.connectToDatabase)();
         // console.log("Fetching picks for username:", username);
         const picksCollection = database.collection('userPicks');
         // Fetch user's picks
         const userPicksData = await picksCollection.findOne({ username });
-        console.log("Picks found:", userPicksData);
+        // console.log("Picks found:", userPicksData);
         if (userPicksData) {
             res.json(userPicksData);
         }
@@ -71,7 +71,7 @@ router.get('/api/getPicks/:username', async (req, res) => {
         }
     }
     catch (error) {
-        console.error('Error fetching picks:', error);
+        // console.error('Error fetching picks:', error);
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 });

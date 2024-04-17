@@ -446,7 +446,11 @@ function redirectToDashboard(poolName) {
     window.location.href = `dashboard.html?poolName=${encodeURIComponent(poolName)}`;
 }
 
-
+function sortPlayersByPoints(players) {
+    // Sort players in descending order of points
+    return players.sort((a, b) => b.points - a.points);
+  }
+  
 
 function loadAndDisplayUserPools() {
   const currentUsername = localStorage.getItem('username');
@@ -493,9 +497,16 @@ function loadAndDisplayUserPools() {
       
         // When all members data has been fetched
         Promise.all(membersDataPromises).then(membersData => {
+
+            membersData.sort((a, b) => b.userProfile.points - a.userProfile.points);
+            // Then clear the pool container and append sorted player rows
+            const poolContainerWrapper = document.getElementById('pool-container-wrapper');
+            poolContainerWrapper.innerHTML = ''; // Clear previous pools display
+            const poolContainer = document.createElement('div');
+            poolContainer.className = 'pool-container';
+
           membersData.forEach((data, index) => {
             const { userProfile, userPicks } = data;
-
             // Construct the member's player row
             const playerRow = createPlayerRow({
               rank: index + 1, // Rank is the index in the array + 1
@@ -702,3 +713,35 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
 });
+
+
+/*
+
+function updateUserPoints(username, newPoints) {
+    // This is the URL to your API endpoint
+    const apiUrl = '/pools/updateUserPoints';
+
+    fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, newPoints })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('User points updated:', data.message);
+            // Perform additional actions here, like updating the UI
+        } else {
+            console.error('Failed to update user points:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error updating user points:', error);
+    });
+}
+
+// Example usage:
+updateUserPoints('testuser', 5); // Replace with actual username and new points value
+*/
