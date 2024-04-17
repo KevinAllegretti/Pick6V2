@@ -288,12 +288,11 @@ h2 {
 
 /* The dunce cap */
 .dunce-icon {
-    color: rgb(142, 93, 2);
-    font-size: 30px;  /* Adjust size */
-    position: absolute;
-    top: 10px;  /* Adjust positioning */
-    right: 0%;
-    transform: translateX(-50%) rotate(45deg); /* Rotate by 45 degrees */
+    margin-left: 0.2em;
+    padding-right: 4px;
+    font-size: 1.2rem;  /* Adjust as needed */
+    z-index: 10;
+    color: rgb(177, 121, 0);
 }
 
 

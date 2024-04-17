@@ -316,6 +316,7 @@ function displayNewPoolContainer(pool) {
         `;
         poolContainer.appendChild(poolHeader);
 
+        const totalMembers = pool.members.length;
         // Sort the members
         pool.members.sort((a, b) => b.points - a.points || a.username.localeCompare(b.username));
 
@@ -339,7 +340,7 @@ function displayNewPoolContainer(pool) {
             .then(membersData => {
                 // All data has been fetched, now create and append player rows
                 membersData.forEach(memberData => {
-                    const playerRow = createPlayerRow(memberData, memberData.username === pool.adminUsername);
+                    const playerRow = createPlayerRow(memberData, memberData.username === pool.adminUsername, totalMembers);
                     fetchPicks(memberData.username, playerRow, teamLogos); // Fetch and process picks
                     poolContainer.appendChild(playerRow); // Append player row to pool container
                 });
@@ -521,7 +522,7 @@ document.addEventListener('DOMContentLoaded', loadAndDisplayUserPools);
 
 
 
-function createPlayerRow(memberData, isAdmin) {
+function createPlayerRow(memberData, isAdmin, totalMembers) {
     const playerRow = document.createElement('div');
     playerRow.className = 'player-row';
     // Populate player row with member data
@@ -555,15 +556,15 @@ function createPlayerRow(memberData, isAdmin) {
     userSection.appendChild(crownIcon); // Append crown icon to the user div
 }
 
-/*
+
 if (memberData.rank === totalMembers) {
     const userSection = playerRow.querySelector('.player-user');
-    const poopEmoji = document.createElement('span');
-    poopEmoji.textContent = '💩'; // Using the Unicode emoji for poop
-    poopEmoji.className = 'poop-icon';
-    userSection.appendChild(poopEmoji); // Append poop emoji to the user div
+    const poopIcon = document.createElement('i');
+    poopIcon.classList.add('fas', 'fa-poop', 'dunce-icon'); // Font Awesome Poop icon
+    poopIcon.setAttribute('title', 'Last Place');
+    userSection.appendChild(poopIcon);
 }
-*/
+
         // Create and append picks to the player-picks container
         const picksContainer = playerRow.querySelector('.player-picks');
         if (Array.isArray(memberData.picks)) {
