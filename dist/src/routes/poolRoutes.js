@@ -27,16 +27,19 @@ router.get('/get-all', async (req, res) => {
 // In your routes file
 router.get('/userPools/:username', async (req, res) => {
     try {
-        const username = req.params.username;
+        const username = req.params.username.toLowerCase();
         console.log(`Fetching pools for user: ${username}`);
-        // Find all pools where the current user is a member
-        const pools = await Pool_1.default.find({});
-        console.log(`Found pools for user ${username}:`, pools);
-        res.status(200).json(pools);
+        const database = await (0, connectDB_1.connectToDatabase)();
+        const poolsCollection = database.collection('pools');
+        // Find pools where the members array contains the username
+        const pools = await poolsCollection.find({
+            'members.username': username
+        }).toArray();
+        res.json(pools);
     }
     catch (error) {
-        console.error(`Error fetching pools for user ${req.params.username}:`, error);
-        res.status(500).json({ message: 'Error fetching pools', error });
+        console.error('Error fetching pools for user:', error);
+        res.status(500).send('Internal server error');
     }
 });
 router.delete('/delete/:poolName', async (req, res) => {

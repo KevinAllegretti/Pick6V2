@@ -459,6 +459,7 @@ function loadAndDisplayUserPools() {
   fetch(`/pools/userPools/${encodeURIComponent(currentUsername.toLowerCase())}`)
     .then(response => response.json())
     .then(pools => {
+   // const userPools = pools.filter(pool => pool.members.some(member => member.username === currentUsername));
       pools.forEach(pool => {
         // Clear previous pools display
         const poolContainerWrapper = document.getElementById('pool-container-wrapper');
