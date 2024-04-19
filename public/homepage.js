@@ -462,7 +462,7 @@ function fetchPicks(username, poolName, playerRow, teamLogos) {
             picksContainer.innerHTML = ''; // Clear previous content
             const errorMessage = document.createElement('div');
             errorMessage.className = 'error-message';
-            errorMessage.textContent = 'Failed to load picks due to an error.';
+            errorMessage.textContent = '';
             picksContainer.appendChild(errorMessage);
         });
 }
