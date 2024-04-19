@@ -32,7 +32,7 @@ router.get('/get-all', async (req, res) => {
 router.get('/userPools/:username', async (req, res) => {
   try {
     const username = req.params.username.toLowerCase();
-    console.log(`Fetching pools for user: ${username}`);
+    //console.log(`Fetching pools for user: ${username}`);
     const database = await connectToDatabase();
     const poolsCollection = database.collection('pools');
 

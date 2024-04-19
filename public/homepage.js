@@ -343,7 +343,8 @@ function displayNewPoolContainer(pool) {
         // All data has been fetched, now create and append player rows
         membersData.forEach(memberData => {
             const playerRow = createPlayerRow(memberData, memberData.username === pool.adminUsername, totalMembers);
-            fetchPicks(memberData.username, playerRow, teamLogos); // Fetch and process picks
+            console.log('Pool name before fetchPicks:', pool.name);
+            fetchPicks(memberData.username, pool.name, playerRow, teamLogos); // Fetch and process picks
             poolContainer.appendChild(playerRow); // Append player row to pool container
         });
 
@@ -400,14 +401,28 @@ function fetchUserProfile(username) {
         });
 }
 
-
-function fetchPicks(username, playerRow, teamLogos) {
+function fetchPicks(username, poolName, playerRow, teamLogos) {
+    console.log('Inside fetchPicks, poolName is:', poolName);
     const encodedUsername = encodeURIComponent(username);
-    fetch(`/api/getPicks/${encodedUsername}`)
-        .then(response => response.json())
+    const encodedPoolName = encodeURIComponent(poolName);
+    const url = `/api/getPicks/${encodedUsername}/${encodedPoolName}`;
+    
+    console.log('Fetching picks with URL:', url);
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(picksData => {
+            console.log('Received picks data:', picksData); // Debugging log
             const picksContainer = playerRow.querySelector('.player-picks');
-            if (picksData.picks && Array.isArray(picksData.picks)) {
+
+            // Ensure the picksContainer is cleared before adding new content
+            picksContainer.innerHTML = '';
+
+            if (picksData && picksData.picks && Array.isArray(picksData.picks) && picksData.picks.length > 0) {
                 picksData.picks.forEach(pick => {
                     const pickDiv = document.createElement('div');
                     pickDiv.className = 'pick';
@@ -434,7 +449,6 @@ function fetchPicks(username, playerRow, teamLogos) {
                     picksContainer.appendChild(pickDiv);
                 });
             } else {
-                // If there are no picks, append a message to the picksContainer
                 const noPicksMessage = document.createElement('div');
                 noPicksMessage.className = 'no-picks-message';
                 noPicksMessage.textContent = 'No picks made';
@@ -442,9 +456,19 @@ function fetchPicks(username, playerRow, teamLogos) {
             }
         })
         .catch(error => {
-            console.error('Error fetching picks for user:', username, error);
+            console.error('Error fetching picks for user:', username, 'in pool:', poolName, error);
+            // Optionally update UI to reflect the error
+            const picksContainer = playerRow.querySelector('.player-picks');
+            picksContainer.innerHTML = ''; // Clear previous content
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'error-message';
+            errorMessage.textContent = 'Failed to load picks due to an error.';
+            picksContainer.appendChild(errorMessage);
         });
 }
+
+
+
 function redirectToDashboard(poolName) {
     window.location.href = `dashboard.html?poolName=${encodeURIComponent(poolName)}`;
 }
@@ -486,7 +510,9 @@ function loadAndDisplayUserPools() {
           .then(response => response.json())
           .then(userProfile => {
             // Fetch the user picks
-            return fetch(`/api/getPicks/${member.username}`)
+            const poolName = pool.name; // Assuming 'pool' is available in this scope and contains the pool name
+            const encodedPoolName = encodeURIComponent(poolName);
+            return fetch(`/api/getPicks/${member.username}/${encodedPoolName}`)
               .then(response => response.json())
               .then(userPicks => {
                 return { userProfile, userPicks };
@@ -707,7 +733,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
 });
 
-
+/*
 function updateUserPoints(username, newPoints, poolName) {
     // This is the URL to your API endpoint
     const apiUrl = '/pools/updateUserPointsInPoolByName';
@@ -736,3 +762,4 @@ function updateUserPoints(username, newPoints, poolName) {
 
 // Example usage:
 updateUserPoints('testuser2', 100, 'woo'); // Replace with the actual username, new points value, and pool name
+*/

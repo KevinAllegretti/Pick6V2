@@ -28,7 +28,7 @@ router.get('/get-all', async (req, res) => {
 router.get('/userPools/:username', async (req, res) => {
     try {
         const username = req.params.username.toLowerCase();
-        console.log(`Fetching pools for user: ${username}`);
+        //console.log(`Fetching pools for user: ${username}`);
         const database = await (0, connectDB_1.connectToDatabase)();
         const poolsCollection = database.collection('pools');
         // Find pools where the members array contains the username

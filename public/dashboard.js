@@ -1,6 +1,10 @@
-//VERSION 1
-let currentPoolName = ''; // Global variable to store the current pool name
+const queryParams = new URLSearchParams(window.location.search);
+const currentPoolName = queryParams.get('poolName'); // Get the pool name from URL query parameters
 
+if (!currentPoolName) {
+    alert('Pool name is missing.');
+    // Handle missing poolName appropriately, perhaps redirecting back or displaying an error message
+}
 const now = new Date();
 let thursdayDeadline = new Date(now);
 thursdayDeadline.setDate(now.getDate() + ((4 + 7 - now.getDay()) % 7));
@@ -297,7 +301,7 @@ function resetPicks() {
     }
 
     // Make the API call to reset the picks on the server
-    fetch(`/api/resetPicks/${storedUsername}`, { 
+    fetch(`/api/resetPicks/${storedUsername}/${currentPoolName}`, { 
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -324,7 +328,13 @@ function resetPicks() {
   console.log(thursdayDeadline, tuesdayEndTime);
  
   isDeadline = false;
+  
   function submitUserPicks() {
+
+    if (!currentPoolName) {
+      alert('Current pool name is not set.');
+      return;
+  }
     let data; // Declare data at the top of the function
 
     // Check deadlines first
@@ -346,11 +356,12 @@ function resetPicks() {
     // Create the data object with picks
     data = {
         picks: picksAsString,
-        immortalLock: userImmortalLockAsString
+        immortalLock: userImmortalLockAsString,
+        poolName: currentPoolName
     };
 
     // Proceed with the fetch call
-    fetch(`/api/savePicks/${storedUsername}`, {
+    fetch(`/api/savePicks/${storedUsername}/${currentPoolName}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
