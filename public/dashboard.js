@@ -180,24 +180,51 @@ async function wasPickMadeLastWeek(username, currentPick) {
   
   function renderBetOptions() {
     const container = document.getElementById('picksContainer');
-    betOptions.forEach(option => {
-        const betCell = document.createElement('div');
-        const currentPick = `${option.teamName} [${option.type}: ${option.value}]`;
-
-        wasPickMadeLastWeek(storedUsername, currentPick).then(isPickFromLastWeek => {
-            betCell.classList.add('betCell', teamColorClasses[option.teamName]);
-            betCell.textContent = currentPick;
-            if (isPickFromLastWeek) {
-                betCell.classList.add('disabled'); // Grey out the option if it was picked last week
-                betCell.onclick = () => alert('This bet was made last week!');
-            } else {
-                betCell.onclick = () => selectBet(option); // Allow selection if it wasn't picked last week
-            }
-            container.appendChild(betCell);
-        });
+  
+    // Create an object to group bets by team name
+    const betsByTeam = betOptions.reduce((acc, bet) => {
+      if (!acc[bet.teamName]) {
+        acc[bet.teamName] = {
+          Spread: '',
+          ML: '',
+          logo: teamLogos[bet.teamName],
+          colorClass: teamColorClasses[bet.teamName]
+        };
+      }
+      acc[bet.teamName][bet.type] = bet.value;
+      return acc;
+    }, {});
+  
+    Object.entries(betsByTeam).forEach(([teamName, bets]) => {
+      // Create main bet container
+      const betContainer = document.createElement('div');
+      betContainer.className = 'bet-container ' + bets.colorClass;
+  
+      // Create team logo element
+      const teamLogo = document.createElement('img');
+      teamLogo.src = bets.logo;
+      teamLogo.alt = teamName + ' logo';
+      teamLogo.className = 'team-logo';
+      betContainer.appendChild(teamLogo);
+  
+      // Create bets options container
+      const betOptionsContainer = document.createElement('div');
+      betOptionsContainer.className = 'bet-options';
+  
+      // Add spread and moneyline buttons
+      ['Spread', 'ML'].forEach(type => {
+        const betButton = document.createElement('button');
+        betButton.className = `bet-button ${type.toLowerCase()}`;
+        betButton.textContent = bets[type]; // Use the value from betsByTeam
+        betButton.onclick = () => selectBet({ teamName, type, value: bets[type] }); // Make sure selectBet can handle this new object structure
+        betOptionsContainer.appendChild(betButton);
+      });
+  
+      betContainer.appendChild(betOptionsContainer);
+      container.appendChild(betContainer);
     });
-}
-
+  }
+  
   
 function selectBet(option) {
   console.log('selectBet called with option:', option);
