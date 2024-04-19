@@ -283,11 +283,11 @@ input, select {
   }
   
   .betCell.selected {
-    background-color: rgba(72, 255, 0, 0.7); /* Selected cell background color */
-    font-weight: bold;
-    /* other styles */
-}
-
+    background-color: #00ff00; /* A fully green background for selected bets */
+    color: #ffffff; /* White text to maintain contrast */
+    /* Add any other styles you want for the selected cell */
+  }
+  
 .betCell.immortal-lock-selected {
     background-color: #ebff69 !important; /* Example: bright yellow background */
     color: #000; /* Black text color for contrast */
@@ -397,7 +397,6 @@ h4 {
   .bet-container {
     display: flex;
     align-items: center;
-    background-color: #000; /* Adjust to your preference */
     margin-bottom: 10px;
     border-radius: 5px; /* Rounded corners for the container */
   }
@@ -414,13 +413,14 @@ h4 {
   }
   
   .bet-button {
-    background-color: #fff;
     border: none;
     border-radius: 4px;
     margin: 2px 0; /* Spacing between buttons */
     padding: 5px 10px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    color:#fff;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   }
   
   .bet-button:hover {

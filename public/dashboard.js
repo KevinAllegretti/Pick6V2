@@ -215,6 +215,7 @@ async function wasPickMadeLastWeek(username, currentPick) {
       ['Spread', 'ML'].forEach(type => {
         const betButton = document.createElement('button');
         betButton.className = `bet-button ${type.toLowerCase()}`;
+        betButton.classList.add('bet-button', bets.colorClass, type.toLowerCase());
         betButton.textContent = bets[type]; // Use the value from betsByTeam
         betButton.onclick = () => selectBet({ teamName, type, value: bets[type] }); // Make sure selectBet can handle this new object structure
         betOptionsContainer.appendChild(betButton);
@@ -284,11 +285,19 @@ function selectBet(option) {
 
 
 function updateBetCell(option, isSelected, isImmortalLock = false) {
+  // First, find the betCells that match the current option's team and type
   const betCells = document.querySelectorAll('.betCell');
   betCells.forEach(cell => {
-      if (cell.textContent === `${option.teamName} [${option.type}: ${option.value}]`) {
+      const cellText = cell.textContent.trim();
+      const optionText = `${option.teamName} [${option.type}: ${option.value}]`.trim();
+      
+      // If the cell's content matches the current option's text representation
+      if (cellText === optionText) {
+          // Toggle the 'selected' class based on whether the option is selected or not
           cell.classList.toggle('selected', isSelected);
-          cell.classList.toggle('immortal-lock-selected', isSelected && isImmortalLock);
+          
+          // For immortal lock, toggle the 'immortal-lock-selected' class
+          cell.classList.toggle('immortal-lock-selected', isImmortalLock);
       }
   });
 }
