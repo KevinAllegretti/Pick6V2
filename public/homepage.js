@@ -337,43 +337,43 @@ function displayNewPoolContainer(pool) {
         });
     });
 
-    Promise.all(memberDataPromises)
-    .then(membersData => {
-        // All data has been fetched, now create and append player rows
-        membersData.forEach(memberData => {
-            const playerRow = createPlayerRow(memberData, memberData.username === pool.adminUsername, totalMembers);
-            fetchPicks(memberData.username, playerRow, teamLogos); // Fetch and process picks
-            poolContainer.appendChild(playerRow); // Append player row to pool container
-        });
+        Promise.all(memberDataPromises)
+            .then(membersData => {
+                // All data has been fetched, now create and append player rows
+                membersData.forEach(memberData => {
+                    const playerRow = createPlayerRow(memberData, memberData.username === pool.adminUsername, totalMembers);
+                    fetchPicks(memberData.username, playerRow, teamLogos); // Fetch and process picks
+                    poolContainer.appendChild(playerRow); // Append player row to pool container
+                });
 
-        // Create a new div that will act as the relative container for the pool and delete button
-        const poolAndDeleteContainer = document.createElement('div');
-        poolAndDeleteContainer.className = 'pool-and-delete-container';
+                // Append the pool name div and the pool container to the pool wrapper
+                poolWrapper.appendChild(poolNameDiv);
+                poolWrapper.appendChild(poolContainer);
 
-        // Append the pool name div and the pool container to the pool wrapper
-        poolWrapper.appendChild(poolNameDiv);
-        poolWrapper.appendChild(poolContainer);
+                // If the user is an admin, create and append the delete button
+                if (isAdmin) {
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete Pool';
+                    deleteButton.className = 'delete-pool-button';
+                    deleteButton.setAttribute('data-pool-name', pool.name);
+                    deleteButton.addEventListener('click', function() {
+                        const confirmation = confirm(`Are you sure you want to delete the pool "${this.getAttribute('data-pool-name')}"?`);
+                        if (confirmation) {
+                            deletePool(this.getAttribute('data-pool-name'));
+                        } else {
+                            console.log('Pool deletion cancelled by the user.');
+                        }
+                    });
+                    poolWrapper.appendChild(deleteButton);
+                }
 
-        // Append the pool wrapper to the pool and delete container
-        poolAndDeleteContainer.appendChild(poolWrapper);
-
-        // If the user is an admin, create and append the delete button
-        if (isAdmin) {
-            const deleteButton = document.createElement('button');
-            deleteButton.textContent = 'Delete Pool';
-            deleteButton.className = 'delete-pool-button';
-            deleteButton.setAttribute('data-pool-name', pool.name);
-            // Attach your event listeners to the delete button here
-            poolAndDeleteContainer.appendChild(deleteButton);
-        }
-
-        // Clear the existing pool container wrapper content and append the new pool and delete container
-        poolContainerWrapper.innerHTML = '';
-        poolContainerWrapper.appendChild(poolAndDeleteContainer);
-    })
-    .catch(error => {
-        console.error('Error fetching member data:', error);
-    });
+                // Clear the existing pool container wrapper content and append the new pool container
+                poolContainerWrapper.innerHTML = '';
+                poolContainerWrapper.appendChild(poolWrapper);
+            })
+            .catch(error => {
+                console.error('Error fetching member data:', error);
+            });
     } else {
         console.log("No username found in localStorage");
     }
@@ -697,7 +697,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
 });
-/*
+
 
 function updateUserPoints(username, newPoints, poolName) {
     // This is the URL to your API endpoint
@@ -727,4 +727,3 @@ function updateUserPoints(username, newPoints, poolName) {
 
 // Example usage:
 updateUserPoints('testUser2', 150, 'woo'); // Replace with the actual username, new points value, and pool name
-*/
