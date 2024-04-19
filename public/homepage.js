@@ -376,8 +376,6 @@ function displayNewPoolContainer(pool) {
             poolAndDeleteContainer.appendChild(deleteButton);
         }
 
-        // Clear the existing pool container wrapper content and append the new pool and delete container
-        poolContainerWrapper.innerHTML = '';
         poolContainerWrapper.appendChild(poolAndDeleteContainer);
     })
     .catch(error => {
@@ -464,6 +462,7 @@ function loadAndDisplayUserPools() {
   fetch(`/pools/userPools/${encodeURIComponent(currentUsername.toLowerCase())}`)
     .then(response => response.json())
     .then(pools => {
+        
         const poolContainerWrapper = document.getElementById('pool-container-wrapper');
         poolContainerWrapper.innerHTML = '';
 
