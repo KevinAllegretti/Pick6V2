@@ -214,17 +214,31 @@ async function wasPickMadeLastWeek(username, currentPick) {
       // Add spread and moneyline buttons
       ['Spread', 'ML'].forEach(type => {
         const betButton = document.createElement('button');
-        betButton.className = `bet-button ${type.toLowerCase()}`;
-        betButton.classList.add('bet-button', bets.colorClass, type.toLowerCase());
-        betButton.textContent = bets[type]; // Use the value from betsByTeam
-        betButton.onclick = () => selectBet({ teamName, type, value: bets[type] }); // Make sure selectBet can handle this new object structure
+        betButton.className = `bet-button ${bets.colorClass}`;
+        betButton.textContent = bets[type];
+        betButton.dataset.team = teamName.replace(/\s+/g, '-').toLowerCase(); // Data attribute for the team
+        betButton.dataset.type = type.toLowerCase(); // Data attribute for the bet type
+        betButton.onclick = () => selectBet({ teamName, type, value: bets[type] });
         betOptionsContainer.appendChild(betButton);
       });
+      
   
       betContainer.appendChild(betOptionsContainer);
       container.appendChild(betContainer);
     });
   }
+  
+  function updateBetCell(option, isSelected, isImmortalLock = false) {
+    const teamClass = option.teamName.replace(/\s+/g, '-').toLowerCase();
+    const typeClass = option.type.toLowerCase();
+    const betButtons = document.querySelectorAll(`.bet-button[data-team="${teamClass}"][data-type="${typeClass}"]`);
+  
+    betButtons.forEach(button => {
+      button.classList.toggle('selected', isSelected);
+      button.classList.toggle('immortal-lock-selected', isSelected && isImmortalLock);
+    });
+  }
+  
   
   
 function selectBet(option) {
@@ -283,24 +297,6 @@ function selectBet(option) {
   updateBetCell(option, true);
 }
 
-
-function updateBetCell(option, isSelected, isImmortalLock = false) {
-  // First, find the betCells that match the current option's team and type
-  const betCells = document.querySelectorAll('.betCell');
-  betCells.forEach(cell => {
-      const cellText = cell.textContent.trim();
-      const optionText = `${option.teamName} [${option.type}: ${option.value}]`.trim();
-      
-      // If the cell's content matches the current option's text representation
-      if (cellText === optionText) {
-          // Toggle the 'selected' class based on whether the option is selected or not
-          cell.classList.toggle('selected', isSelected);
-          
-          // For immortal lock, toggle the 'immortal-lock-selected' class
-          cell.classList.toggle('immortal-lock-selected', isImmortalLock);
-      }
-  });
-}
 
 function resetPicks() {
     picksCount = 0;

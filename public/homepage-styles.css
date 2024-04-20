@@ -724,9 +724,9 @@ button:hover {
 .pool-header .header-user, .player-row .player-user { flex: 2.5; }
 .pool-header .header-points, .player-row .player-points { flex: 1; }
 .pool-header .header-picks, .player-row .player-picks { flex: 5; }
-.pool-header .header-win, .player-row .player-win { flex: 1; }
-.pool-header .header-loss, .player-row .player-loss { flex: 1; }
-.pool-header .header-push, .player-row .player-push { flex: 1; }
+.pool-header .header-win, .player-row .player-win { flex: .77; }
+.pool-header .header-loss, .player-row .player-loss { flex: .77; }
+.pool-header .header-push, .player-row .player-push { flex: .77; }
 
 
 .admin-badge {

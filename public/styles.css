@@ -12,6 +12,7 @@ body {
 
 .main-wrapper {
     flex: 1; 
+    max-width: 100%;
     display: flex; 
     justify-content: space-between;
     align-items: flex-start; 
@@ -20,24 +21,7 @@ body {
     max-height: 100vh; 
 }
 
-.container {
-    max-width: 48%; /* Adjust the width so both containers can fit side by side */
-    max-height: 632px; /* Set a max-height that works for your content */
-    overflow-y: auto; /* Enable vertical scrolling */
-    margin: 0 1%; /* Add some margin between the containers */
-    box-shadow: 0 0 30px rgba(0, 229, 255, 0.7);
-    border-radius: 15px;
-}
 
-.image-container {
-    max-width: 48%; /* Adjust the width so both containers can fit side by side */
-    max-height: 750px; /* Set a max-height that works for your content */
-    margin: 0 1%; /* Add some margin between the containers */
-    box-shadow: 0 0 30px rgba(0, 229, 255, 0.7);
-    border-radius: 15px;
-    transform: scale(.9);
-    margin-top: -2%;
-}
 
 @media (max-width: 768px) {
     .main-wrapper {
@@ -199,9 +183,19 @@ input, select {
 
 .main-wrapper {
     display: flex;
-    justify-content: space-between;
-    align-items: stretch; /* This ensures that both child containers stretch to the same height */
-    width: 100%;
+    justify-content: center; /* Center the children horizontally */
+    align-items: flex-start; /* Align children to the start of the cross axis */
+    max-width: 100%;
+    padding-top: 20px;
+}
+
+.container {
+    width: 60%; /* Set the desired width of the container */
+    max-height: 632px;
+    overflow-y: auto;
+    margin: 0 auto; /* Auto margins for horizontal centering */
+    box-shadow: 0 0 30px rgba(0, 229, 255, 0.7);
+    border-radius: 15px;
 }
 
 @media (min-width: 769px) {
@@ -221,6 +215,7 @@ input, select {
 /* VERSION 1*/
   
 .picks-container {
+    width: auto;
     color: #000;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* Creates a grid with flexible columns */
@@ -413,18 +408,27 @@ h4 {
   }
   
   .bet-button {
-    border: none;
-    border-radius: 4px;
+    border: 2px solid black; /* Black border */
+    box-shadow: 0 0 5px white; /* White glow */
     margin: 2px 0; /* Spacing between buttons */
     padding: 5px 10px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    color:#fff;
-    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #fff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* Other styles... */
   }
   
   .bet-button:hover {
-    background-color: #eee; /* Hover state color */
+    background-color: #555; /* Darken on hover for effect */
   }
   
- 
+  .selected {
+    background-color: #00ff00; /* Green background for selected */
+    color: white; /* White text for selected */
+  }
+  
+  .immortal-lock-selected {
+    background-color: #fffc68; /* Specific color for immortal lock */
+    color: black; /* Text color for contrast */
+  }

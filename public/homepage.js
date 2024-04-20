@@ -597,7 +597,7 @@ if (memberData.rank === totalMembers) {
     const userSection = playerRow.querySelector('.player-user');
     const poopIcon = document.createElement('i');
     poopIcon.classList.add('fas', 'fa-poop', 'dunce-icon'); // Font Awesome Poop icon
-    poopIcon.setAttribute('title', 'Last Place');
+    poopIcon.setAttribute('title', 'Dunce');
     userSection.appendChild(poopIcon);
 }
 
@@ -733,7 +733,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
 });
 
-/*
+
 function updateUserPoints(username, newPoints, poolName) {
     // This is the URL to your API endpoint
     const apiUrl = '/pools/updateUserPointsInPoolByName';
@@ -761,5 +761,4 @@ function updateUserPoints(username, newPoints, poolName) {
 }
 
 // Example usage:
-updateUserPoints('testuser2', 100, 'woo'); // Replace with the actual username, new points value, and pool name
-*/
+updateUserPoints('testuser', 120, 'woo'); // Replace with the actual username, new points value, and pool name
