@@ -734,13 +734,6 @@ button:hover {
     margin-left: 0.5em; /* Space between the username and the badge */
 }
 
-.player-user {
-    flex: 2.5;
-    max-width: 240px; /* Adjust as necessary */
-    display: flex;
-    align-items: center;
-    overflow: hidden; /* Hide overflow */
-}
 
 .crown-icon {
     margin-left: 0.2em;
