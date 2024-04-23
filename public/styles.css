@@ -430,9 +430,13 @@ h4 {
   
   .immortal-lock-selected {
     background-color: #fffc68; /* Specific color for immortal lock */
-    color: black; /* Text color for contrast */
+    color: rgb(0, 0, 0); /* Text color for contrast */
   }
 
+  .picks-container2 {
+    display: flex;
+    gap: 20px; /* Add space between game day containers */
+}
 
 .game-day-container {
     background-color: rgba(255, 255, 255, 0.05); /* Slight background to differentiate sections */
