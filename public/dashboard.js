@@ -368,13 +368,13 @@ function resetPicks() {
       return;
   }
     let data; // Declare data at the top of the function
-
+/*
     // Check deadlines first
     if (now >= thursdayDeadline || now >= tuesdayEndTime) {
         alert('Deadline has passed, can no longer submit picks!');
         return; // Exit the function
     }
-
+*/
     // Continue if the deadline has not passed
     if (userPicks.length === 0) {
         alert('Please add at least one pick before submitting.');

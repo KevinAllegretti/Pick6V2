@@ -425,10 +425,24 @@ h4 {
   
   .selected {
     background-color: #00ff00; /* Green background for selected */
-    color: white; /* White text for selected */
+    color: rgb(0, 0, 0); /* White text for selected */
   }
   
   .immortal-lock-selected {
     background-color: #fffc68; /* Specific color for immortal lock */
     color: black; /* Text color for contrast */
   }
+
+
+.game-day-container {
+    background-color: rgba(255, 255, 255, 0.05); /* Slight background to differentiate sections */
+    border-radius: 8px;
+    padding: 20px;
+    flex-grow: 1; /* Allows the container to grow */
+}
+
+.game-day-container h3 {
+    text-align: center;
+    color: #00DDFF;
+    margin-bottom: 15px;
+}
