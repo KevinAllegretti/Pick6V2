@@ -310,6 +310,7 @@ function displayNewPoolContainer(pool) {
             <span class="header-picks">
                 <button class="choose-picks-button" onclick="redirectToDashboard('${pool.name}')">Make Picks</button>
             </span>
+            <span class="header-immortal-lock">Immortal Lock</span>
             <span class="header-win">Win</span>
             <span class="header-loss">Loss</span>
             <span class="header-push">Push</span>
@@ -454,6 +455,38 @@ function fetchPicks(username, poolName, playerRow, teamLogos) {
                 noPicksMessage.textContent = 'No picks made';
                 picksContainer.appendChild(noPicksMessage);
             }
+            const immortalLockContainer = playerRow.querySelector('.player-immortal-lock');
+
+            //Immortal Lock
+            if (picksData.immortalLock && picksData.immortalLock.length > 0) {
+                const immortalPick = picksData.immortalLock[0]; // Assuming the Immortal Lock is the first element
+                const lockDiv = document.createElement('div');
+                lockDiv.className = 'immortal-lock';
+
+                const teamNameMatch = immortalPick.match(/^(.*?)\s\[/);
+                const teamName = teamNameMatch ? teamNameMatch[1] : null;
+                const valueMatch = immortalPick.match(/\[.*?([-+]\d+(?:\.\d+)?)\]/);
+                const value = valueMatch ? valueMatch[1] : null;
+
+                if (teamName && teamLogos[teamName]) {
+                    const logoImg = document.createElement('img');
+                    logoImg.src = teamLogos[teamName];
+                    logoImg.alt = `${teamName}`;
+                    logoImg.className = 'team-logo';
+                    lockDiv.appendChild(logoImg);
+                }
+
+                if (value) {
+                    const valueSpan = document.createElement('span');
+                    valueSpan.textContent = value;
+                    lockDiv.appendChild(valueSpan);
+                }
+
+                immortalLockContainer.appendChild(lockDiv);
+            } else {
+                immortalLockContainer.textContent = 'No Immortal Lock set';
+            }
+
         })
         .catch(error => {
             console.error('Error fetching picks for user:', username, 'in pool:', poolName, error);
@@ -571,6 +604,7 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
     </div>
     <div class="player-points">${memberData.points}</div>
     <div class="player-picks"></div>
+    <div class="player-immortal-lock"></div>
     <div class="player-win">${memberData.wins}</div>
     <div class="player-loss">${memberData.losses}</div>
     <div class="player-push">${memberData.pushes}</div>

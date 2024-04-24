@@ -229,7 +229,6 @@ h2 {
 
 .picks, .immortal-lock {
     display: flex;
-    flex-direction: column;
     align-items: center; /* Aligns children in the center of the container along the cross axis */
     justify-content: center; /* Aligns children in the center of the container along the main axis */
     width: 100%; /* Set width to fill the parent container */
@@ -248,7 +247,7 @@ h2 {
 
 
 .immortal-lock {
-    color: #30b830; /* A bright red for contrast */
+    color: #ffffff; /* A bright red for contrast */
     font-style: initial;
 }
 
@@ -724,6 +723,7 @@ button:hover {
 .pool-header .header-user, .player-row .player-user { flex: 2.5; }
 .pool-header .header-points, .player-row .player-points { flex: 1; }
 .pool-header .header-picks, .player-row .player-picks { flex: 5; }
+.player-row .player-immortal-lock { order: 5; flex: 1; } /* Assign proper order and flex */
 .pool-header .header-win, .player-row .player-win { flex: .77; }
 .pool-header .header-loss, .player-row .player-loss { flex: .77; }
 .pool-header .header-push, .player-row .player-push { flex: .77; }

@@ -433,6 +433,8 @@ function resetPicks() {
   // Initialization
   renderBetOptions();
 
+
+  
 /*
 // This function fetches the current user's picks and displays them
 async function fetchAndDisplayUserPicks() {
