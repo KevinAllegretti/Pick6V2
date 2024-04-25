@@ -53,7 +53,7 @@ router.post('/api/resetPicks/:username/:poolName', async (req, res) => {
 router.get('/api/getPicks/:username/:poolName', async (req, res) => {
     try {
         const { username, poolName } = req.params;
-        console.log('Requested picks for:', req.params.username, 'in pool:', req.params.poolName);
+        // console.log('Requested picks for:', req.params.username, 'in pool:', req.params.poolName);
         const database = await (0, connectDB_1.connectToDatabase)();
         const picksCollection = database.collection('userPicks');
         // Query the collection using both username and poolName

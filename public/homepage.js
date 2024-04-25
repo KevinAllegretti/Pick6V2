@@ -310,7 +310,8 @@ function displayNewPoolContainer(pool) {
             <span class="header-picks">
                 <button class="choose-picks-button" onclick="redirectToDashboard('${pool.name}')">Make Picks</button>
             </span>
-            <span class="header-immortal-lock">Immortal Lock</span>
+            <span class="header-immortal-lock">Immortal <i class="fas fa-lock"></i></span>
+
             <span class="header-win">Win</span>
             <span class="header-loss">Loss</span>
             <span class="header-push">Push</span>
@@ -484,7 +485,7 @@ function fetchPicks(username, poolName, playerRow, teamLogos) {
 
                 immortalLockContainer.appendChild(lockDiv);
             } else {
-                immortalLockContainer.textContent = 'No Immortal Lock set';
+                immortalLockContainer.textContent = '';
             }
 
         })

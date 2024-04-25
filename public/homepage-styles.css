@@ -640,9 +640,9 @@ button:hover {
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
 }
 
-/*MAYBBEEE TAKE OUT???*/
+
 .player-row:last-child {
-    border-bottom: none; /* Removes the line from the last row */
+    border-bottom: none;
 }
 
 /* .player-picks flex container should allow wrapping and not restrict the height */
@@ -722,8 +722,8 @@ button:hover {
 .pool-header .header-rank, .player-row .player-rank { flex: 0.5; }
 .pool-header .header-user, .player-row .player-user { flex: 2.5; }
 .pool-header .header-points, .player-row .player-points { flex: 1; }
-.pool-header .header-picks, .player-row .player-picks { flex: 5; }
-.player-row .player-immortal-lock { order: 5; flex: 1; } /* Assign proper order and flex */
+.pool-header .header-picks, .player-row .player-picks { flex: 6; }
+.pool-header .header-immortal-lock, .player-row .player-immortal-lock { flex: 1.4; } /* Assign proper order and flex */
 .pool-header .header-win, .player-row .player-win { flex: .77; }
 .pool-header .header-loss, .player-row .player-loss { flex: .77; }
 .pool-header .header-push, .player-row .player-push { flex: .77; }
@@ -864,3 +864,30 @@ button:hover {
     font-weight: bold; /* If the Create Pool button has bold text */
     font-size: .9em; /* Adjust font size as needed */
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+
+
+/* Styling for headers */
+.pool-header > span {
+    color: #fff; /* Change to the color that fits your design */
+    font-family:'Montserrat', sans-serif;
+    font-size-adjust: calc(50%);
+    text-transform: uppercase; /* Capitalize your headers for more impact */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Soft shadow for a 3D effect */
+}
+
+/* Hover effect for the headers */
+.pool-header > span:hover {
+    color: #ff3333; /* Bright color for hover */
+    cursor: pointer; /* Change cursor to indicate interactivity */
+    text-shadow: 0px 0px 5px #ff3333; /* Glowing effect on hover */
+}
+.pool-header .header-rank {
+    text-align: right; /* Ensure text is aligned to right */
+}
+.header-immortal-lock .fas {
+    margin-left: 5px; /* Add a little space between the text and the icon */
+}
+.player-row .player-immortal-lock { order: 5 } /* Assign proper order and flex */
