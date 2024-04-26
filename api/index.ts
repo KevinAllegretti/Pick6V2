@@ -6,10 +6,10 @@ import picksRoutes from '../src/routes/picksRoutes';
 import bodyParser from 'body-parser';
 import profileRoutes from '../src/routes/profileRoutes';
 import poolRoutes from '../src/routes/poolRoutes';
+const fetch = require('node-fetch');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
 
 // 1. Middleware to parse JSON
 app.use(express.json());
@@ -71,49 +71,38 @@ app.listen(PORT, () => {
 
 const mongoURI = 'mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/Pick6'
 
-const session = require('express-session');
-const mongoose = require('mongoose');
-const MongoDBSession = require('connect-mongodb-session')(session);
-
-
-
-mongoose
-  .connect(mongoURI)
-  .then(() => {
-  })
-  .catch(err => console.log(err)); // It's important to catch any errors here
-
-const store = new MongoDBSession({
-  uri: mongoURI,
-  collection: "mySessions",
-})
-
-app.use(session({
-  secret: 'your secret key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: 'auto' }, // 'auto' will secure cookies if the site is accessed over HTTPS
-  store: store,
-}));
 
 app.get('/', (req, res) => {
 // req.session.isAuth = true;
 })
-/*
-app.post('/login', (req, res) => {
-  // ... after successful login:
-  req.session.username = req.body.username; // Store the username in the session
-  res.redirect('/homepage');
-});
 
-app.get('/homepage', (req, res) => {
-  if (req.session.username) {
-    // The user is logged in, proceed with serving the homepage
-  } else {
-    // The user is not logged in, redirect to the login page
-    res.redirect('/login');
+app.get('/api/odds', async (req: Request, res: Response) => {
+  const pinnacleUrl = 'https://api.pinnacle.com/v1/odds';
+  const params = {
+    sportId: '3', // the ID for basketball, this should be replaced with the actual ID for NBA
+    oddsFormat: 'decimal', // or 'american' based on your requirement
+    //leagues: [366] // the ID for the NBA league, replace with actual if different
+  };
+  const queryParams = new URLSearchParams(params).toString();
+
+  try {
+    const apiRes = await fetch(`${pinnacleUrl}?${queryParams}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from('your_username:your_password').toString('base64')
+      }
+    });
+
+    if (!apiRes.ok) {
+      throw new Error(`Error fetching from Pinnacle API: ${apiRes.statusText}`);
+    }
+
+    const data = await apiRes.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching NBA odds:', error);
+    res.status(500).send('Failed to fetch odds');
   }
 });
-*/
 
 export default app;

@@ -355,12 +355,6 @@ input, select {
 }
   
 
-.team-logo {
-    width: 30px; /* Adjust size as needed */
-    height: 30px; /* Adjust size as needed */
-    margin-right: 10px;
-}
-
 .user-pick span, .user-immortal-lock span {
     font-size: 0.9em;
     line-height: 1.2;

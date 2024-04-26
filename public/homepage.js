@@ -310,7 +310,7 @@ function displayNewPoolContainer(pool) {
             <span class="header-picks">
                 <button class="choose-picks-button" onclick="redirectToDashboard('${pool.name}')">Make Picks</button>
             </span>
-            <span class="header-immortal-lock">Immortal <i class="fas fa-lock"></i></span>
+            <span class="header-immortal-lock"> <i class="fas fa-lock"></i></span>
 
             <span class="header-win">Win</span>
             <span class="header-loss">Loss</span>
@@ -613,7 +613,7 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
         if (isAdmin) {
         const userSection = playerRow.querySelector('.player-user');
         const adminBadge = document.createElement('i');
-        adminBadge.classList.add('fas', 'fa-shield-alt', 'admin-badge');
+        adminBadge.classList.add('fas', 'fa-shield', 'admin-badge');
         adminBadge.setAttribute('title', 'Admin'); // This sets the hover text
         userSection.appendChild(adminBadge);
         }

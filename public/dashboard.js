@@ -434,7 +434,57 @@ function resetPicks() {
   renderBetOptions();
 
 
+
+  async function fetchOdds() {
+    const url = 'https://odds.p.rapidapi.com/v4/sports/baseball_mlb/odds';
+    const params = {
+      regions: 'us',
+      markets: 'spreads', // Change 'h2h' to 'spreads' to get spread odds
+      oddsFormat: 'american',
+      // Some APIs allow specifying the bookmaker directly in the parameters.
+      // If The Odds API supports this, you would add something like 'bookmakers': 'draftkings'
+    };
+    const queryParams = new URLSearchParams(params);
   
+    try {
+      const response = await fetch(`${url}?${queryParams}`, {
+        method: 'GET',
+        headers: {
+          'x-rapidapi-host': 'odds.p.rapidapi.com',
+          'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e' // Replace with your actual API key
+        }
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      console.log(JSON.stringify(data, null, 2)); // This will print the formatted JSON
+  
+      // Filter for DraftKings data
+      const draftKingsOdds = data.filter(event => 
+        event.bookmakers.some(bookmaker => 
+          bookmaker.key === 'draftkings' && 
+          bookmaker.markets.some(market => 
+            market.key === 'spreads'
+          )
+        )
+      );
+      
+      console.log(draftKingsOdds); // Log only DraftKings odds
+  
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  
+  // Call the function
+  fetchOdds();
+  
+document.getElementById('fetchOddsButton').addEventListener('click', fetchOdds);
+
+
 /*
 // This function fetches the current user's picks and displays them
 async function fetchAndDisplayUserPicks() {
