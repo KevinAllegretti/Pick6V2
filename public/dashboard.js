@@ -18,8 +18,25 @@ tuesdayEndTime.setDate(now.getDate() + ((2 + 7 - now.getDay()) % 7));
 tuesdayEndTime.setHours(0, 0, 0, 0); // 12 AM EST
 tuesdayEndTime.setMinutes(tuesdayEndTime.getMinutes() + tuesdayEndTime.getTimezoneOffset());
 tuesdayEndTime.setHours(tuesdayEndTime.getHours() - 5); // Convert UTC to EST (UTC-5)
-// Assuming betOptions is an array of all bet options for the week
-const betOptions = [
+
+const mlbToNflMap = {
+  "New York Yankees": "NY Giants",
+  "Los Angeles Dodgers": "LA Rams",
+  "Chicago Cubs": "CHI Bears",
+  "Houston Astros": "HOU Texans",
+  "San Francisco Giants": "SF 49ers",
+  "Philadelphia Phillies": "PHI Eagles",
+  "Boston Red Sox": "NE Patriots",
+  "Atlanta Braves": "ATL Falcons",
+  "Miami Marlins": "MIA Dolphins",
+  "Seattle Mariners": "SEA Seahawks",
+  "Minnesota Twins": "MIN Vikings",
+  "Arizona Diamondbacks": "ARI Cardinals",
+};
+
+
+let betOptions = [
+  /*
   // Steelers vs Ravens
   { teamName: 'HOU Texans', type: 'Spread', value: '+9.5' },
   { teamName: 'HOU Texans', type: 'ML', value: '+330' },
@@ -42,7 +59,7 @@ const betOptions = [
   { teamName: 'KC Chiefs', type: 'Spread', value: '+2.5' },
   { teamName: 'KC Chiefs', type: 'ML', value: '+124' },
   { teamName: 'BUF Bills', type: 'Spread', value: '-2.5' },
-  { teamName: 'BUF Bills', type: 'ML', value: '-148' },
+  { teamName: 'BUF Bills', type: 'ML', value: '-148' },*/
 ];
 
 const teamColorClasses = {
@@ -146,7 +163,7 @@ const lastWeekPicks = {
 
 
 
-async function wasPickMadeLastWeek(username, currentPick) {
+  async function wasPickMadeLastWeek(username, currentPick) {
   // Check if the current pick was part of the user's picks last week
   if (lastWeekPicks[username]) {
     return lastWeekPicks[username].some((pick) => {
@@ -160,8 +177,8 @@ async function wasPickMadeLastWeek(username, currentPick) {
       return pickTeamName === currentTeamName && pickType === currentType;
     });
   }
-  return false;
-}
+    return false;
+  }
 
   
   let picksCount = 0;
@@ -431,60 +448,117 @@ function resetPicks() {
   document.getElementById('submitPicks').addEventListener('click', submitUserPicks);
   
   // Initialization
-  renderBetOptions();
-
-
-
-  async function fetchOdds() {
+  //renderBetOptions();
+  async function fetchMLBData() {
     const url = 'https://odds.p.rapidapi.com/v4/sports/baseball_mlb/odds';
     const params = {
-      regions: 'us',
-      markets: 'spreads', // Change 'h2h' to 'spreads' to get spread odds
-      oddsFormat: 'american',
-      // Some APIs allow specifying the bookmaker directly in the parameters.
-      // If The Odds API supports this, you would add something like 'bookmakers': 'draftkings'
+        regions: 'us',
+        markets: 'h2h,spreads',
+        oddsFormat: 'american',
     };
     const queryParams = new URLSearchParams(params);
-  
+
+    // Clear existing bet options
+    //betOptions = [];
+
     try {
-      const response = await fetch(`${url}?${queryParams}`, {
-        method: 'GET',
-        headers: {
-          'x-rapidapi-host': 'odds.p.rapidapi.com',
-          'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e' // Replace with your actual API key
+        const response = await fetch(`${url}?${queryParams}`, {
+            method: 'GET',
+            headers: {
+                'x-rapidapi-host': 'odds.p.rapidapi.com',
+                'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-      });
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-  
-      const data = await response.json();
-      console.log(JSON.stringify(data, null, 2)); // This will print the formatted JSON
-  
-      // Filter for DraftKings data
-      const draftKingsOdds = data.filter(event => 
-        event.bookmakers.some(bookmaker => 
-          bookmaker.key === 'draftkings' && 
-          bookmaker.markets.some(market => 
-            market.key === 'spreads'
-          )
-        )
-      );
+
+        const data = await response.json();
+
+        // Populate betOptions with transformed NFL data
+        data.forEach(event => {
+          console.log('Processing event:', event);
       
-      console.log(draftKingsOdds); // Log only DraftKings odds
-  
+          // If 'teams' is not usable, check for 'home_team' and 'away_team'
+          if (!event.teams || !Array.isArray(event.teams)) {
+              if (event.home_team && event.away_team) {
+                  // Use home_team and away_team as a fallback
+                  const nflTeams = [mlbToNflMap[event.home_team] || event.home_team, mlbToNflMap[event.away_team] || event.away_team];
+                  processBookmakers(nflTeams, event.bookmakers); // Assuming you have this function to process bookmakers
+              } else {
+                  console.error('Valid teams data is missing:', event);
+                  return; // Skip this iteration if no usable team data is found
+              }
+          } else {
+              const nflTeams = event.teams.map(team => mlbToNflMap[team] || team);
+              processBookmakers(nflTeams, event.bookmakers);
+          }
+      });
+      
+      function processBookmakers(nflTeams, bookmakers) {
+          bookmakers.forEach(bookmaker => {
+              if (bookmaker.key === 'draftkings') {
+                  bookmaker.markets.forEach(market => {
+                      market.outcomes.forEach(outcome => {
+                          const nflTeamName = mlbToNflMap[outcome.name] || outcome.name;
+                          const betType = market.key === 'h2h' ? 'ML' : 'Spread';
+                          const betValue = market.key === 'h2h' ? outcome.price : outcome.point;
+                          betOptions.push({
+                              teamName: nflTeamName,
+                              type: betType,
+                              value: betValue
+                          });
+                      });
+                  });
+              }
+          });
+      }
+       // renderBetOptions(); // Assuming you have a function to render these options on the UI
     } catch (error) {
-      console.error(error);
+        console.error(error);
     }
-  }
-  
-  // Call the function
-  fetchOdds();
-  
-document.getElementById('fetchOddsButton').addEventListener('click', fetchOdds);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadWeeklyPicks();
+});
+
+document.getElementById('savePicksButton').addEventListener('click', saveWeeklyPicks);
+document.getElementById('fetchOddsButton').addEventListener('click', fetchMLBData);
+
+async function saveWeeklyPicks() {
+  const picksData = betOptions;
+  fetch('/api/saveWeeklyPicks', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ picks: picksData })
+  })
+  .then(handleResponse)
+  .catch(handleError);
+}
+
+async function loadWeeklyPicks() {
+  fetch('/api/getWeeklyPicks')
+  .then(handleResponse)
+  .then(picks => {
+    betOptions = Array.isArray(picks) ? picks : [];
+    renderBetOptions();
+  })
+  .catch(handleError);
+}
+
+async function handleResponse(response) {
+  if (!response.ok) throw new Error('Network response was not ok');
+  return response.json();
+}
+
+async function handleError(error) {
+  console.error('Failed to fetch data:', error);
+}
 
 
+//3decff06f7mshbc96e9118345205p136794jsn629db332340e
 /*
 // This function fetches the current user's picks and displays them
 async function fetchAndDisplayUserPicks() {

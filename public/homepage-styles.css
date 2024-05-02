@@ -757,7 +757,7 @@ button:hover {
 }
 
 .player-username::-webkit-scrollbar-thumb {
-    background-color: rgba(1, 255, 43, 0.2); /* Scrollbar thumb color */
+    background-color: rgba(255, 1, 1, 0.2); /* Scrollbar thumb color */
     border-radius: 2px;
 }
 
@@ -768,7 +768,7 @@ button:hover {
 }
 
 .player-username:hover::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 255, 34, 0.5); /* Scrollbar thumb color on hover */
+    background-color: rgba(255, 0, 0, 0.5); /* Scrollbar thumb color on hover */
 }
 .pool-manager {
     width: 200px; /* Set the width of the box */
@@ -790,7 +790,7 @@ button:hover {
     margin-left: 20%; /* This should match the width of your .pool-manager */
     flex: 3; /* take up the remaining space */
     padding: 20px;
-    background-color: #012; /* Change to match your page's theme */
+    background-color: rgb(34, 0, 0); /* Change to match your page's theme */
 }
 
   /* Style your forms within the pool-manager */

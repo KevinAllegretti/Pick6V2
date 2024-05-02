@@ -83,6 +83,39 @@ router.get('/api/getPicks/:username/:poolName', async (req, res) => {
     }
 });
 
+// picksRoutes.js
+router.post('/api/saveWeeklyPicks', async (req, res) => {
+    const { picks } = req.body; // Your NFL transformed data
+    try {
+        const database = await connectToDatabase();
+        const picksCollection = database.collection('weeklyPicks');
+        await picksCollection.updateOne(
+            { identifier: 'current' },
+            { $set: { picks: picks, updated: new Date() } },
+            { upsert: true }
+        );
+        res.json({ success: true, message: 'Picks saved successfully' });
+    } catch (error:any) {
+        console.error('Failed to save picks:', error);
+        res.status(500).json({ success: false, message: 'Failed to save picks', error: error.toString() });
+    }
+});
 
+router.get('/api/getWeeklyPicks', async (req, res) => {
+    try {
+        const database = await connectToDatabase();
+        const picksCollection = database.collection('weeklyPicks');
+        const currentPicks = await picksCollection.findOne({ identifier: 'current' });
+
+        if (currentPicks && Array.isArray(currentPicks.picks)) {
+            res.json(currentPicks.picks);
+        } else {
+            res.json([]); // Always return an array, even if empty
+        }
+    } catch (error:any) {
+        console.error('Failed to retrieve picks:', error);
+        res.status(500).json({ message: 'Server error', error: error.toString() });
+    }
+});
 
 export default router;
