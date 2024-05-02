@@ -244,7 +244,6 @@ const lastWeekPicks = {
       container.appendChild(betContainer);
     });
   }
-  
   function updateBetCell(option, isSelected, isImmortalLock = false) {
     const teamClass = option.teamName.replace(/\s+/g, '-').toLowerCase();
     const typeClass = option.type.toLowerCase();
@@ -458,9 +457,6 @@ function resetPicks() {
     };
     const queryParams = new URLSearchParams(params);
 
-    // Clear existing bet options
-    //betOptions = [];
-
     try {
         const response = await fetch(`${url}?${queryParams}`, {
             method: 'GET',
@@ -475,49 +471,54 @@ function resetPicks() {
         }
 
         const data = await response.json();
+        console.log("Full API Data:", data);  // Log the entire data set received from the API
 
-        // Populate betOptions with transformed NFL data
         data.forEach(event => {
-          console.log('Processing event:', event);
-      
-          // If 'teams' is not usable, check for 'home_team' and 'away_team'
-          if (!event.teams || !Array.isArray(event.teams)) {
-              if (event.home_team && event.away_team) {
-                  // Use home_team and away_team as a fallback
-                  const nflTeams = [mlbToNflMap[event.home_team] || event.home_team, mlbToNflMap[event.away_team] || event.away_team];
-                  processBookmakers(nflTeams, event.bookmakers); // Assuming you have this function to process bookmakers
-              } else {
-                  console.error('Valid teams data is missing:', event);
-                  return; // Skip this iteration if no usable team data is found
-              }
-          } else {
-              const nflTeams = event.teams.map(team => mlbToNflMap[team] || team);
-              processBookmakers(nflTeams, event.bookmakers);
-          }
-      });
-      
-      function processBookmakers(nflTeams, bookmakers) {
-          bookmakers.forEach(bookmaker => {
-              if (bookmaker.key === 'draftkings') {
-                  bookmaker.markets.forEach(market => {
-                      market.outcomes.forEach(outcome => {
-                          const nflTeamName = mlbToNflMap[outcome.name] || outcome.name;
-                          const betType = market.key === 'h2h' ? 'ML' : 'Spread';
-                          const betValue = market.key === 'h2h' ? outcome.price : outcome.point;
-                          betOptions.push({
-                              teamName: nflTeamName,
-                              type: betType,
-                              value: betValue
-                          });
-                      });
-                  });
-              }
-          });
-      }
-       // renderBetOptions(); // Assuming you have a function to render these options on the UI
+            console.log('Processing event:', event);
+
+            if (!event.teams || !Array.isArray(event.teams)) {
+                if (event.home_team && event.away_team) {
+                    console.log(`Using home_team and away_team because 'teams' is not usable:`, event.home_team, event.away_team);
+                    const nflTeams = [mlbToNflMap[event.home_team] || event.home_team, mlbToNflMap[event.away_team] || event.away_team];
+                    processBookmakers(nflTeams, event.bookmakers);
+                } else {
+                    console.error('Valid teams data is missing:', event);
+                    return;
+                }
+            } else {
+                const nflTeams = event.teams.map(team => mlbToNflMap[team] || team);
+                processBookmakers(nflTeams, event.bookmakers);
+            }
+        });
     } catch (error) {
-        console.error(error);
+        console.error('Error fetching MLB data:', error);
     }
+}
+
+function processBookmakers(nflTeams, bookmakers) {
+    bookmakers.forEach(bookmaker => {
+        console.log(`Processing bookmaker: ${bookmaker.key}`, bookmaker);
+        if (bookmaker.key === 'draftkings') {
+            bookmaker.markets.forEach(market => {
+                market.outcomes.forEach(outcome => {
+                    const nflTeamName = mlbToNflMap[outcome.name] || outcome.name;
+                    const betType = market.key === 'h2h' ? 'ML' : 'Spread';
+                    let betValue = market.key === 'h2h' ? outcome.price : outcome.point;
+                    if (betValue > 0 && !betValue.toString().startsWith('+')) {
+                      betValue = '+' + betValue;
+                  }
+
+                    console.log(`Processed bet option: Team ${nflTeamName}, Type ${betType}, Value ${betValue}`);
+                    betOptions.push({
+                        teamName: nflTeamName,
+                        type: betType,
+                        value: betValue
+                    });
+                });
+            });
+        }
+    });
+    console.log("Final betOptions:", betOptions);  // Log the final betOptions array to verify content before rendering
 }
 
 document.addEventListener('DOMContentLoaded', () => {
