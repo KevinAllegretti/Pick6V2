@@ -197,7 +197,7 @@ const lastWeekPicks = {
   
   function renderBetOptions() {
     const container = document.getElementById('picksContainer');
-  
+    console.log("betOptions to render:", betOptions);
     // Create an object to group bets by team name
     const betsByTeam = betOptions.reduce((acc, bet) => {
       if (!acc[bet.teamName]) {
@@ -480,14 +480,14 @@ function resetPicks() {
                 if (event.home_team && event.away_team) {
                     console.log(`Using home_team and away_team because 'teams' is not usable:`, event.home_team, event.away_team);
                     const nflTeams = [mlbToNflMap[event.home_team] || event.home_team, mlbToNflMap[event.away_team] || event.away_team];
-                    processBookmakers(nflTeams, event.bookmakers);
+                    processBookmakers(nflTeams, event.bookmakers, event.commence_time);
                 } else {
                     console.error('Valid teams data is missing:', event);
                     return;
                 }
             } else {
                 const nflTeams = event.teams.map(team => mlbToNflMap[team] || team);
-                processBookmakers(nflTeams, event.bookmakers);
+                processBookmakers(nflTeams, event.bookmakers, event.commence_time);
             }
         });
     } catch (error) {
@@ -495,7 +495,7 @@ function resetPicks() {
     }
 }
 
-function processBookmakers(nflTeams, bookmakers) {
+function processBookmakers(nflTeams, bookmakers, commenceTime) {
     bookmakers.forEach(bookmaker => {
         console.log(`Processing bookmaker: ${bookmaker.key}`, bookmaker);
         if (bookmaker.key === 'draftkings') {
@@ -508,11 +508,12 @@ function processBookmakers(nflTeams, bookmakers) {
                       betValue = '+' + betValue;
                   }
 
-                    console.log(`Processed bet option: Team ${nflTeamName}, Type ${betType}, Value ${betValue}`);
+                    //console.log(`Processed bet option: Team ${nflTeamName}, Type ${betType}, Value ${betValue}`);
                     betOptions.push({
                         teamName: nflTeamName,
                         type: betType,
-                        value: betValue
+                        value: betValue,
+                        commenceTime: commenceTime
                     });
                 });
             });
