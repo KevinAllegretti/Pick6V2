@@ -20,19 +20,37 @@ tuesdayEndTime.setMinutes(tuesdayEndTime.getMinutes() + tuesdayEndTime.getTimezo
 tuesdayEndTime.setHours(tuesdayEndTime.getHours() - 5); // Convert UTC to EST (UTC-5)
 
 const mlbToNflMap = {
-  "New York Yankees": "NY Giants",
-  "Los Angeles Dodgers": "LA Rams",
-  "Chicago Cubs": "CHI Bears",
-  "Houston Astros": "HOU Texans",
-  "San Francisco Giants": "SF 49ers",
-  "Philadelphia Phillies": "PHI Eagles",
-  "Boston Red Sox": "NE Patriots",
-  "Atlanta Braves": "ATL Falcons",
-  "Miami Marlins": "MIA Dolphins",
-  "Seattle Mariners": "SEA Seahawks",
-  "Minnesota Twins": "MIN Vikings",
   "Arizona Diamondbacks": "ARI Cardinals",
+  "Atlanta Braves": "ATL Falcons",
+  "Baltimore Orioles": "BAL Ravens",
+  "Boston Red Sox": "NE Patriots",
+  "Chicago Cubs": "CHI Bears",
+  "Chicago White Sox": "CHI Bears",
+  "Cincinnati Reds": "CIN Bengals",
+  "Cleveland Guardians": "CLE Browns",
+  "Colorado Rockies": "DEN Broncos",
+  "Detroit Tigers": "DET Lions",
+  "Houston Astros": "HOU Texans",
+  "Kansas City Royals": "KC Chiefs",
+  "Los Angeles Angels": "LA Chargers",
+  "Los Angeles Dodgers": "LA Rams",
+  "Miami Marlins": "MIA Dolphins",
+  "Milwaukee Brewers": "GB Packers",
+  "Minnesota Twins": "MIN Vikings",
+  "New York Yankees": "NY Giants",
+  "New York Mets": "NY Jets",
+  "Oakland Athletics": "SF 49ers",
+  "Philadelphia Phillies": "PHI Eagles",
+  "Pittsburgh Pirates": "PIT Steelers",
+  "San Diego Padres": "LA Chargers",
+  "San Francisco Giants": "SF 49ers",
+  "Seattle Mariners": "SEA Seahawks",
+  "Tampa Bay Rays": "TB Buccaneers",
+  "Texas Rangers": "DAL Cowboys",
+  "Toronto Blue Jays": "BUF Bills",
+  "Washington Nationals": "WAS Commanders"
 };
+
 
 
 let betOptions = [
@@ -398,56 +416,134 @@ function resetPicks() {
   document.getElementById('resetPicks').addEventListener('click', resetPicks);
   document.getElementById('submitPicks').addEventListener('click', submitUserPicks);
   
-
   function renderBetOptions() {
     const container = document.getElementById('picksContainer');
+    container.innerHTML = '';  // Clear previous contents
     console.log("betOptions to render:", betOptions);
-    // Create an object to group bets by team name
-    const betsByTeam = betOptions.reduce((acc, bet) => {
-      if (!acc[bet.teamName]) {
-        acc[bet.teamName] = {
-          Spread: '',
-          ML: '',
-          logo: teamLogos[bet.teamName],
-          colorClass: teamColorClasses[bet.teamName]
-        };
-      }
-      acc[bet.teamName][bet.type] = bet.value;
-      return acc;
+
+    // Group bets by game
+    const games = betOptions.reduce((acc, bet) => {
+        const gameKey = `${bet.awayTeam} vs ${bet.homeTeam}`;
+        if (!acc[gameKey]) {
+            acc[gameKey] = {
+                awayTeam: bet.awayTeam,
+                homeTeam: bet.homeTeam,
+                bets: [],
+                commenceTime: bet.commenceTime,
+                logoAway: teamLogos[bet.awayTeam],
+                logoHome: teamLogos[bet.homeTeam],
+                colorClassAway: teamColorClasses[bet.awayTeam],
+                colorClassHome: teamColorClasses[bet.homeTeam]
+            };
+        }
+        let formattedValue = String(bet.value); // Ensure value is a string
+        formattedValue = formattedValue.startsWith('+') || formattedValue.startsWith('-') ? formattedValue : (formattedValue > 0 ? `+${formattedValue}` : formattedValue);
+        acc[gameKey].bets.push({ type: bet.type, value: formattedValue, team: bet.teamName });
+        return acc;
     }, {});
-  
-    Object.entries(betsByTeam).forEach(([teamName, bets]) => {
-      // Create main bet container
-      const betContainer = document.createElement('div');
-      betContainer.className = 'bet-container ' + bets.colorClass;
-  
-      // Create team logo element
-      const teamLogo = document.createElement('img');
-      teamLogo.src = bets.logo;
-      teamLogo.alt = teamName + ' logo';
-      teamLogo.className = 'team-logo';
-      betContainer.appendChild(teamLogo);
-  
-      // Create bets options container
-      const betOptionsContainer = document.createElement('div');
-      betOptionsContainer.className = 'bet-options';
-  
-      // Add spread and moneyline buttons
-      ['Spread', 'ML'].forEach(type => {
-        const betButton = document.createElement('button');
-        betButton.className = `bet-button ${bets.colorClass}`;
-        betButton.textContent = bets[type];
-        betButton.dataset.team = teamName.replace(/\s+/g, '-').toLowerCase(); // Data attribute for the team
-        betButton.dataset.type = type.toLowerCase(); // Data attribute for the bet type
-        betButton.onclick = () => selectBet({ teamName, type, value: bets[type] });
-        betOptionsContainer.appendChild(betButton);
+
+    console.log("Grouped Games Data:", games);
+
+    // Render each game
+    Object.values(games).forEach(game => {
+        const gameContainer = document.createElement('div');
+        gameContainer.className = 'game-container';
+
+        // Create containers for both teams
+        const awayTeamContainer = createTeamContainer(game, 'away');
+        const homeTeamContainer = createTeamContainer(game, 'home');
+
+        // Assemble the game display
+        gameContainer.appendChild(awayTeamContainer);
+        const atSymbol = document.createElement('div');
+        atSymbol.textContent = '@';
+        atSymbol.className = 'at-symbol';
+        gameContainer.appendChild(atSymbol);
+        gameContainer.appendChild(homeTeamContainer);
+
+        // Display the commencement time
+        const commenceTime = document.createElement('div');
+        commenceTime.textContent = new Date(game.commenceTime).toLocaleString('en-US', {
+          weekday: 'long', // "Monday", "Tuesday", etc.
+          hour: '2-digit',  // "2-digit" or "numeric"
+          minute: '2-digit', // "2-digit" or "numeric"
+          hour12: true // Use 12-hour time with AM/PM
       });
-      
-  
-      betContainer.appendChild(betOptionsContainer);
-      container.appendChild(betContainer);
+      commenceTime.className = 'commence-time';
+      gameContainer.appendChild(commenceTime);
+
+        container.appendChild(gameContainer);
     });
+}
+
+function createTeamContainer(game, teamRole) {
+    const teamData = game[teamRole + 'Team'];
+    const teamContainer = document.createElement('div');
+    teamContainer.className = `team-container ${game['colorClass' + teamRole.charAt(0).toUpperCase() + teamRole.slice(1)]}`;
+
+    const teamLogo = document.createElement('img');
+    teamLogo.src = teamRole === 'away' ? game.logoAway : game.logoHome;
+    teamLogo.alt = teamData + ' logo';
+    teamLogo.className = 'team-logo';
+    teamContainer.appendChild(teamLogo);
+
+    game.bets.filter(bet => bet.team === teamData).forEach(bet => {
+        const betButton = document.createElement('button');
+        betButton.className = `bet-button ${teamContainer.className}`;
+        betButton.textContent = bet.value;
+        betButton.dataset.team = teamData.replace(/\s+/g, '-').toLowerCase();
+        betButton.dataset.type = bet.type.toLowerCase();
+        betButton.onclick = () => selectBet({ teamName: teamData, type: bet.type, value: bet.value });
+        teamContainer.appendChild(betButton);
+    });
+
+    return teamContainer;
+}
+
+function createBetButtons(teamData) {
+    const container = document.createElement('div');
+    container.className = 'bet-buttons';
+
+    ['Spread', 'ML'].forEach(type => {
+        if (teamData[type]) {
+            const button = document.createElement('button');
+            button.className = `bet-button ${teamColorClasses[teamData.teamName]}`;
+            button.textContent = teamData[type]; // Assuming value is like '+1.5' or '-150'
+            button.onclick = () => selectBet({
+                teamName: teamData.teamName,
+                type: type,
+                value: teamData[type]
+            });
+            container.appendChild(button);
+        }
+    });
+
+    return container;
+}
+function groupBetsByGame(betOptions) {
+// Group bets by game using team names and commence time
+// Group bets by game using the unique identifier
+const games = betOptions.reduce((acc, bet) => {
+  const gameKey = bet.gameIdentifier; // Using the new unique game identifier
+  if (!acc[gameKey]) {
+      acc[gameKey] = {
+          awayTeam: bet.teamRole === 'away' ? bet.teamName : undefined,
+          homeTeam: bet.teamRole === 'home' ? bet.teamName : undefined,
+          bets: [],
+          commenceTime: bet.commenceTime,
+          logoAway: teamLogos[bet.teamRole === 'away' ? bet.teamName : ''],
+          logoHome: teamLogos[bet.teamRole === 'home' ? bet.teamName : ''],
+          colorClassAway: teamColorClasses[bet.teamRole === 'away' ? bet.teamName : ''],
+          colorClassHome: teamColorClasses[bet.teamRole === 'home' ? bet.teamName : '']
+      };
   }
+  acc[gameKey].bets.push({ type: bet.type, value: bet.value, team: bet.teamName });
+  return acc;
+}, {});
+
+}
+
+
   // Initialization
   //renderBetOptions();
   async function fetchMLBData() {
@@ -475,7 +571,7 @@ function resetPicks() {
         const data = await response.json();
         console.log("Full API Data:", data);  // Log the entire data set received from the API
 
-        ddata.forEach(event => {
+        data.forEach(event => {
           console.log('Processing event:', event);
       
           if (!event.teams || !Array.isArray(event.teams)) {
@@ -498,8 +594,12 @@ function resetPicks() {
     }
 }
 function processBookmakers(nflTeams, bookmakers, commenceTime, homeTeam, awayTeam) {
+  // Map MLB team names to NFL names
+  const nflHomeTeam = mlbToNflMap[homeTeam] || homeTeam;
+  const nflAwayTeam = mlbToNflMap[awayTeam] || awayTeam;
+
   bookmakers.forEach(bookmaker => {
-      if (bookmaker.key === 'draftkings') { // Adjust according to your source
+      if (bookmaker.key === 'draftkings') {
           bookmaker.markets.forEach(market => {
               market.outcomes.forEach(outcome => {
                   const nflTeamName = mlbToNflMap[outcome.name] || outcome.name;
@@ -511,7 +611,9 @@ function processBookmakers(nflTeams, bookmakers, commenceTime, homeTeam, awayTea
 
                   betOptions.push({
                       teamName: nflTeamName,
-                      teamRole: nflTeamName === mlbToNflMap[homeTeam] || homeTeam ? 'home' : 'away',
+                      teamRole: nflTeamName === nflHomeTeam ? 'home' : 'away',
+                      awayTeam: nflAwayTeam,
+                      homeTeam: nflHomeTeam,
                       type: betType,
                       value: betValue,
                       commenceTime: commenceTime
@@ -521,6 +623,7 @@ function processBookmakers(nflTeams, bookmakers, commenceTime, homeTeam, awayTea
       }
   });
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
   loadWeeklyPicks();

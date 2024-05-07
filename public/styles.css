@@ -384,17 +384,42 @@ h4 {
   }
   
   .bet-container {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-    border-radius: 5px; /* Rounded corners for the container */
-  }
-  
-  .team-logo {
-    width: 50px;
-    height: 50px;
-    margin: 10px;
-  }
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    padding: 10px;
+    border-radius: 8px; /* Rounded corners for the container */
+    background-color: rgba(0, 0, 0, 0.6); /* Slight transparency */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    align-items: center; /* Center items vertically */
+}
+
+.team-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 5px;
+  overflow: hidden; /* Ensures content fits within the borders */
+}
+.at-symbol {
+  font-size: 20px; /* Larger size for visibility */
+  color: #00e9fa;
+  margin: 0 65px; 
+  font-weight: bold; /* Make the symbol bold */
+}
+
+.commence-time {
+  color: #00eeff;
+  font-size: 14px; /* Slightly larger font for readability */
+  padding-top: 5px; /* Spacing above the time */
+  text-align: center; /* Center the text */
+}
+
+.team-logo {
+  width: 55px; /* Slightly larger logos */
+  height: 55px;
+  margin: 5px 0; /* Adjust margin around logos */
+}
   
   .bet-options {
     display: flex;
@@ -407,9 +432,11 @@ h4 {
     margin: 2px 0; /* Spacing between buttons */
     padding: 5px 10px;
     cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.1); /* Subtle background */
     transition: background-color 0.3s ease;
     color: #fff;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    width: 65%
     /* Other styles... */
   }
   
