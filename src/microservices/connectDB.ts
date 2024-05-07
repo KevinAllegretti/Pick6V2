@@ -30,10 +30,3 @@ export async function connectToDatabase() {
     throw error;
   }
 }
-
-const mongoose = require('mongoose');
-const options = {
-  serverSelectionTimeoutMS: 30000, // Timeout after 30 seconds
-  socketTimeoutMS: 45000 // Close sockets after 45 seconds of inactivity
-};
-mongoose.connect('mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/', options);
