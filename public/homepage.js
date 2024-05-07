@@ -797,3 +797,52 @@ function updateUserPoints(username, newPoints, poolName) {
 
 // Example usage:
 updateUserPoints('testuser', 120, 'woo'); // Replace with the actual username, new points value, and pool name
+
+async function fetchMLBScores() {
+    const url = 'https://odds.p.rapidapi.com/v4/sports/baseball_mlb/scores';
+    const params = {
+        daysFrom: 1,  // Adjust as needed to fetch scores for games up to 1 day ago
+        apiKey: 'your_api_key_here'
+    };
+    const queryParams = new URLSearchParams(params);
+
+    try {
+        const response = await fetch(`${url}?${queryParams}`, {
+            method: 'GET',
+            headers: {
+                'x-rapidapi-host': 'odds.p.rapidapi.com',
+                'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const scores = await response.json();
+        console.log("Scores data:", scores);
+
+        scores.forEach(game => {
+            if (game.completed) {
+                const { home_team, away_team, scores } = game;
+                checkBetResults(home_team, away_team, scores);
+            }
+        });
+
+    } catch (error) {
+        console.error('Error fetching MLB scores:', error);
+    }
+}
+
+function checkBetResults(homeTeam, awayTeam, scores) {
+    const homeScore = scores.find(score => score.name === homeTeam)?.score;
+    const awayScore = scores.find(score => score.name === awayTeam)?.score;
+
+    // Implement your logic to check if a bet hits
+    console.log(`${homeTeam} vs ${awayTeam}: ${homeScore} - ${awayScore}`);
+    // Further processing here
+}
+document.getElementById('fetchScoresButton').addEventListener('click', function() {
+    fetchMLBScores();
+    console.log("Fetching MLB scores...");
+});

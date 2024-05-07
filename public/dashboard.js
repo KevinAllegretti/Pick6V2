@@ -42,7 +42,6 @@ const mlbToNflMap = {
   "Oakland Athletics": "SF 49ers",
   "Philadelphia Phillies": "PHI Eagles",
   "Pittsburgh Pirates": "PIT Steelers",
-  "San Diego Padres": "LA Chargers",
   "San Francisco Giants": "SF 49ers",
   "Seattle Mariners": "SEA Seahawks",
   "Tampa Bay Rays": "TB Buccaneers",
