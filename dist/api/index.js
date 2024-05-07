@@ -10,6 +10,7 @@ const picksRoutes_1 = __importDefault(require("../src/routes/picksRoutes"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const profileRoutes_1 = __importDefault(require("../src/routes/profileRoutes"));
 const poolRoutes_1 = __importDefault(require("../src/routes/poolRoutes"));
+const mongoose_1 = __importDefault(require("mongoose"));
 const fetch = require('node-fetch');
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
@@ -83,4 +84,11 @@ app.get('/api/odds', async (req, res) => {
         res.status(500).send('Failed to fetch odds');
     }
 });
+const options = {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000, // Reduce the time the driver waits for server selection
+    socketTimeoutMS: 45000, // Adjust socket timeout as necessary
+};
+mongoose_1.default.connect('mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/Pick6', options);
 exports.default = app;

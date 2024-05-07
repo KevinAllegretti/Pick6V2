@@ -6,6 +6,7 @@ import picksRoutes from '../src/routes/picksRoutes';
 import bodyParser from 'body-parser';
 import profileRoutes from '../src/routes/profileRoutes';
 import poolRoutes from '../src/routes/poolRoutes';
+import mongoose from 'mongoose';
 const fetch = require('node-fetch');
 
 const app = express();
@@ -104,5 +105,14 @@ app.get('/api/odds', async (req: Request, res: Response) => {
     res.status(500).send('Failed to fetch odds');
   }
 });
+
+const options = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000, // Reduce the time the driver waits for server selection
+  socketTimeoutMS: 45000, // Adjust socket timeout as necessary
+};
+
+mongoose.connect('mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/Pick6', options);
 
 export default app;
