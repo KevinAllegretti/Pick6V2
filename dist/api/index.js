@@ -85,8 +85,6 @@ app.get('/api/odds', async (req, res) => {
     }
 });
 const options = {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
     serverSelectionTimeoutMS: 5000, // Reduce the time the driver waits for server selection
     socketTimeoutMS: 45000, // Adjust socket timeout as necessary
 };

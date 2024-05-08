@@ -798,41 +798,194 @@ function updateUserPoints(username, newPoints, poolName) {
 // Example usage:
 updateUserPoints('testuser', 120, 'woo'); // Replace with the actual username, new points value, and pool name
 
-async function fetchMLBScores() {
-    const url = 'https://odds.p.rapidapi.com/v4/sports/baseball_mlb/scores';
-    const params = {
-        daysFrom: 1,  // Adjust as needed to fetch scores for games up to 1 day ago
-        apiKey: 'your_api_key_here'
-    };
-    const queryParams = new URLSearchParams(params);
 
+
+const mlbToNflMap = {
+    "Arizona Diamondbacks": "ARI Cardinals",
+    "Atlanta Braves": "ATL Falcons",
+    "Baltimore Orioles": "BAL Ravens",
+    "Boston Red Sox": "NE Patriots",
+    "Chicago Cubs": "CHI Bears",
+    "Chicago White Sox": "CHI Bears",
+    "Cincinnati Reds": "CIN Bengals",
+    "Cleveland Guardians": "CLE Browns",
+    "Colorado Rockies": "DEN Broncos",
+    "Detroit Tigers": "DET Lions",
+    "Houston Astros": "HOU Texans",
+    "Kansas City Royals": "KC Chiefs",
+    "Los Angeles Angels": "LA Chargers",
+    "Los Angeles Dodgers": "LA Rams",
+    "Miami Marlins": "MIA Dolphins",
+    "Milwaukee Brewers": "GB Packers",
+    "Minnesota Twins": "MIN Vikings",
+    "New York Yankees": "NY Giants",
+    "New York Mets": "NY Jets",
+    "Oakland Athletics": "SF 49ers",
+    "Philadelphia Phillies": "PHI Eagles",
+    "Pittsburgh Pirates": "PIT Steelers",
+    "San Francisco Giants": "SF 49ers",
+    "Seattle Mariners": "SEA Seahawks",
+    "Tampa Bay Rays": "TB Buccaneers",
+    "Texas Rangers": "DAL Cowboys",
+    "Toronto Blue Jays": "BUF Bills",
+    "Washington Nationals": "WAS Commanders"
+  };
+
+
+  var gameScores = {};
+
+  var gameScores = [];
+
+  async function fetchMLBScores() {
+      const url = 'https://odds.p.rapidapi.com/v4/sports/baseball_mlb/scores';
+      const params = {
+          daysFrom: 1,  // Adjust as needed
+          apiKey: 'your_api_key_here'  // Replace with your actual API key
+      };
+      const queryParams = new URLSearchParams(params);
+  
+      try {
+          const response = await fetch(`${url}?${queryParams}`, {
+              method: 'GET',
+              headers: {
+                  'x-rapidapi-host': 'odds.p.rapidapi.com',
+                  'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e'  // Replace with your actual API key
+              }
+          });
+  
+          if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+  
+          const scores = await response.json();
+          console.log("Scores data:", scores);
+  
+          gameScores = scores.map(event => {
+              if (!event.scores || !Array.isArray(event.scores)) {
+                  console.log(`Skipping event due to missing or invalid scores:`, event);
+                  return null; // Return null for events without valid scores to filter them out later
+              }
+  
+              const homeTeam = mlbToNflMap[event.home_team] || event.home_team;
+              const awayTeam = mlbToNflMap[event.away_team] || event.away_team;
+              const homeScore = event.scores.find(s => mlbToNflMap[s.name] === homeTeam || s.name === event.home_team)?.score;
+              const awayScore = event.scores.find(s => mlbToNflMap[s.name] === awayTeam || s.name === event.away_team)?.score;
+  
+              return {
+                  home_team: homeTeam,
+                  away_team: awayTeam,
+                  home_score: parseInt(homeScore, 10),
+                  away_score: parseInt(awayScore, 10)
+              };
+          }).filter(match => match !== null);  // Filter out the null entries
+  
+          console.log('Scores fetched:', gameScores);
+          updateUIWithScores();
+      } catch (error) {
+          console.error('Error fetching MLB scores:', error);
+      }
+  }
+  
+  document.getElementById('fetchScoresButton').addEventListener('click', function() {
+      fetchMLBScores();
+      console.log("Fetching MLB scores...");
+  });
+  
+
+function getBetResult(pick, homeTeamScore, awayTeamScore) {
     try {
-        const response = await fetch(`${url}?${queryParams}`, {
-            method: 'GET',
-            headers: {
-                'x-rapidapi-host': 'odds.p.rapidapi.com',
-                'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e'
-            }
-        });
+        let result = "error";  // Default to error in case conditions fail
+        const numericValue = parseFloat(pick.replace(/[^-+\d.]/g, ''));  // Strip to just numeric, including negative
+        
+        console.log('Evaluating Bet:', {pick, homeTeamScore, awayTeamScore, numericValue});
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+        // Determine if it's a spread or moneyline based on the presence of a decimal
+        if (pick.includes(".") && (pick.includes("+") || pick.includes("-"))) {  // Spread logic
+            console.log('Handling as Spread');
+            if (homeTeamScore + numericValue > awayTeamScore) {
+                console.log('Spread result: hit');
+                return "hit";
+            } else if (homeTeamScore + numericValue < awayTeamScore) {
+                console.log('Spread result: miss');
+                return "miss";
+            } else {
+                console.log('Spread result: push');
+                return "push";
+            }
+        } else if (!pick.includes(".") && (pick.includes("+") || pick.includes("-"))) {  // Moneyline logic
+            console.log('Handling as Moneyline');
+            const didWin = homeTeamScore > awayTeamScore;
+            const isFavorite = numericValue < 0;
+            console.log(`Moneyline details: { isFavorite: ${isFavorite}, didWin: ${didWin} }`);
+
+            // For favorites (negative value), they must win
+            // For underdogs (positive value), they must win
+            if ((isFavorite && didWin) || (!isFavorite && didWin)) {
+                console.log('Moneyline result: hit');
+                return "hit";
+            } else {
+                console.log('Moneyline result: miss');
+                return "miss";
+            }
         }
 
-        const scores = await response.json();
-        console.log("Scores data:", scores);
-
-        scores.forEach(game => {
-            if (game.completed) {
-                const { home_team, away_team, scores } = game;
-                checkBetResults(home_team, away_team, scores);
-            }
-        });
-
+        return result;
     } catch (error) {
-        console.error('Error fetching MLB scores:', error);
+        console.error('Failed to process bet result:', { pick, error });
+        return 'error';
     }
 }
+
+
+
+
+function updateUIWithScores() {
+    console.log('gameScores at update:', gameScores);
+    document.querySelectorAll('.player-picks .pick').forEach(pickElement => {
+        const teamLogo = pickElement.querySelector('.team-logo');
+        if (!teamLogo) {
+            console.error('Team logo not found in pick element', pickElement);
+            return;
+        }
+        const teamName = teamLogo.alt; // Assuming this is the NFL team name from the mapping
+        console.log('Processing team:', teamName);
+
+        // Retrieve the specific match involving the team
+        const match = gameScores.find(m => m.home_team === teamName || m.away_team === teamName);
+        if (!match) {
+            console.log(`No game score available for ${teamName}, skipping...`);
+            return;
+        }
+
+        // Determine if the team is home or away and assign scores accordingly
+        const isHome = match.home_team === teamName;
+        const homeTeamScore = isHome ? match.home_score : match.away_score;
+        const awayTeamScore = isHome ? match.away_score : match.home_score;
+
+        const valueSpan = pickElement.querySelector('span');
+        if (!valueSpan) {
+            console.error('Value span not found in pick element', pickElement);
+            return;
+        }
+        const betValue = valueSpan.textContent;
+        console.log('Bet Value:', betValue);
+
+        try {
+            const result = getBetResult(betValue, homeTeamScore, awayTeamScore);
+            console.log('Bet result:', result);
+
+            pickElement.style.color = result === "hit" ? "green" : result === "miss" ? "red" : "yellow";
+        } catch (error) {
+            console.error('Error processing bet result:', error);
+        }
+    });
+}
+
+
+
+
+
+
 
 function checkBetResults(homeTeam, awayTeam, scores) {
     const homeScore = scores.find(score => score.name === homeTeam)?.score;
@@ -841,8 +994,7 @@ function checkBetResults(homeTeam, awayTeam, scores) {
     // Implement your logic to check if a bet hits
     console.log(`${homeTeam} vs ${awayTeam}: ${homeScore} - ${awayScore}`);
     // Further processing here
+    
 }
-document.getElementById('fetchScoresButton').addEventListener('click', function() {
-    fetchMLBScores();
-    console.log("Fetching MLB scores...");
-});
+
+//'3decff06f7mshbc96e9118345205p136794jsn629db332340e'
