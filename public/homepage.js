@@ -891,8 +891,7 @@ const mlbToNflMap = {
       console.log("Fetching MLB scores...");
   });
   
-
-function getBetResult(pick, homeTeamScore, awayTeamScore) {
+  function getBetResult(pick, homeTeamScore, awayTeamScore) {
     try {
         let result = "error";  // Default to error in case conditions fail
         const numericValue = parseFloat(pick.replace(/[^-+\d.]/g, ''));  // Strip to just numeric, including negative
@@ -902,15 +901,17 @@ function getBetResult(pick, homeTeamScore, awayTeamScore) {
         // Determine if it's a spread or moneyline based on the presence of a decimal
         if (pick.includes(".") && (pick.includes("+") || pick.includes("-"))) {  // Spread logic
             console.log('Handling as Spread');
-            if (homeTeamScore + numericValue > awayTeamScore) {
+            // Calculate adjusted home team score with spread
+            const adjustedHomeScore = homeTeamScore + numericValue;
+            if (adjustedHomeScore > awayTeamScore) {
                 console.log('Spread result: hit');
                 return "hit";
-            } else if (homeTeamScore + numericValue < awayTeamScore) {
+            } else if (adjustedHomeScore < awayTeamScore) {
                 console.log('Spread result: miss');
                 return "miss";
             } else {
                 console.log('Spread result: push');
-                return "push";
+                return "push";  // This is a push condition
             }
         } else if (!pick.includes(".") && (pick.includes("+") || pick.includes("-"))) {  // Moneyline logic
             console.log('Handling as Moneyline');
@@ -918,8 +919,6 @@ function getBetResult(pick, homeTeamScore, awayTeamScore) {
             const isFavorite = numericValue < 0;
             console.log(`Moneyline details: { isFavorite: ${isFavorite}, didWin: ${didWin} }`);
 
-            // For favorites (negative value), they must win
-            // For underdogs (positive value), they must win
             if ((isFavorite && didWin) || (!isFavorite && didWin)) {
                 console.log('Moneyline result: hit');
                 return "hit";
@@ -937,49 +936,50 @@ function getBetResult(pick, homeTeamScore, awayTeamScore) {
 }
 
 
-
-
 function updateUIWithScores() {
     console.log('gameScores at update:', gameScores);
-    document.querySelectorAll('.player-picks .pick').forEach(pickElement => {
+    document.querySelectorAll('.player-picks .pick, .immortal-lock').forEach(pickElement => {
+        console.log('Processing element:', pickElement); // Log each element being processed
+
         const teamLogo = pickElement.querySelector('.team-logo');
         if (!teamLogo) {
             console.error('Team logo not found in pick element', pickElement);
             return;
         }
-        const teamName = teamLogo.alt; // Assuming this is the NFL team name from the mapping
+        const teamName = teamLogo.alt;
         console.log('Processing team:', teamName);
 
-        // Retrieve the specific match involving the team
         const match = gameScores.find(m => m.home_team === teamName || m.away_team === teamName);
         if (!match) {
             console.log(`No game score available for ${teamName}, skipping...`);
             return;
         }
 
-        // Determine if the team is home or away and assign scores accordingly
         const isHome = match.home_team === teamName;
         const homeTeamScore = isHome ? match.home_score : match.away_score;
         const awayTeamScore = isHome ? match.away_score : match.home_score;
 
         const valueSpan = pickElement.querySelector('span');
         if (!valueSpan) {
-            console.error('Value span not found in pick element', pickElement);
+            console.log('Value span not found in pick element', pickElement);
             return;
         }
         const betValue = valueSpan.textContent;
-        console.log('Bet Value:', betValue);
+        console.log('Evaluating Bet:', betValue);
 
         try {
             const result = getBetResult(betValue, homeTeamScore, awayTeamScore);
             console.log('Bet result:', result);
 
-            pickElement.style.color = result === "hit" ? "green" : result === "miss" ? "red" : "yellow";
+            pickElement.style.color = result === "hit" ? "#39FF14" : result === "miss" ? "red" : "yellow";
         } catch (error) {
             console.error('Error processing bet result:', error);
         }
     });
 }
+
+
+
 
 
 
