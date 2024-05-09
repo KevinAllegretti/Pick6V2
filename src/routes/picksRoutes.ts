@@ -7,7 +7,7 @@ const router = express.Router();
 router.post('/api/savePicks/:username/:poolName', async (req, res) => {
     try {
         const { username, poolName } = req.params;
-        const { picks, immortalLock } = req.body;
+        const { picks, immortalLock, results } = req.body;
 
         const database = await connectToDatabase();
         const picksCollection = database.collection('userPicks');
@@ -117,5 +117,45 @@ router.get('/api/getWeeklyPicks', async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.toString() });
     }
 });
+
+// picksRoutes.js
+// API endpoint to store the results of the bets
+router.post('/api/saveResults', async (req, res) => {
+    const { results } = req.body;
+    try {
+        const database = await connectToDatabase();
+        const resultsCollection = database.collection('betResultsGlobal');
+        // Store results with a static identifier
+        await resultsCollection.updateOne(
+            { identifier: 'currentResults' },
+            { $set: { results, updated: new Date() }},
+            { upsert: true }
+        );
+        res.json({ success: true, message: 'Results saved successfully' });
+    } catch (error:any) {
+        console.error('Failed to save results:', error);
+        res.status(500).json({ success: false, message: 'Failed to save results', error: error.toString() });
+    }
+});
+
+
+router.get('/api/getResults', async (req, res) => {
+    try {
+        const database = await connectToDatabase();
+        const resultsCollection = database.collection('betResultsGlobal');
+        const currentResults = await resultsCollection.findOne({ identifier: 'currentResults' });
+
+        if (currentResults) {
+            res.json({ success: true, results: currentResults.results });
+        } else {
+            res.json({ success: false, results: [], message: 'No results found' });
+        }
+    } catch (error:any) {
+        console.error('Failed to fetch results:', error);
+        res.status(500).json({ success: false, message: 'Server error', error: error.toString() });
+    }
+});
+
+
 
 export default router;

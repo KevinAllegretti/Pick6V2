@@ -832,7 +832,7 @@ const mlbToNflMap = {
   };
 
 
-  var gameScores = {};
+  //var gameScores = {};
 
   var gameScores = [];
 
@@ -888,6 +888,7 @@ const mlbToNflMap = {
   
   document.getElementById('fetchScoresButton').addEventListener('click', function() {
       fetchMLBScores();
+      submitResults();
       console.log("Fetching MLB scores...");
   });
   
@@ -933,13 +934,16 @@ const mlbToNflMap = {
         console.error('Failed to process bet result:', { pick, error });
         return 'error';
     }
-}
 
+    
+}
 
 function updateUIWithScores() {
     console.log('gameScores at update:', gameScores);
+    let allResults = []; // This will store all results for the current session
+    
     document.querySelectorAll('.player-picks .pick, .immortal-lock').forEach(pickElement => {
-        console.log('Processing element:', pickElement); // Log each element being processed
+        console.log('Processing element:', pickElement);
 
         const teamLogo = pickElement.querySelector('.team-logo');
         if (!teamLogo) {
@@ -961,7 +965,7 @@ function updateUIWithScores() {
 
         const valueSpan = pickElement.querySelector('span');
         if (!valueSpan) {
-            console.log('Value span not found in pick element', pickElement);
+            console.error('Value span not found in pick element', pickElement);
             return;
         }
         const betValue = valueSpan.textContent;
@@ -970,31 +974,79 @@ function updateUIWithScores() {
         try {
             const result = getBetResult(betValue, homeTeamScore, awayTeamScore);
             console.log('Bet result:', result);
+            allResults.push({teamName, betValue, result}); // Store result along with team and bet
 
             pickElement.style.color = result === "hit" ? "#39FF14" : result === "miss" ? "red" : "yellow";
         } catch (error) {
             console.error('Error processing bet result:', error);
         }
     });
+
+    // Now, send all computed results to the server
+    saveResultsToServer(allResults);
+}
+
+function saveResultsToServer(results) {
+    fetch('/api/saveResults', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ results })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            console.error('Error saving results:', data.message);
+        }
+    })
+    .catch(error => console.error('Failed to save results:', error));
+}
+function rebuildUIWithResults(results) {
+    console.log('Results received:', results.length);  // Log how many results we received
+
+    const allPicks = document.querySelectorAll('.player-picks .pick, .immortal-lock');
+    console.log('Total picks found:', allPicks.length); // Check how many elements are found
+
+    allPicks.forEach((pickElement, index) => {
+        const teamLogo = pickElement.querySelector('.team-logo');
+        if (!teamLogo) {
+            console.error('Team logo not found in pick element', pickElement);
+            return;  // Skip this iteration if no logo (hence no team name) is found
+        }
+        const teamName = teamLogo.alt;  // Assumes alt attribute holds the team name
+        console.log(`Processing element for team: ${teamName}`);
+
+        const resultEntry = results.find(r => r.teamName === teamName);
+        if (resultEntry) {
+            console.log(`Applying result for ${teamName}:`, resultEntry);
+            pickElement.style.color = resultEntry.result === "hit" ? "#39FF14" : resultEntry.result === "miss" ? "red" : "yellow";
+        } else {
+            console.log(`No element found for result or mismatch in team names`, {teamName, index, results});
+        }
+    });
 }
 
 
 
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {  // Delay execution to ensure all scripts have processed
+        fetch('/api/getResults')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Received results:", data);
+            if (data.success && data.results) {
+                rebuildUIWithResults(data.results);
+            } else {
+                console.error('No results found or unable to fetch results:', data.message);
+            }
+        })
+        .catch(error => console.error('Failed to fetch results:', error));
+    }, 1000);  // Delay can be adjusted based on typical load times or removed if found unnecessary
+});
 
-
-
-
-
-
-
-function checkBetResults(homeTeam, awayTeam, scores) {
-    const homeScore = scores.find(score => score.name === homeTeam)?.score;
-    const awayScore = scores.find(score => score.name === awayTeam)?.score;
-
-    // Implement your logic to check if a bet hits
-    console.log(`${homeTeam} vs ${awayTeam}: ${homeScore} - ${awayScore}`);
-    // Further processing here
-    
-}
 
 //'3decff06f7mshbc96e9118345205p136794jsn629db332340e'
