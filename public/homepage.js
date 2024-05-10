@@ -1048,5 +1048,57 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 500);  // Delay can be adjusted based on typical load times or removed if found unnecessary
 });
 
+function PointRegulator(results) {
+    let points = 0;
+
+    results.forEach(result => {
+        // Assume result.type could be 'ML', 'Spread', 'ImmortalLock', etc.
+        // result.outcome could be 'win', 'lose', 'push'
+        // result.odds could represent the moneyline odds
+
+        switch (result.type) {
+            case 'ML':
+                if (result.outcome === 'win') {
+                    if (result.odds < 0) {
+                        // Favorite
+                        if (result.odds <= -250) {
+                            points += 0.5; // Reduced points for high odds favorite
+                        } else {
+                            points += 1; // Normal points for winning as favorite
+                        }
+                    } else {
+                        // Underdog
+                        if (result.odds >= 400) {
+                            points += 4; // Maximum points for very high odds underdog
+                        } else if (result.odds >= 250) {
+                            points += 2.5; // Increased points for higher odds underdog
+                        } else {
+                            points += 2; // Standard points for underdog win
+                        }
+                    }
+                }
+                break;
+            case 'Spread':
+                if (result.outcome === 'win') {
+                    points += 1.5; // Points for spread win
+                }
+                break;
+            case 'ImmortalLock':
+                if (result.outcome === 'win') {
+                    points += 1; // Win on immortal lock
+                } else if (result.outcome === 'lose') {
+                    points -= 2; // Penalty for losing an immortal lock
+                }
+                break;
+            case 'Push':
+                points += 0.5; // Points for push
+                break;
+            default:
+                console.log('Unknown result type');
+        }
+    });
+
+    return points;
+}
 
 //'3decff06f7mshbc96e9118345205p136794jsn629db332340e'
