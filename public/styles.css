@@ -393,26 +393,73 @@ h4 {
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     align-items: center; /* Center items vertically */
 }
+.picks-container {  /* Assuming this is the parent container for all game-containers */
+  display: flex;
+  flex-wrap: wrap; /* Ensures elements wrap to the next line */
+  justify-content: space-around; /* Spaces out the children evenly */
+  align-items: flex-start; /* Aligns items to the top of the container */
+  width: 100%; /* Full width of the parent element */
+}@import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap'); /* Importing a digital-style font */
+
+.game-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  background: #121212; /* Dark background for game-like feel */
+  border: 2px solid #00e9fa; /* Neon border for futuristic look */
+  box-shadow: 0 0 10px #00e9fa; /* Glow effect */
+}
 
 .team-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  border-radius: 5px;
-  overflow: hidden; /* Ensures content fits within the borders */
+  color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 5px;
+  padding: 20px;
+
+  font-family: 'Orbitron', sans-serif; /* Digital font for game feel */
+  box-shadow: 0 0 5px #00e9fa;; /* Blue glow */
 }
+
 .at-symbol {
-  font-size: 20px; /* Larger size for visibility */
-  color: #00e9fa;
-  margin: 0 65px; 
-  font-weight: bold; /* Make the symbol bold */
+  font-size: 30px; /* Larger for emphasis */
+  color: #00e9fa;; /* Bright red for visibility */
+  margin: 0 15px;
+  flex: 0 0 50px; /* Bigger and bolder */
+  margin-right: 5px;
 }
 
 .commence-time {
-  color: #00eeff;
-  font-size: 14px; /* Slightly larger font for readability */
-  padding-top: 5px; /* Spacing above the time */
-  text-align: center; /* Center the text */
+  width: 100%;
+  color: #4de4ff; /* Bright green for high visibility */
+  font-size: 18px;
+  text-align: center;
+  padding: 5px 0;
+  font-family: 'Orbitron', sans-serif;
+}
+.bet-button {
+  background-color: #333;
+  color: #00e9fa; /* Neon cyan text */
+  border: 1px solid #00e9fa; /* Neon border */
+  box-shadow: 0 0 8px #00e9fa; /* Consistent glow effect */
+  padding: 8px 12px;
+  margin: 2px 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.bet-button:hover {
+  background-color: #474747; /* Darker on hover for a subtle effect */
+  box-shadow: 0 0 12px #00e9fa;
 }
 
 .team-logo {
@@ -436,7 +483,7 @@ h4 {
     transition: background-color 0.3s ease;
     color: #fff;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    width: 65%
+    width: 100%
     /* Other styles... */
   }
   

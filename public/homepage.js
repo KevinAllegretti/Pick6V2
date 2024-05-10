@@ -1045,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => console.error('Failed to fetch results:', error));
-    }, 1000);  // Delay can be adjusted based on typical load times or removed if found unnecessary
+    }, 500);  // Delay can be adjusted based on typical load times or removed if found unnecessary
 });
 
 

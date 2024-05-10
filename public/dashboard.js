@@ -444,35 +444,46 @@ function resetPicks() {
     console.log("Grouped Games Data:", games);
 
     // Render each game
-    Object.values(games).forEach(game => {
-        const gameContainer = document.createElement('div');
-        gameContainer.className = 'game-container';
+    // Render each game
+Object.values(games).forEach(game => {
+  const gameContainer = document.createElement('div');
+  gameContainer.className = 'game-container';
+  gameContainer.style.display = 'flex';
+  gameContainer.style.flexDirection = 'column';
+  gameContainer.style.alignItems = 'center';
 
-        // Create containers for both teams
-        const awayTeamContainer = createTeamContainer(game, 'away');
-        const homeTeamContainer = createTeamContainer(game, 'home');
+  const teamsContainer = document.createElement('div');
+  teamsContainer.style.display = 'flex';
+  teamsContainer.style.alignItems = 'center';
 
-        // Assemble the game display
-        gameContainer.appendChild(awayTeamContainer);
-        const atSymbol = document.createElement('div');
-        atSymbol.textContent = '@';
-        atSymbol.className = 'at-symbol';
-        gameContainer.appendChild(atSymbol);
-        gameContainer.appendChild(homeTeamContainer);
+  // Create containers for both teams
+  const awayTeamContainer = createTeamContainer(game, 'away');
+  const homeTeamContainer = createTeamContainer(game, 'home');
 
-        // Display the commencement time
-        const commenceTime = document.createElement('div');
-        commenceTime.textContent = new Date(game.commenceTime).toLocaleString('en-US', {
-          weekday: 'long', // "Monday", "Tuesday", etc.
-          hour: '2-digit',  // "2-digit" or "numeric"
-          minute: '2-digit', // "2-digit" or "numeric"
-          hour12: true // Use 12-hour time with AM/PM
-      });
-      commenceTime.className = 'commence-time';
-      gameContainer.appendChild(commenceTime);
+  // Assemble the teams display
+  teamsContainer.appendChild(awayTeamContainer);
+  const atSymbol = document.createElement('div');
+  atSymbol.textContent = '@';
+  atSymbol.className = 'at-symbol';
+  teamsContainer.appendChild(atSymbol);
+  teamsContainer.appendChild(homeTeamContainer);
 
-        container.appendChild(gameContainer);
-    });
+  gameContainer.appendChild(teamsContainer);
+
+  // Display the commencement time
+  const commenceTime = document.createElement('div');
+  commenceTime.textContent = new Date(game.commenceTime).toLocaleString('en-US', {
+    weekday: 'long', // "Monday", "Tuesday", etc.
+    hour: '2-digit',  // "2-digit" or "numeric"
+    minute: '2-digit', // "2-digit" or "numeric"
+    hour12: true // Use 12-hour time with AM/PM
+  });
+  commenceTime.className = 'commence-time';
+  gameContainer.appendChild(commenceTime);
+
+  container.appendChild(gameContainer);
+});
+
 }
 
 function createTeamContainer(game, teamRole) {
