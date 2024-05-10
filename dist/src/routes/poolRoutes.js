@@ -89,6 +89,7 @@ router.delete('/delete/:poolName', async (req, res) => {
 });
 router.post('/updateUserPointsInPoolByName', async (req, res) => {
     const { username, newPoints, poolName } = req.body;
+    console.log("Received data for updating points:", req.body);
     try {
         // Connect to the database and access the pools collection
         const database = await (0, connectDB_1.connectToDatabase)();
@@ -101,6 +102,7 @@ router.post('/updateUserPointsInPoolByName', async (req, res) => {
         res.json({ success: true, message: 'User points updated in pool' });
     }
     catch (error) {
+        console.error("Error updating points:", error);
         res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
     }
 });

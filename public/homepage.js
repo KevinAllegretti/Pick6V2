@@ -796,7 +796,7 @@ function updateUserPoints(username, newPoints, poolName) {
 }
 
 // Example usage:
-updateUserPoints('testuser', 120, 'woo'); // Replace with the actual username, new points value, and pool name
+//updateUserPoints('testuser', 120, 'woo'); // Replace with the actual username, new points value, and pool name
 
 
 
@@ -893,98 +893,141 @@ const mlbToNflMap = {
   });
   
   function getBetResult(pick, homeTeamScore, awayTeamScore) {
-    try {
-        let result = "error";  // Default to error in case conditions fail
-        const numericValue = parseFloat(pick.replace(/[^-+\d.]/g, ''));  // Strip to just numeric, including negative
-        
-        console.log('Evaluating Bet:', {pick, homeTeamScore, awayTeamScore, numericValue});
+    let result = 'error';  // Default to error in case conditions fail
+    const numericValue = parseFloat(pick.replace(/[^-+\d.]/g, ''));  // Strip to just numeric, including negative
 
-        // Determine if it's a spread or moneyline based on the presence of a decimal
-        if (pick.includes(".") && (pick.includes("+") || pick.includes("-"))) {  // Spread logic
-            console.log('Handling as Spread');
-            // Calculate adjusted home team score with spread
-            const adjustedHomeScore = homeTeamScore + numericValue;
-            if (adjustedHomeScore > awayTeamScore) {
-                console.log('Spread result: hit');
-                return "hit";
-            } else if (adjustedHomeScore < awayTeamScore) {
-                console.log('Spread result: miss');
-                return "miss";
-            } else {
-                console.log('Spread result: push');
-                return "push";  // This is a push condition
-            }
-        } else if (!pick.includes(".") && (pick.includes("+") || pick.includes("-"))) {  // Moneyline logic
-            console.log('Handling as Moneyline');
-            const didWin = homeTeamScore > awayTeamScore;
-            const isFavorite = numericValue < 0;
-            console.log(`Moneyline details: { isFavorite: ${isFavorite}, didWin: ${didWin} }`);
+    console.log('Evaluating Bet:', {pick, homeTeamScore, awayTeamScore, numericValue});
 
-            if ((isFavorite && didWin) || (!isFavorite && didWin)) {
-                console.log('Moneyline result: hit');
-                return "hit";
-            } else {
-                console.log('Moneyline result: miss');
-                return "miss";
-            }
+    // Determine if it's a spread or moneyline based on the absolute value of numericValue
+    if (Math.abs(numericValue) < 100) {  // Spread logic
+        console.log('Handling as Spread');
+        // Calculate adjusted home team score with spread
+        const adjustedHomeScore = homeTeamScore + numericValue;
+        if (adjustedHomeScore > awayTeamScore) {
+            console.log('Spread result: hit');
+            return { result: "hit", odds: numericValue };
+        } else if (adjustedHomeScore < awayTeamScore) {
+            console.log('Spread result: miss');
+            return { result: "miss", odds: numericValue };
+        } else {
+            console.log('Spread result: push');
+            return { result: "push", odds: numericValue };  // This is a push condition
         }
+    } else {  // Moneyline logic
+        console.log('Handling as Moneyline');
+        const didWin = (numericValue < 0 && homeTeamScore > awayTeamScore) || (numericValue > 0 && homeTeamScore < awayTeamScore);
+        const isFavorite = numericValue < 0;
+        console.log(`Moneyline details: { isFavorite: ${isFavorite}, didWin: ${didWin} }`);
 
-        return result;
-    } catch (error) {
-        console.error('Failed to process bet result:', { pick, error });
-        return 'error';
+        if (didWin) {
+            console.log('Moneyline result: hit');
+            return { result: "hit", odds: numericValue };
+        } else {
+            console.log('Moneyline result: miss');
+            return { result: "miss", odds: numericValue };
+        }
     }
+}
 
-    
+
+// Function to find the pool name
+function getPoolName() {
+    const poolNameElement = document.querySelector('.pool-name');
+    return poolNameElement ? poolNameElement.textContent : null;
+}
+
+// Function to find the username for a given pick element
+function getUsernameForPick(pickElement) {
+    const playerRow = pickElement.closest('.player-row');
+    const usernameElement = playerRow.querySelector('.player-username');
+    return usernameElement ? usernameElement.textContent.trim() : null;
 }
 
 function updateUIWithScores() {
     console.log('gameScores at update:', gameScores);
-    let allResults = []; // This will store all results for the current session
-    
-    document.querySelectorAll('.player-picks .pick, .immortal-lock').forEach(pickElement => {
-        console.log('Processing element:', pickElement);
+    let allResults = []; // Store all results for the current session
 
+    document.querySelectorAll('.player-picks .pick, .immortal-lock').forEach(pickElement => {
         const teamLogo = pickElement.querySelector('.team-logo');
         if (!teamLogo) {
             console.error('Team logo not found in pick element', pickElement);
-            return;
+            return; // Skip if no logo
         }
-        const teamName = teamLogo.alt;
-        console.log('Processing team:', teamName);
 
+        const teamName = teamLogo.alt;
         const match = gameScores.find(m => m.home_team === teamName || m.away_team === teamName);
         if (!match) {
             console.log(`No game score available for ${teamName}, skipping...`);
             return;
         }
 
-        const isHome = match.home_team === teamName;
-        const homeTeamScore = isHome ? match.home_score : match.away_score;
-        const awayTeamScore = isHome ? match.away_score : match.home_score;
-
-        const valueSpan = pickElement.querySelector('span');
-        if (!valueSpan) {
-            console.error('Value span not found in pick element', pickElement);
-            return;
+        const homeTeamScore = match.home_team === teamName ? match.home_score : match.away_score;
+        const awayTeamScore = match.home_team === teamName ? match.away_score : match.home_score;
+        const betValue = pickElement.querySelector('span')?.textContent;
+        if (!betValue) {
+            console.error('Bet value not found in pick element', pickElement);
+            return; // Skip if no bet value
         }
-        const betValue = valueSpan.textContent;
-        console.log('Evaluating Bet:', betValue);
 
         try {
-            const result = getBetResult(betValue, homeTeamScore, awayTeamScore);
-            console.log('Bet result:', result);
-            allResults.push({teamName, betValue, result}); // Store result along with team and bet
-
+            const { result, odds } = getBetResult(betValue, homeTeamScore, awayTeamScore);
+            const points = calculatePointsForResult({ result, odds });
+            allResults.push({ teamName, betValue, result, points });
             pickElement.style.color = result === "hit" ? "#39FF14" : result === "miss" ? "red" : "yellow";
+
+            const username = getUsernameForPick(pickElement);
+            const poolName = getPoolName();
+            updateUserPoints(username, points, poolName);
         } catch (error) {
             console.error('Error processing bet result:', error);
         }
     });
 
-    // Now, send all computed results to the server
-    saveResultsToServer(allResults);
+    console.log('All Results:', allResults);
 }
+
+
+function calculatePointsForResult({ result, odds, type }) {
+    let points = 0;
+
+    switch (result) {
+        case 'hit':
+            if (type === "ML") {
+                if (odds < 0) {
+                    // Favorite
+                    if (odds <= -250) {
+                        points += 0.5; // Less points for high favorites
+                    } else {
+                        points += 1; // Regular win for favorites
+                    }
+                } else {
+                    // Underdog
+                    if (odds >= 400) {
+                        points += 4; // Additional points for extreme underdogs
+                    } else if (odds >= 250) {
+                        points += 2.5; // Extra points for big underdogs
+                    } else {
+                        points += 2; // Standard win for underdogs
+                    }
+                }
+            } else if (type === "Spread") {
+                points += 1.5; // Points for spread win
+            } else if (type === "ImmortalLock") {
+                points += 1; // Points for immortal lock win
+            }
+            break;
+        case 'miss':
+            if (type === "ImmortalLock") {
+                points -= 2; // Penalty for immortal lock loss
+            }
+            break;
+        case 'push':
+            points += 0.5; // Points for a push
+            break;
+    }
+    return points;
+}
+
 
 function saveResultsToServer(results) {
     fetch('/api/saveResults', {
@@ -1001,26 +1044,32 @@ function saveResultsToServer(results) {
     .catch(error => console.error('Failed to save results:', error));
 }
 function rebuildUIWithResults(results) {
-    console.log('Results received:', results.length);  // Log how many results we received
-
+    console.log('Received results for UI rebuild:', results);
     const allPicks = document.querySelectorAll('.player-picks .pick, .immortal-lock');
-    console.log('Total picks found:', allPicks.length); // Check how many elements are found
 
-    allPicks.forEach((pickElement, index) => {
+    if (allPicks.length === 0) {
+        console.warn('No pick elements found, check if the DOM has fully loaded');
+        return;
+    }
+
+    console.log(`Total picks found: ${allPicks.length}`);
+
+    allPicks.forEach(pickElement => {
         const teamLogo = pickElement.querySelector('.team-logo');
         if (!teamLogo) {
             console.error('Team logo not found in pick element', pickElement);
-            return;  // Skip this iteration if no logo (hence no team name) is found
+            return; // Skip this iteration if no logo
         }
-        const teamName = teamLogo.alt;  // Assumes alt attribute holds the team name
-        console.log(`Processing element for team: ${teamName}`);
+
+        const teamName = teamLogo.alt;
+        console.log(`Processing UI update for team: ${teamName}`);
 
         const resultEntry = results.find(r => r.teamName === teamName);
         if (resultEntry) {
-            console.log(`Applying result for ${teamName}:`, resultEntry);
+            console.log(`Applying UI result for ${teamName}:`, resultEntry);
             pickElement.style.color = resultEntry.result === "hit" ? "#39FF14" : resultEntry.result === "miss" ? "red" : "yellow";
         } else {
-            console.log(`No element found for result or mismatch in team names`, {teamName, index, results});
+            console.warn(`No result found for ${teamName} or mismatch in team names`, {teamName, results});
         }
     });
 }
@@ -1048,57 +1097,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 500);  // Delay can be adjusted based on typical load times or removed if found unnecessary
 });
 
-function PointRegulator(results) {
-    let points = 0;
-
-    results.forEach(result => {
-        // Assume result.type could be 'ML', 'Spread', 'ImmortalLock', etc.
-        // result.outcome could be 'win', 'lose', 'push'
-        // result.odds could represent the moneyline odds
-
-        switch (result.type) {
-            case 'ML':
-                if (result.outcome === 'win') {
-                    if (result.odds < 0) {
-                        // Favorite
-                        if (result.odds <= -250) {
-                            points += 0.5; // Reduced points for high odds favorite
-                        } else {
-                            points += 1; // Normal points for winning as favorite
-                        }
-                    } else {
-                        // Underdog
-                        if (result.odds >= 400) {
-                            points += 4; // Maximum points for very high odds underdog
-                        } else if (result.odds >= 250) {
-                            points += 2.5; // Increased points for higher odds underdog
-                        } else {
-                            points += 2; // Standard points for underdog win
-                        }
-                    }
-                }
-                break;
-            case 'Spread':
-                if (result.outcome === 'win') {
-                    points += 1.5; // Points for spread win
-                }
-                break;
-            case 'ImmortalLock':
-                if (result.outcome === 'win') {
-                    points += 1; // Win on immortal lock
-                } else if (result.outcome === 'lose') {
-                    points -= 2; // Penalty for losing an immortal lock
-                }
-                break;
-            case 'Push':
-                points += 0.5; // Points for push
-                break;
-            default:
-                console.log('Unknown result type');
-        }
-    });
-
-    return points;
-}
 
 //'3decff06f7mshbc96e9118345205p136794jsn629db332340e'
