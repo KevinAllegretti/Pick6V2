@@ -788,8 +788,8 @@ button:hover {
     background-color: #012; /* Background color of the box */
     border: 2px solid #33d9ff; /* Neon light blue border */
     position: absolute; /* Position it absolutely within its parent */
-    top: 10px; /* Distance from the top of the viewport */
-    right: 10px; /* Distance from the left side of the viewport */
+    bottom: 10px; /* Distance from the top of the viewport */
+    align-items: center; /* Distance from the left side of the viewport */
     z-index: 5; /* Stack order in case it overlaps with other elements */
     box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Optional shadow for some depth */
     border-radius: 8px; /* Optional border radius for rounded corners */
@@ -878,16 +878,15 @@ button:hover {
 }
 /* Styling for headers */
 .pool-header > span {
-    color: #fff; /* Change to the color that fits your design */
+    color: #ffffff; /* Change to the color that fits your design */
+    text-shadow: 0px 0px 5px #33d6ff; /* Glowing effect on hover */
     font-family:'Montserrat', sans-serif;
     font-size-adjust: calc(50%);
     text-transform: uppercase; /* Capitalize your headers for more impact */
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Soft shadow for a 3D effect */
 }
 
-.pool-header > span:hover {
+.pool-header {
     color: #33f1ff; /* Bright color for hover */
-    cursor: pointer; /* Change cursor to indicate interactivity */
     text-shadow: 0px 0px 5px #33d6ff; /* Glowing effect on hover */
 }
 .pool-header .header-rank {

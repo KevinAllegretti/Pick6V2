@@ -1,30 +1,39 @@
+/* Base styling adjustments for a more polished look */
 body {
     font-family: 'Arial', sans-serif;
-    background-color: #0a0f22; 
-    color: #33d9ff; 
+    background-color: #0a0f22;
+    color: #33d9ff;
     margin: 0;
     padding: 0;
+    line-height: 1.6;
+    font-size: 16px;
 }
 
 .container {
-    width: 90%;
+    width: 80%;
     margin: 0 auto;
-    padding-top: 2em;
+    padding: 2em 0;
+    background: linear-gradient(to right, #121212, #0a0f22 50%, #121212);
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    color: #e0e0e0;
 }
 
 h1, h2 {
     border-bottom: 2px solid #33d9ff;
     padding-bottom: 10px;
     margin-bottom: 20px;
+    color: #adeeff;
 }
 
 h1 {
-    font-size: 2.5em;
+    font-size: 2.8em;
     text-align: center;
 }
 
 h2 {
-    font-size: 2em;
+    font-size: 2.1em;
+    font-weight: normal;
 }
 
 ul {
@@ -34,45 +43,52 @@ ul {
 
 li {
     margin-bottom: 10px;
+    font-size: 1.1em;
 }
 
-/* Neon Green for emphasis */
+/* Updated color highlights with more sophisticated tones */
 .green-highlight {
     color: #33ff57;
+    font-weight: bold;
 }
 
-/* Neon Red for warnings/important info */
 .red-highlight {
     color: #ff4d4d;
+    font-weight: bold;
 }
 
-/* Neon Yellow for points system */
 .yellow-highlight {
     color: #ffff4d;
-}
-.orange-highlight {
-    color:darkorange;
+    font-weight: bold;
 }
 
+.orange-highlight {
+    color: darkorange;
+    font-weight: bold;
+}
+
+/* Refined back button design with silver undertones */
 .back-button-container {
     text-align: center;
-    margin: 20px 0;
+    margin: 40px 0;
 }
 
 .back-button {
     display: inline-block;
-    padding: 10px 20px;
+    padding: 12px 24px;
     font-size: 1.2em;
     text-decoration: none;
-    color: #33d9ff; /* Neon light blue text */
-    background-color: #17203a; /* A deep blue for button background */
-    border: 2px solid #33d9ff; 
+    color: #33d9ff;
+    background: linear-gradient(145deg, #2b3350, #1e2740);
+    border: 1px solid silver;
     border-radius: 8px;
-    transition: transform 0.2s, background-color 0.2s; /* Animation for hover */
+    box-shadow: 0 3px 6px rgba(0, 51, 102, 0.6);
+    transition: all 0.3s ease;
 }
 
 .back-button:hover {
-    background-color: #33d9ff; /* Neon light blue */
-    color: #17203a; /* A deep blue */
+    background-color: #33d9ff;
+    color: #0a0f22;
     transform: translateY(-3px);
+    box-shadow: 0 5px 12px rgba(0, 51, 102, 0.8);
 }
