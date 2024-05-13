@@ -33,7 +33,7 @@ body, html {
     padding: 25px;
     border-radius: 10px;
     background: #112240;
-    box-shadow: 0 4px 20px rgba(50, 255, 100, 0.25);
+    box-shadow: 0 4px 20px rgba(0, 247, 255, 0.25);
     box-sizing: border-box; /* ensures padding doesn't affect the total width */
 }
 
@@ -42,7 +42,7 @@ body, html {
     height: 45px; /* increased height */
     padding: 5px 15px;
     background: #233554;
-    border: 2px solid #32CD32; /* Lighter green border */
+    border: 2px solid #33d9ff; /* Lighter green border */
     border-radius: 5px;
     color: #CCD6F6;
     font-size: 14px;
@@ -55,7 +55,7 @@ body, html {
 }
 
 .input-field input:focus {
-    border-color: #32CD32;
+    border-color: #33d9ff;
     outline: none;
     box-shadow: 0 0 0 2px rgba(50, 205, 50, 0.2);
 }
@@ -80,7 +80,7 @@ body, html {
     height: 45px;
     margin-top: 10px;
     padding: 15px 0; /* Taller button for a more prominent look */
-    background-color: #32CD32;
+    background-color: #33d9ff;
     color: #0A192F;
     font-size: 16px;
     font-weight: bold;
@@ -91,7 +91,7 @@ body, html {
 }
 
 .action button:hover {
-    background-color: #3CB371;
+    background-color: #33b4ff;
 }
 
 .form-link {
@@ -101,13 +101,13 @@ body, html {
 }
 
 .form-link a {
-    color: #32CD32;
+    color: #33d9ff;
     text-decoration: none;
     transition: color 0.3s ease;
 }
 
 .form-link a:hover {
-    color: #3CB371;
+    color: #33b4ff;
 }
 
 .form {

@@ -84,14 +84,18 @@ h1, h2 {
 }
 
 button {
-    padding: 10px 15px;
-    background-color: #00BFFF; /* Neon blue */
-    border: 2px solid #00BFFF;
-    border-radius: 5px;
-    color: #111;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
+  background-color: #00BFFF; /* Neon blue */
+  color: #0a0f22;
+  border: none;
+  padding: 12px 24px;
+  margin: 10px auto;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 1.2em;
+  transition: background-color 0.3s, color 0.3s;
+  cursor: pointer;
+  border-radius: 5px;
 }
 
 button:hover {
