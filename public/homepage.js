@@ -769,29 +769,28 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-function updateUserPoints(username, newPoints, poolName) {
-    // This is the URL to your API endpoint
-    const apiUrl = '/pools/updateUserPointsInPoolByName';
-
-    fetch(apiUrl, {
+function updateUserPoints(username, additionalPoints, poolName) {
+    fetch('/pools/updateUserPointsInPoolByName', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ username, newPoints, poolName })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, additionalPoints, poolName })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            console.log('User points updated in pool:', data.message);
-            // Here you could re-render the component that shows the points
-            // Or find the DOM element and update it directly if you're not using a framework that handles reactivity
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to update points: ' + response.statusText);
+        }
+        return response.json();
+    })
+    .then(updateData => {
+        if (updateData.success) {
+            console.log('User points updated successfully:', updateData.message);
+            // Optionally update the UI here
         } else {
-            console.error('Failed to update user points in pool:', data.message);
+            console.error('Failed to update user points:', updateData.message);
         }
     })
     .catch(error => {
-        console.error('Error updating user points in pool:', error);
+        console.error('Error during the update process:', error);
     });
 }
 
@@ -949,6 +948,7 @@ function updateUIWithScores() {
 
     document.querySelectorAll('.player-picks .pick, .immortal-lock').forEach(pickElement => {
         const teamLogo = pickElement.querySelector('.team-logo');
+        console.log('Processing element:', pickElement);
         if (!teamLogo) {
             console.error('Team logo not found in pick element', pickElement);
             return; // Skip if no logo
@@ -984,49 +984,64 @@ function updateUIWithScores() {
     });
 
     console.log('All Results:', allResults);
+    saveResultsToServer(allResults)
 }
 
 
 function calculatePointsForResult({ result, odds, type }) {
     let points = 0;
 
+    console.log(`Calculating points for result: ${result}, odds: ${odds}, type: ${type}`);
+
     switch (result) {
         case 'hit':
-            if (type === "ML") {
+            if (Math.abs(odds) > 99) {
                 if (odds < 0) {
                     // Favorite
                     if (odds <= -250) {
                         points += 0.5; // Less points for high favorites
+                        console.log("Favorite ML win with high odds");
                     } else {
                         points += 1; // Regular win for favorites
+                        console.log("Favorite ML win with normal odds");
                     }
                 } else {
                     // Underdog
                     if (odds >= 400) {
                         points += 4; // Additional points for extreme underdogs
+                        console.log("Underdog ML win with extreme odds");
                     } else if (odds >= 250) {
                         points += 2.5; // Extra points for big underdogs
+                        console.log("Underdog ML win with high odds");
                     } else {
                         points += 2; // Standard win for underdogs
+                        console.log("Underdog ML win with standard odds");
                     }
                 }
-            } else if (type === "Spread") {
+            } else if (Math.abs(odds) < 100) {
                 points += 1.5; // Points for spread win
+                console.log("Spread win");
             } else if (type === "ImmortalLock") {
                 points += 1; // Points for immortal lock win
+                console.log("Immortal lock win");
             }
             break;
         case 'miss':
             if (type === "ImmortalLock") {
                 points -= 2; // Penalty for immortal lock loss
+                console.log("Immortal lock loss");
             }
             break;
         case 'push':
             points += 0.5; // Points for a push
+            console.log("Push");
             break;
     }
+
+    console.log(`Total points calculated: ${points}`);
     return points;
 }
+
 
 
 function saveResultsToServer(results) {
@@ -1094,7 +1109,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => console.error('Failed to fetch results:', error));
-    }, 500);  // Delay can be adjusted based on typical load times or removed if found unnecessary
+    }, 800);  // Delay can be adjusted based on typical load times or removed if found unnecessary
 });
 
 
