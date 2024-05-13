@@ -92,6 +92,7 @@ button {
   text-align: center;
   text-decoration: none;
   display: inline-block;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.2em;
   transition: background-color 0.3s, color 0.3s;
   cursor: pointer;
@@ -191,7 +192,7 @@ input, select {
 }
 
 .container {
-    width: 60%; /* Set the desired width of the container */
+    width: 80%; /* Set the desired width of the container */
     max-height: 632px;
     overflow-y: auto;
     margin: 0 auto; /* Auto margins for horizontal centering */
@@ -445,7 +446,7 @@ h4 {
   font-size: 18px;
   text-align: center;
   padding: 5px 0;
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 .bet-button {
   background-color: #333;

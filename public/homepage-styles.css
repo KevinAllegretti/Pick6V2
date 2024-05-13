@@ -116,7 +116,6 @@ body {
     transition: background-color 0.3s, color 0.3s;
     text-align: center;
     display: block; /* Makes it a block element */
-    width: max-content; /* Only as wide as it needs to be */
     margin: 20px auto; /* Centers it in the side panel */
     text-decoration: none; /* Removes underline text */
 }
