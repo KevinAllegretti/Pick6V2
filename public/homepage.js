@@ -794,8 +794,32 @@ function updateUserPoints(username, additionalPoints, poolName) {
     });
 }
 
+function changeUserPoints(username, points, poolName) {
+    fetch('/pools/setUserPointsInPoolByName', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, points, poolName })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to set points: ' + response.statusText);
+        }
+        return response.json();
+    })
+    .then(updateData => {
+        if (updateData.success) {
+            console.log('User points set successfully:', updateData.message);
+            // Optionally update the UI here to reflect the new points
+        } else {
+            console.error('Failed to set user points:', updateData.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error during the set points process:', error);
+    });
+}
 // Example usage:
-//updateUserPoints('testuser', 120, 'woo'); // Replace with the actual username, new points value, and pool name
+//changeUserPoints('test3', 0, 'test'); // Replace with the actual username, new points value, and pool name
 
 
 
@@ -1109,7 +1133,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => console.error('Failed to fetch results:', error));
-    }, 800);  // Delay can be adjusted based on typical load times or removed if found unnecessary
+    }, 1000);  // Delay can be adjusted based on typical load times or removed if found unnecessary
 });
 
 

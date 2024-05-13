@@ -131,33 +131,34 @@ router.post('/updateUserPointsInPoolByName', async (req, res) => {
   }
 });
 
-// Make sure to import necessary dependencies and middleware
-// app.use(express.json()) should already be in your setup
+router.post('/setUserPointsInPoolByName', async (req, res) => {
+  const { username, points, poolName } = req.body;
+  console.log("Received data for setting points:", req.body);
 
-router.get('/getUserPointsInPoolByName', async (req, res) => {
-  const { username, poolName } = req.query; // Using req.query since parameters are sent as a query string
-  console.log("Getting points for: " + req.query)
   try {
       const database = await connectToDatabase();
       const poolsCollection = database.collection('pools');
-      
-      // Find the pool and extract points for the specified user
-      const pool = await poolsCollection.findOne(
+
+      // Set the points for the specified user in the specified pool
+      const updateResult = await poolsCollection.updateOne(
           { name: poolName, "members.username": username },
-          { projection: { "members.$": 1 } }
+          { $set: { "members.$.points": points } }  // Directly set points to the new value
       );
 
-      if (!pool || !pool.members.length) {
-          throw new Error("User not found in the specified pool");
+      if (updateResult.matchedCount === 0) {
+          return res.status(404).json({ success: false, message: "No matching pool or user found" });
+      }
+      if (updateResult.modifiedCount === 0) {
+          return res.status(406).json({ success: false, message: "No points updated, possible data issue or unchanged value" });
       }
 
-      const userPoints = pool.members[0].points; // Assuming the subdocument query returns the correct member
-      res.json({ success: true, points: userPoints, message: 'Points fetched successfully' });
+      res.json({ success: true, message: "User points set successfully in pool" });
   } catch (error:any) {
-      console.error("Error fetching user points:", error);
+      console.error("Error setting points:", error);
       res.status(500).json({ success: false, message: error.message });
   }
 });
+
 
 
 
