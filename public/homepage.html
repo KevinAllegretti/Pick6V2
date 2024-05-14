@@ -1,89 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pick-6 Homepage</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
     <link rel="stylesheet" href="homepage-styles.css">
 </head>
 <body>
 
-    <div class="containerbutton">
-
-        <div class="profile-icon-container">
-            <img src="\Test.png" alt="User Profile" id="profileIcon" class="profile-icon" />
-        </div>
-
-
-        <div id="slideOutPanel" class="slide-out-panel">
-            <!-- Panel Content Here -->
-            <div class="panel-content">
-              <button id="closePanelBtn" class="close-panel-btn">&times;</button>
-          
-              <!-- Centered Profile Icon Inside the Slide-out Panel -->
-              <div class="profile-icon-container-center">
-                <img src="\Test.png" alt="User Profile" class="profile-icon-center" />
-              </div>
-          
-              <!-- Begin form for profile updates -->
-              <form id="profileForm" action="/profile/uploadProfilePicture" method="post" enctype="multipart/form-data">
+<div class="containerbutton">
+    <div class="profile-icon-container">
+        <img src="Test.png" alt="User Profile" id="profileIcon" class="profile-icon" />
+    </div>
+    <div id="slideOutPanel" class="slide-out-panel">
+        <!-- Panel Content Here -->
+        <div class="panel-content">
+            <button id="closePanelBtn" class="close-panel-btn">&times;</button>
+            <div class="profile-icon-container-center">
+                <img src="Test.png" alt="User Profile" class="profile-icon-center" />
+            </div>
+            <form id="profileForm" action="/profile/uploadProfilePicture" method="post" enctype="multipart/form-data">
                 <div class="account-options">
-                    
                     <div class="welcome-message">
-                       <span id="displayName" class="neon-text"></span>
+                        <span id="displayName" class="neon-text"></span>
                     </div>
-
-
                     <label for="profilePic" class="custom-file-upload">
                         <i class="fa fa-cloud-upload"></i> Upload Profile Picture
                     </label>
-
-                    <input type="file" id="profilePic" name="profilePic" style="display: none;"/>
-                    
-          
+                    <input type="file" id="profilePic" name="profilePic" style="display: none;" />
                 </div>
-              </form>
-
-              <!-- Inside your side panel -->
+            </form>
             <button id="logout-button" class="logout-button">Logout</button>
-
-            </div>
-          </div>
-        <!-- ... possibly your list of teams or player cards ... -->
-        <a href="rules.html" class="rules-button">View Rules</a>
+        </div>
     </div>
+    <a href="rules.html" class="rules-button">View Rules</a>
+</div>
 
-    <div class="container">
-        <div class="neon-sign">
-            Pick 6
+<div class="container">
+    <div class="neon-sign">Pick 6</div>
+    <button id="fetchScoresButton">Fetch MLB Scores</button>
+    <div id="main-content">
+        <div id="pool-container-wrapper">
+            <!-- New pool containers will be added here -->
         </div>
-        <button id="fetchScoresButton">Fetch MLB Scores</button>
-
-        <!-- Slide-Out Panel -->
-
-        <!---
-        <div class="players">
-            
-   
-                <div class="player-card" data-username="TheDiggler" data-points="68.5">
-                    <div class="total-points">Total Points: <span class ="points-value">0</span></div>
-                    <h2>TheDiggler</h2>
-                    <div class="picks">
-                    </div>
-                    <div class="immortal-lock">
-                        Immortal Lock: ---
-                    </div>
-                </div>
-
-           
-            </div>
-        </div>
-    -->
         <div class="pool-manager">
             <h2>Pool Manager</h2>
             <button id="show-create-pool-form">Create Pool</button>
@@ -91,62 +51,28 @@
                 <form id="create-pool-form">
                     <label for="pool-name">Pool Name:</label>
                     <input type="text" id="pool-name" name="poolName" required>
-            
                     <label for="is-private">Private Pool:</label>
                     <input type="checkbox" id="is-private" name="isPrivate">
-            
                     <label for="pool-password" style="display: none;">Password:</label>
                     <input type="password" id="pool-password" name="poolPassword" style="display: none;">
-            
                     <input type="submit" value="Create Pool">
                 </form>
             </div>
-     <!-- Toggle button for the join pool form -->
-     <button id="show-join-pool-form">Join Pool</button>
-     <!-- Join pool form container -->
-     <div id="join-pool-form-container" style="display: none;">
-         <!-- Your join pool form goes here -->
-            <form id="join-pool-form">
-                <label for="pool-name2">Pool Name:</label>
-                <input type="text" id="pool-name2" required>
-            
-                <label for="join-password">Password: (If private)</label>
-                <input type="password" id="join-password">
-            
-                <button type="submit">Join Pool</button>
-            </form>
-            <button id="hide-join-pool-form" style="display: none;">Go Back</button>
+            <button id="show-join-pool-form">Join Pool</button>
+            <div id="join-pool-form-container" style="display: none;">
+                <form id="join-pool-form">
+                    <label for="pool-name2">Pool Name:</label>
+                    <input type="text" id="pool-name2" required>
+                    <label for="join-password">Password: (If private)</label>
+                    <input type="password" id="join-password">
+                    <button type="submit">Join Pool</button>
+                </form>
+                <button id="hide-join-pool-form" style="display: none;">Go Back</button>
+            </div>
         </div>
-        </div>
-
-    <div id="main-content">
-        <!-- This button will trigger the form to display -->
-       
-        <div id="pool-container-wrapper">
-            <!-- New pool containers will be added here -->
-        </div>
-    
     </div>
+</div>
 
-
-    
-      
-      <script>
-        // Show the password field only if the pool is set to private
-        document.getElementById('is-private').addEventListener('change', function() {
-          document.getElementById('pool-password').style.display = this.checked ? 'block' : 'none';
-        });
-      </script>
-      
-<script>
-    window.addEventListener('load', () => {
-      document.querySelectorAll('.player-card, .digital-clock, .neon-sign, .rules-button').forEach(el => {
-        el.style.opacity = 1;
-        el.style.transform = 'translateY(0)';
-      });
-    });
-    </script>
-    <script src="homepage.js"></script>
-
+<script src="homepage.js"></script>
 </body>
 </html>

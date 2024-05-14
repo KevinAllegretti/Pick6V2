@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.joinPoolByName = exports.createPool = void 0;
+exports.joinPoolByName = exports.createPool = exports.leavePool = void 0;
 const connectDB_1 = require("../microservices/connectDB");
 const Pool_1 = __importDefault(require("../models/Pool")); // Assuming you have a Pool model set up as previously discussed
 // Helper function to find user by username and return the user object
@@ -13,6 +13,24 @@ const findUserByUsername = async (username) => {
     const user = await usersCollection.findOne({ username: username.toLowerCase() });
     return user;
 };
+const leavePool = async (req, res) => {
+    const { username, poolName } = req.params;
+    console.log("leaving pool: " + username, poolName);
+    try {
+        const database = await (0, connectDB_1.connectToDatabase)();
+        const poolsCollection = database.collection('pools');
+        const updateResult = await poolsCollection.updateOne({ name: poolName }, { $pull: { members: { username: username } } } // Add "as any" to bypass the type error
+        );
+        if (updateResult.modifiedCount === 0) {
+            return res.status(404).json({ message: 'User not found in pool or pool not found' });
+        }
+        res.json({ message: 'User removed from pool successfully' });
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Error leaving pool', error });
+    }
+};
+exports.leavePool = leavePool;
 const createPool = async (req, res) => {
     console.log('Request to create pool received:', req.body);
     try {

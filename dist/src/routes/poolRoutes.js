@@ -15,6 +15,8 @@ router.post('/create', poolController_1.createPool);
 // Route to handle join pool requests
 router.post('/joinByName', poolController_1.joinPoolByName);
 // Route for admins to manage join requests
+// Route to leave a pool
+router.post('/leave/:username/:poolName', poolController_1.leavePool); // Add the leave pool route
 router.get('/get-all', async (req, res) => {
     try {
         const pools = await Pool_1.default.find();

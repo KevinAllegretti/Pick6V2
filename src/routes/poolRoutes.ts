@@ -1,7 +1,7 @@
 // src/routes/poolRoutes.ts
 
 import express from 'express';
-import { createPool, joinPoolByName} from '../Controllers/poolController';
+import { createPool, joinPoolByName, leavePool} from '../Controllers/poolController';
 import Pool from '../models/Pool';
 import { connectToDatabase } from '../microservices/connectDB';
 import { isConstructorDeclaration } from 'typescript';
@@ -16,6 +16,8 @@ router.post('/create', createPool);
 router.post('/joinByName', joinPoolByName);
 // Route for admins to manage join requests
 
+// Route to leave a pool
+router.post('/leave/:username/:poolName', leavePool); // Add the leave pool route
 
 
 router.get('/get-all', async (req, res) => {

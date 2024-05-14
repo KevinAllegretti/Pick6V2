@@ -1,8 +1,7 @@
-
+/* General Styling */
 body {
     font-family: 'Arial', sans-serif;
     background-color: #0a0f22; /* Darker background for contrast */
-    /* background-image: url('P6.png');*/
     background-image: url('P6.png');
     background-size: 1500px; /* Resize the background image to cover the entire container */
     background-repeat: no-repeat; /* Prevents the background image from repeating */
@@ -11,26 +10,27 @@ body {
     margin: 0;
     padding: 0;
     justify-content: center;
-   }
-   
-   .container {
+}
+
+.container {
     width: 90%;
     margin: 0 auto;
     padding-top: 1em;
-   }
-   
-   .containerbutton {
+}
+
+.containerbutton {
     margin-bottom: 20px; 
     display: flex;
     justify-content: center; /* Center the buttons horizontally */
     padding-top: 1em;
-   }
-   
-   .containerbutton .rules-button {
+}
+
+.containerbutton .rules-button {
     margin: 0 10px; /* This adds a margin to the left and right of each button */
-   }
-   
-   .profile-icon-container {
+}
+
+/* Profile icon container */
+.profile-icon-container {
     position: absolute;
     top: 20px;
     left: 20px;
@@ -40,24 +40,23 @@ body {
     box-shadow: 0 0 5px #0af, 0 0 10px #0af, 0 0 15px #0af; /* This creates the neon glow */
     cursor: pointer;
     z-index: 100; /* Make sure it's above other elements */
-    }
-    
-    .profile-icon {
+}
+
+.profile-icon {
     width: 100%;
     height: 100%;
     border-radius: 50%;
     object-fit: cover; /* This ensures the image covers the area without being stretched */
-   }
-   
-   
-   /* Styles for the profile icon inside the slide-out panel */
-   .profile-icon-container-center {
+}
+
+/* Styles for the profile icon inside the slide-out panel */
+.profile-icon-container-center {
     display: flex;
     justify-content: center; /* Center horizontally */
     margin-top: 20px; /* Add some space from the top of the panel */
-   }
-   
-   .profile-icon-center {
+}
+
+.profile-icon-center {
     width: 120px; /* Larger than the one on the homepage */
     height: 120px; /* Keep the aspect ratio the same */
     border-radius: 50%; /* Circular shape */
@@ -66,10 +65,9 @@ body {
     border: 3px solid #33d9ff; /* Light blue border, made slightly thicker */
     cursor: pointer; /* Optional: if you want it to indicate it's clickable */
     background-color: #0a0f22; /* Dark blue background, to match the slide-out panel */
-   }
-   
-   
-   .slide-out-panel {
+}
+
+.slide-out-panel {
     position: fixed;
     top: 0;
     left: -100%; /* Start off-screen to the left */
@@ -81,31 +79,29 @@ body {
     overflow-y: auto; /* In case the content overflows */
     transition: left 0.3s ease-out; /* Smooth slide-in transition */
     z-index: 100; /* Above everything except the profile icon */
-   }
-   
-   .slide-out-panel.visible {
+}
+
+.slide-out-panel.visible {
     left: 0; /* Slide in from the left */
-   }
-   
-   
-   .close-panel-btn {
+}
+
+.close-panel-btn {
     font-size: 1.5rem;
     background: none;
     border: none;
     color: white;
     cursor: pointer;
-   }
-   
-   .panel-content {
+}
+
+.panel-content {
     padding: 20px;
-   }
-   
-   .account-options .option {
+}
+
+.account-options .option {
     margin-bottom: 10px;
-   }
-   
-   
-   .custom-file-upload {
+}
+
+.custom-file-upload {
     padding: 10px 15px;
     background-color: #00BFFF; /* Neon blue */
     border: 2px solid #00BFFF;
@@ -118,16 +114,15 @@ body {
     display: block; /* Makes it a block element */
     margin: 20px auto; /* Centers it in the side panel */
     text-decoration: none; /* Removes underline text */
-   }
-   
-   .custom-file-upload:hover {
+}
+
+.custom-file-upload:hover {
     background-color: #0099CC; /* A slightly darker neon blue */
     color: #FFF;
-   }
-   
-   /* Hide the file input visually but remain accessible to screen readers. */
-   /* Source: https://www.scottohara.me/blog/2017/04/14/inclusively-hidden.html */
-   input[type="file"] {
+}
+
+/* Hide the file input visually but remain accessible to screen readers. */
+input[type="file"] {
     border: 0;
     clip: rect(0, 0, 0, 0);
     height: 1px;
@@ -136,72 +131,57 @@ body {
     position: absolute;
     white-space: nowrap;
     width: 1px;
-   }
-   
-   .welcome-message {
+}
+
+.welcome-message {
     text-align: center; /* Center the text horizontally */
     font-size: 24px; /* Increase font size or adjust as needed */
     margin: 20px 0; /* Add some margin around the text for spacing */
-   }
-   
-   .neon-text {
+}
+
+.neon-text {
     color: #00BFFF; /* Light neon blue */
     font-weight: bold;
-    text-shadow:
-    0 0 5px #00BFFF,
-    0 0 10px #00BFFF,
-    0 0 20px #00BFFF,
-    0 0 40px #00BFFF,
-    0 0 80px #00BFFF; /* Glowing effect */
+    text-shadow: 0 0 5px #00BFFF, 0 0 10px #00BFFF, 0 0 20px #00BFFF, 0 0 40px #00BFFF, 0 0 80px #00BFFF; /* Glowing effect */
     transition: text-shadow 0.3s ease-in-out;
-   }
-   
-   .neon-text:hover {
-    text-shadow:
-    0 0 10px #00BFFF,
-    0 0 20px #00BFFF,
-    0 0 30px #00BFFF,
-    0 0 40px #00BFFF,
-    0 0 90px #00BFFF; /* Enhanced glowing effect on hover */
-   }
-   
-   h1 {
-    /* -webkit-text-stroke: 3px rgb(255, 255, 255); /* Add a 1px black stroke */
-    text-shadow: none; /* Optionally, remove the text shadow if it's not needed */
-    /* Your existing styles */
+}
+
+.neon-text:hover {
+    text-shadow: 0 0 10px #00BFFF, 0 0 20px #00BFFF, 0 0 30px #00BFFF, 0 0 40px #00BFFF, 0 0 90px #00BFFF; /* Enhanced glowing effect on hover */
+}
+
+h1 {
     font-size: 2.5em;
     text-align: center;
     color: #33d9ff; /* Neon light blue */
     border-bottom: 2px solid #33d9ff;
     padding-bottom: 10px;
     margin-bottom: 20px;
-   }
-   .underline {
+}
+
+.underline {
     height: 4px; /* Or however thick you want it */
     background-color: #33d9ff; /* Neon light blue */
     width: 100%; /* Or a specific width if you prefer */
     margin-top: 5px; /* Space between the text and the line */
-   }
-   
-   
-   .players {
+}
+
+.players {
     display: flex;
     flex-wrap: wrap;
     overflow-y: auto; /* Allow vertical scrolling */
     justify-content: space-around;
-   }
-   
-   
-   
-   @media (max-width: 768px) {
+}
+
+@media (max-width: 768px) {
     .players {
-    max-height: 50vh; /* Adjust the height on mobile to make it less than the viewport height */
-    overflow-y: scroll; /* Explicitly set scrolling for touch devices */
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS */
+        max-height: 50vh; /* Adjust the height on mobile to make it less than the viewport height */
+        overflow-y: scroll; /* Explicitly set scrolling for touch devices */
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS */
     }
-   }
-   
-   .total-points {
+}
+
+.total-points {
     font-style: oblique;
     position: absolute; /* This will position the element relative to its nearest positioned ancestor */
     top: 2px; /* Adjust this value if you want to move it up or down */
@@ -212,25 +192,20 @@ body {
     color: #d0e5f2; /* Neon light blue text */
     font-weight: bold;
     z-index: 1; /* Ensure it's above other content */
-   }
-   
-   .player-card:hover {
+}
+
+.player-card:hover {
     transform: translateY(-5px);
     box-shadow: 0px 0px 25px #33d9ff, 0px 0px 5px #33d9ff; /* Enhanced shadow on hover */
-   }
-   
-   h2 {
+}
+
+h2 {
     font-size: 1.4em;
     text-align: center;
     margin-bottom: 10px;
-   }
-   
-   
-   
-   
-   
-   .rules-button {
-    /* display: inline-block; */
+}
+
+.rules-button {
     background-color: #33d9ff;
     color: #0a0f22;
     padding: 10px 20px;
@@ -238,13 +213,13 @@ body {
     text-decoration: none;
     text-align: center;
     transition: background-color 0.3s;
-   }
-   
-   .rules-button:hover {
+}
+
+.rules-button:hover {
     background-color: #1bb1d5;
-   }
-   
-   .neon-sign {
+}
+
+.neon-sign {
     font-size: 2rem; /* Adjust as needed */
     font-family: "Arial", sans-serif; /* Use any font you like, this is just a placeholder */
     color: rgb(255, 255, 255);
@@ -252,46 +227,41 @@ body {
     text-shadow: 0 0 5px rgb(254, 237, 237), 0 0 10px rgb(246, 239, 239), 0 0 15px #00a2ff, 0 0 20px #00a2ff, 0 0 25px #00a2ff, 0 0 30px #00a2ff, 0 0 35px #00a2ff;
     animation: neonFlicker 1.5s infinite alternate;
     margin-top: 20px; /* Add space below the "teams" */
-   }
-   
-   @keyframes neonFlicker {
+}
+
+@keyframes neonFlicker {
     0% { opacity: 0.2; }
     50% { opacity: 1; }
     100% { opacity: 0.8; }
-   }
-   
-   
-   
-   /* The dunce cap */
-   .dunce-icon {
+}
+
+/* The dunce cap */
+.dunce-icon {
     margin-left: 0.2em;
     padding-right: 4px;
     font-size: 1.2rem; /* Adjust as needed */
     z-index: 10;
     color: rgb(177, 121, 0);
-   }
-   
-   
-   .player-username{
+}
+
+.player-username {
     text-transform: uppercase;
     font-family: 'Montserrat', sans-serif;
     font-size: 5px; /* or you could specify a size like 0.9em or 14px */
-   }
-   
-   
-    /* Initial State */
-   .player-card, .digital-clock, .neon-sign, .rules-button {
+}
+
+/* Initial State */
+.player-card, .digital-clock, .neon-sign, .rules-button {
     opacity: 0;
     transform: translateY(-20px);
-    }
-    
-    /* Transition Effect */
-    .player-card, .digital-clock, .neon-sign, .rules-button {
+}
+
+/* Transition Effect */
+.player-card, .digital-clock, .neon-sign, .rules-button {
     transition: opacity 1s ease-out, transform 1s ease-out;
-    }
-    
-    .logout-button {
-    /* Styling for the logout button */
+}
+
+.logout-button {
     background-color: #033; /* Dark button background */
     color: #0ff; /* Neon text color */
     border: 1px solid #0af; /* Neon border */
@@ -299,48 +269,46 @@ body {
     font-size: 1em;
     border-radius: 5px;
     cursor: pointer;
-    box-shadow: 0 0 5px #0af, /* Neon glow effect */
-    0 0 10px #0af,
-    0 0 15px #0af;
+    box-shadow: 0 0 5px #0af, 0 0 10px #0af, 0 0 15px #0af; /* Neon glow effect */
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
     position: absolute; /* Position the button absolutely within the .slide-out-panel */
     top: 10px; /* Adjust as needed */
     right: 10px; /* Adjust as needed */
-   }
-   
-    .team-logo {
+}
+
+.team-logo {
     width: 35px; /* Or your desired width */
     height: auto;
     margin-right: 5px;
     margin-bottom: -5px;
     /* Add any other styling you need */
-   }
-   
-   #main-content {
+}
+
+#main-content {
     display: flex;
     flex-direction: column;
     align-items: center; /* Centers children horizontally */
     margin: 0 auto;
     padding: 0; /* Remove padding that could affect centering */
     width: 100%; /* Ensures full width */
-    }
-    
-    .pool-wrapper {
+}
+
+.pool-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center; /* Aligns children to the center */
     width: 1150px; /* Gives a fixed width to the wrapper */
     margin: 20px 0; /* Adds top and bottom margin */
-    margin-top: 120px
-    }
-    
-    .pool-name {
+    margin-top: 120px;
+}
+
+.pool-name {
     text-align: left; /* Align text to the left */
     width: 100%; /* Takes the full width of its parent */
     margin-bottom: 5px; /* Space between pool name and container */
-    }
-    
-    .pool-container {
+}
+
+.pool-container {
     width: 100%; /* Takes the full width of its parent */
     padding: 20px; /* Padding inside the container */
     box-shadow: 0px 0px 10px #33d9ff;
@@ -353,10 +321,9 @@ body {
     margin-bottom: 20px; /* Adds space between the pools */
     text-align: left; /* Align text to the left */
     transition: transform 0.2s, box-shadow 0.2s; /* Animation for hover */
-   }
-   
-   
-   .player-card {
+}
+
+.player-card {
     position: relative;
     width: 220px;
     border: 2px solid #33d9ff; /* Neon light blue border */
@@ -366,9 +333,10 @@ body {
     background-color: #17203a; /* A deep blue for card background */
     box-shadow: 0px 0px 20px #33d9ff; /* Neon light blue shadow for depth */
     transition: transform 0.2s, box-shadow 0.2s; /* Animation for hover */
-   }
-   /* Input fields styling */
-   input[type="text"], input[type="password"], input[type="checkbox"] {
+}
+
+/* Input fields styling */
+input[type="text"], input[type="password"], input[type="checkbox"] {
     background-color: #022; /* Dark background for the input */
     border: 1px solid #0af; /* Neon border color */
     padding: 10px;
@@ -379,17 +347,17 @@ body {
     0 0 3px #0af,
     0 0 3px #0af;
     transition: box-shadow 0.3s ease-in-out;
-   }
-   
-   /* Enhance the neon glow when the input is focused */
-   input[type="text"]:focus, input[type="password"]:focus {
+}
+
+/* Enhance the neon glow when the input is focused */
+input[type="text"]:focus, input[type="password"]:focus {
     box-shadow: 0 0 6px #0af,
     0 0 6px #0af,
     0 0 6px #0af;
-   }
-   
-   /* Styling for checkboxes to match the neon theme */
-   input[type="checkbox"] {
+}
+
+/* Styling for checkboxes to match the neon theme */
+input[type="checkbox"] {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -400,24 +368,24 @@ body {
     border: 2px solid #0af;
     vertical-align: middle;
     cursor: pointer;
-   }
-   
-   input[type="checkbox"]:checked {
+}
+
+input[type="checkbox"]:checked {
     background-color: #0af;
     box-shadow: inset 0 0 5px #0af, /* Inner shadow for a glowing effect */
     0 0 5px #0af, /* Outer glow */
     0 0 10px #0af;
-   }
-   
-   /* Labels for a cleaner, professional look */
-   label {
+}
+
+/* Labels for a cleaner, professional look */
+label {
     color: #33d9ff; /* Neon text color */
     font-weight: bold;
     margin-right: 10px;
-   }
-   
-   /* Button Styling */
-   button {
+}
+
+/* Button Styling */
+button {
     background-color: #033; /* Dark button background */
     color: #0ff; /* Neon text color */
     border: 1px solid #0af; /* Neon border */
@@ -425,40 +393,37 @@ body {
     font-size: 1em;
     border-radius: 5px;
     cursor: pointer;
-    /* box-shadow: 0 0 5px #0af, /* Neon glow effect */
-    /* 0 0 10px #0af,
-    0 0 15px #0af;*/
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
-    margin-bottom:20px;
-   }
-   
-   /* Hover effect for the button to make it pop */
-   button:hover {
+    margin-bottom: 20px;
+}
+
+/* Hover effect for the button to make it pop */
+button:hover {
     box-shadow: 0 0 5px #0af,
     0 0 5px #0af,
     0 0 7px #0af;
     transform: scale(1.05);
-   }
-   
-   /* Styling for the form container */
-   .form-container {
+}
+
+/* Styling for the form container */
+.form-container {
     background-color: #011; /* Slightly lighter form background */
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 5px #0af, /* Neon glow effect */
     0 0 5px #0af,
     0 0 5px #0af;
-   }
-   
-   /* Enhances the layout of form elements */
-   .form-field {
+}
+
+/* Enhances the layout of form elements */
+.form-field {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
-   }
-   
-   /* Give the create pool section a distinct look */
-   #create-pool-section {
+}
+
+/* Give the create pool section a distinct look */
+#create-pool-section {
     padding: 20px;
     background: rgba(10, 15, 34, 0.85); /* Translucent background */
     border: 2px solid #33d9ff; /* Neon border */
@@ -466,41 +431,39 @@ body {
     box-shadow: 0 0 5px #33d9ff, /* Outer neon glow */
     0 0 5px #33d9ff;
     margin: 20px 0;
-   }
-   
-   /* Increase spacing between form elements */
-   #pool-name, #pool-password {
+}
+
+/* Increase spacing between form elements */
+#pool-name, #pool-password {
     margin-bottom: 15px; /* Adds more space below the input fields */
-   }
-   
-   /* Style for the checkbox label */
-   #private-pool-label {
+}
+
+/* Style for the checkbox label */
+#private-pool-label {
     display: inline-block;
     margin-right: 10px; /* Adds space between the label and the checkbox */
     vertical-align: middle; /* Aligns label with the checkbox */
-   }
-   
-   /* Style for the checkbox */
-   #is-private {
+}
+
+/* Style for the checkbox */
+#is-private {
     vertical-align: middle; /* Aligns checkbox vertically with the label */
     margin-right: 15px; /* Adds space between the checkbox and the 'Create Pool' button */
-   }
-   
-   
-   /* Transform 'Create Pool' button into 'Go Back' button */
-   #toggle-create-button.reverse {
+}
+
+/* Transform 'Create Pool' button into 'Go Back' button */
+#toggle-create-button.reverse {
     background-color: #33d9ff; /* Neon blue for a 'go back' symbol */
     transform: rotate(180deg); /* Rotate the button to indicate 'go back' */
-   }
-   
-   /* Hide password field initially */
-   #pool-password {
+}
+
+/* Hide password field initially */
+#pool-password {
     display: none;
-   }
-   
-   
-   /* Additional styling for the container to fix position issue */
-   .create-pool-container {
+}
+
+/* Additional styling for the container to fix position issue */
+.create-pool-container {
     display: flex;
     flex-direction: column;
     align-items: center; /* This centers the button in the flex container */
@@ -508,9 +471,9 @@ body {
     width: 100%; /* Adjust width to fit content */
     border-bottom: 1px solid #33d9ff; /* Neon-like blue border */
     padding-bottom: 20px; /* Space above the border */
-   }
-   
-   #create-pool-form input[type="submit"] {
+}
+
+#create-pool-form input[type="submit"] {
     background-color: #033; /* Dark background for the button */
     color: #0ff; /* Neon text color */
     border: 1px solid #0af; /* Neon border color */
@@ -525,85 +488,57 @@ body {
     width: auto; /* Adjust width as necessary */
     margin-top: 10px; /* Space above the button */
     display: block; /* Ensure the button is a block element to take up full width */
-   }
-   
-   #create-pool-form-container{
+}
+
+#create-pool-form-container {
     border-bottom: 2px solid rgb(0, 247, 255); /* Neon border color */
-   }
-   /* You can also directly apply the styles to the buttons */
-   #show-create-pool-form,
-   #show-join-pool-form { 
+}
+
+#show-create-pool-form,
+#show-join-pool-form {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;/* Make sure to use the correct IDs */
+    justify-content: center; /* Make sure to use the correct IDs */
     width: auto; /* Or specify a width */
     margin: 20px auto; /* Top and bottom margin with auto horizontal margins */
-   }
-   
-   
-   
-   /* Hover effect for the 'Create Pool' button */
-   #create-pool-form input[type="submit"]:hover {
-    box-shadow: 0 0 10px #0af, /* Enhanced outer neon glow effect */
-    0 0 20px #0af, /* Enhanced middle neon glow effect */
-    0 0 30px #0af; /* Enhanced inner neon glow effect */
-    transform: scale(1.05); /* Slightly increase the size on hover */
-   }
-   /* Style for the secondary 'Create Pool' button */
-   .secondary-create-button {
-    display: none; /* Hidden by default */
-    background-color: #0a0f22;
-    color: #33d9ff;
-    border: 2px solid #33d9ff;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
-    margin-top: 15px; /* Space above the secondary button */
-   }
-   
-   .secondary-create-button.visible {
-    display: block; /* Show the button when it should be visible */
-   }
-   #main-content button {
+}
+
+#main-content button {
     margin-bottom: 0px;
-   }
-   
-   #main-content form {
+}
+
+#main-content form {
     display: flex;
     flex-wrap: wrap; /* This will allow items to wrap to the next line if needed */
     gap: 10px; /* This adds some space between your form items */
-   }
-   
-   #main-content label,
-   #main-content input[type="text"],
-   #main-content input[type="password"],
-   #main-content input[type="checkbox"],
-   #main-content input[type="submit"] {
-    
+}
+
+#main-content label,
+#main-content input[type="text"],
+#main-content input[type="password"],
+#main-content input[type="checkbox"],
+#main-content input[type="submit"] {
     margin-bottom: 10px; /* Add space below each form element */
-   }
-   
-   #main-content .form-field {
+}
+
+#main-content .form-field {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
-   }
-   
-   /* This class should be added to your label and input elements for password */
-   .form-field-row {
+}
+
+.form-field-row {
     flex-basis: 50%; /* Adjust as needed */
-   }
-   
-   /* Adjust the styles for the password label and input to display them inline */
-   #main-content label[for="pool-password"],
-   #main-content #pool-password {
+}
+
+#main-content label[for="pool-password"],
+#main-content #pool-password {
     display: inline-block; /* This makes the label and input align horizontally */
     width: auto; /* Adjust width as needed or use flex-grow property */
-   }
-   
-   #main-content input[type="submit"][value="Create Pool"] {
+}
+
+#main-content input[type="submit"][value="Create Pool"] {
     background-color: #033; /* Dark background for the button */
     color: #0ff; /* Neon text color */
     border: 1px solid #0af; /* Neon border color */
@@ -615,54 +550,51 @@ body {
     0 0 5px #0af,
     0 0 5px #0af;
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
-   }
-   
-   /*MAYBBEEE TAKE OUT???*/
-   .player-row:last-child {
+}
+
+.player-row:last-child {
     border-bottom: none; /* Removes the line from the last row */
-   }
-   
-   /* .player-picks flex container should allow wrapping and not restrict the height */
-   
-   /* Ensure the container elements are flex */
-   .pool-header, .player-row {
+}
+
+/* Ensure the container elements are flex */
+.pool-header, .player-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid #33d9ff;
-   }
-   
-   /* Flex items in the header and rows */
-   .pool-header > span, .player-row > div {
+}
+
+/* Flex items in the header and rows */
+.pool-header > span, .player-row > div {
     flex: 1; /* Default flex grow */
     text-align: center;
     position: relative; /* For vertical lines */
     padding: 10px 0; /* Consistent padding for all items */
-   }
-   
-   /* Style for the profile picture */
-   .player-profile-pic {
+}
+
+/* Style for the profile picture */
+.player-profile-pic {
     width: 43px; /* Fixed width */
     height: 43px; /* Fixed height */
     border-radius: 50%; /* Circle */
     background-size: cover; /* Fill the container */
     background-position: center; /* Center the image */
     margin-right: 10px; /* Space between image and username */
-    flex-shrink:0;
-   }
-   
-   .player-rank{order: 1}
-   .player-user{order: 2}
-   .player-points{order: 3}
-   .player-picks{order: 4}
-   .player-win{order: 5}
-   .player-loss{order: 6}
-   .player-push{order: 7}
-   /* Specific flex values to match the header with the rows */
-   /* Vertical lines with consistent height */
-   /* Vertical lines with gap from top and bottom */
-   .pool-header > span:not(:last-child)::after,
-   .player-row > div:not(:last-child)::after {
+    flex-shrink: 0;
+}
+
+.player-rank { order: 1 }
+.player-user { order: 2 }
+.player-points { order: 3 }
+.player-picks { order: 4 }
+.player-win { order: 5 }
+.player-loss { order: 6 }
+.player-push { order: 7 }
+
+/* Specific flex values to match the header with the rows */
+/* Vertical lines with consistent height */
+.pool-header > span:not(:last-child)::after,
+.player-row > div:not(:last-child)::after {
     content: '';
     position: absolute;
     right: 0;
@@ -671,15 +603,15 @@ body {
     height: 30px; /* Adjust the height as needed */
     width: 1px;
     background-color: #33d9ff;
-   }
-   
-   /* Remove the general rule that applies the line after every div */
-   .player-row > div::after {
+}
+
+/* Remove the general rule that applies the line after every div */
+.player-row > div::after {
     content: none;
-   }
-   
-   /* Apply the vertical line specifically after the 'Picks' column */
-   .player-row > div:nth-child(7)::after {
+}
+
+/* Apply the vertical line specifically after the 'Picks' column */
+.player-row > div:nth-child(7)::after {
     content: '';
     position: absolute;
     right: 0;
@@ -688,114 +620,114 @@ body {
     height: 30px;
     width: 1px;
     background-color: #33d9ff;
-   }
-   
-   
-   
-   /* Other cosmetic styling (background colors, hover effects, etc.) can be added as needed */
-   /* Flex settings for player row items */
-   .player-rank,
-   .player-user,
-   .player-points,
-   .player-picks,
-   .player-win,
-   .player-loss,
-   .player-push {
+}
+
+/* Other cosmetic styling (background colors, hover effects, etc.) can be added as needed */
+/* Flex settings for player row items */
+.player-rank,
+.player-user,
+.player-points,
+.player-picks,
+.player-win,
+.player-loss,
+.player-push {
     display: flex;
     align-items: center; /* Center content vertically */
     justify-content: center; /* Center content horizontally */
     text-align: center;
     position: relative;
     padding: 10px 0; /* Consistent padding for all items */
-   }
-   
-   .pool-header .header-rank, .player-row .player-rank { flex: 0.5; }
-   .pool-header .header-user, .player-row .player-user { flex: 2.5; }
-   .pool-header .header-points, .player-row .player-points { flex: 1; }
-   .pool-header .header-picks, .player-row .player-picks { flex: 5; }
-   .pool-header .header-win, .player-row .player-win { flex: 1; }
-   .pool-header .header-loss, .player-row .player-loss { flex: 1; }
-   .pool-header .header-push, .player-row .player-push { flex: 1; }
-   
-   
-   .admin-badge {
+}
+
+.pool-header .header-rank, .player-row .player-rank { flex: 0.5; }
+.pool-header .header-user, .player-row .player-user { flex: 2.5; }
+.pool-header .header-points, .player-row .player-points { flex: 1; }
+.pool-header .header-picks, .player-row .player-picks { flex: 5; }
+.pool-header .header-win, .player-row .player-win { flex: 1; }
+.pool-header .header-loss, .player-row .player-loss { flex: 1; }
+.pool-header .header-push, .player-row .player-push { flex: 1; }
+
+.admin-badge {
     color: rgb(1, 211, 1); /* Green color for the admin badge */
     margin-left: 0.5em; /* Space between the username and the badge */
-   }
-   
-   .player-user {
+}
+
+.player-user {
     flex: 2.5;
     max-width: 240px; /* Adjust as necessary */
     display: flex;
     align-items: center;
     overflow: hidden; /* Hide overflow */
-   }
-   
-   .crown-icon {
+}
+
+.crown-icon {
     margin-left: 0.2em;
     padding-right: 4px;
     font-size: 1.0rem; /* Adjust as needed */
     z-index: 10;
     color: gold;
-   }
-   
-   .player-username {
+}
+
+.player-username {
     font-size: 1rem; /* Fixed font size, adjust as needed */
     overflow: hidden; /* Hide overflow */
     white-space: nowrap; /* Keep content in a single line */
     overflow-x: auto;
-   }
-   
-   /* Scrollbar styling */
-   .player-username::-webkit-scrollbar {
+}
+
+/* Scrollbar styling */
+.player-username::-webkit-scrollbar {
     height: 4px; /* Height of horizontal scrollbar */
     background-color: rgba(0, 255, 64, 0.1); /* Scrollbar track color */
-   }
-   
-   .player-username::-webkit-scrollbar-thumb {
+}
+
+.player-username::-webkit-scrollbar-thumb {
     background-color: rgba(1, 255, 43, 0.2); /* Scrollbar thumb color */
     border-radius: 2px;
-   }
-   
-   /* Optional: hide scrollbar when not scrolling */
-   .player-username::-webkit-scrollbar-thumb {
+}
+
+.player-username::-webkit-scrollbar-thumb {
     background-clip: content-box; /* Avoid dragging on the padding area */
     border: 2px solid transparent;
-   }
-   
-   .player-username:hover::-webkit-scrollbar-thumb {
+}
+
+.player-username:hover::-webkit-scrollbar-thumb {
     background-color: rgba(0, 195, 255, 0.5); /* Scrollbar thumb color on hover */
-   }
-   .pool-manager {
+}
+
+.pool-manager {
     width: 200px; /* Set the width of the box */
     padding: 20px; /* Padding inside the box */
     background-color: #012; /* Background color of the box */
     border: 2px solid #33d9ff; /* Neon light blue border */
-    position: absolute; /* Position it absolutely within its parent */
-    top: 10px;
-    right: 5px; /* Distance from the top of the viewport */
-    align-items: center; /* Distance from the left side of the viewport */
-    z-index: 5; /* Stack order in case it overlaps with other elements */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Optional shadow for some depth */
     border-radius: 8px; /* Optional border radius for rounded corners */
-   }
-   
-   
-   
-   /* You might also want to adjust the content area so it does not go under the sidebar */
-   .content {
+    margin: 20px 0; /* Space around the pool manager */
+    transition: margin 0.3s ease-in-out;
+}
+
+/* Flex settings for pool manager */
+.pool-manager.centered {
+    align-self: center;
+}
+
+/* Move the pool manager down when there are pools */
+.pool-manager.bottom {
+    margin-top: 20px;
+}
+
+.content {
     margin-left: 20%; /* This should match the width of your .pool-manager */
     flex: 3; /* take up the remaining space */
     padding: 20px;
     background-color: #012; /* Change to match your page's theme */
-   }
-   
-    /* Style your forms within the pool-manager */
-    #join-pool-form, #create-pool-form {
+}
+
+/* Style your forms within the pool-manager */
+#join-pool-form, #create-pool-form {
     margin-bottom: 20px;
-    }
-    
-    #join-pool-form input[type="submit"] {
+}
+
+#join-pool-form input[type="submit"] {
     background-color: #033; /* Dark background for the button */
     color: #0ff; /* Neon text color */
     border: 1px solid #0af; /* Neon border color */
@@ -808,45 +740,44 @@ body {
     0 0 15px #0af;
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
     margin-top: 20px;
-   }
-   
-   #join-pool-form input[type="submit"]:hover {
+}
+
+#join-pool-form input[type="submit"]:hover {
     box-shadow: 0 0 10px #0af, /* Neon glow effect */
     0 0 20px #0af,
     0 0 30px #0af;
     transform: scale(1.05);
-   }
-   
-   /* Style the labels and inputs for a more spaced-out look */
-   #join-pool-form label,
-   #join-pool-form input {
+}
+
+#join-pool-form label,
+#join-pool-form input {
     display: block; /* Stack them vertically */
     width: 100%; /* Full width of the container */
     margin-bottom: 10px; /* Adjust as necessary for space between form elements */
     box-sizing: border-box; /* Include padding in width calculation */
-   }
-    /* Add responsive design as needed */
-    @media (max-width: 768px) {
+}
+
+@media (max-width: 768px) {
     .container {
-    flex-direction: column;
+        flex-direction: column;
     }
-    
+
     .pool-manager {
-    max-width: 100%; /* full width on smaller screens */
-    height: auto; /* adjust height */
+        max-width: 100%; /* full width on smaller screens */
+        height: auto; /* adjust height */
     }
-    
+
     .content {
-    flex: 1; /* reset flex */
+        flex: 1; /* reset flex */
     }
-    }
-   
-    .pool-and-delete-container {
+}
+
+.pool-and-delete-container {
     position: relative;
-    padding: 10px
-   }
-   
-   .delete-pool-button {
+    padding: 10px;
+}
+
+.delete-pool-button {
     position: absolute;
     right: 10px; /* Adjust as necessary to move it closer to the right edge of the pool */
     bottom: -20px; /* Adjust this value to move closer to the bottom edge of the pool */
@@ -859,58 +790,73 @@ body {
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
     font-weight: bold; /* If the Create Pool button has bold text */
     font-size: .9em; /* Adjust font size as needed */
-   }
-   /* Styling for headers */
-   .pool-header > span {
+}
+
+/* Styling for headers */
+.pool-header > span {
     color: #ffffff; /* Change to the color that fits your design */
-    /*text-shadow: 0px 0px 5px #33d6ff; /* Glowing effect on hover */
-    font-family:'Montserrat', sans-serif;
+    font-family: 'Montserrat', sans-serif;
     font-size-adjust: calc(50%);
     text-transform: uppercase; /* Capitalize your headers for more impact */
-   }
-   
-   
-   .pool-header .header-rank {
+}
+
+.pool-header .header-rank {
     text-align: right; /* Ensure text is aligned to right */
-   }
-   .header-immortal-lock .fas {
+}
+
+.header-immortal-lock .fas {
     margin-left: 5px; /* Add a little space between the text and the icon */
-   }
-   .player-row .player-immortal-lock { order: 5 } /* Assign proper order and flex */
-   
-   .player-picks, .player-immortal-lock {
+}
+
+.player-row .player-immortal-lock { order: 5 } /* Assign proper order and flex */
+
+.player-picks, .player-immortal-lock {
     display: flex;
     align-items: flex-end; /* Align all pick and immortal-lock elements to the bottom */
     justify-content: space-around; /* Adjust space around the elements */
     height: 100%; /* Ensure it takes up full height */
-   }
-   
-   .pick, .immortal-lock {
+}
+
+.pick, .immortal-lock {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-end; /* Align items to the bottom of the container */
     width: 100%;
-   }
-   
-   .pick img, .immortal-lock img {
+}
+
+.pick img, .immortal-lock img {
     margin-bottom: 8px; /* Add space between the icon and the text */
     padding-left: 10px;
-   }
-   
-   .pick span, .immortal-lock span {
+}
+
+.pick span, .immortal-lock span {
     line-height: 1; /* Ensure consistent line height */
     margin-top: auto; /* Ensure the text is pushed to the bottom */
-   }
-   
-   .pool-header .header-rank {
+}
+
+.pool-header .header-rank {
     text-align: right; /* Keep text aligned to the right */
     position: relative; /* Required for transform to work */
-   }
-   
-   .pool-header .header-rank::before {
+}
+
+.pool-header .header-rank::before {
     content: "RANK";
     display: inline-block;
     transform: translateX(-10px); /* Move the text to the left */
-   }
-   
+}
+
+.leave-pool-button {
+    position: absolute;
+    right: 10px; /* Adjust as necessary to move it closer to the right edge of the pool */
+    bottom: -20px; /* Adjust this value to move closer to the bottom edge of the pool */
+    padding: 10px 20px; /* Match the padding of your Create Pool button */
+    background-color: #033; /* Background color to match the Create Pool button */
+    color: #0ff; /* Text color to match the Create Pool button */
+    border: 1px solid #0af; /* Border color to match the Create Pool button */
+    border-radius: 5px; /* Border radius to match the Create Pool button */
+    cursor: pointer;
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
+    font-weight: bold; /* If the Create Pool button has bold text */
+    font-size: .9em; /* Adjust font size as needed */
+}

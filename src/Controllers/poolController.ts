@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import { connectToDatabase } from '../microservices/connectDB';
 import Pool from '../models/Pool'; // Assuming you have a Pool model set up as previously discussed
+import { Collection } from 'mongodb';
 
 // Helper function to find user by username and return the user object
 const findUserByUsername = async (username: string) => {
@@ -11,6 +12,36 @@ const findUserByUsername = async (username: string) => {
   return user;
 };
 
+interface Member {
+  username: string;
+}
+
+interface PoolDocument extends Document {
+  name: string;
+  members: Member[];
+}
+
+export const leavePool = async (req: Request, res: Response) => {
+  const { username, poolName } = req.params;
+  console.log("leaving pool: " + username, poolName)
+  try {
+    const database = await connectToDatabase();
+    const poolsCollection: Collection<PoolDocument> = database.collection('pools');
+
+    const updateResult = await poolsCollection.updateOne(
+      { name: poolName },
+      { $pull: { members: { username: username } as any } } // Add "as any" to bypass the type error
+    );
+
+    if (updateResult.modifiedCount === 0) {
+      return res.status(404).json({ message: 'User not found in pool or pool not found' });
+    }
+
+    res.json({ message: 'User removed from pool successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error leaving pool', error });
+  }
+};
 
 export const createPool = async (req: Request, res: Response) => {
   console.log('Request to create pool received:', req.body);
