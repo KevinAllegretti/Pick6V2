@@ -250,10 +250,20 @@ const lastWeekPicks = {
         return; // Exit the function without adding the new bet
     }
 
-    // Find the `commenceTime` for the selected option
+    // F
+    // Check if a bet from the opposing team in the same matchup already exists
     const betOption = betOptions.find(bet => bet.teamName === option.teamName && bet.type === option.type);
     const commenceTime = betOption ? betOption.commenceTime : null;
 
+    const opposingTeamBetIndex = userPicks.findIndex(pick => {
+        const opposingBetOption = betOptions.find(bet => bet.commenceTime === commenceTime && bet.teamName !== option.teamName);
+        return opposingBetOption && pick.teamName === opposingBetOption.teamName;
+    });
+
+    if (opposingTeamBetIndex !== -1) {
+        alert("You cannot select a bet from both teams in the same matchup.");
+        return; // Exit the function without adding the new bet
+    }
     const currentPick = {
         teamName: option.teamName,
         type: option.type,

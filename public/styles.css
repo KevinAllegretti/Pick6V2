@@ -437,7 +437,8 @@ h4 {
   color: #00e9fa;; /* Bright red for visibility */
   margin: 0 15px;
   flex: 0 0 50px; /* Bigger and bolder */
-  margin-right: 5px;
+  padding-left: 18px;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .commence-time {
