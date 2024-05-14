@@ -567,7 +567,7 @@ body {
     display: block; /* Show the button when it should be visible */
    }
    #main-content button {
-    margin-bottom: 20px; /* Adjust the value to suit your design */
+    margin-bottom: 0px;
    }
    
    #main-content form {
