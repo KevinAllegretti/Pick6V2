@@ -63,14 +63,13 @@ router.post('/api/resetPicks/:username/:poolName', async (req, res) => {
 router.get('/api/getPicks/:username/:poolName', async (req, res) => {
     try {
         const { username, poolName } = req.params;
-       // console.log('Requested picks for:', req.params.username, 'in pool:', req.params.poolName);
         const database = await connectToDatabase();
         const picksCollection = database.collection('userPicks');
 
         // Query the collection using both username and poolName
-        const userPicksData = await picksCollection.findOne({ 
-            username: username.toLowerCase(), 
-            poolName 
+        const userPicksData = await picksCollection.findOne({
+            username: username.toLowerCase(),
+            poolName
         });
 
         if (userPicksData) {
@@ -82,6 +81,7 @@ router.get('/api/getPicks/:username/:poolName', async (req, res) => {
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 });
+
 
 // picksRoutes.js
 router.post('/api/saveWeeklyPicks', async (req, res) => {

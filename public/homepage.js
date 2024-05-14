@@ -235,6 +235,17 @@ function sortPlayersByPoints(players) {
     return players.sort((a, b) => b.points - a.points);
   }
   
+  function fetchUserProfile(username) {
+    const encodedUsername = encodeURIComponent(username);
+    return fetch(`/api/getUserProfile/${encodedUsername}`)
+        .then(response => response.json())
+        .then(userProfile => {
+            if (!userProfile) {
+                throw new Error(`User profile for ${username} not found`);
+            }
+            return userProfile;
+        });
+}
 
 
 function displayNewPoolContainer(pool) {
@@ -304,7 +315,7 @@ function displayNewPoolContainer(pool) {
         const poolHeader = document.createElement('div');
         poolHeader.className = 'pool-header';
         poolHeader.innerHTML = `
-            <span class="header-rank">Rank</span>
+            <span class="header-rank"></span>
             <span class="header-user">User</span>
             <span class="header-points">Points</span>
             <span class="header-picks">
@@ -391,25 +402,11 @@ function displayNewPoolContainer(pool) {
 
 
 
-function fetchUserProfile(username) {
-    const encodedUsername = encodeURIComponent(username);
-    return fetch(`/api/getUserProfile/${encodedUsername}`)
-        .then(response => response.json())
-        .then(userProfile => {
-            if (!userProfile) {
-                throw new Error(`User profile for ${username} not found`);
-            }
-            return userProfile;
-        });
-}
-
 function fetchPicks(username, poolName, playerRow, teamLogos) {
-    console.log('Inside fetchPicks, poolName is:', poolName);
     const encodedUsername = encodeURIComponent(username);
     const encodedPoolName = encodeURIComponent(poolName);
     const url = `/api/getPicks/${encodedUsername}/${encodedPoolName}`;
-    
-    console.log('Fetching picks with URL:', url);
+
     fetch(url)
         .then(response => {
             if (!response.ok) {
@@ -418,21 +415,27 @@ function fetchPicks(username, poolName, playerRow, teamLogos) {
             return response.json();
         })
         .then(picksData => {
-            console.log('Received picks data:', picksData); // Debugging log
-            const picksContainer = playerRow.querySelector('.player-picks');
+            console.log('Fetched picks data:', picksData); // Log fetched picks data for debugging
 
-            // Ensure the picksContainer is cleared before adding new content
+            const picksContainer = playerRow.querySelector('.player-picks');
             picksContainer.innerHTML = '';
 
             if (picksData && picksData.picks && Array.isArray(picksData.picks) && picksData.picks.length > 0) {
+                // Log commenceTime values before sorting
+                console.log('Before sorting:', picksData.picks.map(pick => pick.commenceTime));
+
+                // Sort picks by commenceTime before rendering
+                picksData.picks.sort((a, b) => new Date(a.commenceTime) - new Date(b.commenceTime));
+
+                // Log commenceTime values after sorting
+                console.log('After sorting:', picksData.picks.map(pick => pick.commenceTime));
+
                 picksData.picks.forEach(pick => {
                     const pickDiv = document.createElement('div');
                     pickDiv.className = 'pick';
 
-                    const teamNameMatch = pick.match(/^(.*?)\s\[/);
-                    const teamName = teamNameMatch ? teamNameMatch[1] : null;
-                    const valueMatch = pick.match(/\[.*?([-+]\d+(?:\.\d+)?)\]/);
-                    const value = valueMatch ? valueMatch[1] : null;
+                    const teamName = pick.teamName;
+                    const value = pick.value;
 
                     if (teamName && teamLogos[teamName]) {
                         const logoImg = document.createElement('img');
@@ -456,18 +459,15 @@ function fetchPicks(username, poolName, playerRow, teamLogos) {
                 noPicksMessage.textContent = 'No picks made';
                 picksContainer.appendChild(noPicksMessage);
             }
-            const immortalLockContainer = playerRow.querySelector('.player-immortal-lock');
 
-            //Immortal Lock
+            const immortalLockContainer = playerRow.querySelector('.player-immortal-lock');
             if (picksData.immortalLock && picksData.immortalLock.length > 0) {
-                const immortalPick = picksData.immortalLock[0]; // Assuming the Immortal Lock is the first element
+                const immortalPick = picksData.immortalLock[0];
                 const lockDiv = document.createElement('div');
                 lockDiv.className = 'immortal-lock';
 
-                const teamNameMatch = immortalPick.match(/^(.*?)\s\[/);
-                const teamName = teamNameMatch ? teamNameMatch[1] : null;
-                const valueMatch = immortalPick.match(/\[.*?([-+]\d+(?:\.\d+)?)\]/);
-                const value = valueMatch ? valueMatch[1] : null;
+                const teamName = immortalPick.teamName;
+                const value = immortalPick.value;
 
                 if (teamName && teamLogos[teamName]) {
                     const logoImg = document.createElement('img');
@@ -491,15 +491,15 @@ function fetchPicks(username, poolName, playerRow, teamLogos) {
         })
         .catch(error => {
             console.error('Error fetching picks for user:', username, 'in pool:', poolName, error);
-            // Optionally update UI to reflect the error
             const picksContainer = playerRow.querySelector('.player-picks');
-            picksContainer.innerHTML = ''; // Clear previous content
+            picksContainer.innerHTML = '';
             const errorMessage = document.createElement('div');
             errorMessage.className = 'error-message';
-            errorMessage.textContent = '';
+            errorMessage.textContent = 'Error fetching picks';
             picksContainer.appendChild(errorMessage);
         });
 }
+
 
 
 
