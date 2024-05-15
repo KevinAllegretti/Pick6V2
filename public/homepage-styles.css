@@ -71,7 +71,7 @@ body {
     position: fixed;
     top: 0;
     left: -100%; /* Start off-screen to the left */
-    width: 35%; /* Takes up half the screen width */
+    width: 45%; /* Takes up half the screen width */
     height: 100%; /* Full screen height */
     background-color: #191e35; /* Dark background */
     border-right: 2px solid #33d9ff; /* Neon blue border */
@@ -86,12 +86,32 @@ body {
 }
 
 .close-panel-btn {
-    font-size: 1.5rem;
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
+    width: 40px; /* Adjust size as needed */
+    height: 40px; /* Adjust size as needed */
+    background-color: #0a0f22; /* Dark background to match the panel */
+    border: 2px solid #33d9ff; /* Neon blue border */
+    border-radius: 10px; /* Rounded corners */
+    color: #FFF; /* White color for the X */
+    font-size: 1.5rem; /* Adjust font size as needed */
+    cursor: pointer; /* Pointer cursor to indicate it's clickable */
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    box-shadow: 0 0 5px #33d9ff, 0 0 5px #33d9ff, 0 0 10px #33d9ff; /* Neon glow effect */
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
+    margin: 20px auto; /* Center the button horizontally within the panel */
+    margin-top: 1px;
 }
+
+.close-panel-btn:hover {
+    box-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff, 0 0 30px #33d9ff; /* Enhanced neon glow effect on hover */
+    transform: scale(1.1); /* Slightly enlarge the button on hover */
+}
+
+.close-panel-btn:focus {
+    outline: none; /* Remove the default outline on focus */
+}
+
 
 .panel-content {
     padding: 20px;
@@ -102,24 +122,30 @@ body {
 }
 
 .custom-file-upload {
-    padding: 10px 15px;
-    background-color: #00BFFF; /* Neon blue */
-    border: 2px solid #00BFFF;
-    border-radius: 5px;
-    color: #111;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #33d9ff 0%, #0099CC 100%);
+    border: 2px solid #0099CC;
+    border-radius: 10px;
+    color: #FFF;
     font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
+    transition: background 0.3s, color 0.3s, box-shadow 0.3s;
     text-align: center;
     display: block; /* Makes it a block element */
     margin: 20px auto; /* Centers it in the side panel */
     text-decoration: none; /* Removes underline text */
+
 }
 
 .custom-file-upload:hover {
-    background-color: #0099CC; /* A slightly darker neon blue */
-    color: #FFF;
+    background: linear-gradient(135deg, #0099CC 0%, #33d9ff 100%);
+    box-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff, 0 0 30px #33d9ff; /* Enhanced neon glow effect on hover */
 }
+
+.custom-file-upload i {
+    margin-right: 8px; /* Adds some space between the icon and the text */
+}
+
 
 /* Hide the file input visually but remain accessible to screen readers. */
 input[type="file"] {
@@ -271,9 +297,13 @@ h2 {
     cursor: pointer;
     box-shadow: 0 0 5px #0af, 0 0 10px #0af, 0 0 15px #0af; /* Neon glow effect */
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
-    position: absolute; /* Position the button absolutely within the .slide-out-panel */
-    top: 10px; /* Adjust as needed */
-    right: 10px; /* Adjust as needed */
+    margin: 20px auto; /* Center horizontally */
+    display: block; /* Make it block level to center with margin auto */
+}
+
+.logout-button:hover {
+    box-shadow: 0 0 10px #0af, 0 0 20px #0af, 0 0 30px #0af;
+    transform: scale(1.05);
 }
 
 .team-logo {
@@ -879,9 +909,12 @@ button:hover {
 .pool-scrollable-container {
     overflow-x: auto; /* Enable horizontal scrolling */
     width: 100%;
-    padding-bottom: 10px;
+    /*padding-bottom: 10px;*/
     box-sizing: border-box; /* Include padding in width */
+   /* border-right: 2px solid#33d9ff;
+    border-radius: 8px;*/
 }
+/* Ensure the right border stays visible when scrolling */
 
 .pool-scrollable-container::-webkit-scrollbar {
     height: 8px; /* Height of the horizontal scrollbar */

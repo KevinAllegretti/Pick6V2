@@ -246,7 +246,6 @@ function sortPlayersByPoints(players) {
             return userProfile;
         });
 }
-
 function displayNewPoolContainer(pool) {
     const teamLogos = {
         'ARI Cardinals': '/ARILogo.png',
@@ -388,6 +387,7 @@ function displayNewPoolContainer(pool) {
         console.log("No username found in localStorage");
     }
 }
+
 
 
 function leavePool(poolName) {
