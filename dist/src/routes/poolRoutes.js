@@ -186,7 +186,8 @@ router.get('/getChatMessages', async (req, res) => {
     try {
         const database = await (0, connectDB_1.connectToDatabase)();
         const chatsCollection = database.collection('chats');
-        const messages = await chatsCollection.find({ poolName }).sort({ timestamp: 1 }).toArray();
+        const query = poolName ? { poolName } : { poolName: null };
+        const messages = await chatsCollection.find(query).sort({ timestamp: 1 }).toArray();
         res.json({ success: true, messages });
     }
     catch (error) {
@@ -202,7 +203,7 @@ router.post('/sendChatMessage', async (req, res) => {
         const chatsCollection = database.collection('chats');
         const newMessage = {
             username,
-            poolName,
+            poolName: poolName || null,
             message,
             timestamp: new Date()
         };

@@ -395,20 +395,76 @@ function displayNewPoolContainer(pool) {
         console.log("No username found in localStorage");
     }
 }
+let chatMode = 'local';  // Default chat mode
 
-// Function to toggle the chat container
+function setChatMode(button) {
+    const mode = button.getAttribute('data-mode');
+    chatMode = mode;
+    const chatWrapper = button.closest('.chat-wrapper');
+    const poolName = chatWrapper.closest('.pool-wrapper') ? chatWrapper.closest('.pool-wrapper').getAttribute('data-pool-name') : null;
+    const chatBox = chatWrapper.querySelector('.chat-box');
+    fetchMessages(poolName, chatBox);
+}
+
+// Update fetchMessages function
+function fetchMessages(poolName, chatBox) {
+    const queryParam = chatMode === 'global' ? '' : `?poolName=${encodeURIComponent(poolName)}`;
+    fetch(`/pools/getChatMessages${queryParam}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderMessages(data.messages, chatBox);
+            }
+        })
+        .catch(error => console.error('Error fetching chat messages:', error));
+}
+
+// Update sendMessage function
+function sendMessage(username, poolName, message, chatBox) {
+    const pool = chatMode === 'global' ? null : poolName;
+    fetch('/pools/sendChatMessage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, poolName: pool, message })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            fetchMessages(poolName, chatBox);
+        }
+    })
+    .catch(error => console.error('Error sending chat message:', error));
+}
+
+function renderMessages(messages, chatBox) {
+    chatBox.innerHTML = ''; // Clear the chat box before rendering new messages
+    messages.forEach(msg => {
+        const prefix = msg.poolName ? '[L]' : '[G]';
+        const messageElement = document.createElement('div');
+        messageElement.textContent = `${prefix} ${msg.username}: ${msg.message}`;
+        chatBox.appendChild(messageElement);
+    });
+    chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom of the chat box
+}
+
+// Ensure the mode is set and messages are fetched accordingly when the chat is toggled
 function toggleChat(chatTab) {
     const chatWrapper = chatTab.parentElement;
     chatWrapper.classList.toggle('show-chat');
+    document.querySelectorAll('.pool-wrapper').forEach(poolWrapper => {
+        const poolName = poolWrapper.getAttribute('data-pool-name');
+        const chatBox = poolWrapper.querySelector('.chat-box');
+        fetchMessages(poolName, chatBox);
+    });
 }
 
+// Adjust event listener to fetch messages according to the current mode
 document.addEventListener('DOMContentLoaded', () => {
     // Event listener for chat buttons
     document.addEventListener('click', function(event) {
         if (event.target.matches('.send-chat-button')) {
             const chatWrapper = event.target.closest('.chat-wrapper');
-            const chatTab = chatWrapper.querySelector('.chat-tab');
-            const poolName = chatWrapper.closest('.pool-wrapper').getAttribute('data-pool-name');
+            const poolName = chatWrapper.closest('.pool-wrapper') ? chatWrapper.closest('.pool-wrapper').getAttribute('data-pool-name') : null;
             const chatBox = chatWrapper.querySelector('.chat-box');
             const chatInput = chatWrapper.querySelector('.chat-input');
             const message = chatInput.value.trim();
@@ -428,42 +484,6 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchMessages(poolName, chatBox);
     });
 });
-
-// Fetch and render chat messages
-function fetchMessages(poolName, chatBox) {
-    fetch(`/pools/getChatMessages?poolName=${encodeURIComponent(poolName)}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                renderMessages(data.messages, chatBox);
-            }
-        })
-        .catch(error => console.error('Error fetching chat messages:', error));
-}
-
-function renderMessages(messages, chatBox) {
-    chatBox.innerHTML = '';
-    messages.forEach(msg => {
-        const messageElement = document.createElement('div');
-        messageElement.textContent = `${msg.username}: ${msg.message}`;
-        chatBox.appendChild(messageElement);
-    });
-}
-
-function sendMessage(username, poolName, message, chatBox) {
-    fetch('/pools/sendChatMessage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, poolName, message })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            fetchMessages(poolName, chatBox);
-        }
-    })
-    .catch(error => console.error('Error sending chat message:', error));
-}
 
 
 function leavePool(poolName) {

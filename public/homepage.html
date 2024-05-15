@@ -76,12 +76,17 @@
         <div class="chat-wrapper">
             <div class="chat-tab" onclick="toggleChat(this)">Chat</div>
             <div class="chat-container">
+                <div class="chat-toggle">
+                    <button class="chat-toggle-button" data-mode="local" onclick="setChatMode(this)">Local</button>
+                    <button class="chat-toggle-button" data-mode="global" onclick="setChatMode(this)">Global</button>
+                </div>
                 <div class="chat-box"></div>
                 <input type="text" class="chat-input" placeholder="Type a message...">
                 <button class="send-chat-button">Send</button>
             </div>
         </div>
     </template>
+    
 
     <script src="homepage.js"></script>
 </body>
