@@ -308,21 +308,6 @@ h2 {
     margin-bottom: 5px; /* Space between pool name and container */
 }
 
-.pool-container {
-    width: 100%; /* Takes the full width of its parent */
-    padding: 20px; /* Padding inside the container */
-    box-shadow: 0px 0px 10px #33d9ff;
-    border: 2px solid #33d9ff; /* Neon light blue border */
-    background-color: #17203a; /* Example background color */
-    color: #fff; /* Text color */
-    border-radius: 8px;
-    width: 1150px; /* Adjust this to control the width of the containers */
-    max-width: 1150px; /* Set a max-width for larger screens */
-    margin-bottom: 20px; /* Adds space between the pools */
-    text-align: left; /* Align text to the left */
-    transition: transform 0.2s, box-shadow 0.2s; /* Animation for hover */
-}
-
 .player-card {
     position: relative;
     width: 220px;
@@ -558,6 +543,7 @@ button:hover {
 
 /* Ensure the container elements are flex */
 .pool-header, .player-row {
+    color: #fff;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -772,10 +758,7 @@ button:hover {
     }
 }
 
-.pool-and-delete-container {
-    position: relative;
-    padding: 10px;
-}
+
 
 .delete-pool-button {
     position: absolute;
@@ -859,4 +842,110 @@ button:hover {
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
     font-weight: bold; /* If the Create Pool button has bold text */
     font-size: .9em; /* Adjust font size as needed */
+}
+/* Main Content */
+/* Main Content */
+/* Main Content */
+/* Main Content */
+#main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 auto;
+    padding: 0;
+    width: 100%;
+}
+
+/* Pool Container Wrapper */
+#pool-container-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 20px 0;
+}
+
+/* Pool Wrapper */
+.pool-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 25px;
+    box-sizing: border-box; /* Include padding and border in width */
+}
+
+/* Scrollable Container */
+.pool-scrollable-container {
+    overflow-x: auto; /* Enable horizontal scrolling */
+    width: 100%;
+    padding-bottom: 10px;
+    box-sizing: border-box; /* Include padding in width */
+}
+
+.pool-scrollable-container::-webkit-scrollbar {
+    height: 8px; /* Height of the horizontal scrollbar */
+}
+
+.pool-scrollable-container::-webkit-scrollbar-track {
+    background: #0a0f22; /* Track background color */
+    border-radius: 10px;
+}
+
+.pool-scrollable-container::-webkit-scrollbar-thumb {
+    background-color: #33d9ff; /* Thumb (scroll handle) color */
+    border-radius: 10px;
+    border: 2px solid #0a0f22; /* Border color to give it a rounded appearance */
+}
+
+.pool-scrollable-container::-webkit-scrollbar-thumb:hover {
+    background-color: #1bb1d5; /* Color when hovered */
+}
+
+.pool-scrollable-container::-webkit-scrollbar-thumb:active {
+    background-color: #00BFFF; /* Color when active (clicked) */
+}
+
+/* Pool Container */
+.pool-container {
+    min-width: 1150px; /* Fixed minimum width */
+    max-width: 1150px;
+    padding: 20px;
+    box-shadow: 0px 0px 10px #33d9ff;
+    border: 2px solid #33d9ff;
+    background-color: #17203a;
+    border-radius: 8px;
+    text-align: left;
+}
+
+/* Pool and Delete Container */
+.pool-and-delete-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    position: relative;
+    padding: 10px;
+    width: 100%;
+    max-width: 1250px;
+}
+
+/* Delete Pool Button */
+.delete-pool-button {
+    position: absolute; /* Stay within the pool-and-delete-container */
+    right: 10px;
+    bottom: 10px;
+    padding: 10px 20px;
+    background-color: #033;
+    color: #0ff;
+    border: 1px solid #0af;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 0 5px #0af, 0 0 10px #0af, 0 0 15px #0af;
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
+    font-weight: bold;
+    font-size: .9em;
+    z-index: 1; /* Ensure the button stays on top */
+}
+
+.delete-pool-button:hover {
+    box-shadow: 0 0 10px #0af, 0 0 20px #0af, 0 0 30px #0af;
+    transform: scale(1.05);
 }

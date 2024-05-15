@@ -289,13 +289,7 @@ function displayNewPoolContainer(pool) {
     if (currentUsername) {
         currentUsername = currentUsername.toLowerCase(); // Convert to lower case
 
-        // Verify we have the admin's username in the pool object and log it
-        // Make sure to convert to lowercase for comparison
-        const isAdmin = currentUsername.toLowerCase() === pool.adminUsername.toLowerCase();
-
-        console.log("Current username from local storage:", currentUsername);
-        console.log("Admin username from pool object:", pool.adminUsername);
-        console.log("Is admin:", isAdmin);
+        const isAdmin = currentUsername === pool.adminUsername.toLowerCase();
 
         const poolContainerWrapper = document.getElementById('pool-container-wrapper');
         const poolWrapper = document.createElement('div');
@@ -305,6 +299,9 @@ function displayNewPoolContainer(pool) {
         const poolNameDiv = document.createElement('div');
         poolNameDiv.className = 'pool-name';
         poolNameDiv.innerText = pool.name;
+
+        const poolScrollableContainer = document.createElement('div');
+        poolScrollableContainer.className = 'pool-scrollable-container';
 
         const poolContainer = document.createElement('div');
         poolContainer.className = 'pool-container';
@@ -319,93 +316,60 @@ function displayNewPoolContainer(pool) {
                 <button class="choose-picks-button" onclick="redirectToDashboard('${pool.name}')">Make Picks</button>
             </span>
             <span class="header-immortal-lock"> <i class="fas fa-lock"></i></span>
-
             <span class="header-win">Win</span>
             <span class="header-loss">Loss</span>
             <span class="header-push">Push</span>
         `;
         poolContainer.appendChild(poolHeader);
 
-        const totalMembers = pool.members.length;
-        // Sort the members
         pool.members.sort((a, b) => b.points - a.points || a.username.localeCompare(b.username));
 
-        // Fetch all the additional data for each member
-        const memberDataPromises = pool.members.map(member => {
-            return fetchUserProfile(member.username).then(userProfile => {
-                // Here we construct the full member data with userProfile and member's own data
-                return {
-                    rank: pool.members.indexOf(member) + 1,
-                    username: userProfile.username,
-                    profilePic: userProfile.profilePicture,
-                    points: member.points,
-                    wins: member.win,
-                    losses: member.loss,
-                    pushes: member.push
-                };
-            });
-        });
+        const memberDataPromises = pool.members.map(member => fetchUserProfile(member.username).then(userProfile => ({
+            rank: pool.members.indexOf(member) + 1,
+            username: userProfile.username,
+            profilePic: userProfile.profilePicture,
+            points: member.points,
+            wins: member.win,
+            losses: member.loss,
+            pushes: member.push
+        })));
 
-        Promise.all(memberDataPromises)
-            .then(membersData => {
-                // All data has been fetched, now create and append player rows
-                membersData.forEach(memberData => {
-                    const playerRow = createPlayerRow(memberData, memberData.username === pool.adminUsername, totalMembers);
-                    console.log('Pool name before fetchPicks:', pool.name);
-                    fetchPicks(memberData.username, pool.name, playerRow, teamLogos); // Fetch and process picks
-                    poolContainer.appendChild(playerRow); // Append player row to pool container
+        Promise.all(memberDataPromises).then(membersData => {
+            membersData.forEach(memberData => {
+                const playerRow = createPlayerRow(memberData, memberData.username === pool.adminUsername, pool.members.length);
+                fetchPicks(memberData.username, pool.name, playerRow, teamLogos);
+                poolContainer.appendChild(playerRow);
+            });
+
+            const poolAndDeleteContainer = document.createElement('div');
+            poolAndDeleteContainer.className = 'pool-and-delete-container';
+
+            poolScrollableContainer.appendChild(poolContainer);
+            poolWrapper.appendChild(poolNameDiv);
+            poolWrapper.appendChild(poolScrollableContainer);
+            poolAndDeleteContainer.appendChild(poolWrapper);
+
+            if (isAdmin) {
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete Pool';
+                deleteButton.className = 'delete-pool-button';
+                deleteButton.setAttribute('data-pool-name', pool.name);
+                deleteButton.addEventListener('click', function () {
+                    const confirmation = confirm(`Are you sure you want to delete the pool "${this.getAttribute('data-pool-name')}"?`);
+                    if (confirmation) {
+                        deletePool(this.getAttribute('data-pool-name'));
+                        this.remove();
+                    } else {
+                        console.log('Pool deletion cancelled by the user.');
+                    }
                 });
+                poolAndDeleteContainer.appendChild(deleteButton);
+            }
 
-                // Create a new div that will act as the relative container for the pool and delete button
-                const poolAndDeleteContainer = document.createElement('div');
-                poolAndDeleteContainer.className = 'pool-and-delete-container';
-
-                // Append the pool name div and the pool container to the pool wrapper
-                poolWrapper.appendChild(poolNameDiv);
-                poolWrapper.appendChild(poolContainer);
-
-                // Append the pool wrapper to the pool and delete container
-                poolAndDeleteContainer.appendChild(poolWrapper);
-
-                // If the user is an admin, create and append the delete button
-                if (isAdmin) {
-                    const deleteButton = document.createElement('button');
-                    deleteButton.textContent = 'Delete Pool';
-                    deleteButton.className = 'delete-pool-button';
-                    deleteButton.setAttribute('data-pool-name', pool.name);
-                    deleteButton.addEventListener('click', function () {
-                        const confirmation = confirm(`Are you sure you want to delete the pool "${this.getAttribute('data-pool-name')}"?`);
-                        if (confirmation) {
-                            deletePool(this.getAttribute('data-pool-name'));
-                            this.remove();
-                        } else {
-                            console.log('Pool deletion cancelled by the user.');
-                        }
-                    });
-                    poolAndDeleteContainer.appendChild(deleteButton);
-                } else {
-                    // If the user is not an admin, create and append the leave button
-                    const leaveButton = document.createElement('button');
-                    leaveButton.textContent = 'Leave Pool';
-                    leaveButton.className = 'leave-pool-button';
-                    leaveButton.setAttribute('data-pool-name', pool.name);
-                    leaveButton.addEventListener('click', function () {
-                        const confirmation = confirm(`Are you sure you want to leave the pool "${this.getAttribute('data-pool-name')}"?`);
-                        if (confirmation) {
-                            leavePool(this.getAttribute('data-pool-name'));
-                            this.remove();
-                        } else {
-                            console.log('Leaving pool cancelled by the user.');
-                        }
-                    });
-                    poolAndDeleteContainer.appendChild(leaveButton);
-                }
-
-                poolContainerWrapper.appendChild(poolAndDeleteContainer);
-            })
-            .catch(error => {
-                console.error('Error fetching member data:', error);
-            });
+            poolContainerWrapper.appendChild(poolAndDeleteContainer);
+        }).catch(error => {
+            console.error('Error fetching member data:', error);
+        });
     } else {
         console.log("No username found in localStorage");
     }
