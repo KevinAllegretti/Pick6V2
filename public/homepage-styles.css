@@ -972,3 +972,91 @@ button:hover {
     box-shadow: 0 0 10px #0af, 0 0 20px #0af, 0 0 30px #0af;
     transform: scale(1.05);
 }
+
+.chat-wrapper {
+    position: absolute;
+    top: 10px;  /* Adjust for placement */
+    right: 10px;  /* Adjust for placement */
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.chat-tab {
+    width: 100px;  /* Match existing buttons */
+    height: 40px;  /* Match existing buttons */
+    background-color: #17203a;  /* Match other buttons */
+    color: #fff;  /* White text */
+    text-align: center;
+    line-height: 40px;
+    border-radius: 5px 5px 0 0;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    font-size: 16px;  /* Adjust for readability */
+    border: solid 2px #33d9ff;
+}
+
+.chat-tab:hover {
+    background-color: #33d9ff;  /* Darker blue on hover */
+    transform: translateY(-2px);  /* Lift effect on hover */
+    border: solid 2px #17203a;
+}
+
+.chat-container {
+    width: 300px;  /* Match input width */
+    max-height: 0;
+    overflow: hidden;
+    background-color: #111;  /* Match theme */
+    color: #ddd;  /* Light grey text */
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    transition: max-height 0.3s ease;
+    position: relative; /* Changed from absolute to relative */
+    top: 0; /* Removed the previous value */
+    right: 0;
+}
+
+.chat-box {
+    height: 200px;
+    overflow-y: auto;  /* Only show scrollbar when necessary */
+    padding: 10px;
+    border-bottom: 1px solid #33d9ff;  /* Match other borders */
+    background-color: #222;  /* Match dark theme */
+}
+
+.chat-input {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin: 10px;
+    border: 1px solid #33d9ff;  /* Match other borders */
+    background-color: #333;  /* Match input background */
+    color: #ddd;  /* Light grey text */
+    border-radius: 5px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.send-chat-button {
+    width: 90%;  /* Match input width */
+    padding: 10px;
+    margin: 10px auto;
+    background-color: #33d9ff;  /* Match other buttons */
+    border: none;
+    border-radius: 5px;
+    color: #fff;  /* White text */
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.send-chat-button:hover {
+    background-color: #0056b3;  /* Darker blue on hover */
+    transform: translateY(-2px);  /* Lift effect on hover */
+}
+
+.show-chat .chat-container {
+    max-height: 300px;
+}

@@ -246,6 +246,7 @@ function sortPlayersByPoints(players) {
             return userProfile;
         });
 }
+
 function displayNewPoolContainer(pool) {
     const teamLogos = {
         'ARI Cardinals': '/ARILogo.png',
@@ -298,6 +299,7 @@ function displayNewPoolContainer(pool) {
         poolNameDiv.className = 'pool-name';
         poolNameDiv.innerText = pool.name;
 
+
         const poolScrollableContainer = document.createElement('div');
         poolScrollableContainer.className = 'pool-scrollable-container';
 
@@ -345,6 +347,12 @@ function displayNewPoolContainer(pool) {
             poolScrollableContainer.appendChild(poolContainer);
             poolWrapper.appendChild(poolNameDiv);
             poolWrapper.appendChild(poolScrollableContainer);
+
+       
+            // Append chat container from template
+            const chatTemplate = document.getElementById('chat-template').content.cloneNode(true);
+            poolWrapper.appendChild(chatTemplate);
+
             poolAndDeleteContainer.appendChild(poolWrapper);
 
             if (isAdmin) {
@@ -388,6 +396,74 @@ function displayNewPoolContainer(pool) {
     }
 }
 
+// Function to toggle the chat container
+function toggleChat(chatTab) {
+    const chatWrapper = chatTab.parentElement;
+    chatWrapper.classList.toggle('show-chat');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Event listener for chat buttons
+    document.addEventListener('click', function(event) {
+        if (event.target.matches('.send-chat-button')) {
+            const chatWrapper = event.target.closest('.chat-wrapper');
+            const chatTab = chatWrapper.querySelector('.chat-tab');
+            const poolName = chatWrapper.closest('.pool-wrapper').getAttribute('data-pool-name');
+            const chatBox = chatWrapper.querySelector('.chat-box');
+            const chatInput = chatWrapper.querySelector('.chat-input');
+            const message = chatInput.value.trim();
+            const storedUsername = localStorage.getItem('username');
+
+            if (message) {
+                sendMessage(storedUsername, poolName, message, chatBox);
+                chatInput.value = '';
+            }
+        }
+    });
+
+    // Initial fetch of messages for all pools
+    document.querySelectorAll('.pool-wrapper').forEach(poolWrapper => {
+        const poolName = poolWrapper.getAttribute('data-pool-name');
+        const chatBox = poolWrapper.querySelector('.chat-box');
+        fetchMessages(poolName, chatBox);
+    });
+});
+
+// Fetch and render chat messages
+function fetchMessages(poolName, chatBox) {
+    fetch(`/pools/getChatMessages?poolName=${encodeURIComponent(poolName)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderMessages(data.messages, chatBox);
+            }
+        })
+        .catch(error => console.error('Error fetching chat messages:', error));
+}
+
+function renderMessages(messages, chatBox) {
+    chatBox.innerHTML = '';
+    messages.forEach(msg => {
+        const messageElement = document.createElement('div');
+        messageElement.textContent = `${msg.username}: ${msg.message}`;
+        chatBox.appendChild(messageElement);
+    });
+}
+
+function sendMessage(username, poolName, message, chatBox) {
+    fetch('/pools/sendChatMessage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, poolName, message })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            fetchMessages(poolName, chatBox);
+        }
+    })
+    .catch(error => console.error('Error sending chat message:', error));
+}
 
 
 function leavePool(poolName) {
@@ -845,9 +921,9 @@ function changeUserPoints(username, points, poolName) {
     });
 }
 // Example usage:
-//changeUserPoints('test3', 0, 'test'); // Replace with the actual username, new points value, and pool name
-
-
+//changeUserPoints('test3', 0, 'yuh'); // Replace with the actual username, new points value, and pool name
+//changeUserPoints('testuser', 0, 'yuh');
+//changeUserPoints('testuser2', 0, 'yuh');
 
 const mlbToNflMap = {
     "Arizona Diamondbacks": "ARI Cardinals",
@@ -1027,15 +1103,31 @@ function updateUIWithScores() {
 
             const username = getUsernameForPick(pickElement);
             const poolName = getPoolName();
+
+            // Update user points
             updateUserPoints(username, points, poolName);
+
+            // Determine the increments for win, loss, and push
+            let winIncrement = 0, lossIncrement = 0, pushIncrement = 0;
+            if (result === 'hit') {
+                winIncrement = 1;
+            } else if (result === 'miss') {
+                lossIncrement = 1;
+            } else if (result === 'push') {
+                pushIncrement = 1;
+            }
+
+            // Update user stats
+            updateUserStats(username, poolName, winIncrement, lossIncrement, pushIncrement);
         } catch (error) {
             console.error('Error processing bet result:', error);
         }
     });
 
     console.log('All Results:', allResults);
-    saveResultsToServer(allResults)
+    saveResultsToServer(allResults);
 }
+
 
 
 function calculatePointsForResult({ result, odds, type }) {
@@ -1164,3 +1256,57 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 //'3decff06f7mshbc96e9118345205p136794jsn629db332340e'
+
+function updateUserStats(username, poolName, winIncrement = 0, lossIncrement = 0, pushIncrement = 0) {
+    fetch('/pools/updateUserStatsInPoolByName', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, poolName, winIncrement, lossIncrement, pushIncrement })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to update stats: ' + response.statusText);
+        }
+        return response.json();
+    })
+    .then(updateData => {
+        if (updateData.success) {
+            console.log('User stats updated successfully:', updateData.message);
+            // Optionally update the UI here
+        } else {
+            console.error('Failed to update user stats:', updateData.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error during the update process:', error);
+    });
+}
+function resetUserStats(username, poolName) {
+    fetch('/pools/resetUserStatsInPoolByName', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, poolName })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to reset stats: ' + response.statusText);
+        }
+        return response.json();
+    })
+    .then(updateData => {
+        if (updateData.success) {
+            console.log('User stats reset successfully:', updateData.message);
+            // Optionally update the UI here
+        } else {
+            console.error('Failed to reset user stats:', updateData.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error during the reset process:', error);
+    });
+}
+
+/*
+resetUserStats('test3', 'yuh');
+resetUserStats('testuser', 'yuh');
+resetUserStats('testuser2', 'yuh');*/
