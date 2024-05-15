@@ -831,8 +831,8 @@ button:hover {
 
 .leave-pool-button {
     position: absolute;
-    right: 10px; /* Adjust as necessary to move it closer to the right edge of the pool */
-    bottom: -20px; /* Adjust this value to move closer to the bottom edge of the pool */
+    right: 40px; /* Adjust as necessary to move it closer to the right edge of the pool */
+    bottom: -10px; /* Adjust this value to move closer to the bottom edge of the pool */
     padding: 10px 20px; /* Match the padding of your Create Pool button */
     background-color: #033; /* Background color to match the Create Pool button */
     color: #0ff; /* Text color to match the Create Pool button */
@@ -930,8 +930,8 @@ button:hover {
 /* Delete Pool Button */
 .delete-pool-button {
     position: absolute; /* Stay within the pool-and-delete-container */
-    right: 10px;
-    bottom: 10px;
+    right: 40px;
+    bottom: -10px;
     padding: 10px 20px;
     background-color: #033;
     color: #0ff;

@@ -247,7 +247,6 @@ function sortPlayersByPoints(players) {
         });
 }
 
-
 function displayNewPoolContainer(pool) {
     const teamLogos = {
         'ARI Cardinals': '/ARILogo.png',
@@ -364,6 +363,21 @@ function displayNewPoolContainer(pool) {
                     }
                 });
                 poolAndDeleteContainer.appendChild(deleteButton);
+            } else {
+                const leaveButton = document.createElement('button');
+                leaveButton.textContent = 'Leave Pool';
+                leaveButton.className = 'leave-pool-button';
+                leaveButton.setAttribute('data-pool-name', pool.name);
+                leaveButton.addEventListener('click', function () {
+                    const confirmation = confirm(`Are you sure you want to leave the pool "${this.getAttribute('data-pool-name')}"?`);
+                    if (confirmation) {
+                        leavePool(this.getAttribute('data-pool-name'));
+                        this.remove();
+                    } else {
+                        console.log('Leaving pool cancelled by the user.');
+                    }
+                });
+                poolAndDeleteContainer.appendChild(leaveButton);
             }
 
             poolContainerWrapper.appendChild(poolAndDeleteContainer);
@@ -374,6 +388,7 @@ function displayNewPoolContainer(pool) {
         console.log("No username found in localStorage");
     }
 }
+
 
 function leavePool(poolName) {
     const currentUsername = localStorage.getItem('username');
