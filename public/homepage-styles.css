@@ -932,7 +932,7 @@ button:hover {
 .pool-container {
     min-width: 1150px; /* Fixed minimum width */
     max-width: 1150px;
-    padding: 20px;
+    padding-left: 20px;
     border: 2px solid #33d9ff;
     background-color: #17203a;
     border-radius: 8px;
