@@ -85,31 +85,32 @@ body {
     left: 0; /* Slide in from the left */
 }
 
+
 .close-panel-btn {
-    width: 40px; /* Adjust size as needed */
-    height: 40px; /* Adjust size as needed */
-    background-color: #0a0f22; /* Dark background to match the panel */
-    border: 2px solid #33d9ff; /* Neon blue border */
-    border-radius: 10px; /* Rounded corners */
-    color: #FFF; /* White color for the X */
-    font-size: 1.5rem; /* Adjust font size as needed */
-    cursor: pointer; /* Pointer cursor to indicate it's clickable */
+    width: 40px; 
+    height: 40px; 
+    background-color: #0a0f22; 
+    border: 2px solid #33d9ff; 
+    border-radius: 10px; 
+    color: #FFF; 
+    font-size: 1.5rem; 
+    cursor: pointer; 
     display: flex;
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
-    box-shadow: 0 0 5px #33d9ff, 0 0 5px #33d9ff, 0 0 10px #33d9ff; /* Neon glow effect */
+    justify-content: center; 
+    align-items: center; 
+    box-shadow: 0 0 5px #33d9ff, 0 0 5px #33d9ff, 0 0 10px #33d9ff; 
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
-    margin: 20px auto; /* Center the button horizontally within the panel */
+    margin: 20px auto; 
     margin-top: 1px;
 }
 
 .close-panel-btn:hover {
-    box-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff, 0 0 30px #33d9ff; /* Enhanced neon glow effect on hover */
-    transform: scale(1.1); /* Slightly enlarge the button on hover */
+    box-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff, 0 0 30px #33d9ff; 
+    transform: scale(1.1); 
 }
 
 .close-panel-btn:focus {
-    outline: none; /* Remove the default outline on focus */
+    outline: none; 
 }
 
 
@@ -134,6 +135,7 @@ body {
     display: block; /* Makes it a block element */
     margin: 20px auto; /* Centers it in the side panel */
     text-decoration: none; /* Removes underline text */
+    max-width: 200px;
 
 }
 
@@ -247,7 +249,7 @@ h2 {
 
 .neon-sign {
     font-size: 2rem; /* Adjust as needed */
-    font-family: "Arial", sans-serif; /* Use any font you like, this is just a placeholder */
+    font-family: 'Montserrat', sans-serif; /* Use any font you like, this is just a placeholder */
     color: rgb(255, 255, 255);
     text-align: center;
     text-shadow: 0 0 5px rgb(254, 237, 237), 0 0 10px rgb(246, 239, 239), 0 0 15px #00a2ff, 0 0 20px #00a2ff, 0 0 25px #00a2ff, 0 0 30px #00a2ff, 0 0 35px #00a2ff;
@@ -314,23 +316,8 @@ h2 {
     /* Add any other styling you need */
 }
 
-#main-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Centers children horizontally */
-    margin: 0 auto;
-    padding: 0; /* Remove padding that could affect centering */
-    width: 100%; /* Ensures full width */
-}
 
-.pool-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Aligns children to the center */
-    width: 1150px; /* Gives a fixed width to the wrapper */
-    margin: 20px 0; /* Adds top and bottom margin */
-    margin-top: 120px;
-}
+
 
 .pool-name {
     text-align: left; /* Align text to the left */
@@ -829,7 +816,9 @@ button:hover {
     justify-content: space-around; /* Adjust space around the elements */
     height: 100%; /* Ensure it takes up full height */
 }
-
+.player-immortal-lock {
+    margin-bottom: -11px;
+}
 .pick, .immortal-lock {
     display: flex;
     flex-direction: column;
@@ -910,7 +899,7 @@ button:hover {
     overflow-x: auto; /* Enable horizontal scrolling */
     width: 100%;
     /*padding-bottom: 10px;*/
-    box-sizing: border-box; /* Include padding in width */
+    /*box-sizing: border-box; /* Include padding in width */
    /* border-right: 2px solid#33d9ff;
     border-radius: 8px;*/
 }
@@ -944,7 +933,6 @@ button:hover {
     min-width: 1150px; /* Fixed minimum width */
     max-width: 1150px;
     padding: 20px;
-    box-shadow: 0px 0px 10px #33d9ff;
     border: 2px solid #33d9ff;
     background-color: #17203a;
     border-radius: 8px;
