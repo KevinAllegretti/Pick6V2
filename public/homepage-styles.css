@@ -73,13 +73,14 @@ body {
     left: -100%; /* Start off-screen to the left */
     width: 45%; /* Takes up half the screen width */
     height: 100%; /* Full screen height */
-    background-color: #191e35; /* Dark background */
+    background-color: #0a0f22; /* Dark background */
     border-right: 2px solid #33d9ff; /* Neon blue border */
     box-shadow: 5px 0 10px rgba(0, 0, 0, 0.5); /* Soft shadow to the right */
     overflow-y: auto; /* In case the content overflows */
     transition: left 0.3s ease-out; /* Smooth slide-in transition */
     z-index: 100; /* Above everything except the profile icon */
 }
+
 
 .slide-out-panel.visible {
     left: 0; /* Slide in from the left */
@@ -233,19 +234,27 @@ h2 {
     margin-bottom: 10px;
 }
 
+
 .rules-button {
-    background-color: #33d9ff;
-    color: #0a0f22;
+    background-color: #033; /* Dark button background */
+    color: #0ff; /* Neon text color */
+    border: 1px solid #0af; /* Neon border */
     padding: 10px 20px;
-    border-radius: 8px;
-    text-decoration: none;
+    font-size: 1em;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
     text-align: center;
-    transition: background-color 0.3s;
+    margin: 10px; /* Add margin to space out the buttons */
+    text-decoration: none; /* Remove underline from the link */
+    display: inline-block;
 }
 
 .rules-button:hover {
-    background-color: #1bb1d5;
+    transform: translateY(-2px); /* Slightly lift the button when hovered */
+    box-shadow: 0 0 10px #0af, 0 0 20px #0af, 0 0 30px #0af; /* Enhanced neon glow on hover */
 }
+
 
 .neon-sign {
     font-size: 2rem; /* Adjust as needed */
@@ -278,11 +287,6 @@ h2 {
     font-size: 5px; /* or you could specify a size like 0.9em or 14px */
 }
 
-/* Initial State */
-.player-card, .digital-clock, .neon-sign, .rules-button {
-    opacity: 0;
-    transform: translateY(-20px);
-}
 
 /* Transition Effect */
 .player-card, .digital-clock, .neon-sign, .rules-button {
@@ -1043,18 +1047,17 @@ button:hover {
     width: 90%;  /* Match input width */
     padding: 10px;
     margin: 10px auto;
-    background-color: #33d9ff;  /* Match other buttons */
+    background: linear-gradient(135deg, #33d9ff 0%, #0099CC 100%);
     border: none;
     border-radius: 5px;
     color: #fff;  /* White text */
     cursor: pointer;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .send-chat-button:hover {
-    background-color: #0056b3;  /* Darker blue on hover */
-    transform: translateY(-2px);  /* Lift effect on hover */
+    background: linear-gradient(135deg, #0099CC 0%, #33d9ff 100%);
+    box-shadow: 0 0 5px #33d9ff, 0 0 5px #33d9ff, 0 0 5px #33d9ff; /* Enhanced neon glow effect on hover */
 }
 
 .show-chat .chat-container {
@@ -1070,15 +1073,14 @@ button:hover {
 .chat-toggle-button {
     width: 45%;
     padding: 5px;
-    background-color: #33d9ff;
+    background: linear-gradient(135deg, #33d9ff 0%, #0099CC 100%);
     color: #fff;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .chat-toggle-button:hover {
-    background-color: #0056b3;
-    transform: translateY(-2px);
+    background: linear-gradient(135deg, #0099CC 0%, #33d9ff 100%);
+    box-shadow: 0 0 5px #33d9ff, 0 0 5px #33d9ff, 0 0 5px #33d9ff; /* Enhanced neon glow effect on hover */
 }

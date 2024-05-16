@@ -522,3 +522,9 @@ h4 {
     color: #00DDFF;
     margin-bottom: 15px;
 }
+
+.bet-button.disabled {
+  background-color: #fc0000; /* Grey out the button */
+  color: #888; /* Change text color to grey */
+  cursor: not-allowed; /* Change cursor to indicate disabled state */
+}

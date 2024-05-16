@@ -135,4 +135,37 @@ router.get('/api/getResults', async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error', error: error.toString() });
     }
 });
+router.post('/api/savePicksToLastWeek', async (req, res) => {
+    try {
+        const { allPicks } = req.body;
+        const database = await (0, connectDB_1.connectToDatabase)();
+        const lastWeeksPicksCollection = database.collection('lastWeeksPicks');
+        for (const { username, poolName, picks, immortalLockPick } of allPicks) {
+            await lastWeeksPicksCollection.updateOne({ username: username, poolName: poolName }, { $set: { picks: picks, immortalLockPick: immortalLockPick } }, { upsert: true });
+        }
+        res.json({ success: true, message: 'Picks saved to last week collection successfully' });
+    }
+    catch (error) {
+        console.error('Error saving picks to last week collection:', error);
+        res.status(500).json({ success: false, message: 'Failed to save picks to last week collection' });
+    }
+});
+router.get('/api/getLastWeekPicks/:username', async (req, res) => {
+    const username = req.params.username;
+    try {
+        const database = await (0, connectDB_1.connectToDatabase)();
+        const lastWeeksPicksCollection = database.collection('lastWeeksPicks');
+        const userPicks = await lastWeeksPicksCollection.findOne({ username });
+        if (userPicks) {
+            res.json({ success: true, picks: userPicks.picks });
+        }
+        else {
+            res.json({ success: false, message: 'No picks found for last week.' });
+        }
+    }
+    catch (error) {
+        console.error('Error fetching last week picks:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch last week picks' });
+    }
+});
 exports.default = router;

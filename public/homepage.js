@@ -622,6 +622,69 @@ function fetchPicks(username, poolName, playerRow, teamLogos) {
         });
 }
 
+document.getElementById('savePicksButton').addEventListener('click', () => {
+    savePicksToLastWeek();
+});
+
+async function savePicksToLastWeek() {
+    try {
+        const poolContainerWrapper = document.getElementById('pool-container-wrapper');
+        const poolWrappers = poolContainerWrapper.querySelectorAll('.pool-wrapper');
+
+        let allPicks = [];
+
+        for (const poolWrapper of poolWrappers) {
+            const poolName = poolWrapper.getAttribute('data-pool-name');
+            const playerRows = poolWrapper.querySelectorAll('.player-row');
+
+            for (const playerRow of playerRows) {
+                const username = playerRow.querySelector('.player-username').textContent.trim();
+                const picksData = await fetchPicksData(username, poolName);
+
+                const picks = picksData.picks || [];
+                const immortalLockPick = picksData.immortalLock || [];
+
+                allPicks.push({ username, poolName, picks, immortalLockPick });
+            }
+        }
+
+        const response = await fetch('/api/savePicksToLastWeek', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ allPicks })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            alert('Picks saved to last week collection successfully');
+        } else {
+            alert('Failed to save picks to last week collection');
+        }
+    } catch (error) {
+        console.error('Error saving picks to last week collection:', error);
+        alert('Failed to save picks to last week collection');
+    }
+}
+
+async function fetchPicksData(username, poolName) {
+    const encodedUsername = encodeURIComponent(username);
+    const encodedPoolName = encodeURIComponent(poolName);
+    const url = `/api/getPicks/${encodedUsername}/${encodedPoolName}`;
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching picks for user:', username, 'in pool:', poolName, error);
+        return { picks: [], immortalLock: [] };
+    }
+}
+
+
 
 
 

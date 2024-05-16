@@ -150,54 +150,45 @@ const teamLogos = {
 };
 
 
-const lastWeekPicks = {
-  "TheDiggler": [
-
-  ],
-  "Parlay Prodigy": [
-
-  ],
-  "Midnight Professional": [
-
-  ],
-  "Primitive Picks": [
-
-  ],
-  "Bear Jew": [
-    // No new picks listed, assuming they remain unchanged
-  ],
-  "L to the OG": [
-
-  ],
-  "porkSkinGooner": [
- // Immortal Lock
-  ],
-  "LazyAhhGamer": [
-// Immortal Lock
-  ]
-};
 
 
 
 
-  async function wasPickMadeLastWeek(username, currentPick) {
-  // Check if the current pick was part of the user's picks last week
+
+let lastWeekPicks = {}; // This will store last week's picks fetched from the server
+
+// Fetch last week's picks when the page loads
+async function fetchLastWeekPicks(username) {
+    try {
+        const response = await fetch(`/api/getLastWeekPicks/${encodeURIComponent(username)}`);
+        if (response.ok) {
+            const data = await response.json();
+            lastWeekPicks[username] = data.picks;
+        } else {
+            console.error('Failed to fetch last week picks:', response.statusText);
+        }
+    } catch (error) {
+        console.error('Error fetching last week picks:', error);
+    }
+}
+// Call this function when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+  const storedUsername = localStorage.getItem('username');
+  if (storedUsername) {
+      fetchLastWeekPicks(storedUsername);
+  }
+});
+
+
+async function wasPickMadeLastWeek(username, currentPick) {
   if (lastWeekPicks[username]) {
-    return lastWeekPicks[username].some((pick) => {
-      // Split the string into components
-      const [pickTeamName, pickDetails] = pick.split(' [');
-      const [currentTeamName, currentDetails] = currentPick.split(' [');
-      // Extract the bet type (Spread or ML) from the details
-      const pickType = pickDetails.split(': ')[0];
-      const currentType = currentDetails.split(': ')[0];
-      // Compare team names and bet types
-      return pickTeamName === currentTeamName && pickType === currentType;
-    });
+      return lastWeekPicks[username].some(pick => {
+          return pick.teamName === currentPick.teamName && pick.type === currentPick.type;
+      });
   }
-    return false;
-  }
+  return false;
+}
 
-  
   let picksCount = 0;
   let userPicks = [];
   let userImortalLock = [];
@@ -217,84 +208,83 @@ const lastWeekPicks = {
     const teamClass = option.teamName.replace(/\s+/g, '-').toLowerCase();
     const typeClass = option.type.toLowerCase();
     const betButtons = document.querySelectorAll(`.bet-button[data-team="${teamClass}"][data-type="${typeClass}"]`);
-  
+
     betButtons.forEach(button => {
-      button.classList.toggle('selected', isSelected);
-      button.classList.toggle('immortal-lock-selected', isSelected && isImmortalLock);
+        button.classList.toggle('selected', isSelected);
+        button.classList.toggle('immortal-lock-selected', isSelected && isImmortalLock);
     });
-  }
-  
-  
-  
-  function selectBet(option) {
-    console.log('selectBet called with option:', option);
-    const immortalLockCheckbox = document.getElementById('immortalLockCheck');
-
-    // Find if a pick for the same team and type already exists
-    let existingPickIndex = userPicks.findIndex(pick => pick.teamName === option.teamName && pick.type === option.type);
-
-    // If the same pick was already selected, remove it (toggle off)
-    if (existingPickIndex !== -1) {
-        userPicks.splice(existingPickIndex, 1);
-        picksCount--;
-        updateBetCell(option, false);
-        return; // Exit the function after toggling off
-    }
-
-    // Check if a different pick for the same team already exists
-    let existingTeamPickIndex = userPicks.findIndex(pick => pick.teamName === option.teamName);
-
-    // If a different bet for the same team exists, alert the user
-    if (existingTeamPickIndex !== -1) {
-        alert("Only one bet per team is allowed.");
-        return; // Exit the function without adding the new bet
-    }
-
-    // F
-    // Check if a bet from the opposing team in the same matchup already exists
-    const betOption = betOptions.find(bet => bet.teamName === option.teamName && bet.type === option.type);
-    const commenceTime = betOption ? betOption.commenceTime : null;
-
-    const opposingTeamBetIndex = userPicks.findIndex(pick => {
-        const opposingBetOption = betOptions.find(bet => bet.commenceTime === commenceTime && bet.teamName !== option.teamName);
-        return opposingBetOption && pick.teamName === opposingBetOption.teamName;
-    });
-
-    if (opposingTeamBetIndex !== -1) {
-        alert("You cannot select a bet from both teams in the same matchup.");
-        return; // Exit the function without adding the new bet
-    }
-    const currentPick = {
-        teamName: option.teamName,
-        type: option.type,
-        value: option.value,
-        commenceTime: commenceTime // Ensure commenceTime is included
-    };
-
-    // Check if the user has already selected 6 picks and Immortal Lock is not set
-    if (picksCount >= 6 && !immortalLockCheckbox.checked) {
-        alert('You can only select 6 picks. Set your Immortal Lock or deselect a pick.');
-        return; // Exit the function if pick limit is reached
-    }
-
-    // If Immortal Lock is checked and we already have 6 picks, the next pick is the Immortal Lock
-    if (immortalLockCheckbox.checked && picksCount >= 6) {
-        // Replace the existing Immortal Lock with the new selection
-        if (userImortalLock.length > 0) {
-            alert('Replacing the existing Immortal Lock with the new selection.');
-            updateBetCell(userImortalLock[0], false); // Remove highlighting from the old Immortal Lock
-        }
-        userImortalLock[0] = currentPick; // Set the new Immortal Lock
-        updateBetCell(option, true, true); // Highlight the Immortal Lock pick
-        return; // Exit the function after setting Immortal Lock
-    }
-
-    // Add the new pick if none of the above conditions are met
-    userPicks.push(currentPick);
-    picksCount++;
-    updateBetCell(option, true);
 }
 
+  
+  
+function selectBet(option) {
+  console.log('selectBet called with option:', option);
+  const immortalLockCheckbox = document.getElementById('immortalLockCheck');
+
+  // Find if a pick for the same team and type already exists
+  let existingPickIndex = userPicks.findIndex(pick => pick.teamName === option.teamName && pick.type === option.type);
+
+  // If the same pick was already selected, remove it (toggle off)
+  if (existingPickIndex !== -1) {
+      userPicks.splice(existingPickIndex, 1);
+      picksCount--;
+      updateBetCell(option, false);
+      return; // Exit the function after toggling off
+  }
+
+  // Check if a different pick for the same team already exists
+  let existingTeamPickIndex = userPicks.findIndex(pick => pick.teamName === option.teamName);
+
+  // If a different bet for the same team exists, alert the user
+  if (existingTeamPickIndex !== -1) {
+      alert("Only one bet per team is allowed.");
+      return; // Exit the function without adding the new bet
+  }
+
+  // Check if a bet from the opposing team in the same matchup already exists
+  const betOption = betOptions.find(bet => bet.teamName === option.teamName && bet.type === option.type);
+  const commenceTime = betOption ? betOption.commenceTime : null;
+
+  const opposingTeamBetIndex = userPicks.findIndex(pick => {
+      const opposingBetOption = betOptions.find(bet => bet.commenceTime === commenceTime && bet.teamName !== option.teamName);
+      return opposingBetOption && pick.teamName === opposingBetOption.teamName;
+  });
+
+  if (opposingTeamBetIndex !== -1) {
+      alert("You cannot select a bet from both teams in the same matchup.");
+      return; // Exit the function without adding the new bet
+  }
+
+  const currentPick = {
+      teamName: option.teamName,
+      type: option.type,
+      value: option.value,
+      commenceTime: commenceTime // Ensure commenceTime is included
+  };
+
+  // Check if the user has already selected 6 picks and Immortal Lock is not set
+  if (picksCount >= 6 && !immortalLockCheckbox.checked) {
+      alert('You can only select 6 picks. Set your Immortal Lock or deselect a pick.');
+      return; // Exit the function if pick limit is reached
+  }
+
+  // If Immortal Lock is checked and we already have 6 picks, the next pick is the Immortal Lock
+  if (immortalLockCheckbox.checked && picksCount >= 6) {
+      // Replace the existing Immortal Lock with the new selection
+      if (userImortalLock.length > 0) {
+          alert('Replacing the existing Immortal Lock with the new selection.');
+          updateBetCell(userImortalLock[0], false); // Remove highlighting from the old Immortal Lock
+      }
+      userImortalLock[0] = currentPick; // Set the new Immortal Lock
+      updateBetCell(option, true, true); // Highlight the Immortal Lock pick
+      return; // Exit the function after setting Immortal Lock
+  }
+
+  // Add the new pick if none of the above conditions are met
+  userPicks.push(currentPick);
+  picksCount++;
+  updateBetCell(option, true);
+}
 
 
 function resetPicks() {
