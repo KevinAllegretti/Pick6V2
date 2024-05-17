@@ -80,8 +80,27 @@ document.addEventListener('DOMContentLoaded', function() {
             const profilePicSrc = userData.profilePicture || 'Default.png';
             document.querySelector('.profile-icon').src = profilePicSrc;
             document.querySelector('.profile-icon-center').src = profilePicSrc;
+
+             // Fetch pool information
+             const poolResponse = await fetch(`/pools/userPoolInfo/${username}`);
+             if (!poolResponse.ok) {
+                 throw new Error('Network response was not ok.');
+             }
+             const poolData = await poolResponse.json();
+             console.log('Fetched pool data:', poolData);
+ 
+             // Display pool information
+             const userPoolElement = document.getElementById('userPool');
+             userPoolElement.innerHTML = poolData.map(pool => `
+                 <div>
+                     <strong>Pool:</strong> ${pool.poolName}<br>
+                     <strong>Rank:</strong> ${pool.rank}<br>
+                     <strong>Points:</strong> ${pool.points}
+                 </div>
+             `).join('');
+
         } catch (error) {
-            console.error('Error fetching user data:', error);
+            console.error('Error fetching user data or pool data:', error);
             // Set to default image in case of an error
             document.querySelector('.profile-icon').src = 'Default.png';
             document.querySelector('.profile-icon-center').src = 'Default.png';
@@ -834,13 +853,100 @@ if (memberData.rank === totalMembers) {
         }
 
     // Add any additional data or elements you need
+ // Add event listener to the user profile element
+ playerRow.querySelector('.player-user').addEventListener('click', () => {
+    showUserProfile(memberData.username);
+});
 
     return playerRow;
 }
 
+async function showUserProfile(username) {
+    const url = `/api/getUserProfile/${username.toLowerCase()}`;
+    try {
+        const response = await fetch(url);
+        const userData = await response.json();
+        // Fetch pool info
+        const poolInfoResponse = await fetch(`/pools/userPools/${username.toLowerCase()}`);
+        const poolInfo = await poolInfoResponse.json();
+
+        // Find the correct pool and rank
+        let poolName = 'undefined';
+        let rank = 'undefined';
+        let points = 0;
+        if (poolInfo.length > 0) {
+            const userPool = poolInfo.find(pool => pool.name === localStorage.getItem('currentPoolName'));
+            if (userPool) {
+                poolName = userPool.name;
+                const userMember = userPool.members.find(member => member.username.toLowerCase() === username.toLowerCase());
+                if (userMember) {
+                    rank = userPool.members.sort((a, b) => b.points - a.points).findIndex(member => member.username.toLowerCase() === username.toLowerCase()) + 1;
+                    points = userMember.points;
+                }
+            }
+        }
+
+        userData.poolName = poolName;
+        userData.rank = rank;
+        userData.points = points;
+
+        if (username.toLowerCase() === localStorage.getItem('username').toLowerCase()) {
+            updateSlideOutPanel(userData);
+        } else {
+            updateSlideOutPanelOtherUser(userData);
+        }
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+    }
+}
+
+function updateSlideOutPanel(userData) {
+    document.querySelector('.profile-icon-center').src = userData.profilePicture || 'Default.png';
+    document.getElementById('displayName').textContent = userData.username;
+
+    // Update pool information if needed
+    const poolInfoContainer = document.getElementById('userPool');
+    poolInfoContainer.innerHTML = `
+        <div><strong>Pool:</strong> ${userData.poolName}</div>
+        <div><strong>Rank:</strong> ${userData.rank}</div>
+        <div><strong>Points:</strong> ${userData.points}</div>
+    `;
+}
+
+function updateSlideOutPanelOtherUser(userData) {
+    const panelContent = document.getElementById('slideOutPanelOtherUser');
+    if (!panelContent) {
+        const template = document.getElementById('other-user-profile-template').content.cloneNode(true);
+        document.body.appendChild(template);
+    }
+
+    document.querySelector('#slideOutPanelOtherUser .profile-icon-center').src = userData.profilePicture || 'Default.png';
+    document.getElementById('displayNameOtherUser').textContent = userData.username;
+
+    // Update pool information
+    const poolInfoContainer = document.getElementById('userPoolOtherUser');
+    poolInfoContainer.innerHTML = `
+        <div><strong>Pool:</strong> ${userData.poolName}</div>
+        <div><strong>Rank:</strong> ${userData.rank}</div>
+        <div><strong>Points:</strong> ${userData.points}</div>
+    `;
+
+    // Show the panel
+    document.getElementById('slideOutPanelOtherUser').classList.add('visible');
+    document.getElementById('closePanelBtnOtherUser').addEventListener('click', () => {
+        document.getElementById('slideOutPanelOtherUser').classList.remove('visible');
+    });
+}
+
+// Event listener to show user profile on click
+document.addEventListener('click', function(event) {
+    if (event.target.closest('.player-username')) {
+        const username = event.target.closest('.player-username').textContent.trim();
+        showUserProfile(username);
+    }
+});
 
 
-  
 // Assume this function is called when you want to delete a pool
 function deletePool(poolName) {
     // Since you're using the pool's name, let's ensure it's URI-encoded to handle special characters

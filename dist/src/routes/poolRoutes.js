@@ -215,4 +215,30 @@ router.post('/sendChatMessage', async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 });
+// In your routes file (src/routes/poolRoutes.ts)
+router.get('/userPoolInfo/:username', async (req, res) => {
+    try {
+        const username = req.params.username.toLowerCase();
+        const database = await (0, connectDB_1.connectToDatabase)();
+        const poolsCollection = database.collection('pools');
+        // Find pools where the members array contains the username
+        const pools = await poolsCollection.find({
+            'members.username': username
+        }).toArray();
+        // Extract relevant information
+        const poolInfo = pools.map(pool => {
+            const member = pool.members.find(member => member.username === username);
+            return {
+                poolName: pool.name,
+                rank: pool.members.sort((a, b) => b.points - a.points).findIndex(m => m.username === username) + 1,
+                points: member.points
+            };
+        });
+        res.json(poolInfo);
+    }
+    catch (error) {
+        console.error('Error fetching pool information for user:', error);
+        res.status(500).send('Internal server error');
+    }
+});
 exports.default = router;

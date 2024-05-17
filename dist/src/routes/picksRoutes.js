@@ -150,17 +150,20 @@ router.post('/api/savePicksToLastWeek', async (req, res) => {
         res.status(500).json({ success: false, message: 'Failed to save picks to last week collection' });
     }
 });
-router.get('/api/getLastWeekPicks/:username', async (req, res) => {
-    const username = req.params.username;
+router.get('/api/getLastWeekPicks/:username/:poolName', async (req, res) => {
+    const { username, poolName } = req.params;
+    const lowercaseUsername = username.toLowerCase();
+    // console.log(`Server received: username = ${lowercaseUsername}, poolName = ${poolName}`);
     try {
         const database = await (0, connectDB_1.connectToDatabase)();
         const lastWeeksPicksCollection = database.collection('lastWeeksPicks');
-        const userPicks = await lastWeeksPicksCollection.findOne({ username });
+        const userPicks = await lastWeeksPicksCollection.findOne({ username: lowercaseUsername, poolName });
+        console.log('User picks found:', userPicks);
         if (userPicks) {
-            res.json({ success: true, picks: userPicks.picks });
+            res.json({ success: true, picks: userPicks.picks, immortalLockPick: userPicks.immortalLockPick });
         }
         else {
-            res.json({ success: false, message: 'No picks found for last week.' });
+            res.json({ success: false, picks: [], immortalLockPick: [] });
         }
     }
     catch (error) {

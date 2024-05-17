@@ -30,6 +30,10 @@
                         <input type="file" id="profilePic" name="profilePic" style="display: none;" />
                     </div>
                 </form>
+                <div class="pool-info">
+                    <h3 class="pool-title">Pools</h3>
+                    <p id="userPool" class="user-pool"></p>
+                </div>
                 <button id="logout-button" class="logout-button">Logout</button>
             </div>
         </div>
@@ -88,6 +92,28 @@
             </div>
         </div>
     </template>
+    <template id="other-user-profile-template">
+        <div id="slideOutPanelOtherUser" class="slide-out-panel">
+            <div class="panel-content">
+                <button id="closePanelBtnOtherUser" class="close-panel-btn">&times;</button>
+                <div class="profile-icon-container-center">
+                    <img src="Default.png" alt="User Profile" class="profile-icon-center" />
+                </div>
+                <div class="account-options">
+                    <div class="welcome-message">
+                        <span id="displayNameOtherUser" class="neon-text"></span>
+                    </div>
+                </div>
+                <div class="pool-info">
+                    <h3 class="pool-title">Pools</h3>
+                    <div id="userPoolOtherUser" class="user-pool">
+                        <!-- Pool info will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+    
     
 
     <script src="homepage.js"></script>

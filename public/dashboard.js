@@ -1,10 +1,14 @@
+const storedUsername = localStorage.getItem('username')?.toLowerCase();
 const queryParams = new URLSearchParams(window.location.search);
 const currentPoolName = queryParams.get('poolName'); // Get the pool name from URL query parameters
 
 if (!currentPoolName) {
-    alert('Pool name is missing.');
-    // Handle missing poolName appropriately, perhaps redirecting back or displaying an error message
+ alert('Pool name is missing.');
+ // Handle missing poolName appropriately, perhaps redirecting back or displaying an error message
+} else {
+ localStorage.setItem('currentPoolName', currentPoolName);
 }
+
 const now = new Date();
 let thursdayDeadline = new Date(now);
 thursdayDeadline.setDate(now.getDate() + ((4 + 7 - now.getDay()) % 7));
@@ -20,137 +24,134 @@ tuesdayEndTime.setMinutes(tuesdayEndTime.getMinutes() + tuesdayEndTime.getTimezo
 tuesdayEndTime.setHours(tuesdayEndTime.getHours() - 5); // Convert UTC to EST (UTC-5)
 
 const mlbToNflMap = {
-  "Arizona Diamondbacks": "ARI Cardinals",
-  "Atlanta Braves": "ATL Falcons",
-  "Baltimore Orioles": "BAL Ravens",
-  "Boston Red Sox": "NE Patriots",
-  "Chicago Cubs": "CHI Bears",
-  "Chicago White Sox": "CHI Bears",
-  "Cincinnati Reds": "CIN Bengals",
-  "Cleveland Guardians": "CLE Browns",
-  "Colorado Rockies": "DEN Broncos",
-  "Detroit Tigers": "DET Lions",
-  "Houston Astros": "HOU Texans",
-  "Kansas City Royals": "KC Chiefs",
-  "Los Angeles Angels": "LA Chargers",
-  "Los Angeles Dodgers": "LA Rams",
-  "Miami Marlins": "MIA Dolphins",
-  "Milwaukee Brewers": "GB Packers",
-  "Minnesota Twins": "MIN Vikings",
-  "New York Yankees": "NY Giants",
-  "New York Mets": "NY Jets",
-  "Oakland Athletics": "SF 49ers",
-  "Philadelphia Phillies": "PHI Eagles",
-  "Pittsburgh Pirates": "PIT Steelers",
-  "San Francisco Giants": "SF 49ers",
-  "Seattle Mariners": "SEA Seahawks",
-  "Tampa Bay Rays": "TB Buccaneers",
-  "Texas Rangers": "DAL Cowboys",
-  "Toronto Blue Jays": "BUF Bills",
-  "Washington Nationals": "WAS Commanders"
+ "Arizona Diamondbacks": "ARI Cardinals",
+ "Atlanta Braves": "ATL Falcons",
+ "Baltimore Orioles": "BAL Ravens",
+ "Boston Red Sox": "NE Patriots",
+ "Chicago Cubs": "CHI Bears",
+ "Chicago White Sox": "CHI Bears",
+ "Cincinnati Reds": "CIN Bengals",
+ "Cleveland Guardians": "CLE Browns",
+ "Colorado Rockies": "DEN Broncos",
+ "Detroit Tigers": "DET Lions",
+ "Houston Astros": "HOU Texans",
+ "Kansas City Royals": "KC Chiefs",
+ "Los Angeles Angels": "LA Chargers",
+ "Los Angeles Dodgers": "LA Rams",
+ "Miami Marlins": "MIA Dolphins",
+ "Milwaukee Brewers": "GB Packers",
+ "Minnesota Twins": "MIN Vikings",
+ "New York Yankees": "NY Giants",
+ "New York Mets": "NY Jets",
+ "Oakland Athletics": "SF 49ers",
+ "Philadelphia Phillies": "PHI Eagles",
+ "Pittsburgh Pirates": "PIT Steelers",
+ "San Francisco Giants": "SF 49ers",
+ "Seattle Mariners": "SEA Seahawks",
+ "Tampa Bay Rays": "TB Buccaneers",
+ "Texas Rangers": "DAL Cowboys",
+ "Toronto Blue Jays": "BUF Bills",
+ "Washington Nationals": "WAS Commanders"
 };
 
 
 
 let betOptions = [
-  /*
-  // Steelers vs Ravens
-  { teamName: 'HOU Texans', type: 'Spread', value: '+9.5' },
-  { teamName: 'HOU Texans', type: 'ML', value: '+330' },
-  { teamName: 'BAL Ravens', type: 'Spread', value: '-9.5' },
-  { teamName: 'BAL Ravens', type: 'ML', value: '-425' },
+ /*
+ // Steelers vs Ravens
+ { teamName: 'HOU Texans', type: 'Spread', value: '+9.5' },
+ { teamName: 'HOU Texans', type: 'ML', value: '+330' },
+ { teamName: 'BAL Ravens', type: 'Spread', value: '-9.5' },
+ { teamName: 'BAL Ravens', type: 'ML', value: '-425' },
 
-  // Texans vs Colts
-  { teamName: 'GB Packers', type: 'Spread', value: '+9.5' },
-  { teamName: 'GB Packers', type: 'ML', value: '+320' },
-  { teamName: 'SF 49ers', type: 'Spread', value: '-9.5' },
-  { teamName: 'SF 49ers', type: 'ML', value: '-410' },
+ // Texans vs Colts
+ { teamName: 'GB Packers', type: 'Spread', value: '+9.5' },
+ { teamName: 'GB Packers', type: 'ML', value: '+320' },
+ { teamName: 'SF 49ers', type: 'Spread', value: '-9.5' },
+ { teamName: 'SF 49ers', type: 'ML', value: '-410' },
 
-  // Jaguars vs Titans
-  { teamName: 'TB Buccaneers', type: 'Spread', value: '+6.5' },
-  { teamName: 'TB Buccaneers', type: 'ML', value: '+245' },
-  { teamName: 'DET Lions', type: 'Spread', value: '-6.5' },
-  { teamName: 'DET Lions', type: 'ML', value: '-305' },
+ // Jaguars vs Titans
+ { teamName: 'TB Buccaneers', type: 'Spread', value: '+6.5' },
+ { teamName: 'TB Buccaneers', type: 'ML', value: '+245' },
+ { teamName: 'DET Lions', type: 'Spread', value: '-6.5' },
+ { teamName: 'DET Lions', type: 'ML', value: '-305' },
 
-  // Vikings vs Lions
-  { teamName: 'KC Chiefs', type: 'Spread', value: '+2.5' },
-  { teamName: 'KC Chiefs', type: 'ML', value: '+124' },
-  { teamName: 'BUF Bills', type: 'Spread', value: '-2.5' },
-  { teamName: 'BUF Bills', type: 'ML', value: '-148' },*/
+ // Vikings vs Lions
+ { teamName: 'KC Chiefs', type: 'Spread', value: '+2.5' },
+ { teamName: 'KC Chiefs', type: 'ML', value: '+124' },
+ { teamName: 'BUF Bills', type: 'Spread', value: '-2.5' },
+ { teamName: 'BUF Bills', type: 'ML', value: '-148' },*/
 ];
 
 const teamColorClasses = {
-    'ARI Cardinals': 'cardinals-color',
-    'ATL Falcons': 'falcons-color',
-    'BAL Ravens': 'ravens-color',
-    'BUF Bills': 'bills-color',
-    'CAR Panthers': 'panthers-color',
-    'CHI Bears': 'bears-color',
-    'CIN Bengals': 'bengals-color',
-    'CLE Browns': 'browns-color',
-    'DAL Cowboys': 'cowboys-color',
-    'DEN Broncos': 'broncos-color',
-    'DET Lions': 'lions-color',
-    'GB Packers': 'packers-color',
-    'HOU Texans': 'texans-color',
-    'IND Colts': 'colts-color',
-    'JAX Jaguars': 'jaguars-color',
-    'KC Chiefs': 'chiefs-color',
-    'LV Raiders': 'raiders-color',
-    'LA Chargers': 'chargers-color',
-    'LA Rams': 'rams-color',
-    'MIA Dolphins': 'dolphins-color',
-    'MIN Vikings': 'vikings-color',
-    'NE Patriots': 'patriots-color',
-    'NO Saints': 'saints-color',
-    'NY Giants': 'giants-color',
-    'NY Jets': 'jets-color',
-    'PHI Eagles': 'eagles-color',
-    'PIT Steelers': 'steelers-color',
-    'SF 49ers': 'FortyNiners-color',
-    'SEA Seahawks': 'seahawks-color',
-    'TB Buccaneers': 'buccaneers-color',
-    'TEN Titans': 'titans-color',
-    'WAS Commanders': 'commanders-color'
+ 'ARI Cardinals': 'cardinals-color',
+ 'ATL Falcons': 'falcons-color',
+ 'BAL Ravens': 'ravens-color',
+ 'BUF Bills': 'bills-color',
+ 'CAR Panthers': 'panthers-color',
+ 'CHI Bears': 'bears-color',
+ 'CIN Bengals': 'bengals-color',
+ 'CLE Browns': 'browns-color',
+ 'DAL Cowboys': 'cowboys-color',
+ 'DEN Broncos': 'broncos-color',
+ 'DET Lions': 'lions-color',
+ 'GB Packers': 'packers-color',
+ 'HOU Texans': 'texans-color',
+ 'IND Colts': 'colts-color',
+ 'JAX Jaguars': 'jaguars-color',
+ 'KC Chiefs': 'chiefs-color',
+ 'LV Raiders': 'raiders-color',
+ 'LA Chargers': 'chargers-color',
+ 'LA Rams': 'rams-color',
+ 'MIA Dolphins': 'dolphins-color',
+ 'MIN Vikings': 'vikings-color',
+ 'NE Patriots': 'patriots-color',
+ 'NO Saints': 'saints-color',
+ 'NY Giants': 'giants-color',
+ 'NY Jets': 'jets-color',
+ 'PHI Eagles': 'eagles-color',
+ 'PIT Steelers': 'steelers-color',
+ 'SF 49ers': 'FortyNiners-color',
+ 'SEA Seahawks': 'seahawks-color',
+ 'TB Buccaneers': 'buccaneers-color',
+ 'TEN Titans': 'titans-color',
+ 'WAS Commanders': 'commanders-color'
 };
-  
+ 
 const teamLogos = {
-  'ARI Cardinals': '/ARILogo.png',
-  'ATL Falcons': '/ATLLogo.png',
-  'BAL Ravens': '/BALLogo.png',
-  'BUF Bills': '/BUFLogo.png',
-  'CAR Panthers': '/CARLogo.png',
-  'CHI Bears': '/CHILogo.png',
-  'CIN Bengals': '/CINLogo.png',
-  'CLE Browns': '/CLELogo.png',
-  'DAL Cowboys': '/DALLogo.png',
-  'DEN Broncos': '/DENLogo.png',
-  'DET Lions': '/DETLogo.png',
-  'GB Packers': '/GBLogo.png',
-  'HOU Texans': '/HOULogo.png',
-  'IND Colts': '/INDLogo.png',
-  'JAX Jaguars': '/JAXLogo.png',
-  'KC Chiefs': '/KCLogo.png',
-  'LV Raiders': '/LVLogo.png',
-  'LA Chargers': '/LACLogo.png',
-  'LA Rams': '/LARLogo.png',
-  'MIA Dolphins': '/MIALogo.png',
-  'MIN Vikings': '/MINLogo.png',
-  'NE Patriots': '/NELogo.png',
-  'NO Saints': '/NOLogo.png',
-  'NY Giants': '/NYGLogo.png',
-  'NY Jets': '/NYJLogo.png',
-  'PHI Eagles': '/PHILogo.png',
-  'PIT Steelers': '/PITLogo.png',
-  'SF 49ers': '/SFLogo.png',
-  'SEA Seahawks': '/SEALogo.png',
-  'TB Buccaneers': '/TBLogo.png',
-  'TEN Titans': '/TENLogo.png',
-  'WAS Commanders': '/WASLogo.png'
+ 'ARI Cardinals': '/ARILogo.png',
+ 'ATL Falcons': '/ATLLogo.png',
+ 'BAL Ravens': '/BALLogo.png',
+ 'BUF Bills': '/BUFLogo.png',
+ 'CAR Panthers': '/CARLogo.png',
+ 'CHI Bears': '/CHILogo.png',
+ 'CIN Bengals': '/CINLogo.png',
+ 'CLE Browns': '/CLELogo.png',
+ 'DAL Cowboys': '/DALLogo.png',
+ 'DEN Broncos': '/DENLogo.png',
+ 'DET Lions': '/DETLogo.png',
+ 'GB Packers': '/GBLogo.png',
+ 'HOU Texans': '/HOULogo.png',
+ 'IND Colts': '/INDLogo.png',
+ 'JAX Jaguars': '/JAXLogo.png',
+ 'KC Chiefs': '/KCLogo.png',
+ 'LV Raiders': '/LVLogo.png',
+ 'LA Chargers': '/LACLogo.png',
+ 'LA Rams': '/LARLogo.png',
+ 'MIA Dolphins': '/MIALogo.png',
+ 'MIN Vikings': '/MINLogo.png',
+ 'NE Patriots': '/NELogo.png',
+ 'NO Saints': '/NOLogo.png',
+ 'NY Giants': '/NYGLogo.png',
+ 'NY Jets': '/NYJLogo.png',
+ 'PHI Eagles': '/PHILogo.png',
+ 'PIT Steelers': '/PITLogo.png',
+ 'SF 49ers': '/SFLogo.png',
+ 'SEA Seahawks': '/SEALogo.png',
+ 'TB Buccaneers': '/TBLogo.png',
+ 'TEN Titans': '/TENLogo.png',
+ 'WAS Commanders': '/WASLogo.png'
 };
-
-
-
 
 
 
@@ -158,528 +159,614 @@ const teamLogos = {
 let lastWeekPicks = {}; // This will store last week's picks fetched from the server
 
 // Fetch last week's picks when the page loads
-async function fetchLastWeekPicks(username) {
-    try {
-        const response = await fetch(`/api/getLastWeekPicks/${encodeURIComponent(username)}`);
-        if (response.ok) {
-            const data = await response.json();
-            lastWeekPicks[username] = data.picks;
-        } else {
-            console.error('Failed to fetch last week picks:', response.statusText);
-        }
-    } catch (error) {
-        console.error('Error fetching last week picks:', error);
-    }
+// General Fetch Wrapper for Logging
+async function fetchWithLogging(url, options = {}) {
+ // console.log(`Making fetch request to URL: ${url} with options:`, options);
+ try {
+ const response = await fetch(url, options);
+ // console.log(`Received response from URL: ${url}`, response);
+ if (!response.ok) {
+ console.error(`Error response from URL: ${url} - ${response.statusText}`);
+ }
+ return response;
+ } catch (error) {
+ console.error(`Fetch error for URL: ${url}`, error);
+ throw error; // Re-throw the error after logging it
+ }
 }
-// Call this function when the page loads
+
+// Fetch Last Week's Picks
+async function fetchLastWeekPicks(username, poolName) {
+ const url = `/api/getLastWeekPicks/${encodeURIComponent(username)}/${encodeURIComponent(poolName)}`;
+ const response = await fetchWithLogging(url);
+ if (response.ok) {
+ const data = await response.json();
+  console.log('Fetched data:', data);
+ if (data.success) {
+ lastWeekPicks[`${username}-${poolName}`] = {
+ picks: data.picks,
+ immortalLockPick: data.immortalLockPick
+ };
+ } else {
+ lastWeekPicks[`${username}-${poolName}`] = {
+ picks: [],
+ immortalLockPick: []
+ }; // Ensure it initializes even if no picks are found
+ }
+  console.log('Last week picks:', lastWeekPicks);
+ } else {
+ console.error('Failed to fetch last week picks:', response.statusText);
+ }
+}
+// Document Ready Function
 document.addEventListener('DOMContentLoaded', () => {
-  const storedUsername = localStorage.getItem('username');
-  if (storedUsername) {
-      fetchLastWeekPicks(storedUsername);
-  }
+ const storedUsername = localStorage.getItem('username')?.toLowerCase();
+ const storedPoolName = localStorage.getItem('currentPoolName');
+ // console.log('Stored username:', storedUsername);
+ // console.log('Stored pool name:', storedPoolName);
+
+ if (storedUsername && storedPoolName) {
+ fetchLastWeekPicks(storedUsername, storedPoolName);
+ } else {
+ console.error('Username or Pool Name is missing.');
+ }
 });
 
 
-async function wasPickMadeLastWeek(username, currentPick) {
-  if (lastWeekPicks[username]) {
-      return lastWeekPicks[username].some(pick => {
-          return pick.teamName === currentPick.teamName && pick.type === currentPick.type;
-      });
-  }
-  return false;
+async function wasPickMadeLastWeek(username, poolName, currentPick) {
+ const key = `${username}-${poolName}`;
+ if (lastWeekPicks[key]) {
+ return lastWeekPicks[key].some(pick => {
+ return pick.teamName === currentPick.teamName && pick.type === currentPick.type;
+ });
+ }
+ return false;
 }
 
-  let picksCount = 0;
-  let userPicks = [];
-  let userImortalLock = [];
-  const storedUsername = localStorage.getItem('username');
-  console.log(storedUsername);
-  
-  // If the username exists in localStorage, update the h1 element
-  if (storedUsername) {
-    document.querySelector('h1').textContent = `Welcome, ${storedUsername}!`;
-  }
 
-  //setting this here for test
-  //another test
-  
+ let picksCount = 0;
+ let userPicks = [];
+ let userImortalLock = [];
+ console.log(storedUsername);
+ 
+ // If the username exists in localStorage, update the h1 element
+ if (storedUsername) {
+ document.querySelector('h1').textContent = `Welcome, ${storedUsername}!`;
+ }
 
-  function updateBetCell(option, isSelected, isImmortalLock = false) {
-    const teamClass = option.teamName.replace(/\s+/g, '-').toLowerCase();
-    const typeClass = option.type.toLowerCase();
-    const betButtons = document.querySelectorAll(`.bet-button[data-team="${teamClass}"][data-type="${typeClass}"]`);
+ //setting this here for test
+ //another test
+ 
 
-    betButtons.forEach(button => {
-        button.classList.toggle('selected', isSelected);
-        button.classList.toggle('immortal-lock-selected', isSelected && isImmortalLock);
-    });
+ function updateBetCell(option, isSelected, isImmortalLock = false) {
+ const teamClass = option.teamName.replace(/\s+/g, '-').toLowerCase();
+ const typeClass = option.type.toLowerCase();
+ const betButtons = document.querySelectorAll(`.bet-button[data-team="${teamClass}"][data-type="${typeClass}"]`);
+
+ betButtons.forEach(button => {
+ button.classList.toggle('selected', isSelected);
+ button.classList.toggle('immortal-lock-selected', isSelected && isImmortalLock);
+ });
 }
 
-  
-  
-function selectBet(option) {
-  console.log('selectBet called with option:', option);
-  const immortalLockCheckbox = document.getElementById('immortalLockCheck');
+ 
+async function selectBet(option) {
+ // console.log('selectBet called with option:', option);
+ const immortalLockCheckbox = document.getElementById('immortalLockCheck');
 
-  // Find if a pick for the same team and type already exists
-  let existingPickIndex = userPicks.findIndex(pick => pick.teamName === option.teamName && pick.type === option.type);
+ const storedUsername = localStorage.getItem('username')?.toLowerCase();
+ const currentPoolName = localStorage.getItem('currentPoolName');
+ 
+ // console.log('selectBet - Stored username:', storedUsername);
+ // console.log('selectBet - Stored pool name:', currentPoolName);
 
-  // If the same pick was already selected, remove it (toggle off)
-  if (existingPickIndex !== -1) {
-      userPicks.splice(existingPickIndex, 1);
-      picksCount--;
-      updateBetCell(option, false);
-      return; // Exit the function after toggling off
-  }
+ if (!storedUsername || !currentPoolName) {
+ alert('Username or Pool Name is missing.');
+ return; // Exit the function if pool name or username is not available
+ }
 
-  // Check if a different pick for the same team already exists
-  let existingTeamPickIndex = userPicks.findIndex(pick => pick.teamName === option.teamName);
+ // Check if the button has the custom data attribute indicating it was a previous pick
+ const betButton = document.querySelector(`.bet-button[data-team="${option.teamName.replace(/\s+/g, '-').toLowerCase()}"][data-type="${option.type.toLowerCase()}"]`);
+ if (betButton && betButton.dataset.previousPick === 'true') {
+ alert("You made this pick last week.");
+ return; // Exit the function without adding the new bet
+ }
 
-  // If a different bet for the same team exists, alert the user
-  if (existingTeamPickIndex !== -1) {
-      alert("Only one bet per team is allowed.");
-      return; // Exit the function without adding the new bet
-  }
+ // Find if a pick for the same team and type already exists
+ let existingPickIndex = userPicks.findIndex(pick => pick.teamName === option.teamName && pick.type === option.type);
 
-  // Check if a bet from the opposing team in the same matchup already exists
-  const betOption = betOptions.find(bet => bet.teamName === option.teamName && bet.type === option.type);
-  const commenceTime = betOption ? betOption.commenceTime : null;
+ // If the same pick was already selected, remove it (toggle off)
+ if (existingPickIndex !== -1) {
+ userPicks.splice(existingPickIndex, 1);
+ picksCount--;
+ updateBetCell(option, false);
+ return; // Exit the function after toggling off
+ }
 
-  const opposingTeamBetIndex = userPicks.findIndex(pick => {
-      const opposingBetOption = betOptions.find(bet => bet.commenceTime === commenceTime && bet.teamName !== option.teamName);
-      return opposingBetOption && pick.teamName === opposingBetOption.teamName;
-  });
+ // Check if a different pick for the same team already exists
+ let existingTeamPickIndex = userPicks.findIndex(pick => pick.teamName === option.teamName);
 
-  if (opposingTeamBetIndex !== -1) {
-      alert("You cannot select a bet from both teams in the same matchup.");
-      return; // Exit the function without adding the new bet
-  }
+ // If a different bet for the same team exists, alert the user
+ if (existingTeamPickIndex !== -1) {
+ alert("Only one pick per team is allowed.");
+ return; // Exit the function without adding the new bet
+ }
 
-  const currentPick = {
-      teamName: option.teamName,
-      type: option.type,
-      value: option.value,
-      commenceTime: commenceTime // Ensure commenceTime is included
-  };
+ // Check if a bet from the opposing team in the same matchup already exists
+ const betOption = betOptions.find(bet => bet.teamName === option.teamName && bet.type === option.type);
+ const commenceTime = betOption ? betOption.commenceTime : null;
 
-  // Check if the user has already selected 6 picks and Immortal Lock is not set
-  if (picksCount >= 6 && !immortalLockCheckbox.checked) {
-      alert('You can only select 6 picks. Set your Immortal Lock or deselect a pick.');
-      return; // Exit the function if pick limit is reached
-  }
+ const opposingTeamBetIndex = userPicks.findIndex(pick => {
+ const opposingBetOption = betOptions.find(bet => bet.commenceTime === commenceTime && bet.teamName !== option.teamName);
+ return opposingBetOption && pick.teamName === opposingBetOption.teamName;
+ });
 
-  // If Immortal Lock is checked and we already have 6 picks, the next pick is the Immortal Lock
-  if (immortalLockCheckbox.checked && picksCount >= 6) {
-      // Replace the existing Immortal Lock with the new selection
-      if (userImortalLock.length > 0) {
-          alert('Replacing the existing Immortal Lock with the new selection.');
-          updateBetCell(userImortalLock[0], false); // Remove highlighting from the old Immortal Lock
-      }
-      userImortalLock[0] = currentPick; // Set the new Immortal Lock
-      updateBetCell(option, true, true); // Highlight the Immortal Lock pick
-      return; // Exit the function after setting Immortal Lock
-  }
+ if (opposingTeamBetIndex !== -1) {
+ alert("You cannot select a pick from both teams in the same matchup.");
+ return; // Exit the function without adding the new bet
+ }
 
-  // Add the new pick if none of the above conditions are met
-  userPicks.push(currentPick);
-  picksCount++;
-  updateBetCell(option, true);
+ const currentPick = {
+ teamName: option.teamName,
+ type: option.type,
+ value: option.value,
+ commenceTime: commenceTime // Ensure commenceTime is included
+ };
+
+ // Check if the user has already selected 6 picks and Immortal Lock is not set
+ if (picksCount >= 6 && !immortalLockCheckbox.checked) {
+ alert('You can only select 6 picks. Set your Immortal Lock or deselect a pick.');
+ return; // Exit the function if pick limit is reached
+ }
+
+ // If Immortal Lock is checked and we already have 6 picks, the next pick is the Immortal Lock
+ if (immortalLockCheckbox.checked && picksCount >= 6) {
+ // Replace the existing Immortal Lock with the new selection
+ if (userImortalLock.length > 0) {
+ alert('Replacing the existing Immortal Lock with the new selection.');
+ updateBetCell(userImortalLock[0], false); // Remove highlighting from the old Immortal Lock
+ }
+ userImortalLock[0] = currentPick; // Set the new Immortal Lock
+ updateBetCell(option, true, true); // Highlight the Immortal Lock pick
+ return; // Exit the function after setting Immortal Lock
+ }
+
+ // Add the new pick if none of the above conditions are met
+ userPicks.push(currentPick);
+ picksCount++;
+ updateBetCell(option, true);
 }
+
 
 
 function resetPicks() {
-    picksCount = 0;
-    userPicks = [];
-    userImortalLock = [];
-    
-    // Ensure that the immortalLock element exists before trying to access its properties
-    const immortalLockElement = document.getElementById('immortalLock');
-    if (immortalLockElement) {
-        immortalLockElement.style.display = 'none';
-    }
-
-    const statusMessageElement = document.getElementById('statusMessage');
-    if (statusMessageElement) {
-        statusMessageElement.textContent = '';
-    }
-
-    // Reset the visual state of all bet cells
-    const betCells = document.querySelectorAll('.betCell');
-    betCells.forEach(cell => {
-        cell.classList.remove('selected');
-    });
-
-    // Show the addPick div if it's hidden
-    const addPickElement = document.getElementById('addPick');
-    if (addPickElement) {
-        addPickElement.style.display = 'block';
-    }
-
-    // Uncheck the immortalLockCheck if it's checked
-    const immortalLockCheckElement = document.getElementById('immortalLockCheck');
-    if (immortalLockCheckElement) {
-        immortalLockCheckElement.checked = false;
-    }
-
-    // Make the API call to reset the picks on the server
-    fetch(`/api/resetPicks/${storedUsername}/${currentPoolName}`, { 
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data && data.success) {
-            console.log('Picks reset successfully on server.');
-            alert('Picks reset successfully on server.')
-            //updatePicksDisplay();
-        } else {
-            console.error('Error resetting picks on server.', data);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred when resetting picks. Please try again later.');
-    });
-    }
-
-
-  document.getElementById('resetPicks').addEventListener('click', resetPicks);
-  console.log(thursdayDeadline, tuesdayEndTime);
+ picksCount = 0;
+ userPicks = [];
+ userImortalLock = [];
  
-  isDeadline = false;
-  
-  function submitUserPicks() {
-    if (!currentPoolName) {
-        alert('Current pool name is not set.');
-        return;
-    }
-    if (userPicks.length === 0) {
-        alert('Please add at least one pick before submitting.');
-        return; // Exit the function
-    }
+ // Ensure that the immortalLock element exists before trying to access its properties
+ const immortalLockElement = document.getElementById('immortalLock');
+ if (immortalLockElement) {
+ immortalLockElement.style.display = 'none';
+ }
 
-    const validateDate = (date) => {
-        const parsedDate = Date.parse(date);
-        return !isNaN(parsedDate) ? new Date(parsedDate).toISOString() : null;
-    };
+ const statusMessageElement = document.getElementById('statusMessage');
+ if (statusMessageElement) {
+ statusMessageElement.textContent = '';
+ }
 
-    // Create the data object with picks
-    const data = {
-        picks: userPicks.map(pick => ({
-            teamName: pick.teamName,
-            type: pick.type,
-            value: pick.value,
-            commenceTime: validateDate(pick.commenceTime) // Ensure commenceTime is in ISO format or null
-        })),
-        immortalLock: userImortalLock.map(pick => ({
-            teamName: pick.teamName,
-            type: pick.type,
-            value: pick.value,
-            commenceTime: validateDate(pick.commenceTime) // Ensure commenceTime is in ISO format or null
-        })),
-        poolName: currentPoolName
-    };
+ // Reset the visual state of all bet cells
+ const betCells = document.querySelectorAll('.betCell');
+ betCells.forEach(cell => {
+ cell.classList.remove('selected');
+ });
 
-    console.log('Submitting picks data:', data);
+ // Show the addPick div if it's hidden
+ const addPickElement = document.getElementById('addPick');
+ if (addPickElement) {
+ addPickElement.style.display = 'block';
+ }
 
-    fetch(`/api/savePicks/${storedUsername}/${currentPoolName}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Picks successfully submitted!');
-            // Additional code to handle successful submission
-        } else {
-            alert('Error submitting picks. Please try again.');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred. Please try again later.');
-    });
+ // Uncheck the immortalLockCheck if it's checked
+ const immortalLockCheckElement = document.getElementById('immortalLockCheck');
+ if (immortalLockCheckElement) {
+ immortalLockCheckElement.checked = false;
+ }
+
+ // Make the API call to reset the picks on the server
+ fetch(`/api/resetPicks/${storedUsername}/${currentPoolName}`, { 
+ method: 'POST',
+ headers: {
+ 'Content-Type': 'application/json'
+ }
+ })
+ .then(response => response.json())
+ .then(data => {
+ if (data && data.success) {
+ // console.log('Picks reset successfully on server.');
+ alert('Picks reset successfully on server.')
+ //updatePicksDisplay();
+ } else {
+ console.error('Error resetting picks on server.', data);
+ }
+ })
+ .catch(error => {
+ console.error('Error:', error);
+ alert('An error occurred when resetting picks. Please try again later.');
+ });
+ }
+
+
+ document.getElementById('resetPicks').addEventListener('click', resetPicks);
+ // console.log(thursdayDeadline, tuesdayEndTime);
+ 
+ isDeadline = false;
+ 
+ function submitUserPicks() {
+ if (!currentPoolName) {
+ alert('Current pool name is not set.');
+ return;
+ }
+ if (userPicks.length === 0) {
+ alert('Please add at least one pick before submitting.');
+ return; // Exit the function
+ }
+
+ const validateDate = (date) => {
+ const parsedDate = Date.parse(date);
+ return !isNaN(parsedDate) ? new Date(parsedDate).toISOString() : null;
+ };
+
+ // Create the data object with picks
+ const data = {
+ picks: userPicks.map(pick => ({
+ teamName: pick.teamName,
+ type: pick.type,
+ value: pick.value,
+ commenceTime: validateDate(pick.commenceTime) // Ensure commenceTime is in ISO format or null
+ })),
+ immortalLock: userImortalLock.map(pick => ({
+ teamName: pick.teamName,
+ type: pick.type,
+ value: pick.value,
+ commenceTime: validateDate(pick.commenceTime) // Ensure commenceTime is in ISO format or null
+ })),
+ poolName: currentPoolName
+ };
+
+ // console.log('Submitting picks data:', data);
+
+ fetch(`/api/savePicks/${storedUsername}/${currentPoolName}`, {
+ method: 'POST',
+ headers: {
+ 'Content-Type': 'application/json'
+ },
+ body: JSON.stringify(data)
+ })
+ .then(response => response.json())
+ .then(data => {
+ if (data.success) {
+ alert('Picks successfully submitted!');
+ // Additional code to handle successful submission
+ } else {
+ alert('Error submitting picks. Please try again.');
+ }
+ })
+ .catch(error => {
+ console.error('Error:', error);
+ alert('An error occurred. Please try again later.');
+ });
 }
 
 
 
 
-  
-  
-  // Event Listeners
-  document.getElementById('immortalLockCheck').addEventListener('change', function() {
-    const immortalLockDiv = document.getElementById('immortalLock');
-    if (this.checked) {
-      immortalLockDiv.style.display = 'block';
-    } else {
-      immortalLockDiv.style.display = 'none';
-    }
-  });
-  
-  document.getElementById('resetPicks').addEventListener('click', resetPicks);
-  document.getElementById('submitPicks').addEventListener('click', submitUserPicks);
-  
-  function renderBetOptions() {
-    const container = document.getElementById('picksContainer');
-    container.innerHTML = '';  // Clear previous contents
-    console.log("betOptions to render:", betOptions);
+ 
+ 
+ // Event Listeners
+ document.getElementById('immortalLockCheck').addEventListener('change', function() {
+ const immortalLockDiv = document.getElementById('immortalLock');
+ if (this.checked) {
+ immortalLockDiv.style.display = 'block';
+ } else {
+ immortalLockDiv.style.display = 'none';
+ }
+ });
+ 
+ document.getElementById('resetPicks').addEventListener('click', resetPicks);
+ document.getElementById('submitPicks').addEventListener('click', submitUserPicks);
+ 
+ function blackOutPreviousBets() {
+ const storedUsername = localStorage.getItem('username')?.toLowerCase();
+ const currentPoolName = localStorage.getItem('currentPoolName');
+ const key = `${storedUsername}-${currentPoolName}`;
 
-    // Group bets by game
-    const games = betOptions.reduce((acc, bet) => {
-        const gameKey = `${bet.awayTeam} vs ${bet.homeTeam}`;
-        if (!acc[gameKey]) {
-            acc[gameKey] = {
-                awayTeam: bet.awayTeam,
-                homeTeam: bet.homeTeam,
-                bets: [],
-                commenceTime: bet.commenceTime,
-                logoAway: teamLogos[bet.awayTeam],
-                logoHome: teamLogos[bet.homeTeam],
-                colorClassAway: teamColorClasses[bet.awayTeam],
-                colorClassHome: teamColorClasses[bet.homeTeam]
-            };
-        }
-        let formattedValue = String(bet.value); // Ensure value is a string
-        formattedValue = formattedValue.startsWith('+') || formattedValue.startsWith('-') ? formattedValue : (formattedValue > 0 ? `+${formattedValue}` : formattedValue);
-        acc[gameKey].bets.push({ type: bet.type, value: formattedValue, team: bet.teamName });
-        return acc;
-    }, {});
+ if (lastWeekPicks[key] && lastWeekPicks[key].picks) {
+ lastWeekPicks[key].picks.forEach(pick => {
+ const teamClass = pick.teamName.replace(/\s+/g, '-').toLowerCase();
+ const typeClass = pick.type.toLowerCase();
+ const betButtons = document.querySelectorAll(`.bet-button[data-team="${teamClass}"][data-type="${typeClass}"]`);
 
-    console.log("Grouped Games Data:", games);
+ betButtons.forEach(button => {
+ button.style.backgroundColor = 'black';
+ button.style.color = 'red';
+ button.dataset.previousPick = 'true'; // Add a custom data attribute to mark it as a previous pick
+ });
+ });
+ }
 
-    // Render each game
-    // Render each game
+ // Black out immortal lock pick
+ if (lastWeekPicks[key] && lastWeekPicks[key].immortalLockPick) {
+ lastWeekPicks[key].immortalLockPick.forEach(pick => {
+ const teamClass = pick.teamName.replace(/\s+/g, '-').toLowerCase();
+ const typeClass = pick.type.toLowerCase();
+ const betButtons = document.querySelectorAll(`.bet-button[data-team="${teamClass}"][data-type="${typeClass}"]`);
+
+ betButtons.forEach(button => {
+ button.style.backgroundColor = 'black';
+ button.style.color = 'red';
+ button.dataset.previousPick = 'true'; // Add a custom data attribute to mark it as a previous pick
+ });
+ });
+ }
+}
+
+
+
+
+ function renderBetOptions() {
+ const container = document.getElementById('picksContainer');
+ container.innerHTML = ''; // Clear previous contents
+ console.log("betOptions to render:", betOptions);
+
+ // Group bets by game
+ const games = betOptions.reduce((acc, bet) => {
+ const gameKey = `${bet.awayTeam} vs ${bet.homeTeam}`;
+ if (!acc[gameKey]) {
+ acc[gameKey] = {
+ awayTeam: bet.awayTeam,
+ homeTeam: bet.homeTeam,
+ bets: [],
+ commenceTime: bet.commenceTime,
+ logoAway: teamLogos[bet.awayTeam],
+ logoHome: teamLogos[bet.homeTeam],
+ colorClassAway: teamColorClasses[bet.awayTeam],
+ colorClassHome: teamColorClasses[bet.homeTeam]
+ };
+ }
+ let formattedValue = String(bet.value); // Ensure value is a string
+ formattedValue = formattedValue.startsWith('+') || formattedValue.startsWith('-') ? formattedValue : (formattedValue > 0 ? `+${formattedValue}` : formattedValue);
+ acc[gameKey].bets.push({ type: bet.type, value: formattedValue, team: bet.teamName });
+ return acc;
+ }, {});
+
+ console.log("Grouped Games Data:", games);
+
+ // Render each game
+ // Render each game
 Object.values(games).forEach(game => {
-  const gameContainer = document.createElement('div');
-  gameContainer.className = 'game-container';
-  gameContainer.style.display = 'flex';
-  gameContainer.style.flexDirection = 'column';
-  gameContainer.style.alignItems = 'center';
+ const gameContainer = document.createElement('div');
+ gameContainer.className = 'game-container';
+ gameContainer.style.display = 'flex';
+ gameContainer.style.flexDirection = 'column';
+ gameContainer.style.alignItems = 'center';
 
-  const teamsContainer = document.createElement('div');
-  teamsContainer.style.display = 'flex';
-  teamsContainer.style.alignItems = 'center';
+ const teamsContainer = document.createElement('div');
+ teamsContainer.style.display = 'flex';
+ teamsContainer.style.alignItems = 'center';
 
-  // Create containers for both teams
-  const awayTeamContainer = createTeamContainer(game, 'away');
-  const homeTeamContainer = createTeamContainer(game, 'home');
+ // Create containers for both teams
+ const awayTeamContainer = createTeamContainer(game, 'away');
+ const homeTeamContainer = createTeamContainer(game, 'home');
 
-  // Assemble the teams display
-  teamsContainer.appendChild(awayTeamContainer);
-  const atSymbol = document.createElement('div');
-  atSymbol.textContent = '@';
-  atSymbol.className = 'at-symbol';
-  teamsContainer.appendChild(atSymbol);
-  teamsContainer.appendChild(homeTeamContainer);
+ // Assemble the teams display
+ teamsContainer.appendChild(awayTeamContainer);
+ const atSymbol = document.createElement('div');
+ atSymbol.textContent = '@';
+ atSymbol.className = 'at-symbol';
+ teamsContainer.appendChild(atSymbol);
+ teamsContainer.appendChild(homeTeamContainer);
 
-  gameContainer.appendChild(teamsContainer);
+ gameContainer.appendChild(teamsContainer);
 
-  // Display the commencement time
-  const commenceTime = document.createElement('div');
-  commenceTime.textContent = new Date(game.commenceTime).toLocaleString('en-US', {
-    weekday: 'long', // "Monday", "Tuesday", etc.
-    hour: '2-digit',  // "2-digit" or "numeric"
-    minute: '2-digit', // "2-digit" or "numeric"
-    hour12: true // Use 12-hour time with AM/PM
-  });
-  commenceTime.className = 'commence-time';
-  gameContainer.appendChild(commenceTime);
+ // Display the commencement time
+ const commenceTime = document.createElement('div');
+ commenceTime.textContent = new Date(game.commenceTime).toLocaleString('en-US', {
+ weekday: 'long', // "Monday", "Tuesday", etc.
+ hour: '2-digit', // "2-digit" or "numeric"
+ minute: '2-digit', // "2-digit" or "numeric"
+ hour12: true // Use 12-hour time with AM/PM
+ });
+ commenceTime.className = 'commence-time';
+ gameContainer.appendChild(commenceTime);
 
-  container.appendChild(gameContainer);
+ container.appendChild(gameContainer);
 });
-
+blackOutPreviousBets();
 }
 
 function createTeamContainer(game, teamRole) {
-    const teamData = game[teamRole + 'Team'];
-    const teamContainer = document.createElement('div');
-    teamContainer.className = `team-container ${game['colorClass' + teamRole.charAt(0).toUpperCase() + teamRole.slice(1)]}`;
+ const teamData = game[teamRole + 'Team'];
+ const teamContainer = document.createElement('div');
+ teamContainer.className = `team-container ${game['colorClass' + teamRole.charAt(0).toUpperCase() + teamRole.slice(1)]}`;
 
-    const teamLogo = document.createElement('img');
-    teamLogo.src = teamRole === 'away' ? game.logoAway : game.logoHome;
-    teamLogo.alt = teamData + ' logo';
-    teamLogo.className = 'team-logo';
-    teamContainer.appendChild(teamLogo);
+ const teamLogo = document.createElement('img');
+ teamLogo.src = teamRole === 'away' ? game.logoAway : game.logoHome;
+ teamLogo.alt = teamData + ' logo';
+ teamLogo.className = 'team-logo';
+ teamContainer.appendChild(teamLogo);
 
-    game.bets.filter(bet => bet.team === teamData).forEach(bet => {
-        const betButton = document.createElement('button');
-        betButton.className = `bet-button ${teamContainer.className}`;
-        betButton.textContent = bet.value;
-        betButton.dataset.team = teamData.replace(/\s+/g, '-').toLowerCase();
-        betButton.dataset.type = bet.type.toLowerCase();
-        betButton.onclick = () => selectBet({ teamName: teamData, type: bet.type, value: bet.value });
-        teamContainer.appendChild(betButton);
-    });
+ game.bets.filter(bet => bet.team === teamData).forEach(bet => {
+ const betButton = document.createElement('button');
+ betButton.className = `bet-button ${teamContainer.className}`;
+ betButton.textContent = bet.value;
+ betButton.dataset.team = teamData.replace(/\s+/g, '-').toLowerCase();
+ betButton.dataset.type = bet.type.toLowerCase();
+ betButton.onclick = () => selectBet({ teamName: teamData, type: bet.type, value: bet.value });
+ teamContainer.appendChild(betButton);
+ });
 
-    return teamContainer;
+ return teamContainer;
 }
 
 function createBetButtons(teamData) {
-    const container = document.createElement('div');
-    container.className = 'bet-buttons';
+ const container = document.createElement('div');
+ container.className = 'bet-buttons';
 
-    ['Spread', 'ML'].forEach(type => {
-        if (teamData[type]) {
-            const button = document.createElement('button');
-            button.className = `bet-button ${teamColorClasses[teamData.teamName]}`;
-            button.textContent = teamData[type]; // Assuming value is like '+1.5' or '-150'
-            button.onclick = () => selectBet({
-                teamName: teamData.teamName,
-                type: type,
-                value: teamData[type]
-            });
-            container.appendChild(button);
-        }
-    });
+ ['Spread', 'ML'].forEach(type => {
+ if (teamData[type]) {
+ const button = document.createElement('button');
+ button.className = `bet-button ${teamColorClasses[teamData.teamName]}`;
+ button.textContent = teamData[type]; // Assuming value is like '+1.5' or '-150'
+ button.onclick = () => selectBet({
+ teamName: teamData.teamName,
+ type: type,
+ value: teamData[type]
+ });
+ container.appendChild(button);
+ }
+ });
 
-    return container;
+ return container;
 }
 function groupBetsByGame(betOptions) {
 // Group bets by game using team names and commence time
 // Group bets by game using the unique identifier
 const games = betOptions.reduce((acc, bet) => {
-  const gameKey = bet.gameIdentifier; // Using the new unique game identifier
-  if (!acc[gameKey]) {
-      acc[gameKey] = {
-          awayTeam: bet.teamRole === 'away' ? bet.teamName : undefined,
-          homeTeam: bet.teamRole === 'home' ? bet.teamName : undefined,
-          bets: [],
-          commenceTime: bet.commenceTime,
-          logoAway: teamLogos[bet.teamRole === 'away' ? bet.teamName : ''],
-          logoHome: teamLogos[bet.teamRole === 'home' ? bet.teamName : ''],
-          colorClassAway: teamColorClasses[bet.teamRole === 'away' ? bet.teamName : ''],
-          colorClassHome: teamColorClasses[bet.teamRole === 'home' ? bet.teamName : '']
-      };
-  }
-  acc[gameKey].bets.push({ type: bet.type, value: bet.value, team: bet.teamName });
-  return acc;
+ const gameKey = bet.gameIdentifier; // Using the new unique game identifier
+ if (!acc[gameKey]) {
+ acc[gameKey] = {
+ awayTeam: bet.teamRole === 'away' ? bet.teamName : undefined,
+ homeTeam: bet.teamRole === 'home' ? bet.teamName : undefined,
+ bets: [],
+ commenceTime: bet.commenceTime,
+ logoAway: teamLogos[bet.teamRole === 'away' ? bet.teamName : ''],
+ logoHome: teamLogos[bet.teamRole === 'home' ? bet.teamName : ''],
+ colorClassAway: teamColorClasses[bet.teamRole === 'away' ? bet.teamName : ''],
+ colorClassHome: teamColorClasses[bet.teamRole === 'home' ? bet.teamName : '']
+ };
+ }
+ acc[gameKey].bets.push({ type: bet.type, value: bet.value, team: bet.teamName });
+ return acc;
 }, {});
 
 }
 
 
-  // Initialization
-  //renderBetOptions();
-  async function fetchMLBData() {
-    const url = 'https://odds.p.rapidapi.com/v4/sports/baseball_mlb/odds';
-    const params = {
-        regions: 'us',
-        markets: 'h2h,spreads',
-        oddsFormat: 'american',
-    };
-    const queryParams = new URLSearchParams(params);
-    betOptions = [];
-    try {
-        const response = await fetch(`${url}?${queryParams}`, {
-            method: 'GET',
-            headers: {
-                'x-rapidapi-host': 'odds.p.rapidapi.com',
-                'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e'
-            }
-        });
+ // Initialization
+ //renderBetOptions();
+ async function fetchMLBData() {
+ const url = 'https://odds.p.rapidapi.com/v4/sports/baseball_mlb/odds';
+ const params = {
+ regions: 'us',
+ markets: 'h2h,spreads',
+ oddsFormat: 'american',
+ };
+ const queryParams = new URLSearchParams(params);
+ betOptions = [];
+ try {
+ const response = await fetch(`${url}?${queryParams}`, {
+ method: 'GET',
+ headers: {
+ 'x-rapidapi-host': 'odds.p.rapidapi.com',
+ 'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e'
+ }
+ });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+ if (!response.ok) {
+ throw new Error(`HTTP error! status: ${response.status}`);
+ }
 
-        const data = await response.json();
-        console.log("Full API Data:", data);  // Log the entire data set received from the API
+ const data = await response.json();
+ console.log("Full API Data:", data); // Log the entire data set received from the API
 
-        data.forEach(event => {
-          console.log('Processing event:', event);
-      
-          if (!event.teams || !Array.isArray(event.teams)) {
-              if (event.home_team && event.away_team) {
-                  const nflHomeTeam = mlbToNflMap[event.home_team] || event.home_team;
-                  const nflAwayTeam = mlbToNflMap[event.away_team] || event.away_team;
-                  processBookmakers([nflHomeTeam, nflAwayTeam], event.bookmakers, event.commence_time, event.home_team, event.away_team);
-              } else {
-                  console.error('Valid teams data is missing:', event);
-                  return; // Skip this event if teams data is not usable
-              }
-          } else {
-              const nflTeams = event.teams.map(team => mlbToNflMap[team] || team);
-              processBookmakers(nflTeams, event.bookmakers, event.commence_time, event.home_team, event.away_team);
-          }
-      });
-      
-    } catch (error) {
-        console.error('Error fetching MLB data:', error);
-    }
+ data.forEach(event => {
+ console.log('Processing event:', event);
+ 
+ if (!event.teams || !Array.isArray(event.teams)) {
+ if (event.home_team && event.away_team) {
+ const nflHomeTeam = mlbToNflMap[event.home_team] || event.home_team;
+ const nflAwayTeam = mlbToNflMap[event.away_team] || event.away_team;
+ processBookmakers([nflHomeTeam, nflAwayTeam], event.bookmakers, event.commence_time, event.home_team, event.away_team);
+ } else {
+ console.error('Valid teams data is missing:', event);
+ return; // Skip this event if teams data is not usable
+ }
+ } else {
+ const nflTeams = event.teams.map(team => mlbToNflMap[team] || team);
+ processBookmakers(nflTeams, event.bookmakers, event.commence_time, event.home_team, event.away_team);
+ }
+ });
+ 
+ } catch (error) {
+ console.error('Error fetching MLB data:', error);
+ }
 }
 function processBookmakers(nflTeams, bookmakers, commenceTime, homeTeam, awayTeam) {
-  // Map MLB team names to NFL names
-  const nflHomeTeam = mlbToNflMap[homeTeam] || homeTeam;
-  const nflAwayTeam = mlbToNflMap[awayTeam] || awayTeam;
+ // Map MLB team names to NFL names
+ const nflHomeTeam = mlbToNflMap[homeTeam] || homeTeam;
+ const nflAwayTeam = mlbToNflMap[awayTeam] || awayTeam;
 
-  bookmakers.forEach(bookmaker => {
-      if (bookmaker.key === 'draftkings') {
-          bookmaker.markets.forEach(market => {
-              market.outcomes.forEach(outcome => {
-                  const nflTeamName = mlbToNflMap[outcome.name] || outcome.name;
-                  const betType = market.key === 'h2h' ? 'ML' : 'Spread';
-                  let betValue = market.key === 'h2h' ? outcome.price : outcome.point;
-                  if (betValue > 0 && !betValue.toString().startsWith('+')) {
-                      betValue = '+' + betValue;
-                  }
+ bookmakers.forEach(bookmaker => {
+ if (bookmaker.key === 'draftkings') {
+ bookmaker.markets.forEach(market => {
+ market.outcomes.forEach(outcome => {
+ const nflTeamName = mlbToNflMap[outcome.name] || outcome.name;
+ const betType = market.key === 'h2h' ? 'ML' : 'Spread';
+ let betValue = market.key === 'h2h' ? outcome.price : outcome.point;
+ if (betValue > 0 && !betValue.toString().startsWith('+')) {
+ betValue = '+' + betValue;
+ }
 
-                  betOptions.push({
-                      teamName: nflTeamName,
-                      teamRole: nflTeamName === nflHomeTeam ? 'home' : 'away',
-                      awayTeam: nflAwayTeam,
-                      homeTeam: nflHomeTeam,
-                      type: betType,
-                      value: betValue,
-                      commenceTime: commenceTime
-                  });
-              });
-          });
-      }
-  });
+ betOptions.push({
+ teamName: nflTeamName,
+ teamRole: nflTeamName === nflHomeTeam ? 'home' : 'away',
+ awayTeam: nflAwayTeam,
+ homeTeam: nflHomeTeam,
+ type: betType,
+ value: betValue,
+ commenceTime: commenceTime
+ });
+ });
+ });
+ }
+ });
 }
 
 
 document.addEventListener('DOMContentLoaded', () => {
-  loadWeeklyPicks();
+ loadWeeklyPicks();
 });
 
 document.getElementById('savePicksButton').addEventListener('click', saveWeeklyPicks);
 document.getElementById('fetchOddsButton').addEventListener('click', fetchMLBData);
 
 async function saveWeeklyPicks() {
-  const picksData = betOptions;
-  fetch('/api/saveWeeklyPicks', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ picks: picksData })
-  })
-  .then(handleResponse)
-  .catch(handleError);
+ const picksData = betOptions;
+ fetch('/api/saveWeeklyPicks', {
+ method: 'POST',
+ headers: {'Content-Type': 'application/json'},
+ body: JSON.stringify({ picks: picksData })
+ })
+ .then(handleResponse)
+ .catch(handleError);
 }
 
 async function loadWeeklyPicks() {
-  fetch('/api/getWeeklyPicks')
-  .then(handleResponse)
-  .then(picks => {
-    betOptions = Array.isArray(picks) ? picks : [];
-    renderBetOptions();
-  })
-  .catch(handleError);
+ fetch('/api/getWeeklyPicks')
+ .then(handleResponse)
+ .then(picks => {
+ betOptions = Array.isArray(picks) ? picks : [];
+ renderBetOptions();
+ })
+ .catch(handleError);
 }
 
 async function handleResponse(response) {
-  if (!response.ok) throw new Error('Network response was not ok');
-  return response.json();
+ if (!response.ok) throw new Error('Network response was not ok');
+ return response.json();
 }
 
 async function handleError(error) {
-  console.error('Failed to fetch data:', error);
+ console.error('Failed to fetch data:', error);
 }
-
-
-//3decff06f7mshbc96e9118345205p136794jsn629db332340e

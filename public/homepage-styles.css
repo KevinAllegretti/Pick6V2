@@ -149,6 +149,44 @@ body {
     margin-right: 8px; /* Adds some space between the icon and the text */
 }
 
+.pool-info, .pool-info-container {
+    background-color: #0a0f22; /* Dark background */
+    border: 2px solid #33d9ff; /* Light blue border */
+    border-radius: 10px; /* Rounded corners */
+    padding: 15px 20px; /* Add some padding inside the box */
+    box-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff; /* Neon glow effect */
+    text-align: left; /* Align text to the left */
+    margin: 20px auto; /* Center the pool info box and add space around it */
+    max-width: 250px; /* Set a max width for the container */
+}
+
+.pool-title {
+    font-size: 1.5em; /* Larger font size */
+    color: #33d9ff; /* Light blue text */
+    border-bottom: 2px solid #33d9ff; /* Underline */
+    padding-bottom: 5px; /* Space between text and underline */
+    margin-bottom: 10px; /* Space below the title */
+    text-align: center; /* Center align the title */
+}
+.user-pool, .userPoolOtherUser {
+    font-size: 1.2em; /* Slightly larger font size */
+    color: #fff; /* White text */
+}
+
+.user-pool div, .userPoolOtherUser div {
+    margin: 5px 0; /* Space between lines */
+}
+
+.user-pool strong, .userPoolOtherUser strong {
+    color: #33d9ff; /* Light blue text for labels */
+    text-shadow: none; /* Remove text shadow for labels */
+}
+
+.user-pool span, .userPoolOtherUser span {
+    color: #fff; /* White text for values */
+    text-shadow: none; /* Remove text shadow for values */
+}
+
 
 /* Hide the file input visually but remain accessible to screen readers. */
 input[type="file"] {
@@ -665,6 +703,7 @@ button:hover {
     display: flex;
     align-items: center;
     overflow: hidden; /* Hide overflow */
+    cursor: pointer;
 }
 
 .crown-icon {
