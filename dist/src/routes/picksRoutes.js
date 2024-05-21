@@ -158,7 +158,7 @@ router.get('/api/getLastWeekPicks/:username/:poolName', async (req, res) => {
         const database = await (0, connectDB_1.connectToDatabase)();
         const lastWeeksPicksCollection = database.collection('lastWeeksPicks');
         const userPicks = await lastWeeksPicksCollection.findOne({ username: lowercaseUsername, poolName });
-        console.log('User picks found:', userPicks);
+        // console.log('User picks found:', userPicks);
         if (userPicks) {
             res.json({ success: true, picks: userPicks.picks, immortalLockPick: userPicks.immortalLockPick });
         }

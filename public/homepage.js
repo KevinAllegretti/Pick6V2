@@ -1,178 +1,279 @@
-
 document.addEventListener('DOMContentLoaded', function() {
-    // Handling username and redirection
     const urlParams = new URLSearchParams(window.location.search);
     const username = urlParams.get('username');
     if (username) {
         localStorage.setItem('username', username);
     }
 
-    
     const loggedInUsername = localStorage.getItem('username');
-   // console.log("Script is loaded!");
     console.log("Logged in user:", loggedInUsername);
 
-    //PROFILE AND SLIDE
     const profileIcon = document.getElementById('profileIcon');
     const slideOutPanel = document.getElementById('slideOutPanel');
     const closePanelBtn = document.getElementById('closePanelBtn');
 
-    
     profileIcon.addEventListener('click', () => {
-        console.log('Profile icon clicked'); // Log on click
-        slideOutPanel.classList.add('visible'); // Show the slide-out panel
+        console.log('Profile icon clicked');
+        slideOutPanel.classList.add('visible');
     });
 
     closePanelBtn.addEventListener('click', () => {
-        slideOutPanel.classList.remove('visible'); // Hide the slide-out panel
-
+        slideOutPanel.classList.remove('visible');
     });
-    
+
     document.addEventListener('click', (event) => {
         const withinBoundaries = event.composedPath().includes(slideOutPanel);
         const clickedOnProfileIcon = event.composedPath().includes(profileIcon);
-    
+
         if (!withinBoundaries && !clickedOnProfileIcon && slideOutPanel.classList.contains('visible')) {
             slideOutPanel.classList.remove('visible');
         }
     });
-    
-    document.getElementById('logout-button').addEventListener('click', function() {
-        // Clear user session or local storage
-        localStorage.removeItem('username'); 
-    
-        // Redirect to the login page
-        window.location.href = '/login.html'; 
-    });
-    
-    profileIcon.addEventListener('click', (event) => {
-        event.stopPropagation(); // Prevent the click from propagating to the document
-        slideOutPanel.classList.add('visible');
-    });
-    
-    slideOutPanel.addEventListener('click', (event) => {
-        event.stopPropagation(); // Prevent the click from propagating to the document
-    });
-    
 
-    window.addEventListener('load', () => {
+    document.getElementById('logout-button').addEventListener('click', function() {
+        localStorage.removeItem('username');
+        window.location.href = '/login.html';
+    });
+
+    window.addEventListener('load', async () => {
         const storedUsername = localStorage.getItem('username');
         if (storedUsername) {
             document.getElementById('displayName').textContent = storedUsername;
         }
-    });
-    
-    // Gets user profile
-    window.addEventListener('load', async () => {
-        // Rest of your load event code...
 
-        const username = localStorage.getItem('username').toLowerCase(); // Get the username from local storage
-
+        const username = storedUsername.toLowerCase();
         try {
-            // Fetch user data from the server
             const response = await fetch(`/api/getUserProfile/${username}`);
             if (!response.ok) {
                 throw new Error('Network response was not ok.');
             }
             const userData = await response.json();
-
-            // Set the user's profile image if it exists, otherwise set to default
             const profilePicSrc = userData.profilePicture || 'Default.png';
             document.querySelector('.profile-icon').src = profilePicSrc;
             document.querySelector('.profile-icon-center').src = profilePicSrc;
 
-             // Fetch pool information
-             const poolResponse = await fetch(`/pools/userPoolInfo/${username}`);
-             if (!poolResponse.ok) {
-                 throw new Error('Network response was not ok.');
-             }
-             const poolData = await poolResponse.json();
-             console.log('Fetched pool data:', poolData);
- 
-             // Display pool information
-             const userPoolElement = document.getElementById('userPool');
-             userPoolElement.innerHTML = poolData.map(pool => `
-                 <div>
-                     <strong>Pool:</strong> ${pool.poolName}<br>
-                     <strong>Rank:</strong> ${pool.rank}<br>
-                     <strong>Points:</strong> ${pool.points}
-                 </div>
-             `).join('');
+            const poolResponse = await fetch(`/pools/userPoolInfo/${username}`);
+            if (!poolResponse.ok) {
+                throw new Error('Network response was not ok.');
+            }
+            const poolData = await poolResponse.json();
+            console.log('Fetched pool data:', poolData);
+
+            const userPoolElement = document.getElementById('userPool');
+            userPoolElement.innerHTML = poolData.map(pool => `
+                <div>
+                    <strong>Pool:</strong> ${pool.poolName}<br>
+                    <strong>Rank:</strong> ${pool.rank}<br>
+                    <strong>Points:</strong> ${pool.points}
+                </div>
+            `).join('');
 
         } catch (error) {
             console.error('Error fetching user data or pool data:', error);
-            // Set to default image in case of an error
             document.querySelector('.profile-icon').src = 'Default.png';
             document.querySelector('.profile-icon-center').src = 'Default.png';
         }
     });
 
-    
-    // Add event listener for file input to handle the upload
     document.getElementById('profilePic').addEventListener('change', async (event) => {
         const fileInput = event.target;
         const file = fileInput.files[0];
-    
+
         if (file) {
             const formData = new FormData();
             formData.append('profilePic', file);
             formData.append('username', localStorage.getItem('username').toLowerCase());
-    
+
             try {
-                // Make the request to the server
                 const response = await fetch('/api/uploadProfilePicture', {
                     method: 'POST',
-                    body: formData, // Send the form data
+                    body: formData,
                 });
-    
+
                 if (!response.ok) {
                     throw new Error('Network response was not ok.');
                 }
-    
+
                 const result = await response.json();
-    
-                // Upload was successful
-                //console.log(result.message);
-                // Update the profile picture on the page
                 document.querySelector('.profile-icon').src = result.filePath;
                 document.querySelector('.profile-icon-center').src = result.filePath;
-    
+
             } catch (error) {
                 console.error('Upload error:', error);
             }
-        } else {
-           // console.log('No file selected.');
         }
     });
-    
-
-
-
 });
-
-
-document.addEventListener('DOMContentLoaded', () => {
-    let maxPoints = 0;
-    let topPlayerCard;
-
-    // Loop through each player card to find the one with the most points
-    document.querySelectorAll('.player-card').forEach(card => {
-        const points = parseFloat(card.getAttribute('data-points'));
-        if (points > maxPoints) {
-            maxPoints = points;
-            topPlayerCard = card;
-        }
+document.addEventListener('DOMContentLoaded', function() {
+    const profileIconTemplate = document.getElementById('profileIconTemplate');
+    const slideOutPanelTemplate = document.getElementById('slideOutPanel');
+    const closePanelBtnTemplate = document.getElementById('closePanelBtn');
+    const saveBioButton = document.getElementById('saveBioButton');
+   
+    profileIconTemplate.addEventListener('click', async () => {
+    slideOutPanelTemplate.classList.add('visible'); // Show the template slide-out panel
+    await loadUserProfile(); // Load the user's profile when the panel is opened
+    await loadUserBio(); // Load the user's bio when the panel is opened
     });
-
-    // If a top player is found, append the crown icon to their card
-    if (topPlayerCard) {
-        const crownIcon = document.createElement('i');
-        crownIcon.classList.add('fas', 'fa-crown', 'crown-icon');
-        topPlayerCard.appendChild(crownIcon);
+   
+    closePanelBtnTemplate.addEventListener('click', () => {
+    slideOutPanelTemplate.classList.remove('visible'); // Hide the template slide-out panel
+    });
+   
+    saveBioButton.addEventListener('click', async (event) => {
+    event.preventDefault(); // Prevent form submission
+    const bio = document.getElementById('userBio').value;
+    await saveUserBio(bio);
+    });
+   
+    async function loadUserProfile() {
+    const username = localStorage.getItem('username').toLowerCase();
+    const response = await fetch(`/api/getUserProfile/${username}`);
+    const userData = await response.json();
+    document.querySelector('.profile-icon-center').src = userData.profilePicture || 'Default.png';
+    document.getElementById('displayName').textContent = userData.username;
     }
-});
-
-
+   
+    async function loadUserBio() {
+    const username = localStorage.getItem('username').toLowerCase();
+    const response = await fetch(`/api/getUserBio/${username}`);
+    const userData = await response.json();
+    document.getElementById('userBio').value = userData.bio || '';
+    }
+   
+    async function saveUserBio(bio) {
+    const username = localStorage.getItem('username').toLowerCase();
+    const response = await fetch(`/api/saveUserBio`, {
+    method: 'POST',
+    headers: {
+    'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ username, bio }),
+    });
+    if (response.ok) {
+    alert('Bio saved successfully!');
+    } else {
+    alert('Failed to save bio');
+    }
+    }
+   
+    async function showInPoolUserProfile(username) {
+    const url = `/api/getUserProfile/${username.toLowerCase()}`;
+    try {
+    const response = await fetch(url);
+    const userData = await response.json();
+    const poolInfoResponse = await fetch(`/pools/userPools/${username.toLowerCase()}`);
+    const poolInfo = await poolInfoResponse.json();
+   
+    let win = 0;
+    let loss = 0;
+    let push = 0;
+    if (poolInfo.length > 0) {
+    const userPool = poolInfo.find(pool => pool.name === localStorage.getItem('currentPoolName'));
+    if (userPool) {
+    const userMember = userPool.members.find(member => member.username.toLowerCase() === username.toLowerCase());
+    if (userMember) {
+    win = userMember.win;
+    loss = userMember.loss;
+    push = userMember.push;
+    }
+    }
+    }
+    userData.win = win;
+    userData.loss = loss;
+    userData.push = push;
+   
+    const bioResponse = await fetch(`/api/getUserBio/${username.toLowerCase()}`);
+    const bioData = await bioResponse.json();
+    userData.bio = bioData.bio;
+   
+    updateSlideOutPanelInPool(userData);
+    } catch (error) {
+    console.error('Error fetching user profile:', error);
+    }
+    }
+   
+    function updateSlideOutPanelInPool(userData) {
+    let panelContent = document.getElementById('slideOutPanelInPool');
+    if (!panelContent) {
+    const template = document.getElementById('in-pool-profile-template').content.cloneNode(true);
+    document.body.appendChild(template);
+    panelContent = document.getElementById('slideOutPanelInPool');
+    }
+    document.querySelector('#slideOutPanelInPool .profile-icon-center').src = userData.profilePicture || 'Default.png';
+    document.getElementById('displayNameInPool').textContent = userData.username;
+    document.getElementById('userBioInPool').textContent = userData.bio || 'No bio available';
+    const userRecordContainer = document.getElementById('userRecordInPool');
+    userRecordContainer.innerHTML = `
+    <div>Win: ${userData.win} | Loss: ${userData.loss} | Push: ${userData.push}</div>
+    `;
+    panelContent.classList.add('visible');
+    document.getElementById('closePanelBtnInPool').addEventListener('click', () => {
+    panelContent.classList.remove('visible');
+    });
+    }
+   
+    document.addEventListener('click', function(event) {
+    if (event.target.closest('.player-username')) {
+    const username = event.target.closest('.player-username').textContent.trim();
+    showInPoolUserProfile(username);
+    }
+    });
+   
+    window.addEventListener('load', async () => {
+    const username = localStorage.getItem('username').toLowerCase();
+    try {
+    const response = await fetch(`/api/getUserProfile/${username}`);
+    if (!response.ok) {
+    throw new Error('Network response was not ok.');
+    }
+    const userData = await response.json();
+    const profilePicSrc = userData.profilePicture || 'Default.png';
+    document.querySelector('.profile-icon').src = profilePicSrc;
+    document.querySelector('.profile-icon-center').src = profilePicSrc;
+    } catch (error) {
+    console.error('Error fetching user data:', error);
+    document.querySelector('.profile-icon').src = 'Default.png';
+    document.querySelector('.profile-icon-center').src = 'Default.png';
+    }
+    });
+   
+    document.getElementById('profilePic').addEventListener('change', async (event) => {
+    const fileInput = event.target;
+    const file = fileInput.files[0];
+    if (file) {
+    const formData = new FormData();
+    formData.append('profilePic', file);
+    formData.append('username', localStorage.getItem('username').toLowerCase());
+    try {
+    const response = await fetch('/api/uploadProfilePicture', {
+    method: 'POST',
+    body: formData,
+    });
+    if (!response.ok) {
+    throw new Error('Network response was not ok.');
+    }
+    const result = await response.json();
+    document.querySelector('.profile-icon').src = result.filePath;
+    document.querySelector('.profile-icon-center').src = result.filePath;
+    } catch (error) {
+    console.error('Upload error:', error);
+    }
+    }
+    });
+   
+    // Close slide-out panels when clicking outside
+    document.addEventListener('click', function(event) {
+    const templatePanel = document.getElementById('slideOutPanel');
+    const inPoolPanel = document.getElementById('slideOutPanelInPool');
+    if (!templatePanel.contains(event.target) && !profileIconTemplate.contains(event.target)) {
+    templatePanel.classList.remove('visible');
+    }
+    if (inPoolPanel && !inPoolPanel.contains(event.target) && !event.target.closest('.player-username')) {
+    inPoolPanel.classList.remove('visible');
+    }
+    });
+   });
 //START OF POOLS AND PLAYERROWS
 
 document.getElementById('show-create-pool-form').addEventListener('click', function() {
@@ -853,98 +954,10 @@ if (memberData.rank === totalMembers) {
         }
 
     // Add any additional data or elements you need
- // Add event listener to the user profile element
- playerRow.querySelector('.player-user').addEventListener('click', () => {
-    showUserProfile(memberData.username);
-});
+
 
     return playerRow;
 }
-
-async function showUserProfile(username) {
-    const url = `/api/getUserProfile/${username.toLowerCase()}`;
-    try {
-        const response = await fetch(url);
-        const userData = await response.json();
-        // Fetch pool info
-        const poolInfoResponse = await fetch(`/pools/userPools/${username.toLowerCase()}`);
-        const poolInfo = await poolInfoResponse.json();
-
-        // Find the correct pool and rank
-        let poolName = 'undefined';
-        let rank = 'undefined';
-        let points = 0;
-        if (poolInfo.length > 0) {
-            const userPool = poolInfo.find(pool => pool.name === localStorage.getItem('currentPoolName'));
-            if (userPool) {
-                poolName = userPool.name;
-                const userMember = userPool.members.find(member => member.username.toLowerCase() === username.toLowerCase());
-                if (userMember) {
-                    rank = userPool.members.sort((a, b) => b.points - a.points).findIndex(member => member.username.toLowerCase() === username.toLowerCase()) + 1;
-                    points = userMember.points;
-                }
-            }
-        }
-
-        userData.poolName = poolName;
-        userData.rank = rank;
-        userData.points = points;
-
-        if (username.toLowerCase() === localStorage.getItem('username').toLowerCase()) {
-            updateSlideOutPanel(userData);
-        } else {
-            updateSlideOutPanelOtherUser(userData);
-        }
-    } catch (error) {
-        console.error('Error fetching user profile:', error);
-    }
-}
-
-function updateSlideOutPanel(userData) {
-    document.querySelector('.profile-icon-center').src = userData.profilePicture || 'Default.png';
-    document.getElementById('displayName').textContent = userData.username;
-
-    // Update pool information if needed
-    const poolInfoContainer = document.getElementById('userPool');
-    poolInfoContainer.innerHTML = `
-        <div><strong>Pool:</strong> ${userData.poolName}</div>
-        <div><strong>Rank:</strong> ${userData.rank}</div>
-        <div><strong>Points:</strong> ${userData.points}</div>
-    `;
-}
-
-function updateSlideOutPanelOtherUser(userData) {
-    const panelContent = document.getElementById('slideOutPanelOtherUser');
-    if (!panelContent) {
-        const template = document.getElementById('other-user-profile-template').content.cloneNode(true);
-        document.body.appendChild(template);
-    }
-
-    document.querySelector('#slideOutPanelOtherUser .profile-icon-center').src = userData.profilePicture || 'Default.png';
-    document.getElementById('displayNameOtherUser').textContent = userData.username;
-
-    // Update pool information
-    const poolInfoContainer = document.getElementById('userPoolOtherUser');
-    poolInfoContainer.innerHTML = `
-        <div><strong>Pool:</strong> ${userData.poolName}</div>
-        <div><strong>Rank:</strong> ${userData.rank}</div>
-        <div><strong>Points:</strong> ${userData.points}</div>
-    `;
-
-    // Show the panel
-    document.getElementById('slideOutPanelOtherUser').classList.add('visible');
-    document.getElementById('closePanelBtnOtherUser').addEventListener('click', () => {
-        document.getElementById('slideOutPanelOtherUser').classList.remove('visible');
-    });
-}
-
-// Event listener to show user profile on click
-document.addEventListener('click', function(event) {
-    if (event.target.closest('.player-username')) {
-        const username = event.target.closest('.player-username').textContent.trim();
-        showUserProfile(username);
-    }
-});
 
 
 // Assume this function is called when you want to delete a pool

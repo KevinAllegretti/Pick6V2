@@ -223,7 +223,7 @@ router.post('/resetUserStatsInPoolByName', async (req, res) => {
 
 router.get('/getChatMessages', async (req, res) => {
   const { poolName } = req.query;
-  console.log("Fetching chat messages for pool:", poolName);
+  //console.log("Fetching chat messages for pool:", poolName);
 
   try {
       const database = await connectToDatabase();

@@ -75,4 +75,32 @@ router.get('/api/getUserProfile/:username', async (req, res) => {
         res.status(500).send({ message: 'Error getting user profile', error });
     }
 });
+router.get('/api/getUserBio/:username', async (req, res) => {
+    try {
+        const db = await (0, connectDB_1.connectToDatabase)();
+        const userBiosCollection = db.collection('userBios');
+        const username = req.params.username.toLowerCase();
+        const userBio = await userBiosCollection.findOne({ username });
+        if (!userBio) {
+            return res.status(404).send({ message: 'User bio not found.' });
+        }
+        res.json({ bio: userBio.bio });
+    }
+    catch (error) {
+        res.status(500).send({ message: 'Error getting user bio', error });
+    }
+});
+// Save user bio endpoint
+router.post('/api/saveUserBio', async (req, res) => {
+    const { username, bio } = req.body;
+    try {
+        const db = await (0, connectDB_1.connectToDatabase)();
+        const userBiosCollection = db.collection('userBios');
+        const result = await userBiosCollection.updateOne({ username }, { $set: { bio } }, { upsert: true });
+        res.send({ message: 'Bio saved successfully' });
+    }
+    catch (error) {
+        res.status(500).send({ message: 'Error saving bio', error });
+    }
+});
 exports.default = router;

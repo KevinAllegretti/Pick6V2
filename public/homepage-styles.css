@@ -148,45 +148,115 @@ body {
 .custom-file-upload i {
     margin-right: 8px; /* Adds some space between the icon and the text */
 }
-
-.pool-info, .pool-info-container {
-    background-color: #0a0f22; /* Dark background */
-    border: 2px solid #33d9ff; /* Light blue border */
-    border-radius: 10px; /* Rounded corners */
-    padding: 15px 20px; /* Add some padding inside the box */
-    box-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff; /* Neon glow effect */
-    text-align: left; /* Align text to the left */
-    margin: 20px auto; /* Center the pool info box and add space around it */
-    max-width: 250px; /* Set a max width for the container */
+.pool-info {
+    background-color: #0a0f22;
+    border: 2px solid #33d9ff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff;
+    margin: 30px auto;
+    max-width: 300px;
+    text-align: left;
 }
 
 .pool-title {
-    font-size: 1.5em; /* Larger font size */
-    color: #33d9ff; /* Light blue text */
-    border-bottom: 2px solid #33d9ff; /* Underline */
-    padding-bottom: 5px; /* Space between text and underline */
-    margin-bottom: 10px; /* Space below the title */
-    text-align: center; /* Center align the title */
-}
-.user-pool, .userPoolOtherUser {
-    font-size: 1.2em; /* Slightly larger font size */
-    color: #fff; /* White text */
+    font-size: 1.8em;
+    color: #33d9ff;
+    border-bottom: 2px solid #33d9ff;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+    text-align: center;
 }
 
-.user-pool div, .userPoolOtherUser div {
-    margin: 5px 0; /* Space between lines */
+.user-record {
+    font-size: 1.3em;
+    color: #fff;
+    display: flex;
+    justify-content: space-around;
+    text-shadow: 0 0 5px #0af, 0 0 10px #0af, 0 0 15px #0af;
 }
 
-.user-pool strong, .userPoolOtherUser strong {
-    color: #33d9ff; /* Light blue text for labels */
-    text-shadow: none; /* Remove text shadow for labels */
+.user-record div {
+    margin: 0 10px;
 }
 
-.user-pool span, .userPoolOtherUser span {
-    color: #fff; /* White text for values */
-    text-shadow: none; /* Remove text shadow for values */
+.bio-container, .bio-info {
+    background-color: #0a0f22;
+    border: 1px solid #33d9ff;
+    border-radius: 5px;
+    padding: 15px 20px;
+    box-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff;
+    margin: 20px auto;
+    max-width: 300px;
+    text-align: left;
 }
 
+.bio-title {
+    font-size: 1.5em;
+    color: #33d9ff;
+    border-bottom: 1px solid #33d9ff;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+#userBio {
+    width: 100%;
+    height: 60px;
+    border-radius: 5px;
+    padding: 10px;
+    border: 2px solid #33d9ff;
+    background-color: #0a0f22;
+    color: #fff;
+    font-size: 1em;
+    margin-bottom: 10px;
+    resize: none;
+    max-width: 280px;
+}
+
+#saveBioButton {
+    background-color: #33d9ff;
+    border: none;
+    border-radius: 5px;
+    color: #0a0f22;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 1em;
+    box-shadow: 0 0 5px #33d9ff, 0 0 10px #33d9ff, 0 0 15px #33d9ff;
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
+}
+
+#saveBioButton:focus {
+    outline: none;
+}
+
+
+.bio-info, .season-record-info {
+    background-color: #0a0f22;
+    border: 1px solid #33d9ff;
+    border-radius: 5px;
+    padding: 15px 20px;
+    box-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff;
+    margin: 20px auto;
+    max-width: 300px;
+    text-align: left;
+}
+
+.bio-title, .season-record-title {
+    font-size: 1.5em;
+    color: #33d9ff;
+    border-bottom: 1px solid #33d9ff;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.bio-content, .season-record-content {
+    font-size: 1.2em;
+    color: #fff;
+    text-align: center;
+    margin-top: 10px;
+}
 
 /* Hide the file input visually but remain accessible to screen readers. */
 input[type="file"] {
@@ -209,8 +279,9 @@ input[type="file"] {
 .neon-text {
     color: #00BFFF; /* Light neon blue */
     font-weight: bold;
-    text-shadow: 0 0 5px #00BFFF, 0 0 10px #00BFFF, 0 0 20px #00BFFF, 0 0 40px #00BFFF, 0 0 80px #00BFFF; /* Glowing effect */
+    text-shadow: 0 0 5px #00BFFF, 0 0 10px #00BFFF;
     transition: text-shadow 0.3s ease-in-out;
+    font-family: 'Montserrat', sans-serif;
 }
 
 .neon-text:hover {
