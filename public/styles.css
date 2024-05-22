@@ -20,7 +20,26 @@ body {
     padding-top: 20px; 
     max-height: 100vh; 
 }
+/* Webkit browsers */
+.container::-webkit-scrollbar {
+  width: 12px; /* width for vertical scrollbar */
+  height: 12px; /* height for horizontal scrollbar */
+}
 
+.container::-webkit-scrollbar-track {
+  background: #1e1e1e; /* track color */
+  border-radius: 10px;
+}
+
+.container::-webkit-scrollbar-thumb {
+  background-color: #33d9ff; /* thumb color */
+  border-radius: 10px;
+  border: 3px solid #1e1e1e; /* space around thumb */
+}
+
+.container::-webkit-scrollbar-thumb:hover {
+  background-color: #00ccff; /* thumb hover color */
+}
 
 
 @media (max-width: 768px) {
@@ -30,7 +49,7 @@ body {
         justify-content: center;
     }
 
-    .container, .image-container {
+    .container{
         width: 95%; /* Use the full width of the screen */
         margin: 0 auto; /* Center the containers */
         max-width: none; /* Override any max-width */
@@ -42,6 +61,9 @@ body {
         padding: 0; /* Reset padding to ensure it doesn't affect width */
         border: none; /* Remove borders if they are not needed */
     }
+
+
+
     .info-box {
         width: 95%; /* Full width on smaller screens */
         padding: 15px; /* Adjust padding on smaller screens */
@@ -49,7 +71,6 @@ body {
       }
 
 }
-
 
 /* Button Group */
 .button-group {
@@ -199,6 +220,19 @@ input, select {
     box-shadow: 0 0 30px rgba(0, 229, 255, 0.7);
     border-radius: 15px;
     border: 2px solid #33d9ff; /* Neon border for futuristic look */
+}
+#container::-webkit-scrollbar {
+  width: 8px;
+}
+
+#container::-webkit-scrollbar-track {
+  background: #121212;
+  border-radius: 10px;
+}
+#container::-webkit-scrollbar-thumb {
+  background-color: #33d9ff;
+  border-radius: 10px;
+  border: 2px solid #121212;
 }
 
 @media (min-width: 769px) {
@@ -527,4 +561,142 @@ h4 {
   background-color: #fc0000; /* Grey out the button */
   color: #888; /* Change text color to grey */
   cursor: not-allowed; /* Change cursor to indicate disabled state */
+}
+.hidden {
+  display: none !important;
+}
+
+.injury-section {
+  width: 40%;
+  margin: auto;
+  padding: 20px;
+  background-color: transparent;
+  border-radius: 10px;
+}
+
+#teamFilter {
+  margin-top: 10px;
+  padding: 5px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #00ffff;
+  background-color: #121212;
+  color: #33d9ff;
+  transition: all 0.3s ease;
+  margin-left: auto;
+  margin-right: auto;
+  display: block; /* Ensure it takes the width it needs */
+}
+
+#teamFilter:focus {
+  outline: none;
+  border-color: #33d9ff;
+}
+#displayInjuriesBtn {
+  display: block;
+  margin: 20px auto 10px;
+  padding: 12px 25px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #00ccff;
+  background: #121212;
+  border: 2px solid #00ccff;
+  border-radius: 50px;
+  transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0px 4px 15px rgba(0, 204, 255, 0.4);
+}
+
+#displayInjuriesBtn:hover {
+  background: #00ccff;
+  color: #121212;
+  box-shadow: 0px 6px 20px rgba(0, 204, 255, 0.6);
+}
+
+#displayInjuriesBtn:before {
+  content: url('https://img.icons8.com/ios-filled/50/00ccff/broken-bone.png'); /* Replace with the icon URL */
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+#injuryList {
+  max-height: 400px;
+  overflow: hidden;
+  overflow-y: scroll;
+  transition: max-height 0.5s ease-out, margin-top 0.5s ease-out;
+  margin-top: 0;
+}
+
+#injuryList.show {
+  max-height: 1000px;
+  margin-top: 10px;
+}
+
+.injury-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 10px;
+  border-bottom: 1px solid #2c2c2c;
+}
+
+.injury-item img {
+  width: 50px;
+  height: 50px;
+  margin-right: 15px;
+}
+
+.injury-details {
+  text-align: left;
+  font-family: 'Montserrat', sans-serif;
+  flex-grow: 1; /* Ensure it takes the remaining space */
+  display: flex;
+  flex-direction: column;
+}
+
+.injury-details h4 {
+  margin: 0;
+  font-size: 18px;
+  color: #33d9ff;
+  background-color: #0a0f22;
+  width: 100%; /* Ensure it takes the full width of the container */
+  white-space: nowrap; /* Prevent text from wrapping */
+  overflow: hidden;
+  text-overflow: ellipsis; /* Add ellipsis for overflow text */
+  text-align: left;
+}
+
+.injury-details p {
+  margin: 2px 0;
+  font-size: 14px;
+  color: rgb(255, 255, 255);
+  width: 100%; /* Ensure it takes the full width of the container */
+  white-space: nowrap; /* Prevent text from wrapping */
+  overflow: hidden;
+  text-overflow: ellipsis; /* Add ellipsis for overflow text */
+}
+
+.injury-container {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease, padding 0.5s ease;
+  padding: 0;
+}
+
+.injury-container.visible {
+  max-height: 1000px;
+  padding: 20px 0;
+}
+/* Custom Scrollbar */
+#injuryList::-webkit-scrollbar {
+  width: 8px;
+}
+
+#injuryList::-webkit-scrollbar-track {
+  background: #121212;
+  border-radius: 10px;
+}
+#injuryList::-webkit-scrollbar-thumb {
+  background-color: #33d9ff;
+  border-radius: 10px;
+  border: 2px solid #121212;
 }

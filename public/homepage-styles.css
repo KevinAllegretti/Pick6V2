@@ -289,6 +289,96 @@ input[type="file"] {
     text-shadow: 0 0 10px #00BFFF, 0 0 20px #00BFFF, 0 0 30px #00BFFF, 0 0 40px #00BFFF, 0 0 90px #00BFFF; /* Enhanced glowing effect on hover */
 }
 
+
+/* Add this CSS to your existing stylesheet */
+.hidden {
+    display: none;
+}
+
+#teamFilter {
+    margin-top: 10px;
+    padding: 5px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #00ffff;
+    background-color: #121212;
+    color: #33d9ff;
+    transition: all 0.3s ease;
+}
+
+#teamFilter:focus {
+    outline: none;
+    border-color: #33d9ff;
+}
+
+#displayInjuriesBtn {
+    display: block;
+    margin-bottom: 10px;
+}
+
+/* Add transition for smooth showing */
+.show {
+    display: block !important;
+    transition: opacity 0.5s ease;
+}
+
+#injuryList {
+    max-height: 400px;
+    overflow: hidden;
+    overflow-y: scroll;
+    transition: max-height 0.5s ease-out, margin-top 0.5s ease-out;
+    margin-top: 0;
+}
+
+#injuryList.show {
+    max-height: 1000px; /* Arbitrary large value to accommodate content */
+    margin-top: 10px;
+}
+
+.injury-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #2c2c2c;
+}
+
+.injury-item img {
+    width: 50px;
+    height: 50px;
+    margin-right: 15px;
+}
+
+.injury-details {
+    text-align: left;
+    font-family: 'montserrat', sans-serif;
+}
+
+.injury-details h4 {
+    margin: 0;
+    font-size: 18px;
+    color: #33d9ff;
+}
+
+.injury-details p {
+    margin: 2px 0;
+    font-size: 14px;
+    color: rgb(255, 255, 255);
+}
+
+.injury-container {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease, padding 0.5s ease;
+    padding: 0;
+}
+
+.injury-container.visible {
+    max-height: 1000px; /* Set to a high enough value to accommodate the content */
+    padding: 20px 0;
+}
+
+
+
 h1 {
     font-size: 2.5em;
     text-align: center;

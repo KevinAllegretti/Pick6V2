@@ -6,6 +6,7 @@ import picksRoutes from '../src/routes/picksRoutes';
 import bodyParser from 'body-parser';
 import profileRoutes from '../src/routes/profileRoutes';
 import poolRoutes from '../src/routes/poolRoutes';
+import InjuryRoutes from '../src/routes/InjuryRoutes';
 import mongoose from 'mongoose';
 const fetch = require('node-fetch');
 
@@ -51,7 +52,6 @@ app.get('/', (req, res) => {
 
 app.use('/users', userRoutes);
 
-
 app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/dashboard.html'));
 });
@@ -59,6 +59,8 @@ app.get('/dashboard', (req, res) => {
 app.use(picksRoutes);
 
 app.use(profileRoutes);
+
+app.use('/api', InjuryRoutes);
 
 app.use('/uploads', express.static('uploads'));
 app.use('/pools', poolRoutes);
@@ -77,34 +79,6 @@ app.get('/', (req, res) => {
 // req.session.isAuth = true;
 })
 
-app.get('/api/odds', async (req: Request, res: Response) => {
-  const pinnacleUrl = 'https://api.pinnacle.com/v1/odds';
-  const params = {
-    sportId: '3', // the ID for basketball, this should be replaced with the actual ID for NBA
-    oddsFormat: 'decimal', // or 'american' based on your requirement
-    //leagues: [366] // the ID for the NBA league, replace with actual if different
-  };
-  const queryParams = new URLSearchParams(params).toString();
-
-  try {
-    const apiRes = await fetch(`${pinnacleUrl}?${queryParams}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': 'Basic ' + Buffer.from('your_username:your_password').toString('base64')
-      }
-    });
-
-    if (!apiRes.ok) {
-      throw new Error(`Error fetching from Pinnacle API: ${apiRes.statusText}`);
-    }
-
-    const data = await apiRes.json();
-    res.json(data);
-  } catch (error) {
-    console.error('Error fetching NBA odds:', error);
-    res.status(500).send('Failed to fetch odds');
-  }
-});
 
 const options = {
   serverSelectionTimeoutMS: 5000, // Reduce the time the driver waits for server selection

@@ -41,9 +41,20 @@
     
   
     </div>
+    <div class="injury-section">
+        <button id="displayInjuriesBtn">Current Injuries</button>
+        <select id="teamFilter" class="hidden">
+            <option value="">All Teams</option>
+            <!-- Add options dynamically -->
+        </select>
+        <div id="injuryContainer" class="injury-container">
+            <div id="injuryList"></div>
+        </div>
+    </div>
+
     <button id="fetchOddsButton">Load in NFL Odds</button>
     <button id="savePicksButton">load into database Odds</button>
-
+    <button id="fetchAndSaveInjuriesBtn">Fetch and Save Injuries</button>
 
 
     <div class="info-box">

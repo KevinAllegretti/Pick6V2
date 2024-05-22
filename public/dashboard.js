@@ -770,3 +770,87 @@ async function handleResponse(response) {
 async function handleError(error) {
  console.error('Failed to fetch data:', error);
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const fetchAndSaveInjuriesBtn = document.getElementById('fetchAndSaveInjuriesBtn');
+    const displayInjuriesBtn = document.getElementById('displayInjuriesBtn');
+    const injuryContainer = document.getElementById('injuryContainer');
+    const teamFilter = document.getElementById('teamFilter');
+
+    fetchAndSaveInjuriesBtn.addEventListener('click', async () => {
+        try {
+            const response = await fetch('/api/fetchAndSaveInjuries');
+            if (!response.ok) {
+                throw new Error('Network response was not ok.');
+            }
+            alert('Injuries fetched and saved successfully.');
+        } catch (error) {
+            console.error('Error fetching and saving injuries:', error);
+        }
+    });
+
+    function displayInjuries(injuries) {
+        const injuryList = document.getElementById('injuryList');
+        const selectedTeam = teamFilter.value;
+
+        const filteredInjuries = selectedTeam
+            ? injuries.filter(injury => injury.team.name === selectedTeam)
+            : injuries;
+
+        // Sort the filtered injuries by team name
+        filteredInjuries.sort((a, b) => a.team.name.localeCompare(b.team.name));
+
+        injuryList.innerHTML = filteredInjuries.map(injury => `
+            <div class="injury-item">
+                <img src="${injury.team.logo}" alt="${injury.team.name} Logo">
+                <div class="injury-details">
+                    <h4>${injury.player.name}</h4>
+                    <p>Status: ${injury.status}</p>
+                    <p>Description: ${injury.description}</p>
+                </div>
+            </div>
+        `).join('');
+
+        console.log("Injury list updated HTML:", injuryList.innerHTML);
+    }
+
+    // Event listener for displaying injuries
+    displayInjuriesBtn.addEventListener('click', async () => {
+        try {
+            const response = await fetch('/api/getInjuries');
+            if (!response.ok) {
+                throw new Error('Network response was not ok.');
+            }
+            const injuries = await response.json();
+            console.log("Injuries fetched:", injuries);
+            displayInjuries(injuries);
+            injuryContainer.classList.toggle('visible');
+            teamFilter.classList.toggle('hidden'); // Toggle the visibility of the filter dropdown
+            console.log("Injury container visibility toggled.");
+
+            if (!teamFilter.classList.contains('hidden')) {
+                // Populate team filter options
+                let uniqueTeams = [...new Set(injuries.map(injury => injury.team.name))];
+                uniqueTeams = uniqueTeams.sort(); // Sort teams alphabetically
+                teamFilter.innerHTML = '<option value="">All Teams</option>';
+                uniqueTeams.forEach(team => {
+                    const option = document.createElement('option');
+                    option.value = team;
+                    option.textContent = team;
+                    teamFilter.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching injuries:', error);
+        }
+    });
+
+    // Event listener for filtering injuries
+    teamFilter.addEventListener('change', async () => {
+        const response = await fetch('/api/getInjuries');
+        if (response.ok) {
+            const injuries = await response.json();
+            displayInjuries(injuries);
+        }
+    });
+});
