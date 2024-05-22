@@ -271,6 +271,7 @@ input[type="file"] {
 }
 
 .welcome-message {
+    text-transform: uppercase;
     text-align: center; /* Center the text horizontally */
     font-size: 24px; /* Increase font size or adjust as needed */
     margin: 20px 0; /* Add some margin around the text for spacing */
