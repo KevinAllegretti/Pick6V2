@@ -512,101 +512,207 @@ function resetPicks() {
 }
 
 
+function renderBetOptions() {
+    const container = document.getElementById('picksContainer');
+    container.innerHTML = '';
+
+    const games = betOptions.reduce((acc, bet) => {
+        const gameKey = `${bet.awayTeam} vs ${bet.homeTeam}`;
+        if (!acc[gameKey]) {
+            acc[gameKey] = {
+                awayTeam: bet.awayTeam,
+                homeTeam: bet.homeTeam,
+                bets: [],
+                commenceTime: bet.commenceTime,
+                logoAway: teamLogos[bet.awayTeam],
+                logoHome: teamLogos[bet.homeTeam],
+                colorClassAway: teamColorClasses[bet.awayTeam],
+                colorClassHome: teamColorClasses[bet.homeTeam]
+            };
+        }
+        let formattedValue = String(bet.value);
+        formattedValue = formattedValue.startsWith('+') || formattedValue.startsWith('-') ? formattedValue : (formattedValue > 0 ? `+${formattedValue}` : formattedValue);
+        acc[gameKey].bets.push({ type: bet.type, value: formattedValue, team: bet.teamName });
+        return acc;
+    }, {});
+
+    Object.values(games).forEach(game => {
+        const gameContainer = document.createElement('div');
+        gameContainer.className = 'game-container';
+        gameContainer.style.display = 'flex';
+        gameContainer.style.flexDirection = 'column';
+        gameContainer.style.alignItems = 'center';
+
+        const teamsContainer = document.createElement('div');
+        teamsContainer.style.display = 'flex';
+        teamsContainer.style.alignItems = 'center';
+
+        const awayTeamContainer = createTeamContainer(game, 'away');
+        const homeTeamContainer = createTeamContainer(game, 'home');
+
+        teamsContainer.appendChild(awayTeamContainer);
+        const atSymbol = document.createElement('div');
+        atSymbol.textContent = '@';
+        atSymbol.className = 'at-symbol';
+        teamsContainer.appendChild(atSymbol);
+        teamsContainer.appendChild(homeTeamContainer);
+
+        gameContainer.appendChild(teamsContainer);
+
+        const commenceTime = document.createElement('div');
+        commenceTime.textContent = new Date(game.commenceTime).toLocaleString('en-US', {
+            weekday: 'long',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+        commenceTime.className = 'commence-time';
+        gameContainer.appendChild(commenceTime);
+
+        const matchupInjuryButton = document.createElement('button');
+        matchupInjuryButton.className = 'matchup-injury-button';
+        matchupInjuryButton.innerHTML = '<i class="fas fa-bone"></i> Matchup Injuries';
+        matchupInjuryButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            fetchAndDisplayMatchupInjuries(game, matchupInjuryButton);
+        });
+        gameContainer.appendChild(matchupInjuryButton);
+
+        container.appendChild(gameContainer);
+    });
+
+    blackOutPreviousBets();
+}
+
+const injuryTeamNameMap = {
+    'Arizona Cardinals': 'ARI Cardinals',
+    'Atlanta Falcons': 'ATL Falcons',
+    'Baltimore Ravens': 'BAL Ravens',
+    'Buffalo Bills': 'BUF Bills',
+    'Carolina Panthers': 'CAR Panthers',
+    'Chicago Bears': 'CHI Bears',
+    'Cincinnati Bengals': 'CIN Bengals',
+    'Cleveland Browns': 'CLE Browns',
+    'Dallas Cowboys': 'DAL Cowboys',
+    'Denver Broncos': 'DEN Broncos',
+    'Detroit Lions': 'DET Lions',
+    'Green Bay Packers': 'GB Packers',
+    'Houston Texans': 'HOU Texans',
+    'Indianapolis Colts': 'IND Colts',
+    'Jacksonville Jaguars': 'JAX Jaguars',
+    'Kansas City Chiefs': 'KC Chiefs',
+    'Las Vegas Raiders': 'LV Raiders',
+    'Los Angeles Chargers': 'LA Chargers',
+    'Los Angeles Rams': 'LA Rams',
+    'Miami Dolphins': 'MIA Dolphins',
+    'Minnesota Vikings': 'MIN Vikings',
+    'New England Patriots': 'NE Patriots',
+    'New Orleans Saints': 'NO Saints',
+    'New York Giants': 'NY Giants',
+    'New York Jets': 'NY Jets',
+    'Philadelphia Eagles': 'PHI Eagles',
+    'Pittsburgh Steelers': 'PIT Steelers',
+    'San Francisco 49ers': 'SF 49ers',
+    'Seattle Seahawks': 'SEA Seahawks',
+    'Tampa Bay Buccaneers': 'TB Buccaneers',
+    'Tennessee Titans': 'TEN Titans',
+    'Washington Commanders': 'WAS Commanders'
+};
+
+// Fetch and display injuries for the specific game
+function mapInjuryTeamName(name) {
+    return injuryTeamNameMap[name] || name;
+}
 
 
- function renderBetOptions() {
- const container = document.getElementById('picksContainer');
- container.innerHTML = ''; // Clear previous contents
- console.log("betOptions to render:", betOptions);
+async function fetchAndDisplayMatchupInjuries(game, buttonElement) {
+    console.log('Fetching and displaying matchup injuries...');
 
- // Group bets by game
- const games = betOptions.reduce((acc, bet) => {
- const gameKey = `${bet.awayTeam} vs ${bet.homeTeam}`;
- if (!acc[gameKey]) {
- acc[gameKey] = {
- awayTeam: bet.awayTeam,
- homeTeam: bet.homeTeam,
- bets: [],
- commenceTime: bet.commenceTime,
- logoAway: teamLogos[bet.awayTeam],
- logoHome: teamLogos[bet.homeTeam],
- colorClassAway: teamColorClasses[bet.awayTeam],
- colorClassHome: teamColorClasses[bet.homeTeam]
- };
- }
- let formattedValue = String(bet.value); // Ensure value is a string
- formattedValue = formattedValue.startsWith('+') || formattedValue.startsWith('-') ? formattedValue : (formattedValue > 0 ? `+${formattedValue}` : formattedValue);
- acc[gameKey].bets.push({ type: bet.type, value: formattedValue, team: bet.teamName });
- return acc;
- }, {});
+    const teamFilter = document.getElementById('teamFilter');
+    const injuryContainer = document.getElementById('injuryContainer');
+    const displayInjuriesBtn = document.getElementById('displayInjuriesBtn');
 
- console.log("Grouped Games Data:", games);
+    // Set the team filter to match the teams in the game
+    teamFilter.value = game.homeTeam;
+    injuryContainer.classList.add('visible');
+    teamFilter.classList.remove('hidden');
 
- // Render each game
- // Render each game
-Object.values(games).forEach(game => {
- const gameContainer = document.createElement('div');
- gameContainer.className = 'game-container';
- gameContainer.style.display = 'flex';
- gameContainer.style.flexDirection = 'column';
- gameContainer.style.alignItems = 'center';
+    // Scroll to the injury section
+    injuryContainer.scrollIntoView({ behavior: 'smooth' });
 
- const teamsContainer = document.createElement('div');
- teamsContainer.style.display = 'flex';
- teamsContainer.style.alignItems = 'center';
+    // Fetch and display the injuries for the specific matchup
+    try {
+        const response = await fetch('/api/getInjuries');
+        if (!response.ok) {
+            throw new Error('Network response was not ok.');
+        }
+        const injuries = await response.json();
+        const gameInjuries = injuries.filter(injury =>
+            mapInjuryTeamName(injury.team.name) === game.homeTeam || mapInjuryTeamName(injury.team.name) === game.awayTeam
+        );
 
- // Create containers for both teams
- const awayTeamContainer = createTeamContainer(game, 'away');
- const homeTeamContainer = createTeamContainer(game, 'home');
+        displayInjuries(gameInjuries, true);
+         // Adjust the scroll position
+         const injuryContainerRect = injuryContainer.getBoundingClientRect();
+         const offset = -200; // Adjust this value as needed to scroll higher or lower
+         window.scrollTo({
+             top: window.pageYOffset + injuryContainerRect.top + offset,
+             behavior: 'smooth'
+         });
+    } catch (error) {
+        console.error('Error fetching injuries:', error);
+    }
+}
 
- // Assemble the teams display
- teamsContainer.appendChild(awayTeamContainer);
- const atSymbol = document.createElement('div');
- atSymbol.textContent = '@';
- atSymbol.className = 'at-symbol';
- teamsContainer.appendChild(atSymbol);
- teamsContainer.appendChild(homeTeamContainer);
+// Update displayInjuries to support filtering
+function displayInjuries(injuries, isFiltered = false) {
+    const injuryList = document.getElementById('injuryList');
+    const teamFilter = document.getElementById('teamFilter');
+    const selectedTeam = isFiltered ? null : teamFilter.value;
 
- gameContainer.appendChild(teamsContainer);
+    const filteredInjuries = selectedTeam
+        ? injuries.filter(injury => injury.team.name === selectedTeam)
+        : injuries;
 
- // Display the commencement time
- const commenceTime = document.createElement('div');
- commenceTime.textContent = new Date(game.commenceTime).toLocaleString('en-US', {
- weekday: 'long', // "Monday", "Tuesday", etc.
- hour: '2-digit', // "2-digit" or "numeric"
- minute: '2-digit', // "2-digit" or "numeric"
- hour12: true // Use 12-hour time with AM/PM
- });
- commenceTime.className = 'commence-time';
- gameContainer.appendChild(commenceTime);
+    // Sort the filtered injuries by team name
+    filteredInjuries.sort((a, b) => a.team.name.localeCompare(b.team.name));
 
- container.appendChild(gameContainer);
-});
-blackOutPreviousBets();
+    injuryList.innerHTML = filteredInjuries.map(injury => `
+        <div class="injury-item">
+            <img src="${injury.team.logo}" alt="${injury.team.name} Logo">
+            <div class="injury-details">
+                <h4>${injury.player.name}</h4>
+                <p>Status: ${injury.status}</p>
+                <p>Description: ${injury.description}</p>
+            </div>
+        </div>
+    `).join('');
+
+    console.log("Injury list updated HTML:", injuryList.innerHTML);
 }
 
 function createTeamContainer(game, teamRole) {
- const teamData = game[teamRole + 'Team'];
- const teamContainer = document.createElement('div');
- teamContainer.className = `team-container ${game['colorClass' + teamRole.charAt(0).toUpperCase() + teamRole.slice(1)]}`;
+    const teamData = game[teamRole + 'Team'];
+    const teamContainer = document.createElement('div');
+    teamContainer.className = `team-container ${game['colorClass' + teamRole.charAt(0).toUpperCase() + teamRole.slice(1)]}`;
 
- const teamLogo = document.createElement('img');
- teamLogo.src = teamRole === 'away' ? game.logoAway : game.logoHome;
- teamLogo.alt = teamData + ' logo';
- teamLogo.className = 'team-logo';
- teamContainer.appendChild(teamLogo);
+    const teamLogo = document.createElement('img');
+    teamLogo.src = teamRole === 'away' ? game.logoAway : game.logoHome;
+    teamLogo.alt = teamData + ' logo';
+    teamLogo.className = 'team-logo';
+    teamContainer.appendChild(teamLogo);
 
- game.bets.filter(bet => bet.team === teamData).forEach(bet => {
- const betButton = document.createElement('button');
- betButton.className = `bet-button ${teamContainer.className}`;
- betButton.textContent = bet.value;
- betButton.dataset.team = teamData.replace(/\s+/g, '-').toLowerCase();
- betButton.dataset.type = bet.type.toLowerCase();
- betButton.onclick = () => selectBet({ teamName: teamData, type: bet.type, value: bet.value });
- teamContainer.appendChild(betButton);
- });
+    game.bets.filter(bet => bet.team === teamData).forEach(bet => {
+        const betButton = document.createElement('button');
+        betButton.className = `bet-button ${teamContainer.className}`;
+        betButton.textContent = bet.value;
+        betButton.dataset.team = teamData.replace(/\s+/g, '-').toLowerCase();
+        betButton.dataset.type = bet.type.toLowerCase();
+        betButton.onclick = () => selectBet({ teamName: teamData, type: bet.type, value: bet.value });
+        teamContainer.appendChild(betButton);
+    });
 
- return teamContainer;
+    return teamContainer;
 }
 
 function createBetButtons(teamData) {
@@ -789,32 +895,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function displayInjuries(injuries) {
-        const injuryList = document.getElementById('injuryList');
-        const selectedTeam = teamFilter.value;
-
-        const filteredInjuries = selectedTeam
-            ? injuries.filter(injury => injury.team.name === selectedTeam)
-            : injuries;
-
-        // Sort the filtered injuries by team name
-        filteredInjuries.sort((a, b) => a.team.name.localeCompare(b.team.name));
-
-        injuryList.innerHTML = filteredInjuries.map(injury => `
-            <div class="injury-item">
-                <img src="${injury.team.logo}" alt="${injury.team.name} Logo">
-                <div class="injury-details">
-                    <h4>${injury.player.name}</h4>
-                    <p>Status: ${injury.status}</p>
-                    <p>Description: ${injury.description}</p>
-                </div>
-            </div>
-        `).join('');
-
-        console.log("Injury list updated HTML:", injuryList.innerHTML);
-    }
-
-    // Event listener for displaying injuries
     displayInjuriesBtn.addEventListener('click', async () => {
         try {
             const response = await fetch('/api/getInjuries');
@@ -825,8 +905,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("Injuries fetched:", injuries);
             displayInjuries(injuries);
             injuryContainer.classList.toggle('visible');
-            teamFilter.classList.toggle('hidden'); // Toggle the visibility of the filter dropdown
-            console.log("Injury container visibility toggled.");
+            teamFilter.classList.toggle('hidden');
 
             if (!teamFilter.classList.contains('hidden')) {
                 // Populate team filter options
@@ -845,7 +924,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Event listener for filtering injuries
     teamFilter.addEventListener('change', async () => {
         const response = await fetch('/api/getInjuries');
         if (response.ok) {

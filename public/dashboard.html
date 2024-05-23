@@ -18,28 +18,27 @@
 
         <div class="container">
             <h2 id="pick6Title">Pick 6</h2>
-                        <!-- Immortal Lock Option -->
-                        <div id="immortalLockOption">
-                            <input type="checkbox" id="immortalLockCheck">
-                            <label for="immortalLockCheck">Set Immortal Lock?</label>
-                        </div>
-                        <!-- Immortal Lock -->
-                        
-                        <!-- Button Group -->
-                        <div class="button-group">
-                            <button id="resetPicks">Reset Picks</button>
-                            <button id="submitPicks">Submit Picks</button>
-                        </div>
-                        
+            <!-- Immortal Lock Option -->
+            <div id="immortalLockOption">
+                <input type="checkbox" id="immortalLockCheck">
+                <label for="immortalLockCheck">Set Immortal Lock?</label>
+            </div>
+            <!-- Button Group -->
+            <div class="button-group">
+                <button id="resetPicks">Reset Picks</button>
+                <button id="submitPicks">Submit Picks</button>
+            </div>
             <div id="picksContainer" class="picks-container">
                 <!-- Bet cells will be appended here -->
+
+
             </div>
 
-            <div id="statusMessage"></div>
+            <div id="matchupInjuryContainer" class="matchup-injury-container">
+                <div id="matchupInjuryList"></div>
             </div>
-       
-    
-  
+            <div id="statusMessage"></div>
+        </div>
     </div>
     <div class="injury-section">
         <button id="displayInjuriesBtn">Current Injuries</button>
@@ -51,19 +50,16 @@
             <div id="injuryList"></div>
         </div>
     </div>
-
     <button id="fetchOddsButton">Load in NFL Odds</button>
-    <button id="savePicksButton">load into database Odds</button>
+    <button id="savePicksButton">Load into Database Odds</button>
     <button id="fetchAndSaveInjuriesBtn">Fetch and Save Injuries</button>
-
-
     <div class="info-box">
         <h2>Pick 6 Selection Page</h2>
-        <p>Selected picks will turn <span class="green-highlight">bright green </span> and immortal lock pick (if chosen) will turn <span class="gold-highlight">golden</span>  as your 7th pick </p>
-        <p>Once they are all selected, you can click submit picks which will successfully display your picks on the homepage </p>
-        <p>If would like to change a selection, you have until the <span class="red-highlight">Thursday 7PM EST</span> deadline to do so with "Reset Picks"</p>
+        <p>Selected picks will turn <span class="green-highlight">bright green </span> and immortal lock pick (if chosen) will turn <span class="gold-highlight">golden</span> as your 7th pick</p>
+        <p>Once they are all selected, you can click submit picks which will successfully display your picks on the homepage</p>
+        <p>If you would like to change a selection, you have until the <span class="red-highlight">Thursday 7PM EST</span> deadline to do so with "Reset Picks"</p>
         <p>Carefully select your picks all at once before submitting and good luck!</p>
-     </div>
-<script src="dashboard.js"></script>
+    </div>
+    <script src="dashboard.js"></script>
 </body>
 </html>

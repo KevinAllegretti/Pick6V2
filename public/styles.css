@@ -1,7 +1,7 @@
 body {
     font-family: 'Oswald', sans-serif;
     background-color: #0a0f22;
-    color: #ddd;
+    /*color: #ddd;*/
     margin: 0;
     padding: 0;
     display: flex;
@@ -20,6 +20,8 @@ body {
     padding-top: 20px; 
     max-height: 100vh; 
 }
+
+
 /* Webkit browsers */
 .container::-webkit-scrollbar {
   width: 12px; /* width for vertical scrollbar */
@@ -70,6 +72,19 @@ body {
         font-size: 0.9rem; /* Smaller font size on smaller screens */
       }
 
+}
+@media (min-width: 769px) {
+  /* This will only apply to screens wider than 768px */
+  .container, .image-container {
+      /* Set the width to 48% for desktop screens */
+      width: 48%;
+      /* Reset the margins as they were for desktop */
+      margin: 0 1%;
+      /* Other styles... */
+      max-height: 750px;
+      /* Ensure transform scaling is not applied */
+      margin-top: -2%;
+  }
 }
 
 /* Button Group */
@@ -572,6 +587,8 @@ h4 {
   padding: 20px;
   background-color: transparent;
   border-radius: 10px;
+  min-width: 400px;
+
 }
 
 #teamFilter {
@@ -700,3 +717,96 @@ h4 {
   border-radius: 10px;
   border: 2px solid #121212;
 }
+
+
+
+.matchup-injury-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  margin-top: 8px;
+  font-size: 14px;
+  color: #00ccff;
+  background-color: #121212;
+  border: 1px solid #00ccff;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.matchup-injury-button i {
+  margin-right: 5px;
+}
+
+.matchup-injury-button:hover {
+  background-color: #00ccff;
+  color: #121212;
+}
+
+.matchup-injury-container {
+  position: absolute;
+  z-index: 100;
+  width: 250px;  /* Adjust width */
+  max-height: 150px;  /* Adjust height */
+  overflow-y: auto;
+  background-color: #0a0f22;
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.matchup-injury-container.visible {
+  max-height: 300px;
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Custom Scrollbar */
+.matchup-injury-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.matchup-injury-container::-webkit-scrollbar-track {
+  background: #121212;
+}
+
+.matchup-injury-container::-webkit-scrollbar-thumb {
+  background-color: #00ccff;
+  border-radius: 10px;
+  border: 2px solid #121212;
+}
+
+.matchup-injury-container::-webkit-scrollbar-thumb:hover {
+  background-color: #00bfff;
+}
+
+.matchup-injury-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.matchup-injury-item img {
+  width: 40px;  /* Adjust size */
+  height: 40px;  /* Adjust size */
+  margin-right: 10px;
+}
+
+.matchup-injury-details {
+  flex: 1;
+  font-size: 12px;  /* Adjust font size */
+}
+
+.matchup-injury-details h4 {
+  margin: 0;
+  font-size: 14px;  /* Adjust font size */
+  color: #33d9ff;
+}
+
+.matchup-injury-details p {
+  margin: 0;
+  color: #fff;
+}
+
