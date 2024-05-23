@@ -465,6 +465,7 @@ h4 {
   background: #17203a; /* Dark background for game-like feel */
   border: 2px solid #33d9ff; /* Neon border for futuristic look */
   box-shadow: 0 0 10px #33d9ff; /* Glow effect */
+  min-width: 250px;
 }
 
 .team-container {
@@ -668,6 +669,7 @@ h4 {
   flex-grow: 1; /* Ensure it takes the remaining space */
   display: flex;
   flex-direction: column;
+  white-space: normal; /* Ensure text wraps */
 }
 
 .injury-details h4 {
@@ -687,9 +689,7 @@ h4 {
   font-size: 14px;
   color: rgb(255, 255, 255);
   width: 100%; /* Ensure it takes the full width of the container */
-  white-space: nowrap; /* Prevent text from wrapping */
-  overflow: hidden;
-  text-overflow: ellipsis; /* Add ellipsis for overflow text */
+  white-space: normal; /* Prevent text from wrapping */
 }
 
 .injury-container {
@@ -741,72 +741,11 @@ h4 {
   background-color: #00ccff;
   color: #121212;
 }
-
-.matchup-injury-container {
-  position: absolute;
-  z-index: 100;
-  width: 250px;  /* Adjust width */
-  max-height: 150px;  /* Adjust height */
-  overflow-y: auto;
-  background-color: #0a0f22;
-  padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-  transition: max-height 0.3s ease, opacity 0.3s ease;
-  opacity: 0;
-  visibility: hidden;
-}
-
-.matchup-injury-container.visible {
-  max-height: 300px;
-  opacity: 1;
-  visibility: visible;
-}
-
-/* Custom Scrollbar */
-.matchup-injury-container::-webkit-scrollbar {
-  width: 8px;
-}
-
-.matchup-injury-container::-webkit-scrollbar-track {
-  background: #121212;
-}
-
-.matchup-injury-container::-webkit-scrollbar-thumb {
-  background-color: #00ccff;
-  border-radius: 10px;
-  border: 2px solid #121212;
-}
-
-.matchup-injury-container::-webkit-scrollbar-thumb:hover {
-  background-color: #00bfff;
-}
-
-.matchup-injury-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.matchup-injury-item img {
-  width: 40px;  /* Adjust size */
-  height: 40px;  /* Adjust size */
+/* Customizing the bone icon */
+#displayInjuriesBtn:before {
+  content: url('https://img.icons8.com/ios-filled/50/ffffff/broken-bone.png'); /* Replace with the white bone icon URL */
   margin-right: 10px;
+  vertical-align: middle;
+  display: inline-block;
+  transform: rotate(45deg); /* Rotate the icon 45 degrees */
 }
-
-.matchup-injury-details {
-  flex: 1;
-  font-size: 12px;  /* Adjust font size */
-}
-
-.matchup-injury-details h4 {
-  margin: 0;
-  font-size: 14px;  /* Adjust font size */
-  color: #33d9ff;
-}
-
-.matchup-injury-details p {
-  margin: 0;
-  color: #fff;
-}
-

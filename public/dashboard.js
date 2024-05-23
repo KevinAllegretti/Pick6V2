@@ -199,17 +199,16 @@ async function fetchLastWeekPicks(username, poolName) {
  }
 }
 // Document Ready Function
-document.addEventListener('DOMContentLoaded', () => {
- const storedUsername = localStorage.getItem('username')?.toLowerCase();
- const storedPoolName = localStorage.getItem('currentPoolName');
- // console.log('Stored username:', storedUsername);
- // console.log('Stored pool name:', storedPoolName);
+document.addEventListener('DOMContentLoaded', async () => {
+    const storedUsername = localStorage.getItem('username')?.toLowerCase();
+    const storedPoolName = localStorage.getItem('currentPoolName');
 
- if (storedUsername && storedPoolName) {
- fetchLastWeekPicks(storedUsername, storedPoolName);
- } else {
- console.error('Username or Pool Name is missing.');
- }
+    if (storedUsername && storedPoolName) {
+        await fetchLastWeekPicks(storedUsername, storedPoolName); // Fetch last week's picks
+        await loadWeeklyPicks(); // Load weekly picks and render options
+    } else {
+        console.error('Username or Pool Name is missing.');
+    }
 });
 
 
@@ -839,10 +838,6 @@ function processBookmakers(nflTeams, bookmakers, commenceTime, homeTeam, awayTea
  });
 }
 
-
-document.addEventListener('DOMContentLoaded', () => {
- loadWeeklyPicks();
-});
 
 document.getElementById('savePicksButton').addEventListener('click', saveWeeklyPicks);
 document.getElementById('fetchOddsButton').addEventListener('click', fetchMLBData);
