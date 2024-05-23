@@ -62,6 +62,8 @@ body {
         box-sizing: border-box; /* This should fix the issue if padding or borders are causing it */
         padding: 0; /* Reset padding to ensure it doesn't affect width */
         border: none; /* Remove borders if they are not needed */
+        min-width: 380px;
+        overflow-x: hidden; /* Prevent horizontal scroll */
     }
 
 
@@ -77,7 +79,7 @@ body {
   /* This will only apply to screens wider than 768px */
   .container, .image-container {
       /* Set the width to 48% for desktop screens */
-      width: 48%;
+      width: 50%;
       /* Reset the margins as they were for desktop */
       margin: 0 1%;
       /* Other styles... */
@@ -228,13 +230,14 @@ input, select {
 }
 
 .container {
-    width: 80%; /* Set the desired width of the container */
+    width: 70%; /* Set the desired width of the container */
     max-height: 632px;
     overflow-y: auto;
     margin: 0 auto; /* Auto margins for horizontal centering */
     box-shadow: 0 0 30px rgba(0, 229, 255, 0.7);
     border-radius: 15px;
     border: 2px solid #33d9ff; /* Neon border for futuristic look */
+    overflow-x: hidden;
 }
 #container::-webkit-scrollbar {
   width: 8px;
@@ -248,20 +251,6 @@ input, select {
   background-color: #33d9ff;
   border-radius: 10px;
   border: 2px solid #121212;
-}
-
-@media (min-width: 769px) {
-    /* This will only apply to screens wider than 768px */
-    .container, .image-container {
-        /* Set the width to 48% for desktop screens */
-        width: 48%;
-        /* Reset the margins as they were for desktop */
-        margin: 0 1%;
-        /* Other styles... */
-        max-height: 750px;
-        transform: scale(.9);
-        margin-top: -2%;
-    }
 }
 
 /* VERSION 1*/
