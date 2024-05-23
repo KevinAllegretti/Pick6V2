@@ -633,7 +633,7 @@ async function fetchAndDisplayMatchupInjuries(game, buttonElement) {
 
     // Set the team filter to match the teams in the game
     teamFilter.value = game.homeTeam;
-    injuryContainer.classList.add('visible');
+    injuryContainer.classList.add('visible', 'visible-border');
     teamFilter.classList.remove('hidden');
 
     // Scroll to the injury section
@@ -878,6 +878,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const injuryContainer = document.getElementById('injuryContainer');
     const teamFilter = document.getElementById('teamFilter');
 
+    // Initially hide the injury container
+    injuryContainer.classList.add('hidden-border'); // Add the hidden-border class initially
+
     fetchAndSaveInjuriesBtn.addEventListener('click', async () => {
         try {
             const response = await fetch('/api/fetchAndSaveInjuries');
@@ -913,6 +916,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     option.textContent = team;
                     teamFilter.appendChild(option);
                 });
+            }
+
+            // Toggle the hidden-border class based on visibility
+            if (injuryContainer.classList.contains('visible')) {
+                injuryContainer.classList.remove('hidden-border');
+            } else {
+                injuryContainer.classList.add('hidden-border');
+                injuryContainer.classList.remove('visible-border');
             }
         } catch (error) {
             console.error('Error fetching injuries:', error);

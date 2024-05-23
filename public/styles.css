@@ -588,7 +588,7 @@ h4 {
   padding: 20px;
   background-color: transparent;
   border-radius: 10px;
-  min-width: 400px;
+  min-width: 350px;
 
 }
 
@@ -697,12 +697,24 @@ h4 {
   overflow: hidden;
   transition: max-height 0.5s ease, padding 0.5s ease;
   padding: 0;
+  border: 2px solid #33d9ff;
+  border-radius: 8px;
+}
+
+.hidden-border {
+  border: none;
+}
+
+.visible-border {
+  border: 2px solid #33d9ff;
 }
 
 .injury-container.visible {
   max-height: 1000px;
   padding: 20px 0;
 }
+
+
 /* Custom Scrollbar */
 #injuryList::-webkit-scrollbar {
   width: 8px;
