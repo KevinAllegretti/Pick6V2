@@ -211,7 +211,8 @@ body {
     font-size: 1em;
     margin-bottom: 10px;
     resize: none;
-    max-width: 280px;
+    max-width: 300px;
+    box-sizing: border-box;
 }
 
 #saveBioButton {
