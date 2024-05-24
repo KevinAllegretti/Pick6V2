@@ -1,3 +1,114 @@
+//TIMES
+
+function calculateInitialDeadlines() {
+    const now = new Date();
+
+    // Calculate Thursday Deadline
+    let thursdayDeadline = new Date(now);
+    thursdayDeadline.setDate(now.getDate() + ((4 + 7 - now.getDay()) % 7));
+    thursdayDeadline.setHours(19, 0, 0, 0); // 7 PM EST
+    thursdayDeadline.setMinutes(thursdayDeadline.getMinutes() + thursdayDeadline.getTimezoneOffset());
+    thursdayDeadline.setHours(thursdayDeadline.getHours() - 5); // Convert UTC to EST (UTC-5)
+
+    // Calculate Tuesday Start Time
+    let tuesdayStartTime = new Date(now);
+    tuesdayStartTime.setDate(now.getDate() + ((2 + 7 - now.getDay()) % 7));
+    tuesdayStartTime.setHours(0, 0, 0, 0); // 12 AM EST
+    tuesdayStartTime.setMinutes(tuesdayStartTime.getMinutes() + tuesdayStartTime.getTimezoneOffset());
+    tuesdayStartTime.setHours(tuesdayStartTime.getHours() - 5); // Convert UTC to EST (UTC-5)
+
+    return { thursdayDeadline, tuesdayStartTime };
+}
+
+async function saveInitialTimes() {
+    const { thursdayDeadline, tuesdayStartTime } = calculateInitialDeadlines();
+
+    try {
+        await fetch('/api/timeWindows', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                thursdayDeadline: thursdayDeadline.toISOString(),
+                tuesdayStartTime: tuesdayStartTime.toISOString(),
+            }),
+        });
+        console.log('Initial times saved successfully.');
+    } catch (error) {
+        console.error('Error saving initial times:', error);
+    }
+}
+
+async function updateTuesdayStartTime() {
+    const now = new Date();
+    const weekInMilliseconds = 7 * 24 * 60 * 60 * 1000;
+
+    let tuesdayStartTime = new Date(now);
+    tuesdayStartTime.setDate(tuesdayStartTime.getDate() + ((2 + 7 - now.getDay()) % 7));
+    tuesdayStartTime.setHours(0, 0, 0, 0); // 12 AM EST
+    tuesdayStartTime.setMinutes(tuesdayStartTime.getMinutes() + tuesdayStartTime.getTimezoneOffset());
+    tuesdayStartTime.setHours(tuesdayStartTime.getHours() - 5); // Convert UTC to EST (UTC-5)
+
+    if (now > tuesdayStartTime) {
+        tuesdayStartTime = new Date(tuesdayStartTime.getTime() + weekInMilliseconds);
+    }
+
+    try {
+        await fetch('/api/timeWindows/tuesday', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                tuesdayStartTime: tuesdayStartTime.toISOString(),
+            }),
+        });
+        console.log('Tuesday start time updated successfully.');
+    } catch (error) {
+        console.error('Error updating Tuesday start time:', error);
+    }
+}
+
+async function updateThursdayDeadline() {
+    const now = new Date();
+    const weekInMilliseconds = 7 * 24 * 60 * 60 * 1000;
+
+    let thursdayDeadline = new Date(now);
+    thursdayDeadline.setDate(thursdayDeadline.getDate() + ((4 + 7 - now.getDay()) % 7));
+    thursdayDeadline.setHours(19, 0, 0, 0); // 7 PM EST
+    thursdayDeadline.setMinutes(thursdayDeadline.getMinutes() + thursdayDeadline.getTimezoneOffset());
+    thursdayDeadline.setHours(thursdayDeadline.getHours() - 5); // Convert UTC to EST (UTC-5)
+
+    if (now > thursdayDeadline) {
+        thursdayDeadline = new Date(thursdayDeadline.getTime() + weekInMilliseconds);
+    }
+
+    try {
+        await fetch('/api/timeWindows/thursday', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                thursdayDeadline: thursdayDeadline.toISOString(),
+            }),
+        });
+        console.log('Thursday deadline updated successfully.');
+    } catch (error) {
+        console.error('Error updating Thursday deadline:', error);
+    }
+}
+
+/*need to set up time frames for actually udpating the 
+start time and dead line
+
+change them one minute before the actual deadline.
+before any of the actual code in the conditionals kick off.
+*/
+
+
+//START OF HOMEPAGE
 document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const username = urlParams.get('username');

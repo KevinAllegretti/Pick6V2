@@ -8,6 +8,7 @@ import profileRoutes from '../src/routes/profileRoutes';
 import poolRoutes from '../src/routes/poolRoutes';
 import InjuryRoutes from '../src/routes/InjuryRoutes';
 import mongoose from 'mongoose';
+import timeWindowRoutes from '../src/routes/timeWindowRoutes';
 const fetch = require('node-fetch');
 
 const app = express();
@@ -62,6 +63,7 @@ app.use(profileRoutes);
 
 app.use('/api', InjuryRoutes);
 
+app.use('/api', timeWindowRoutes)
 app.use('/uploads', express.static('uploads'));
 app.use('/pools', poolRoutes);
 // 6. Serve static files
@@ -82,7 +84,7 @@ app.get('/', (req, res) => {
 
 const options = {
   serverSelectionTimeoutMS: 5000, // Reduce the time the driver waits for server selection
-  socketTimeoutMS: 45000, // Adjust socket timeout as necessary
+  socketTimeoutMS: 45000, // Adjust socket timeout 
 };
 
 mongoose.connect('mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/Pick6', options);
