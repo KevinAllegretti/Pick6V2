@@ -1,28 +1,32 @@
-//TIMES
+const now = new Date();
 
-function calculateInitialDeadlines() {
-    const now = new Date();
+// Set Thursday deadline
+let thursdayDeadline = new Date(now);
+thursdayDeadline.setDate(now.getDate() + ((4 + 7 - now.getDay()) % 7));
+thursdayDeadline.setHours(19, 0, 0, 0); // 7 PM EST
+thursdayDeadline.setMinutes(thursdayDeadline.getMinutes() + thursdayDeadline.getTimezoneOffset());
+thursdayDeadline.setHours(thursdayDeadline.getHours() - 5); // Convert UTC to EST (UTC-5)
 
-    // Calculate Thursday Deadline
-    let thursdayDeadline = new Date(now);
-    thursdayDeadline.setDate(now.getDate() + ((4 + 7 - now.getDay()) % 7));
-    thursdayDeadline.setHours(19, 0, 0, 0); // 7 PM EST
-    thursdayDeadline.setMinutes(thursdayDeadline.getMinutes() + thursdayDeadline.getTimezoneOffset());
-    thursdayDeadline.setHours(thursdayDeadline.getHours() - 5); // Convert UTC to EST (UTC-5)
+// Set Tuesday start time
+let tuesdayStartTime = new Date(now);
+tuesdayStartTime.setDate(now.getDate() + ((2 + 7 - now.getDay()) % 7));
+tuesdayStartTime.setHours(0, 0, 0, 0); // 12 AM EST
+tuesdayStartTime.setMinutes(tuesdayStartTime.getMinutes() + tuesdayStartTime.getTimezoneOffset());
+tuesdayStartTime.setHours(tuesdayStartTime.getHours() - 5); // Convert UTC to EST (UTC-5)
 
-    // Calculate Tuesday Start Time
-    let tuesdayStartTime = new Date(now);
-    tuesdayStartTime.setDate(now.getDate() + ((2 + 7 - now.getDay()) % 7));
-    tuesdayStartTime.setHours(0, 0, 0, 0); // 12 AM EST
-    tuesdayStartTime.setMinutes(tuesdayStartTime.getMinutes() + tuesdayStartTime.getTimezoneOffset());
-    tuesdayStartTime.setHours(tuesdayStartTime.getHours() - 5); // Convert UTC to EST (UTC-5)
-
-    return { thursdayDeadline, tuesdayStartTime };
+// Adjust if current time is past this week's Tuesday 12 AM
+if (now > tuesdayStartTime) {
+    tuesdayStartTime.setDate(tuesdayStartTime.getDate() + 7); // Move to next Tuesday
 }
 
-async function saveInitialTimes() {
-    const { thursdayDeadline, tuesdayStartTime } = calculateInitialDeadlines();
+// Adjust if current time is past this week's Thursday 7 PM
+if (now > thursdayDeadline) {
+    thursdayDeadline.setDate(thursdayDeadline.getDate() + 7); // Move to next Thursday
+}
 
+
+// Save the calculated times to the database
+async function saveInitialTimes() {
     try {
         await fetch('/api/timeWindows', {
             method: 'POST',
@@ -30,8 +34,8 @@ async function saveInitialTimes() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                thursdayDeadline: thursdayDeadline.toISOString(),
                 tuesdayStartTime: tuesdayStartTime.toISOString(),
+                thursdayDeadline: thursdayDeadline.toISOString(),
             }),
         });
         console.log('Initial times saved successfully.');
@@ -40,18 +44,19 @@ async function saveInitialTimes() {
     }
 }
 
+//saveInitialTimes();
+
 async function updateTuesdayStartTime() {
     const now = new Date();
-    const weekInMilliseconds = 7 * 24 * 60 * 60 * 1000;
+    const nextTuesday = new Date(now);
+    nextTuesday.setDate(nextTuesday.getDate() + ((2 + 7 - now.getDay()) % 7));
+    nextTuesday.setHours(0, 0, 0, 0); // 12 AM EST
+    nextTuesday.setMinutes(nextTuesday.getMinutes() + nextTuesday.getTimezoneOffset());
+    nextTuesday.setHours(nextTuesday.getHours() - 5); // Convert UTC to EST (UTC-5)
 
-    let tuesdayStartTime = new Date(now);
-    tuesdayStartTime.setDate(tuesdayStartTime.getDate() + ((2 + 7 - now.getDay()) % 7));
-    tuesdayStartTime.setHours(0, 0, 0, 0); // 12 AM EST
-    tuesdayStartTime.setMinutes(tuesdayStartTime.getMinutes() + tuesdayStartTime.getTimezoneOffset());
-    tuesdayStartTime.setHours(tuesdayStartTime.getHours() - 5); // Convert UTC to EST (UTC-5)
-
-    if (now > tuesdayStartTime) {
-        tuesdayStartTime = new Date(tuesdayStartTime.getTime() + weekInMilliseconds);
+    // Ensure it's the next Tuesday
+    if (now > nextTuesday) {
+        nextTuesday.setDate(nextTuesday.getDate() + 7); // Move to next Tuesday
     }
 
     try {
@@ -61,7 +66,7 @@ async function updateTuesdayStartTime() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                tuesdayStartTime: tuesdayStartTime.toISOString(),
+                tuesdayStartTime: nextTuesday.toISOString(),
             }),
         });
         console.log('Tuesday start time updated successfully.');
@@ -70,18 +75,18 @@ async function updateTuesdayStartTime() {
     }
 }
 
+
 async function updateThursdayDeadline() {
     const now = new Date();
-    const weekInMilliseconds = 7 * 24 * 60 * 60 * 1000;
+    const nextThursday = new Date(now);
+    nextThursday.setDate(nextThursday.getDate() + ((4 + 7 - now.getDay()) % 7));
+    nextThursday.setHours(19, 0, 0, 0); // 7 PM EST
+    nextThursday.setMinutes(nextThursday.getMinutes() + nextThursday.getTimezoneOffset());
+    nextThursday.setHours(nextThursday.getHours() - 5); // Convert UTC to EST (UTC-5)
 
-    let thursdayDeadline = new Date(now);
-    thursdayDeadline.setDate(thursdayDeadline.getDate() + ((4 + 7 - now.getDay()) % 7));
-    thursdayDeadline.setHours(19, 0, 0, 0); // 7 PM EST
-    thursdayDeadline.setMinutes(thursdayDeadline.getMinutes() + thursdayDeadline.getTimezoneOffset());
-    thursdayDeadline.setHours(thursdayDeadline.getHours() - 5); // Convert UTC to EST (UTC-5)
-
-    if (now > thursdayDeadline) {
-        thursdayDeadline = new Date(thursdayDeadline.getTime() + weekInMilliseconds);
+    // Ensure it's the next Thursday
+    if (now > nextThursday) {
+        nextThursday.setDate(nextThursday.getDate() + 7); // Move to next Thursday
     }
 
     try {
@@ -91,7 +96,7 @@ async function updateThursdayDeadline() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                thursdayDeadline: thursdayDeadline.toISOString(),
+                thursdayDeadline: nextThursday.toISOString(),
             }),
         });
         console.log('Thursday deadline updated successfully.');
@@ -100,12 +105,106 @@ async function updateThursdayDeadline() {
     }
 }
 
-/*need to set up time frames for actually udpating the 
-start time and dead line
-
-change them one minute before the actual deadline.
-before any of the actual code in the conditionals kick off.
+/* In the updates, alos put in the ones that are one timers.
+then put the ones that need to stay constant within the respective enable feature function
 */
+function scheduleUpdates() {
+    // Fetch the stored times from the database
+    fetch('/api/timeWindows')
+        .then(response => response.json())
+        .then(times => {
+            const { tuesdayStartTime, thursdayDeadline } = times;
+
+            const tuesdayTime = new Date(tuesdayStartTime);
+            const thursdayTime = new Date(thursdayDeadline);
+
+            // Schedule update for Thursday deadline 2 minutes before tuesdayStartTime
+            const timeUntilTuesdayUpdate = tuesdayTime - new Date() - 2 * 60 * 1000;
+            setTimeout(() => {
+                updateThursdayDeadline();
+                scheduleUpdates(); // Reschedule after update
+            }, timeUntilTuesdayUpdate);
+
+            // Schedule update for Tuesday start time 2 minutes before thursdayDeadline
+            const timeUntilThursdayUpdate = thursdayTime - new Date() - 2 * 60 * 1000;
+            setTimeout(() => {
+                savePicksToLastWeek();
+                updateTuesdayStartTime();
+                scheduleUpdates(); // Reschedule after update
+            }, timeUntilThursdayUpdate);
+        })
+        .catch(error => {
+            console.error('Error fetching time windows:', error);
+        });
+}
+
+// Call this function to start the scheduling process
+scheduleUpdates();
+
+
+async function checkCurrentTimeWindow() {
+    try {
+        const response = await fetch('/api/timeWindows');
+        if (!response.ok) {
+            throw new Error('Failed to fetch time windows.');
+        }
+
+        const { tuesdayStartTime, thursdayDeadline } = await response.json();
+        const now = new Date();
+
+        const tuesdayTime = new Date(tuesdayStartTime);
+        const thursdayTime = new Date(thursdayDeadline);
+
+        // Check if it is Pick Time or Game Time
+        if (now > tuesdayTime && now < thursdayTime) {
+            console.log('Current time window: Pick Time');
+        } else if (now < tuesdayTime || now > thursdayTime) {
+            console.log('Current time window: Game Time');
+        } else {
+            console.log('Error determining the current time window');
+        }
+    } catch (error) {
+        console.error('Error checking current time window:', error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {    
+    // Check and log the current time window
+    checkCurrentTimeWindow();
+});
+
+async function checkCurrentTimeWindow() {
+    const times = await fetchTimeWindows();
+    const now = new Date();
+    const tuesdayStartTime = new Date(times.tuesdayStartTime);
+    const thursdayDeadline = new Date(times.thursdayDeadline);
+
+    // Determine if it is pick time or game time
+    const isPickTime = now > tuesdayStartTime && now < thursdayDeadline;
+    const isGameTime = now < tuesdayStartTime || now > thursdayDeadline;
+
+    if (isPickTime) {
+        console.log('It is pick time.');
+        enablePickTimeFeatures();
+    } else if (isGameTime) {
+        console.log('It is game time.');
+        enableGameTimeFeatures();
+    }
+}
+
+// Function to enable pick time features
+function enablePickTimeFeatures() {
+    // Your code to enable pick time features
+    console.log('Pick time features enabled.');
+    // Example: Show pick options, hide game results, etc.
+}
+
+// Function to enable game time features
+function enableGameTimeFeatures() {
+    // Your code to enable game time features
+    console.log('Game time features enabled.');
+    // Example: Hide pick options, show game results, etc.
+}
 
 
 //START OF HOMEPAGE

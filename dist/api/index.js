@@ -12,6 +12,7 @@ const profileRoutes_1 = __importDefault(require("../src/routes/profileRoutes"));
 const poolRoutes_1 = __importDefault(require("../src/routes/poolRoutes"));
 const InjuryRoutes_1 = __importDefault(require("../src/routes/InjuryRoutes"));
 const mongoose_1 = __importDefault(require("mongoose"));
+const timeWindowRoutes_1 = __importDefault(require("../src/routes/timeWindowRoutes"));
 const fetch = require('node-fetch');
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
@@ -48,6 +49,7 @@ app.get('/dashboard', (req, res) => {
 app.use(picksRoutes_1.default);
 app.use(profileRoutes_1.default);
 app.use('/api', InjuryRoutes_1.default);
+app.use('/api', timeWindowRoutes_1.default);
 app.use('/uploads', express_1.default.static('uploads'));
 app.use('/pools', poolRoutes_1.default);
 // 6. Serve static files
@@ -62,7 +64,7 @@ app.get('/', (req, res) => {
 });
 const options = {
     serverSelectionTimeoutMS: 5000, // Reduce the time the driver waits for server selection
-    socketTimeoutMS: 45000, // Adjust socket timeout as necessary
+    socketTimeoutMS: 45000, // Adjust socket timeout 
 };
 mongoose_1.default.connect('mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/Pick6', options);
 exports.default = app;
