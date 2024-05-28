@@ -118,6 +118,18 @@ router.post('/api/saveResults', async (req, res) => {
         res.status(500).json({ success: false, message: 'Failed to save results', error: error.toString() });
     }
 });
+router.delete('/api/deleteResults', async (req, res) => {
+    try {
+        const database = await (0, connectDB_1.connectToDatabase)();
+        const resultsCollection = database.collection('betResultsGlobal');
+        await resultsCollection.deleteMany({});
+        res.json({ success: true, message: 'Results deleted successfully' });
+    }
+    catch (error) {
+        console.error('Failed to delete results:', error);
+        res.status(500).json({ success: false, message: 'Failed to delete results', error: error.toString() });
+    }
+});
 router.get('/api/getResults', async (req, res) => {
     try {
         const database = await (0, connectDB_1.connectToDatabase)();

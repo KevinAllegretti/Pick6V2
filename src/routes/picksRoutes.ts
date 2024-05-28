@@ -138,6 +138,19 @@ router.post('/api/saveResults', async (req, res) => {
     }
 });
 
+router.delete('/api/deleteResults', async (req, res) => {
+    try {
+        const database = await connectToDatabase();
+        const resultsCollection = database.collection('betResultsGlobal');
+        await resultsCollection.deleteMany({});
+        res.json({ success: true, message: 'Results deleted successfully' });
+    } catch (error:any) {
+        console.error('Failed to delete results:', error);
+        res.status(500).json({ success: false, message: 'Failed to delete results', error: error.toString() });
+    }
+});
+
+
 
 router.get('/api/getResults', async (req, res) => {
     try {

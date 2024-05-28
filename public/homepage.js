@@ -46,6 +46,8 @@ async function saveInitialTimes() {
 
 //saveInitialTimes();
 
+
+
 async function updateTuesdayStartTime() {
     const now = new Date();
     const nextTuesday = new Date(now);
@@ -74,7 +76,8 @@ async function updateTuesdayStartTime() {
         console.error('Error updating Tuesday start time:', error);
     }
 }
-
+//setInterval(attachFunctionsToTimes, 1000 * 60); // Check every minute
+//attachFunctionsToTimes();
 
 async function updateThursdayDeadline() {
     const now = new Date();
@@ -108,6 +111,8 @@ async function updateThursdayDeadline() {
 /* In the updates, alos put in the ones that are one timers.
 then put the ones that need to stay constant within the respective enable feature function
 */
+
+
 function scheduleUpdates() {
     // Fetch the stored times from the database
     fetch('/api/timeWindows')
@@ -118,9 +123,10 @@ function scheduleUpdates() {
             const tuesdayTime = new Date(tuesdayStartTime);
             const thursdayTime = new Date(thursdayDeadline);
 
-            // Schedule update for Thursday deadline 2 minutes before tuesdayStartTime
+            // Schedule update for deleting the results, Thursday deadline, 2 minutes before tuesdayStartTime
             const timeUntilTuesdayUpdate = tuesdayTime - new Date() - 2 * 60 * 1000;
             setTimeout(() => {
+                deleteResultsFromServer();
                 updateThursdayDeadline();
                 scheduleUpdates(); // Reschedule after update
             }, timeUntilTuesdayUpdate);
@@ -141,7 +147,18 @@ function scheduleUpdates() {
 // Call this function to start the scheduling process
 scheduleUpdates();
 
-
+async function fetchTimeWindows() {
+    try {
+        const response = await fetch('/api/timeWindows');
+        if (!response.ok) {
+            throw new Error('Network response was not ok.');
+        }
+        const times = await response.json();
+        return times;
+    } catch (error) {
+        console.error('Error fetching time windows:', error);
+    }
+}
 async function checkCurrentTimeWindow() {
     try {
         const response = await fetch('/api/timeWindows');
@@ -1349,7 +1366,7 @@ function changeUserPoints(username, points, poolName) {
 }
 // Example usage:
 //changeUserPoints('test3', 0, 'yuh'); // Replace with the actual username, new points value, and pool name
-//changeUserPoints('testuser', 0, 'yuh');
+changeUserPoints('testuser', 0, 'testPool');
 //changeUserPoints('testuser2', 0, 'yuh');
 
 const mlbToNflMap = {
@@ -1627,6 +1644,22 @@ function saveResultsToServer(results) {
     })
     .catch(error => console.error('Failed to save results:', error));
 }
+
+function deleteResultsFromServer() {
+    fetch('/api/deleteResults', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            console.error('Error deleting results:', data.message);
+        } else {
+            console.log('Results deleted successfully');
+        }
+    })
+    .catch(error => console.error('Failed to delete results:', error));
+}
 function rebuildUIWithResults(results) {
     console.log('Received results for UI rebuild:', results);
     const allPicks = document.querySelectorAll('.player-picks .pick, .immortal-lock');
@@ -1733,7 +1766,7 @@ function resetUserStats(username, poolName) {
     });
 }
 
-/*
-resetUserStats('test3', 'yuh');
-resetUserStats('testuser', 'yuh');
-resetUserStats('testuser2', 'yuh');*/
+
+//resetUserStats('test3', 'yuh');
+resetUserStats('testuser', 'testPool');
+//resetUserStats('testuser2', 'yuh');

@@ -2,6 +2,7 @@ import express from 'express';
 const router = express.Router();
 import { TimeWindow } from '../models/TimeWindow';
 
+
 router.post('/timeWindows', async (req, res) => {
     const { thursdayDeadline, tuesdayStartTime } = req.body;
     try {
@@ -11,6 +12,7 @@ router.post('/timeWindows', async (req, res) => {
         res.status(500).send('Error saving initial times.');
     }
 });
+
 
 router.get('/timeWindows', async (req, res) => {
     try {

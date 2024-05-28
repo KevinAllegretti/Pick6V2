@@ -64,6 +64,7 @@ app.use(profileRoutes);
 app.use('/api', InjuryRoutes);
 
 app.use('/api', timeWindowRoutes)
+
 app.use('/uploads', express.static('uploads'));
 app.use('/pools', poolRoutes);
 // 6. Serve static files
