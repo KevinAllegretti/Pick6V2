@@ -91,16 +91,33 @@ body {
 
 /* Button Group */
 .button-group {
-    display: flex;
-    flex-direction: column; /* Stack buttons vertically */
-    align-items: center; /* Center buttons horizontally */
-    margin-bottom: 20px; /* Some spacing after the button group */
+  display: flex;
+  flex-direction: column; /* Stack buttons vertically */
+  align-items: center; /* Center buttons horizontally */
+  margin-bottom: 20px; /* Some spacing after the button group */
+  gap: 15px; /* Space between buttons */
 }
 
 /* Individual Buttons */
 .button-group button {
-    width: 80%; /* Set a width for the buttons */
-    margin: 10px 0; /* Add some space between the buttons */
+  width: 80%; /* Set a width for the buttons */
+  padding: 12px 24px;
+  margin: 0; /* Remove default margin */
+  font-size: 1.1em;
+  font-family: 'Montserrat', sans-serif;
+  background: linear-gradient(45deg, #00BFFF, #33d9ff); /* Adjusted gradient background */
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.button-group button:hover {
+  background: linear-gradient(45deg, #33d9ff, #00BFFF);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
 }
 
 #addPick {
@@ -164,24 +181,66 @@ input, select {
     border-top-left-radius: 15px;
     border-top-right-radius: 15px;
 }
-
+/* Immortal Lock Option */
 #immortalLockOption {
-    margin-top: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.2em;
+  color: #33d9ff;
+  padding: 10px 0; /* Added padding for spacing */
 }
 
-#immortalLockOption label {
-    cursor: pointer;
-    color: #00DDFF;
+#immortalLockCheck {
+  display: none;
+}
+
+#immortalLockCheck + label {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 25px;
+  background: #1e1e1e; /* Adjusted background color */
+  border-radius: 25px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  border: 2px solid #33d9ff; /* Added border to match theme */
+}
+
+#immortalLockCheck + label::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 21px;
+  height: 21px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
 }
 
 #immortalLockCheck:checked + label {
-    font-weight: bold;
+  background: #33d9ff; /* Adjusted checked background color */
 }
+
+#immortalLockCheck:checked + label::before {
+  transform: translateX(25px);
+}
+
+#immortalLockOption label {
+  cursor: pointer;
+  margin-left: 10px;
+  color: #33d9ff;
+  font-weight: bold;
+}
+
+#immortalLockOption label:hover {
+  color: #00BFFF;
+}
+
 
 .back-button {
     display: inline-block;
