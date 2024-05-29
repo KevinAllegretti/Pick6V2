@@ -242,17 +242,28 @@ input, select {
 }
 
 
+/* Back to Home Button */
 .back-button {
     display: inline-block;
-    padding: 10px 20px;
-    margin: 10px;
-    justify-content: center;
-    background-color: #333;
-    color: #fff;
+    padding: 12px 25px;
+    margin: 10px auto;
+    text-align: center;
+    background: #121212;
+    color: #00ccff;
     text-decoration: none;
-    border-radius: 5px;
-    transition: background-color 0.3s;
+    border-radius: 50px;
+    border: 2px solid #00ccff;
+    transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0px 4px 15px rgba(0, 204, 255, 0.4);
 }
+
+.back-button:hover {
+    background-color: #00ccff;
+    color: #121212;
+    box-shadow: 0px 6px 20px rgba(0, 204, 255, 0.6);
+}
+
 .back-button-container {
     text-align: center;
     width: 100%;
@@ -267,10 +278,7 @@ input, select {
     margin-top: 20px; /* Optional space above the button */
   }
   
-  
-.back-button:hover {
-    background-color: #555;
-}
+
 
 .image-container img {
     max-width: 100%;
