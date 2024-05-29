@@ -1,18 +1,26 @@
-const now = new Date();
+function getCurrentTimeInUTC4() {
+    const now = new Date();
+    const nowUtc4 = new Date(now);
+    nowUtc4.setMinutes(nowUtc4.getMinutes() + nowUtc4.getTimezoneOffset()); // Convert to UTC
+    nowUtc4.setHours(nowUtc4.getHours() - 4); // Convert UTC to EDT (UTC-4)
+    return nowUtc4;
+}
+
+const now = getCurrentTimeInUTC4();
 
 // Set Thursday deadline
 let thursdayDeadline = new Date(now);
 thursdayDeadline.setDate(now.getDate() + ((4 + 7 - now.getDay()) % 7));
 thursdayDeadline.setHours(19, 0, 0, 0); // 7 PM EST
 thursdayDeadline.setMinutes(thursdayDeadline.getMinutes() + thursdayDeadline.getTimezoneOffset());
-thursdayDeadline.setHours(thursdayDeadline.getHours() - 5); // Convert UTC to EST (UTC-5)
+thursdayDeadline.setHours(thursdayDeadline.getHours() - 4); // Convert UTC to EST (UTC-4)
 
 // Set Tuesday start time
 let tuesdayStartTime = new Date(now);
 tuesdayStartTime.setDate(now.getDate() + ((2 + 7 - now.getDay()) % 7));
 tuesdayStartTime.setHours(0, 0, 0, 0); // 12 AM EST
 tuesdayStartTime.setMinutes(tuesdayStartTime.getMinutes() + tuesdayStartTime.getTimezoneOffset());
-tuesdayStartTime.setHours(tuesdayStartTime.getHours() - 5); // Convert UTC to EST (UTC-5)
+tuesdayStartTime.setHours(tuesdayStartTime.getHours() - 4); // Convert UTC to EST (UTC-4)
 
 // Adjust if current time is past this week's Tuesday 12 AM
 if (now > tuesdayStartTime) {
@@ -46,10 +54,109 @@ async function saveInitialTimes() {
 
 //saveInitialTimes();
 
+const calculateBetPollTimes = () => {
+    const now = getCurrentTimeInUTC4();
+    const calculateTime = (day, hours, minutes) => {
+        let date = new Date(now);
+        date.setDate(date.getDate() + ((day + 7 - now.getDay()) % 7));
+        date.setHours(hours, minutes, 0, 0); // Set the specific time
+        date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+        date.setHours(date.getHours() - 4); // Convert UTC to EST (UTC-4)
+        return date;
+    };
 
+    // Calculate each bet poll time
+    const thursdayBetPoll = calculateTime(4, 23, 30); // Thursday 11:30 PM
+    const sundayBetPoll1 = calculateTime(0, 16, 15);   // Sunday 4 PM
+    const sundayBetPoll2 = calculateTime(0, 20, 0);   // Sunday 8 PM
+    const sundayBetPoll3 = calculateTime(0, 23, 30);  // Sunday 11:30 PM
+    const mondayBetPoll = calculateTime(1, 23, 30);   // Monday 11:30 PM
+
+    return {
+        thursdayBetPoll,
+        sundayBetPoll1,
+        sundayBetPoll2,
+        sundayBetPoll3,
+        mondayBetPoll
+    };
+};
+
+// Calculate the times
+const betPollTimes = calculateBetPollTimes();
+if (now == betPollTimes.thursdayBetPoll || now == betPollTimes.sundayBetPoll1 ||
+    now == betPollTimes.sundayBetPoll2 || now == betPollTimes.sundayBetPoll3 ||
+    now == betPollTimes.mondayBetPoll
+){
+    fetchMLBScores();
+}
+
+const timeString = now.toISOString();
+
+switch (timeString) {
+    case betPollTimes.thursdayBetPoll.toISOString():
+        console.log("It's Thursday Bet Poll, now fetching scores");
+        fetchMLBScores();
+        break;
+    case betPollTimes.sundayBetPoll1.toISOString():
+        console.log("It's Sunday Bet Poll 1, now fetching scores");
+        fetchMLBScores();
+        break;
+    case betPollTimes.sundayBetPoll2.toISOString():
+        console.log("It's Sunday Bet Poll 2, now fetching scores");
+        fetchMLBScores();
+        break;
+    case betPollTimes.sundayBetPoll3.toISOString():
+        console.log("It's Sunday Bet Poll 3, now fetching scores");
+        fetchMLBScores();
+        break;
+    case betPollTimes.mondayBetPoll.toISOString():
+        console.log("It's Monday Bet Poll, now fetching scores");
+        fetchMLBScores();
+        break;
+    default:
+        console.log("No matching bet poll time");
+}
+
+console.log("Tuesday Start Time:", tuesdayStartTime);
+console.log("Thursday Bet Poll Time:", betPollTimes.thursdayBetPoll);
+console.log("Sunday Bet Poll 1 Time:", betPollTimes.sundayBetPoll1);
+console.log("Sunday Bet Poll 2 Time:", betPollTimes.sundayBetPoll2);
+console.log("Sunday Bet Poll 3 Time:", betPollTimes.sundayBetPoll3);
+console.log("Monday Bet Poll Time:", betPollTimes.mondayBetPoll);
+
+function calculateEverydayPollTime() {
+    const now = getCurrentTimeInUTC4();
+    let everydayPollTime = new Date(now);
+    everydayPollTime.setHours(10, 0, 0, 0); // 10 AM
+
+    // If the calculated poll time is in the past, set it to the next day
+    if (now > everydayPollTime) {
+        everydayPollTime.setDate(everydayPollTime.getDate() + 1);
+    }
+
+    return everydayPollTime;
+}
+
+// Initialize everyday poll time
+const everydayPollTime = calculateEverydayPollTime();
+console.log("Everyday Poll Time:", everydayPollTime);
+
+function scheduleEverydayPoll() {
+    const now = getCurrentTimeInUTC4();
+    const everydayPollTime = calculateEverydayPollTime();
+
+    const timeUntilEverydayPoll = everydayPollTime - now;
+    setTimeout(() => {
+        console.log('It is Everyday Poll time. Fetching Injuries.');
+        scheduleEverydayPoll(); // Reschedule after execution
+    }, timeUntilEverydayPoll);
+}
+
+// Schedule the everyday poll function
+scheduleEverydayPoll();
 
 async function updateTuesdayStartTime() {
-    const now = new Date();
+    const now = getCurrentTimeInUTC4();
     const nextTuesday = new Date(now);
     nextTuesday.setDate(nextTuesday.getDate() + ((2 + 7 - now.getDay()) % 7));
     nextTuesday.setHours(0, 0, 0, 0); // 12 AM EST
@@ -80,7 +187,7 @@ async function updateTuesdayStartTime() {
 //attachFunctionsToTimes();
 
 async function updateThursdayDeadline() {
-    const now = new Date();
+    const now = getCurrentTimeInUTC4();
     const nextThursday = new Date(now);
     nextThursday.setDate(nextThursday.getDate() + ((4 + 7 - now.getDay()) % 7));
     nextThursday.setHours(19, 0, 0, 0); // 7 PM EST
@@ -167,7 +274,7 @@ async function checkCurrentTimeWindow() {
         }
 
         const { tuesdayStartTime, thursdayDeadline } = await response.json();
-        const now = new Date();
+        const now = getCurrentTimeInUTC4();
 
         const tuesdayTime = new Date(tuesdayStartTime);
         const thursdayTime = new Date(thursdayDeadline);
@@ -175,7 +282,7 @@ async function checkCurrentTimeWindow() {
         // Check if it is Pick Time or Game Time
         if (now > tuesdayTime && now < thursdayTime) {
             console.log('Current time window: Pick Time');
-        } else if (now < tuesdayTime || now > thursdayTime) {
+        } else if (now > thursdayTime && now < tuesdayTime) {
             console.log('Current time window: Game Time');
         } else {
             console.log('Error determining the current time window');
@@ -185,29 +292,10 @@ async function checkCurrentTimeWindow() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {    
     // Check and log the current time window
     checkCurrentTimeWindow();
-});
 
-async function checkCurrentTimeWindow() {
-    const times = await fetchTimeWindows();
-    const now = new Date();
-    const tuesdayStartTime = new Date(times.tuesdayStartTime);
-    const thursdayDeadline = new Date(times.thursdayDeadline);
 
-    // Determine if it is pick time or game time
-    const isPickTime = now > tuesdayStartTime && now < thursdayDeadline;
-    const isGameTime = now < tuesdayStartTime || now > thursdayDeadline;
-
-    if (isPickTime) {
-        console.log('It is pick time.');
-        enablePickTimeFeatures();
-    } else if (isGameTime) {
-        console.log('It is game time.');
-        enableGameTimeFeatures();
-    }
-}
 
 // Function to enable pick time features
 function enablePickTimeFeatures() {
@@ -1366,7 +1454,7 @@ function changeUserPoints(username, points, poolName) {
 }
 // Example usage:
 //changeUserPoints('test3', 0, 'yuh'); // Replace with the actual username, new points value, and pool name
-changeUserPoints('testuser', 0, 'testPool');
+//changeUserPoints('testuser', 0, 'testPool');
 //changeUserPoints('testuser2', 0, 'yuh');
 
 const mlbToNflMap = {
@@ -1768,5 +1856,5 @@ function resetUserStats(username, poolName) {
 
 
 //resetUserStats('test3', 'yuh');
-resetUserStats('testuser', 'testPool');
+//resetUserStats('testuser', 'testPool');
 //resetUserStats('testuser2', 'yuh');

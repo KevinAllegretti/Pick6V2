@@ -6,33 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const router = express_1.default.Router();
 const TimeWindow_1 = require("../models/TimeWindow");
-const BetPollTimeWindow_1 = require("../models/BetPollTimeWindow");
-router.post('/betPollTimeWindows', async (req, res) => {
-    const { thursdayBetPoll, sundayBetPoll1, sundayBetPoll2, sundayBetPoll3, mondayBetPoll } = req.body;
-    try {
-        await BetPollTimeWindow_1.BetPollTimeWindow.create({
-            thursdayBetPoll,
-            sundayBetPoll1,
-            sundayBetPoll2,
-            sundayBetPoll3,
-            mondayBetPoll
-        });
-        res.status(201).send('Bet poll times saved.');
-    }
-    catch (error) {
-        res.status(500).send('Error saving bet poll times.');
-    }
-});
-router.put('/betPollTimeWindows', async (req, res) => {
-    const { thursdayBetPoll, sundayBetPoll1, sundayBetPoll2, sundayBetPoll3, mondayBetPoll } = req.body;
-    try {
-        await BetPollTimeWindow_1.BetPollTimeWindow.findOneAndUpdate({ identifier: 'betPollTimes' }, { thursdayBetPoll, sundayBetPoll1, sundayBetPoll2, sundayBetPoll3, mondayBetPoll }, { upsert: true });
-        res.json({ success: true, message: 'Bet poll times updated successfully.' });
-    }
-    catch (error) {
-        res.status(500).json({ success: false, message: 'Error updating bet poll times.' });
-    }
-});
 router.post('/timeWindows', async (req, res) => {
     const { thursdayDeadline, tuesdayStartTime } = req.body;
     try {

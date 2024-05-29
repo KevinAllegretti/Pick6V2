@@ -872,6 +872,55 @@ async function handleError(error) {
  console.error('Failed to fetch data:', error);
 }
 
+
+function getCurrentTimeInUTC4() {
+    const now = new Date();
+    const nowUtc4 = new Date(now);
+    nowUtc4.setMinutes(nowUtc4.getMinutes() + nowUtc4.getTimezoneOffset()); // Convert to UTC
+    nowUtc4.setHours(nowUtc4.getHours() - 4); // Convert UTC to EDT (UTC-4)
+    return nowUtc4;
+}
+function calculateEverydayPollTime() {
+    const now = getCurrentTimeInUTC4();
+    let everydayPollTime = new Date(now);
+    everydayPollTime.setHours(10, 0, 0, 0); // 10 AM
+
+    // If the calculated poll time is in the past, set it to the next day
+    if (now > everydayPollTime) {
+        everydayPollTime.setDate(everydayPollTime.getDate() + 1);
+    }
+
+    return everydayPollTime;
+}
+
+// Initialize everyday poll time
+const everydayPollTime = calculateEverydayPollTime();
+console.log("Everyday Poll Time:", everydayPollTime);
+
+function scheduleEverydayPoll() {
+    const now = getCurrentTimeInUTC4();
+    const everydayPollTime = calculateEverydayPollTime();
+
+    const timeUntilEverydayPoll = everydayPollTime - now;
+    setTimeout(() => {
+        console.log('It is Everyday Poll time. Fetching Injuries.');
+        fetchAndSaveInjuries();
+        scheduleEverydayPoll(); // Reschedule after execution
+    }, timeUntilEverydayPoll);
+}
+
+async function fetchAndSaveInjuries() {
+    try {
+        const response = await fetch('/api/fetchAndSaveInjuries');
+        if (!response.ok) {
+            throw new Error('Network response was not ok.');
+        }
+        console.log('Injuries fetched and saved successfully.');
+    } catch (error) {
+        console.error('Error fetching and saving injuries:', error);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const fetchAndSaveInjuriesBtn = document.getElementById('fetchAndSaveInjuriesBtn');
     const displayInjuriesBtn = document.getElementById('displayInjuriesBtn');
@@ -887,7 +936,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) {
                 throw new Error('Network response was not ok.');
             }
-            alert('Injuries fetched and saved successfully.');
+            console.log('Injuries fetched and saved successfully.');
         } catch (error) {
             console.error('Error fetching and saving injuries:', error);
         }
