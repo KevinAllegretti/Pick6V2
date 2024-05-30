@@ -908,7 +908,7 @@ function scheduleEverydayPoll() {
         scheduleEverydayPoll(); // Reschedule after execution
     }, timeUntilEverydayPoll);
 }
-
+scheduleEverydayPoll();
 async function fetchAndSaveInjuries() {
     try {
         const response = await fetch('/api/fetchAndSaveInjuries');

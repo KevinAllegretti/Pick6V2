@@ -392,7 +392,7 @@ input, select {
   }
   
 .betCell.immortal-lock-selected {
-    background-color: #ebff69 !important; /* Example: bright yellow background */
+    background-color: #fffb00 !important; /* Example: bright yellow background */
     color: #000; /* Black text color for contrast */
     /* Add any other styles you want for the Immortal Lock selected cell */
 }
