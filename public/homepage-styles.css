@@ -434,9 +434,7 @@ h2 {
     text-align: center;
     margin-bottom: 10px;
 }
-
-
-.rules-button {
+.rules-button{
     display: inline-block;
     padding: 12px 25px;
     margin: 10px auto;
@@ -450,15 +448,35 @@ h2 {
     cursor: pointer;
     box-shadow: 0px 4px 15px rgba(0, 204, 255, 0.4);
 }
-
-.rules-button:hover {
+.rules-button:hover{
     background-color: #00ccff;
     color: #121212;
     box-shadow: 0px 6px 20px rgba(0, 204, 255, 0.6);
     transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
 }
+.info-button {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    font-size: 1.2em;
+    color: #00ccff;
+    background: #121212;
+    border: 2px solid #00ccff;
+    border-radius: 50%;
+    box-shadow: 0px 4px 15px rgba(0, 204, 255, 0.4);
+    transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+    font-family: 'Georgia', serif;
+}
 
-
+.info-button:hover {
+    background-color: #00ccff;
+    color: #121212;
+    box-shadow: 0px 6px 20px rgba(0, 204, 255, 0.6);
+    transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+}
 .neon-sign {
     font-size: 2rem; /* Adjust as needed */
     font-family: 'Montserrat', sans-serif; /* Use any font you like, this is just a placeholder */
