@@ -1122,9 +1122,9 @@ function fetchPicks(username, poolName, playerRow, teamLogos) {
         });
 }
 
-document.getElementById('savePicksButton').addEventListener('click', () => {
+/*document.getElementById('savePicksButton').addEventListener('click', () => {
     savePicksToLastWeek();
-});
+});*/
 
 async function savePicksToLastWeek() {
     try {
