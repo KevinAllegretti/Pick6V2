@@ -230,21 +230,41 @@ function scheduleUpdates() {
             const tuesdayTime = new Date(tuesdayStartTime);
             const thursdayTime = new Date(thursdayDeadline);
 
-            // Schedule update for deleting the results, Thursday deadline, 2 minutes before tuesdayStartTime
-            const timeUntilTuesdayUpdate = tuesdayTime - new Date() - 2 * 60 * 1000;
+            const now = new Date();
+
+            // Calculate the time until Tuesday update
+            let timeUntilTuesdayUpdate = tuesdayTime - now - 2 * 60 * 1000;
+            if (timeUntilTuesdayUpdate < 0) {
+                // If the time has passed, schedule for the next Tuesday
+                tuesdayTime.setDate(tuesdayTime.getDate() + 7);
+                timeUntilTuesdayUpdate = tuesdayTime - now - 2 * 60 * 1000;
+            }
+
+            // Schedule update for deleting the results, Thursday deadline, 2 minutes before Tuesday start time
             setTimeout(() => {
+                console.log("Executing Tuesday update tasks");
                 deleteResultsFromServer();
                 updateThursdayDeadline();
                 scheduleUpdates(); // Reschedule after update
             }, timeUntilTuesdayUpdate);
 
-            // Schedule update for Tuesday start time 2 minutes before thursdayDeadline
-            const timeUntilThursdayUpdate = thursdayTime - new Date() - 2 * 60 * 1000;
+            // Calculate the time until Thursday update
+            let timeUntilThursdayUpdate = thursdayTime - now - 2 * 60 * 1000;
+            if (timeUntilThursdayUpdate < 0) {
+                // If the time has passed, schedule for the next Thursday
+                thursdayTime.setDate(thursdayTime.getDate() + 7);
+                timeUntilThursdayUpdate = thursdayTime - now - 2 * 60 * 1000;
+            }
+
+            // Schedule update for Thursday start time 2 minutes before Thursday deadline
             setTimeout(() => {
+                console.log("Executing Thursday update tasks");
                 savePicksToLastWeek();
                 updateTuesdayStartTime();
                 scheduleUpdates(); // Reschedule after update
             }, timeUntilThursdayUpdate);
+            console.log("Time until Tuesday update:", timeUntilTuesdayUpdate);
+console.log("Time until Thursday update:", timeUntilThursdayUpdate);
         })
         .catch(error => {
             console.error('Error fetching time windows:', error);
@@ -253,6 +273,8 @@ function scheduleUpdates() {
 
 // Call this function to start the scheduling process
 scheduleUpdates();
+
+
 
 async function fetchTimeWindows() {
     try {
@@ -284,6 +306,7 @@ async function checkCurrentTimeWindow() {
             console.log('Current time window: Pick Time');
         } else if (now > thursdayTime && now < tuesdayTime) {
             console.log('Current time window: Game Time');
+            enableGameTimeFeatures();
         } else {
             console.log('Error determining the current time window');
         }
@@ -292,24 +315,36 @@ async function checkCurrentTimeWindow() {
     }
 }
 
-    // Check and log the current time window
-    checkCurrentTimeWindow();
 
 
 
 // Function to enable pick time features
-function enablePickTimeFeatures() {
-    // Your code to enable pick time features
-    console.log('Pick time features enabled.');
-    // Example: Show pick options, hide game results, etc.
+
+function enableGameTimeFeatures() {
+    const choosePicksButton = document.querySelector('.choose-picks-button');
+    if (choosePicksButton) {
+        choosePicksButton.classList.add('disabled'); // Add visual indicator
+    } else {
+        console.error('choosePicksButton not found');
+    }
 }
 
-// Function to enable game time features
-function enableGameTimeFeatures() {
-    // Your code to enable game time features
-    console.log('Game time features enabled.');
-    // Example: Hide pick options, show game results, etc.
+function enablePickTimeFeatures() {
+    const choosePicksButton = document.querySelector('.choose-picks-button');
+    if (choosePicksButton) {
+        choosePicksButton.classList.remove('disabled');
+    } else {
+        console.error('choosePicksButton not found');
+    }
 }
+
+
+
+function showGameTimeAlert(event) {
+    event.preventDefault(); // Prevent default action
+    alert("It's game time! Pick selection page not available.");
+}
+
 
 
 //START OF HOMEPAGE
@@ -763,7 +798,7 @@ function displayNewPoolContainer(pool) {
             <span class="header-user">User</span>
             <span class="header-points">Points</span>
             <span class="header-picks">
-                <button class="choose-picks-button" onclick="redirectToDashboard('${pool.name}')">Make Picks</button>
+                <button id="choosePicksButton" class="choose-picks-button">Make Picks</button>
             </span>
             <span class="header-immortal-lock"> <i class="fas fa-lock"></i></span>
             <span class="header-win">Win</span>
@@ -838,6 +873,21 @@ function displayNewPoolContainer(pool) {
             }
 
             poolContainerWrapper.appendChild(poolAndDeleteContainer);
+
+            const choosePicksButton = poolContainer.querySelector('.choose-picks-button');
+            choosePicksButton.addEventListener('click', (event) => {
+                if (choosePicksButton.classList.contains('disabled')) {
+                    event.preventDefault();
+                    showGameTimeAlert(event);
+                } else {
+                    redirectToDashboard(pool.name); // Call the redirect function
+                }
+            });
+
+            // Delay to ensure elements are rendered
+            setTimeout(() => {
+                checkCurrentTimeWindow(); // Check time window after the header is added
+            }, 500); // Adjust the delay as needed
         }).catch(error => {
             console.error('Error fetching member data:', error);
         });
