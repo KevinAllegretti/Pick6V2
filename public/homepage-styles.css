@@ -214,6 +214,7 @@ body {
 }
 
 #saveBioButton {
+    margin-left: 10px;
     background-color: #33d9ff;
     border: none;
     border-radius: 5px;

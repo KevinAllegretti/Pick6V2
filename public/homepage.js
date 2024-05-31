@@ -887,7 +887,7 @@ function displayNewPoolContainer(pool) {
             // Delay to ensure elements are rendered
             setTimeout(() => {
                 checkCurrentTimeWindow(); // Check time window after the header is added
-            }, 500); // Adjust the delay as needed
+            }, 50); // Adjust the delay as needed
         }).catch(error => {
             console.error('Error fetching member data:', error);
         });

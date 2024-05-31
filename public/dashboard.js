@@ -9,20 +9,6 @@ if (!currentPoolName) {
  localStorage.setItem('currentPoolName', currentPoolName);
 }
 
-const now = new Date();
-let thursdayDeadline = new Date(now);
-thursdayDeadline.setDate(now.getDate() + ((4 + 7 - now.getDay()) % 7));
-thursdayDeadline.setHours(19, 0, 0, 0); // 7 PM EST
-thursdayDeadline.setMinutes(thursdayDeadline.getMinutes() + thursdayDeadline.getTimezoneOffset());
-thursdayDeadline.setHours(thursdayDeadline.getHours() - 5); // Convert UTC to EST (UTC-5)
-
-// Define the end time for Tuesday 12 AM EST
-let tuesdayEndTime = new Date(now);
-tuesdayEndTime.setDate(now.getDate() + ((2 + 7 - now.getDay()) % 7));
-tuesdayEndTime.setHours(0, 0, 0, 0); // 12 AM EST
-tuesdayEndTime.setMinutes(tuesdayEndTime.getMinutes() + tuesdayEndTime.getTimezoneOffset());
-tuesdayEndTime.setHours(tuesdayEndTime.getHours() - 5); // Convert UTC to EST (UTC-5)
-
 const mlbToNflMap = {
  "Arizona Diamondbacks": "ARI Cardinals",
  "Atlanta Braves": "ATL Falcons",
@@ -880,6 +866,251 @@ function getCurrentTimeInUTC4() {
     nowUtc4.setHours(nowUtc4.getHours() - 4); // Convert UTC to EDT (UTC-4)
     return nowUtc4;
 }
+
+const now = getCurrentTimeInUTC4();
+
+// Set Thursday deadline
+let thursdayDeadline = new Date(now);
+thursdayDeadline.setDate(now.getDate() + ((4 + 7 - now.getDay()) % 7));
+thursdayDeadline.setHours(19, 0, 0, 0); // 7 PM EST
+thursdayDeadline.setMinutes(thursdayDeadline.getMinutes() + thursdayDeadline.getTimezoneOffset());
+thursdayDeadline.setHours(thursdayDeadline.getHours() - 4); // Convert UTC to EST (UTC-4)
+
+// Set Tuesday start time
+let tuesdayStartTime = new Date(now);
+tuesdayStartTime.setDate(now.getDate() + ((2 + 7 - now.getDay()) % 7));
+tuesdayStartTime.setHours(0, 0, 0, 0); // 12 AM EST
+tuesdayStartTime.setMinutes(tuesdayStartTime.getMinutes() + tuesdayStartTime.getTimezoneOffset());
+tuesdayStartTime.setHours(tuesdayStartTime.getHours() - 4); // Convert UTC to EST (UTC-4)
+
+// Adjust if current time is past this week's Tuesday 12 AM
+if (now > tuesdayStartTime) {
+    tuesdayStartTime.setDate(tuesdayStartTime.getDate() + 7); // Move to next Tuesday
+}
+
+// Adjust if current time is past this week's Thursday 7 PM
+if (now > thursdayDeadline) {
+    thursdayDeadline.setDate(thursdayDeadline.getDate() + 7); // Move to next Thursday
+}
+
+
+
+async function updateTuesdayStartTime() {
+    const now = getCurrentTimeInUTC4();
+    const nextTuesday = new Date(now);
+    nextTuesday.setDate(nextTuesday.getDate() + ((2 + 7 - now.getDay()) % 7));
+    nextTuesday.setHours(0, 0, 0, 0); // 12 AM EST
+    nextTuesday.setMinutes(nextTuesday.getMinutes() + nextTuesday.getTimezoneOffset());
+    nextTuesday.setHours(nextTuesday.getHours() - 5); // Convert UTC to EST (UTC-5)
+
+    // Ensure it's the next Tuesday
+    if (now > nextTuesday) {
+        nextTuesday.setDate(nextTuesday.getDate() + 7); // Move to next Tuesday
+    }
+
+    try {
+        await fetch('/api/timeWindows/tuesday', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                tuesdayStartTime: nextTuesday.toISOString(),
+            }),
+        });
+        console.log('Tuesday start time updated successfully.');
+    } catch (error) {
+        console.error('Error updating Tuesday start time:', error);
+    }
+}
+//setInterval(attachFunctionsToTimes, 1000 * 60); // Check every minute
+//attachFunctionsToTimes();
+
+async function updateThursdayDeadline() {
+    const now = getCurrentTimeInUTC4();
+    const nextThursday = new Date(now);
+    nextThursday.setDate(nextThursday.getDate() + ((4 + 7 - now.getDay()) % 7));
+    nextThursday.setHours(19, 0, 0, 0); // 7 PM EST
+    nextThursday.setMinutes(nextThursday.getMinutes() + nextThursday.getTimezoneOffset());
+    nextThursday.setHours(nextThursday.getHours() - 5); // Convert UTC to EST (UTC-5)
+
+    // Ensure it's the next Thursday
+    if (now > nextThursday) {
+        nextThursday.setDate(nextThursday.getDate() + 7); // Move to next Thursday
+    }
+
+    try {
+        await fetch('/api/timeWindows/thursday', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                thursdayDeadline: nextThursday.toISOString(),
+            }),
+        });
+        console.log('Thursday deadline updated successfully.');
+    } catch (error) {
+        console.error('Error updating Thursday deadline:', error);
+    }
+}
+
+/* In the updates, alos put in the ones that are one timers.
+then put the ones that need to stay constant within the respective enable feature function
+*/
+
+/*
+function scheduleUpdates() {
+    // Fetch the stored times from the database
+    fetch('/api/timeWindows')
+        .then(response => response.json())
+        .then(times => {
+            const { tuesdayStartTime, thursdayDeadline } = times;
+
+            const tuesdayTime = new Date(tuesdayStartTime);
+            const thursdayTime = new Date(thursdayDeadline);
+
+            const now = new Date();
+
+            // Calculate the time until Tuesday update
+            let timeUntilTuesdayUpdate = tuesdayTime - now - 2 * 60 * 1000;
+            if (timeUntilTuesdayUpdate < 0) {
+                // If the time has passed, schedule for the next Tuesday
+                tuesdayTime.setDate(tuesdayTime.getDate() + 7);
+                timeUntilTuesdayUpdate = tuesdayTime - now - 2 * 60 * 1000;
+            }
+
+            // Schedule update for deleting the results, Thursday deadline, 2 minutes before Tuesday start time
+            setTimeout(() => {
+                console.log("Executing Tuesday update tasks");
+                deleteResultsFromServer();
+                updateThursdayDeadline();
+                scheduleUpdates(); // Reschedule after update
+            }, timeUntilTuesdayUpdate);
+
+            // Calculate the time until Thursday update
+            let timeUntilThursdayUpdate = thursdayTime - now - 2 * 60 * 1000;
+            if (timeUntilThursdayUpdate < 0) {
+                // If the time has passed, schedule for the next Thursday
+                thursdayTime.setDate(thursdayTime.getDate() + 7);
+                timeUntilThursdayUpdate = thursdayTime - now - 2 * 60 * 1000;
+            }
+
+            // Schedule update for Thursday start time 2 minutes before Thursday deadline
+            setTimeout(() => {
+                console.log("Executing Thursday update tasks");
+                savePicksToLastWeek();
+                updateTuesdayStartTime();
+                scheduleUpdates(); // Reschedule after update
+            }, timeUntilThursdayUpdate);
+            console.log("Time until Tuesday update:", timeUntilTuesdayUpdate);
+console.log("Time until Thursday update:", timeUntilThursdayUpdate);
+        })
+        .catch(error => {
+            console.error('Error fetching time windows:', error);
+        });
+}
+
+// Call this function to start the scheduling process
+scheduleUpdates();
+*/
+
+
+async function fetchTimeWindows() {
+    try {
+        const response = await fetch('/api/timeWindows');
+        if (!response.ok) {
+            throw new Error('Network response was not ok.');
+        }
+        const times = await response.json();
+        return times;
+    } catch (error) {
+        console.error('Error fetching time windows:', error);
+    }
+}
+async function checkCurrentTimeWindow() {
+    try {
+        const response = await fetch('/api/timeWindows');
+        if (!response.ok) {
+            throw new Error('Failed to fetch time windows.');
+        }
+
+        const { tuesdayStartTime, thursdayDeadline } = await response.json();
+        const now = getCurrentTimeInUTC4();
+
+        const tuesdayTime = new Date(tuesdayStartTime);
+        const thursdayTime = new Date(thursdayDeadline);
+
+        // Check if it is Pick Time or Game Time
+        if (now > tuesdayTime && now < thursdayTime) {
+            console.log('Current time window: Pick Time');
+        } else if (now > thursdayTime && now < tuesdayTime) {
+            console.log('Current time window: Game Time');
+            enableGameTimeFeatures();
+        } else {
+            console.log('Error determining the current time window');
+        }
+    } catch (error) {
+        console.error('Error checking current time window:', error);
+    }
+}
+
+// Function to check if it's game time
+function checkGameTime() {
+    const now = getCurrentTimeInUTC4();
+    if (now > thursdayDeadline && now < tuesdayStartTime) {
+        enableGameTimeFeatures();
+    } else {
+        enablePickTimeFeatures();
+    }
+}
+
+
+    // Function to enable pick buttons
+    function enablePickTimeFeatures() {
+        const submitPicksButton = document.getElementById('submitPicks');
+        const resetPicksButton = document.getElementById('resetPicks');
+        
+        submitPicksButton.classList.remove('disabled');
+        resetPicksButton.classList.remove('disabled');
+
+        submitPicksButton.disabled = false;
+        resetPicksButton.disabled = false;
+
+        submitPicksButton.removeEventListener('click', showGameTimeAlert);
+        resetPicksButton.removeEventListener('click', showGameTimeAlert);
+    }
+
+    // Function to disable pick buttons
+    function enableGameTimeFeatures() {
+        const submitPicksButton = document.getElementById('submitPicks');
+        const resetPicksButton = document.getElementById('resetPicks');
+        
+        submitPicksButton.classList.add('disabled');
+        resetPicksButton.classList.add('disabled');
+
+        submitPicksButton.disabled = true;
+        resetPicksButton.disabled = true;
+
+        submitPicksButton.addEventListener('click', showGameTimeAlert);
+        resetPicksButton.addEventListener('click', showGameTimeAlert);
+    }
+
+    // Function to show game time alert
+    function showGameTimeAlert(event) {
+        event.preventDefault();
+        alert("It's game time! Pick selection page not available.");
+    }
+
+    // Call checkGameTime on DOMContentLoaded
+    setTimeout(checkCurrentTimeWindow, 500);
+
+    // Rest of your existing code
+    document.getElementById('resetPicks').addEventListener('click', resetPicks);
+    document.getElementById('submitPicks').addEventListener('click', submitUserPicks);
+
+
+
 function calculateEverydayPollTime() {
     const now = getCurrentTimeInUTC4();
     let everydayPollTime = new Date(now);
