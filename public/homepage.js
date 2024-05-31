@@ -1593,11 +1593,11 @@ const mlbToNflMap = {
       }
   }
   
-  document.getElementById('fetchScoresButton').addEventListener('click', function() {
+ /* document.getElementById('fetchScoresButton').addEventListener('click', function() {
       fetchMLBScores();
       submitResults();
       console.log("Fetching MLB scores...");
-  });
+  });*/
   
   function getBetResult(pick, homeTeamScore, awayTeamScore) {
     let result = 'error';  // Default to error in case conditions fail
