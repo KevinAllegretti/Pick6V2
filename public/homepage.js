@@ -22,6 +22,7 @@ tuesdayStartTime.setHours(0, 0, 0, 0); // 12 AM EST
 tuesdayStartTime.setMinutes(tuesdayStartTime.getMinutes() + tuesdayStartTime.getTimezoneOffset());
 tuesdayStartTime.setHours(tuesdayStartTime.getHours() - 4); // Convert UTC to EST (UTC-4)
 
+/*
 // Adjust if current time is past this week's Tuesday 12 AM
 if (now > tuesdayStartTime) {
     tuesdayStartTime.setDate(tuesdayStartTime.getDate() + 7); // Move to next Tuesday
@@ -30,7 +31,7 @@ if (now > tuesdayStartTime) {
 // Adjust if current time is past this week's Thursday 7 PM
 if (now > thursdayDeadline) {
     thursdayDeadline.setDate(thursdayDeadline.getDate() + 7); // Move to next Thursday
-}
+}*/
 
 
 // Save the calculated times to the database
@@ -118,6 +119,7 @@ switch (timeString) {
 }
 
 console.log("Tuesday Start Time:", tuesdayStartTime);
+console.log("Thursday Deadline Time:", thursdayDeadline);
 console.log("Thursday Bet Poll Time:", betPollTimes.thursdayBetPoll);
 console.log("Sunday Bet Poll 1 Time:", betPollTimes.sundayBetPoll1);
 console.log("Sunday Bet Poll 2 Time:", betPollTimes.sundayBetPoll2);
@@ -324,6 +326,7 @@ function enableGameTimeFeatures() {
     const choosePicksButton = document.querySelector('.choose-picks-button');
     if (choosePicksButton) {
         choosePicksButton.classList.add('disabled'); // Add visual indicator
+        choosePicksButton.textContent = 'Selections Unavailable';
     } else {
         console.error('choosePicksButton not found');
     }
@@ -333,6 +336,8 @@ function enablePickTimeFeatures() {
     const choosePicksButton = document.querySelector('.choose-picks-button');
     if (choosePicksButton) {
         choosePicksButton.classList.remove('disabled');
+        choosePicksButton.textContent = 'Make Picks';
+
     } else {
         console.error('choosePicksButton not found');
     }
@@ -342,7 +347,7 @@ function enablePickTimeFeatures() {
 
 function showGameTimeAlert(event) {
     event.preventDefault(); // Prevent default action
-    alert("It's game time! Pick selection page not available.");
+    alert("It's Game Time! Pick selection page not available.");
 }
 
 

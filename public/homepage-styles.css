@@ -495,6 +495,16 @@ h2 {
     height: 100%;
 }
 
+.rule-book-button:hover .neon-book::before,
+.rule-book-button:hover .neon-book::after {
+    background-color: rgba(0, 204, 255, 0.8);
+    color: #0a0f22;
+}
+
+.rule-book-button:hover .rule-book-text{
+    color: #0a0f22;
+}
+
 .neon-book::after {
     top: 0;
     left: 5px;
@@ -1012,11 +1022,11 @@ button:hover {
 /* Scrollbar styling */
 .player-username::-webkit-scrollbar {
     height: 4px; /* Height of horizontal scrollbar */
-    background-color: rgba(0, 255, 64, 0.1); /* Scrollbar track color */
+    background-color: rgba(0, 110, 255, 0.1); /* Scrollbar track color */
 }
 
 .player-username::-webkit-scrollbar-thumb {
-    background-color: rgba(1, 255, 43, 0.2); /* Scrollbar thumb color */
+    background-color: rgba(1, 141, 255, 0.2); /* Scrollbar thumb color */
     border-radius: 2px;
 }
 
@@ -1407,21 +1417,35 @@ button:hover {
     cursor: pointer;
 }
 
-.chat-toggle-button:hover {
-    background: linear-gradient(135deg, #0099CC 0%, #33d9ff 100%);
-    box-shadow: 0 0 5px #33d9ff, 0 0 5px #33d9ff, 0 0 5px #33d9ff; /* Enhanced neon glow effect on hover */
+.choose-picks-button {
+    position: relative;
+    background-color: #033; /* Dark button background */
+    color: #0ff; /* Neon text color */
+    border: 1px solid #0af; /* Neon border */
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
+    margin-bottom: 20px;
+    text-align: center;
+    width: fit-content; /* Adjust to maintain original button size */
 }
 
-.choose-picks-button{
-    position: relative;
+
+.choose-picks-button.disabled {
+    background: black;
+    color: rgb(214, 13, 13);
+    border: 2px solid rgb(24, 23, 23); /* Optional: add a red border */
 }
+
 
 .choose-picks-button.disabled::before {
-    content: '';
     position: absolute;
-    top: 0px;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: url('chains.png') center/cover no-repeat; /* Add your chain overlay image here */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgb(80, 73, 73);
+    font-size: 1em;
+    text-align: center;
 }

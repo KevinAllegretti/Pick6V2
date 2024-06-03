@@ -45,6 +45,16 @@ h1 {
     text-align: left;
 }
 
+.info-box2 {
+    background: linear-gradient(to bottom right, #1a1a2e, #16213e);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    width: 80%;
+    color: #f5f5f5;
+    margin: 10px 0;
+    text-align: left;
+}
 h2 {
     font-size: 1.8em;
     color: #33d9ff;
@@ -52,6 +62,13 @@ h2 {
     text-shadow: 0 0 10px rgba(51, 217, 255, 0.5);
 }
 
+
+h6 {
+    font-size: 1.2em;
+    color: #33d9ff;
+    margin-bottom: 10px;
+    text-shadow: 0 0 10px rgba(51, 217, 255, 0.5);
+}
 ul {
     list-style-type: none;
     padding: 0;
@@ -105,3 +122,28 @@ li {
     box-shadow: 0px 6px 20px rgba(0, 204, 255, 0.6);
     transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
 }
+
+.crown-icon {
+    margin-left: 0.2em;
+    padding-right: 4px;
+    font-size: 1.0rem; /* Adjust as needed */
+    z-index: 10;
+    color: gold;
+}
+
+.dunce-icon {
+    margin-left: 0.2em;
+    padding-right: 4px;
+    font-size: 1.2rem; /* Adjust as needed */
+    z-index: 10;
+    color: rgb(177, 121, 0);
+}
+
+.admin-badge {
+    color: rgb(1, 211, 1); /* Green color for the admin badge */
+    margin-left: 0.2em;
+    font-size: 1.2rem; /* Adjust as needed */
+    z-index: 10;
+
+}
+
