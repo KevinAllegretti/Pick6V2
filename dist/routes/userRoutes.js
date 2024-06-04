@@ -11,7 +11,8 @@ const mail_1 = __importDefault(require("@sendgrid/mail"));
 const router = express_1.default.Router();
 const saltRounds = 10;
 // Initialize SendGrid
-mail_1.default.setApiKey('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'); // Should ideally be an environment variable
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+mail_1.default.setApiKey('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');
 router.post('/register', async (req, res) => {
     console.log('Register endpoint hit with data:', req.body);
     try {
@@ -42,7 +43,7 @@ router.post('/register', async (req, res) => {
             verified: false,
         });
         // Send verification email
-        const verificationUrl = `http://localhost:3000/users/verify/${verificationToken}`;
+        const verificationUrl = `http://pick6.club/users/verify/${verificationToken}`;
         const msg = {
             to: email,
             from: 'pick6NoREPLY@gmail.com',
@@ -51,15 +52,15 @@ router.post('/register', async (req, res) => {
         };
         await mail_1.default.send(msg);
         // Log and respond with success
-        //   console.log('[Email Attempt] Email sent successfully to:', email);
+        console.log('Email sent successfully to:', email);
         res.status(201).json({ error: false, message: "User created successfully. Please check your email to verify your account." });
     }
     catch (error) {
+        console.error('[Registration Error]', error);
         if (error.code === 11000) {
             // This is the error code for duplicate key violation (i.e., username not unique)
             return res.status(409).send("Username is already taken.");
         }
-        //   console.error('[Registration Error]', error);
         res.status(500).json({ message: "Internal Server Error", type: "error" });
     }
 });
@@ -74,11 +75,11 @@ router.get('/verify/:token', async (req, res) => {
             return res.redirect('/login.html?verified=false');
         }
         await usersCollection.updateOne({ _id: user._id }, { $set: { verified: true }, $unset: { verificationToken: "" } });
-        // console.log(`[Email Verification] User verified: ${user.username}`);
+        console.log(`[Email Verification] User verified: ${user.username}`);
         res.redirect('/login.html?verified=true');
     }
     catch (error) {
-        //  console.error('[Email Verification Error]', error);
+        console.error('[Email Verification Error]', error);
         res.redirect('/login.html?verified=error');
     }
 });
@@ -86,50 +87,35 @@ router.post('/login', async (req, res) => {
     console.log('Login endpoint hit with data:', req.body);
     try {
         const { username, password } = req.body;
-        // console.log('Attempting login with', { username, password });
+        console.log('Attempting login with', { username, password });
         const db = await (0, connectDB_1.connectToDatabase)();
         const usersCollection = db.collection("users");
         const user = await usersCollection.findOne({ username: username.toLowerCase() }); // Lowercase the username
-        // console.log('User found:', user);
+        console.log('User found:', user);
         if (user) {
             const passwordMatch = await bcrypt_1.default.compare(password, user.password);
             console.log('Password match:', passwordMatch);
             if (passwordMatch) {
-                //console.log('User verified:', user.verified);
+                console.log('User verified:', user.verified);
                 if (!user.verified) {
                     return res.status(403).json({ error: true, message: "Please verify your email to login." });
                 }
-                //  console.log(`Redirecting ${username} to homepage`);
+                console.log(`Redirecting ${username} to homepage`);
                 res.json({ error: false, redirect: `/homepage.html?username=${username}` });
             }
             else {
-                //   console.log('Invalid password for username:', username);
+                console.log('Invalid password for username:', username);
                 return res.status(401).json({ error: true, message: "Invalid credentials. Please try again." });
             }
         }
         else {
-            //   console.log('Username not found:', username);
+            console.log('Username not found:', username);
             return res.status(401).json({ error: true, message: "Invalid credentials. Please try again." });
         }
     }
     catch (error) {
-        //  console.error('[Login Error]', error);
+        console.error('[Login Error]', error);
         res.status(500).json({ error: true, message: "An error occurred during the login process. Please try again." });
     }
 });
-// Other routes...
-/*
-router.post('/login', (req,res) => {
-    const { username, password } = req.body;
-
-    const user = users.find(u => u.username === username && u.password === password);
-    if (user) {
-        res.redirect(`/homepage.html?username=${username}`);
-        //res.redirect('/homepage.html'); // This would be the URL to your homepage
-    } else {
-        res.status(401).send('Invalid credentials. Please try again.');
-    }
-});
-
-*/
 exports.default = router;
