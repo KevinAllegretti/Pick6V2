@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.connectToDatabase = void 0;
-//connectDB.ts
+// src/microservices/connectDB.ts
 const mongodb_1 = require("mongodb");
 // If MONGODB_URI is not set, the fallback URI will be used (You should have a real URI here).
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/';
