@@ -17,7 +17,7 @@ async function connectToDatabase() {
     try {
         const mongoClient = await getClient();
         const db = mongoClient.db('Pick6');
-        // Set up unique index for the username field in the users collection
+        // @ts-ignore
         await db.collection('users').createIndex({ username: 1 }, { unique: true });
         return db;
     }
