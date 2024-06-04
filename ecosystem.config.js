@@ -5,9 +5,10 @@ module.exports = {
         script: 'api/index.ts',
         interpreter: 'ts-node',
         env: {
-          NODE_ENV: 'production',
-          MONGODB_URI: 'mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/'
-        }
+          NODE_ENV: 'development',
+          SENDGRID_API_KEY: process.env.SENDGRID_API_KEY // Ensure this matches your .env key
+        },
+        cwd: '/home/bitnami/htdocs/Pick6V2'
       }
     ]
   };

@@ -18,7 +18,7 @@ if (!SENDGRID_API_KEY) {
 
 sgMail.setApiKey(SENDGRID_API_KEY);
 
-//test
+//test1
 router.post('/register', async (req, res) => {
     console.log('Register endpoint hit with data:', req.body);
     try {
