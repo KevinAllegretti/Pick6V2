@@ -11,8 +11,8 @@ const mail_1 = __importDefault(require("@sendgrid/mail"));
 require("dotenv").config();
 const router = express_1.default.Router();
 const saltRounds = 10;
-const SENDGRID = process.env.SEND_API;
-//sgMail.setApiKey();
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+mail_1.default.setApiKey(SENDGRID_API_KEY);
 router.post('/register', async (req, res) => {
     console.log('Register endpoint hit with data:', req.body);
     try {
