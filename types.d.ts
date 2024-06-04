@@ -7,5 +7,11 @@ declare module 'express-session' {
     }
   }
 
+  declare namespace NodeJS {
+    interface Global {
+      _mongoClientPromise: Promise<import('mongodb').MongoClient>;
+    }
+  }
+  
 declare module 'express';
 declare module 'body-parser';
