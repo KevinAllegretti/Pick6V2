@@ -959,8 +959,25 @@ async function updateThursdayDeadline() {
 then put the ones that need to stay constant within the respective enable feature function
 */
 
-/*
-function scheduleUpdates() {
+
+function scheduleTask(time, taskFunction) {
+    const now = getCurrentTimeInUTC4();
+    const timeUntilTask = time - now;
+
+    if (timeUntilTask <= 0) {
+        // If the scheduled time has already passed, reschedule for the next week
+        time.setDate(time.getDate() + 7);
+    }
+
+    const updatedTimeUntilTask = time - now;
+
+    setTimeout(() => {
+        taskFunction();
+        scheduleTask(time, taskFunction); // Reschedule for the next week
+    }, updatedTimeUntilTask);
+}
+
+function scheduleAllTasks() {
     // Fetch the stored times from the database
     fetch('/api/timeWindows')
         .then(response => response.json())
@@ -970,41 +987,20 @@ function scheduleUpdates() {
             const tuesdayTime = new Date(tuesdayStartTime);
             const thursdayTime = new Date(thursdayDeadline);
 
-            const now = new Date();
-
-            // Calculate the time until Tuesday update
-            let timeUntilTuesdayUpdate = tuesdayTime - now - 2 * 60 * 1000;
-            if (timeUntilTuesdayUpdate < 0) {
-                // If the time has passed, schedule for the next Tuesday
-                tuesdayTime.setDate(tuesdayTime.getDate() + 7);
-                timeUntilTuesdayUpdate = tuesdayTime - now - 2 * 60 * 1000;
-            }
-
-            // Schedule update for deleting the results, Thursday deadline, 2 minutes before Tuesday start time
-            setTimeout(() => {
+            console.log("Tuesday Start Time:", tuesdayStartTime);
+            console.log("Thursday Deadline Time:", thursdayDeadline);
+            scheduleTask(tuesdayTime, () => {
                 console.log("Executing Tuesday update tasks");
-                deleteResultsFromServer();
+
                 updateThursdayDeadline();
-                scheduleUpdates(); // Reschedule after update
-            }, timeUntilTuesdayUpdate);
+            });
 
-            // Calculate the time until Thursday update
-            let timeUntilThursdayUpdate = thursdayTime - now - 2 * 60 * 1000;
-            if (timeUntilThursdayUpdate < 0) {
-                // If the time has passed, schedule for the next Thursday
-                thursdayTime.setDate(thursdayTime.getDate() + 7);
-                timeUntilThursdayUpdate = thursdayTime - now - 2 * 60 * 1000;
-            }
-
-            // Schedule update for Thursday start time 2 minutes before Thursday deadline
-            setTimeout(() => {
+            scheduleTask(thursdayTime, () => {
                 console.log("Executing Thursday update tasks");
-                savePicksToLastWeek();
+
                 updateTuesdayStartTime();
-                scheduleUpdates(); // Reschedule after update
-            }, timeUntilThursdayUpdate);
-            console.log("Time until Tuesday update:", timeUntilTuesdayUpdate);
-console.log("Time until Thursday update:", timeUntilThursdayUpdate);
+            });
+
         })
         .catch(error => {
             console.error('Error fetching time windows:', error);
@@ -1012,8 +1008,9 @@ console.log("Time until Thursday update:", timeUntilThursdayUpdate);
 }
 
 // Call this function to start the scheduling process
-scheduleUpdates();
-*/
+scheduleAllTasks();
+
+
 
 
 async function fetchTimeWindows() {
