@@ -9,7 +9,7 @@ const saltRounds = 10;
 
 // Initialize SendGrid
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY 
-sgMail.setApiKey('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');
+sgMail.setApiKey('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');
 
 router.post('/register', async (req, res) => {
     console.log('Register endpoint hit with data:', req.body);
