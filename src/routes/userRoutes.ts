@@ -7,8 +7,15 @@ require("dotenv").config();
 const router = express.Router();
 const saltRounds = 10;
 
-
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY as string;
+
+if (!SENDGRID_API_KEY) {
+    console.error('SendGrid API Key is not set');
+    process.exit(1); // Exit the process with an error
+} else {
+    console.log('SendGrid API Key loaded successfully');
+}
+
 sgMail.setApiKey(SENDGRID_API_KEY);
 
 //test
@@ -49,7 +56,7 @@ router.post('/register', async (req, res) => {
         });
 
         // Send verification email
-        const verificationUrl = `http://pick6.club/users/verify/${verificationToken}`;
+        const verificationUrl = `http://localhost:3000/users/verify/${verificationToken}`;
         const msg = {
             to: email,
             from: 'pick6NoREPLY@gmail.com',
