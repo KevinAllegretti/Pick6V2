@@ -1,8 +1,8 @@
-//connectDB.ts
+// src/microservices/connectDB.ts
 import { MongoClient } from 'mongodb';
 
 // If MONGODB_URI is not set, the fallback URI will be used (You should have a real URI here).
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/'; 
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/';
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
