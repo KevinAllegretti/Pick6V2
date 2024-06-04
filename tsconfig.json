@@ -8,9 +8,6 @@
     "skipLibCheck": true,
     "noImplicitAny": false
   },
-  "moduleResolution": "node",
-  "typeRoots": ["./node_modules/@types", "./src"],
-  "types": ["global"],
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
 }

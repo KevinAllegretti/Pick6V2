@@ -6,6 +6,7 @@ const mongodb_1 = require("mongodb");
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/';
 let client;
 let clientPromise;
+// Use a type assertion to tell TypeScript about the global property
 if (!global._mongoClientPromise) {
     client = new mongodb_1.MongoClient(MONGODB_URI);
     global._mongoClientPromise = client.connect();

@@ -15,12 +15,13 @@ declare global {
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
 
-if (!global._mongoClientPromise) {
+// Use a type assertion to tell TypeScript about the global property
+if (!(global as any)._mongoClientPromise) {
   client = new MongoClient(MONGODB_URI);
-  global._mongoClientPromise = client.connect();
+  (global as any)._mongoClientPromise = client.connect();
 }
 
-clientPromise = global._mongoClientPromise;
+clientPromise = (global as any)._mongoClientPromise;
 
 export async function connectToDatabase() {
   try {
