@@ -27,11 +27,11 @@ tuesdayStartTime.setHours(tuesdayStartTime.getHours() - 4); // Convert UTC to ES
 if (now > tuesdayStartTime) {
     tuesdayStartTime.setDate(tuesdayStartTime.getDate() + 7); // Move to next Tuesday
 }
-
+*/
 // Adjust if current time is past this week's Thursday 7 PM
 if (now > thursdayDeadline) {
     thursdayDeadline.setDate(thursdayDeadline.getDate() + 7); // Move to next Thursday
-}*/
+}
 
 
 // Save the calculated times to the database
@@ -118,8 +118,6 @@ switch (timeString) {
         console.log("No matching bet poll time");
 }
 
-console.log("Tuesday Start Time:", tuesdayStartTime);
-console.log("Thursday Deadline Time:", thursdayDeadline);
 console.log("Thursday Bet Poll Time:", betPollTimes.thursdayBetPoll);
 console.log("Sunday Bet Poll 1 Time:", betPollTimes.sundayBetPoll1);
 console.log("Sunday Bet Poll 2 Time:", betPollTimes.sundayBetPoll2);
@@ -222,7 +220,24 @@ then put the ones that need to stay constant within the respective enable featur
 */
 
 
-function scheduleUpdates() {
+function scheduleTask(time, taskFunction) {
+    const now = getCurrentTimeInUTC4();
+    const timeUntilTask = time - now;
+
+    if (timeUntilTask <= 0) {
+        // If the scheduled time has already passed, reschedule for the next week
+        time.setDate(time.getDate() + 7);
+    }
+
+    const updatedTimeUntilTask = time - now;
+
+    setTimeout(() => {
+        taskFunction();
+        scheduleTask(time, taskFunction); // Reschedule for the next week
+    }, updatedTimeUntilTask);
+}
+
+function scheduleAllTasks() {
     // Fetch the stored times from the database
     fetch('/api/timeWindows')
         .then(response => response.json())
@@ -232,41 +247,23 @@ function scheduleUpdates() {
             const tuesdayTime = new Date(tuesdayStartTime);
             const thursdayTime = new Date(thursdayDeadline);
 
-            const now = new Date();
-
-            // Calculate the time until Tuesday update
-            let timeUntilTuesdayUpdate = tuesdayTime - now - 2 * 60 * 1000;
-            if (timeUntilTuesdayUpdate < 0) {
-                // If the time has passed, schedule for the next Tuesday
-                tuesdayTime.setDate(tuesdayTime.getDate() + 7);
-                timeUntilTuesdayUpdate = tuesdayTime - now - 2 * 60 * 1000;
-            }
-
-            // Schedule update for deleting the results, Thursday deadline, 2 minutes before Tuesday start time
-            setTimeout(() => {
+            console.log("Tuesday Start Time:", tuesdayStartTime);
+            console.log("Thursday Deadline Time:", thursdayDeadline);
+            scheduleTask(tuesdayTime, () => {
                 console.log("Executing Tuesday update tasks");
                 deleteResultsFromServer();
                 updateThursdayDeadline();
-                scheduleUpdates(); // Reschedule after update
-            }, timeUntilTuesdayUpdate);
+            });
 
-            // Calculate the time until Thursday update
-            let timeUntilThursdayUpdate = thursdayTime - now - 2 * 60 * 1000;
-            if (timeUntilThursdayUpdate < 0) {
-                // If the time has passed, schedule for the next Thursday
-                thursdayTime.setDate(thursdayTime.getDate() + 7);
-                timeUntilThursdayUpdate = thursdayTime - now - 2 * 60 * 1000;
-            }
-
-            // Schedule update for Thursday start time 2 minutes before Thursday deadline
-            setTimeout(() => {
+            scheduleTask(thursdayTime, () => {
                 console.log("Executing Thursday update tasks");
                 savePicksToLastWeek();
                 updateTuesdayStartTime();
-                scheduleUpdates(); // Reschedule after update
-            }, timeUntilThursdayUpdate);
-            console.log("Time until Tuesday update:", timeUntilTuesdayUpdate);
-console.log("Time until Thursday update:", timeUntilThursdayUpdate);
+            });
+
+            Object.values(betPollTimes).forEach(time => {
+                scheduleTask(time, fetchMLBScores);
+            });
         })
         .catch(error => {
             console.error('Error fetching time windows:', error);
@@ -274,7 +271,7 @@ console.log("Time until Thursday update:", timeUntilThursdayUpdate);
 }
 
 // Call this function to start the scheduling process
-scheduleUpdates();
+scheduleAllTasks();
 
 
 
@@ -1803,6 +1800,7 @@ function deleteResultsFromServer() {
     })
     .catch(error => console.error('Failed to delete results:', error));
 }
+
 function rebuildUIWithResults(results) {
     console.log('Received results for UI rebuild:', results);
     const allPicks = document.querySelectorAll('.player-picks .pick, .immortal-lock');
