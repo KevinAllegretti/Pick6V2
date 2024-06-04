@@ -8,11 +8,11 @@ const connectDB_1 = require("../microservices/connectDB");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const uuid_1 = require("uuid");
 const mail_1 = __importDefault(require("@sendgrid/mail"));
+require("dotenv").config();
 const router = express_1.default.Router();
 const saltRounds = 10;
-// Initialize SendGrid
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-mail_1.default.setApiKey('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');
+const SENDGRID = process.env.SEND_API;
+//sgMail.setApiKey();
 router.post('/register', async (req, res) => {
     console.log('Register endpoint hit with data:', req.body);
     try {

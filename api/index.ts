@@ -11,6 +11,9 @@ import mongoose from 'mongoose';
 import timeWindowRoutes from '../src/routes/timeWindowRoutes';
 const fetch = require('node-fetch');
 
+require("dotenv").config();
+
+console.log(process.env.SEND_API);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
