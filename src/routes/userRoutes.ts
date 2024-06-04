@@ -11,7 +11,7 @@ const saltRounds = 10;
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY as string;
 sgMail.setApiKey(SENDGRID_API_KEY);
 
-
+//test
 router.post('/register', async (req, res) => {
     console.log('Register endpoint hit with data:', req.body);
     try {
