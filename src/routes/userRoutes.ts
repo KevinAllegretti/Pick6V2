@@ -6,7 +6,7 @@ import sgMail from '@sendgrid/mail';
 require("dotenv").config();
 const router = express.Router();
 const saltRounds = 10;
-
+/*
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY as string;
 
 if (!SENDGRID_API_KEY) {
@@ -78,7 +78,7 @@ router.post('/register', async (req, res) => {
         res.status(500).json({ message: "Internal Server Error", type: "error" });
     }
 });
-
+*/
 router.get('/verify/:token', async (req, res) => {
     console.log('Verification endpoint hit with token:', req.params.token);
     try {
