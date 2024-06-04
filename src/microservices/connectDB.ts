@@ -1,8 +1,16 @@
 import { MongoClient } from 'mongodb';
-import { global } from '../global'; // Ensure this path is correct according to your project structure
 
 // If MONGODB_URI is not set, the fallback URI will be used (You should have a real URI here).
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/';
+
+// Define the global type explicitly within this file
+declare global {
+  namespace NodeJS {
+    interface Global {
+      _mongoClientPromise: Promise<MongoClient>;
+    }
+  }
+}
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
