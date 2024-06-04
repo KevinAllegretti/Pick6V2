@@ -2,13 +2,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.connectToDatabase = void 0;
 const mongodb_1 = require("mongodb");
+// If MONGODB_URI is not set, the fallback URI will be used (You should have a real URI here).
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/';
 let client = null;
 let clientPromise = null;
-if (!client) {
+if (!global._mongoClientPromise) {
     client = new mongodb_1.MongoClient(MONGODB_URI);
-    clientPromise = client.connect();
+    global._mongoClientPromise = client.connect();
 }
+clientPromise = global._mongoClientPromise;
 async function connectToDatabase() {
     try {
         if (!clientPromise) {
