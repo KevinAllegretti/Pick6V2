@@ -408,6 +408,19 @@ h1 {
         overflow-y: scroll; /* Explicitly set scrolling for touch devices */
         -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS */
     }
+    .slide-out-panel {
+        position: fixed;
+        top: 0;
+        left: -100%; /* Start off-screen to the left */
+        width: 45%; /* Takes up half the screen width */
+        height: 100%; /* Full screen height */
+        background-color: #0a0f22; /* Dark background */
+        border-right: 2px solid #33d9ff; /* Neon blue border */
+        box-shadow: 5px 0 10px rgba(0, 0, 0, 0.5); /* Soft shadow to the right */
+        overflow-y: auto; /* In case the content overflows */
+        transition: left 0.3s ease-out; /* Smooth slide-in transition */
+        z-index: 100; /* Above everything except the profile icon */
+    }
 }
 
 .total-points {
