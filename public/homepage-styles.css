@@ -412,7 +412,7 @@ h1 {
         position: fixed;
         top: 0;
         left: -100%; /* Start off-screen to the left */
-        width: 45%; /* Takes up half the screen width */
+        width: 60%; /* Takes up half the screen width */
         height: 100%; /* Full screen height */
         background-color: #0a0f22; /* Dark background */
         border-right: 2px solid #33d9ff; /* Neon blue border */
