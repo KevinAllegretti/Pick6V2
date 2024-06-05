@@ -154,10 +154,7 @@ button {
   border-radius: 5px;
 }
 
-button:hover {
-    background-color: transparent;
-    color: #00BFFF;
-}
+
 
 input, select {
     padding: 8px;
@@ -555,22 +552,8 @@ h4 {
   padding: 5px 0;
   font-family: 'Montserrat', sans-serif;
 }
-.bet-button {
-  background-color: #333;
-  color: #00e9fa; /* Neon cyan text */
-  border: 1px solid #00e9fa; /* Neon border */
-  box-shadow: 0 0 8px #00e9fa; /* Consistent glow effect */
-  padding: 8px 12px;
-  margin: 2px 0;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-family: 'Orbitron', sans-serif;
-}
 
-.bet-button:hover {
-  background-color: #474747; /* Darker on hover for a subtle effect */
-  box-shadow: 0 0 12px #00e9fa;
-}
+
 
 .team-logo {
   width: 55px; /* Slightly larger logos */
@@ -597,9 +580,7 @@ h4 {
     /* Other styles... */
   }
   
-  .bet-button:hover {
-    background-color: #555; /* Darken on hover for effect */
-  }
+
   
   .selected {
     background-color: #00ff00; /* Green background for selected */
