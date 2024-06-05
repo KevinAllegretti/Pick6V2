@@ -24,6 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 require('dotenv').config();
 
 app.use(express.static('public/logos/'));
+app.use(express.static('public/infoPics/'));
 
 // 2. Logging middleware\
 /*
