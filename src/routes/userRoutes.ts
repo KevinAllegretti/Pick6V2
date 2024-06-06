@@ -8,6 +8,7 @@ require("dotenv").config();
 const router = express.Router();
 const saltRounds = 10;
 
+/*
 // Configure Nodemailer
 const transporter = nodemailer.createTransport({
   service: 'Gmail', 
@@ -23,9 +24,9 @@ router.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
 
     if (!(email && password && username)) {
-      return res.status(400).json({ message: "All input is required", type: "error" });
+        console.log('Missing input data');
+        return res.status(400).json({ message: "All input is required", type: "error" });
     }
-
     const db = await connectToDatabase();
     const usersCollection = db.collection("users");
 
@@ -81,7 +82,7 @@ router.post('/register', async (req, res) => {
     res.status(500).json({ message: "Internal Server Error", type: "error" });
   }
 });
-
+*/
 router.get('/verify/:token', async (req, res) => {
   console.log('Verification endpoint hit with token:', req.params.token);
   try {
