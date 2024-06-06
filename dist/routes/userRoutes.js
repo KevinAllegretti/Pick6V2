@@ -13,7 +13,7 @@ const router = express_1.default.Router();
 const saltRounds = 10;
 // Configure Nodemailer
 const transporter = nodemailer_1.default.createTransport({
-    service: 'Gmail', // e.g., 'Gmail', 'Yahoo', 'Outlook', etc.
+    service: 'Gmail',
     auth: {
         user: 'pick6noreply@gmail.com',
         pass: 'pucy najl xnyl fkoo'
@@ -49,7 +49,7 @@ router.post('/register', async (req, res) => {
             verified: false,
         });
         // Send verification email
-        const verificationUrl = `http://localhost:3000/users/verify/${verificationToken}`;
+        const verificationUrl = `http://pick6.club/users/verify/${verificationToken}`;
         const mailOptions = {
             from: 'pick6noreply',
             to: email,
