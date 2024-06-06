@@ -6,50 +6,41 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const connectDB_1 = require("../microservices/connectDB");
 const bcrypt_1 = __importDefault(require("bcrypt"));
+const uuid_1 = require("uuid");
+const nodemailer_1 = __importDefault(require("nodemailer"));
 require("dotenv").config();
 const router = express_1.default.Router();
 const saltRounds = 10;
-/*
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY as string;
-
-if (!SENDGRID_API_KEY) {
-    console.error('SendGrid API Key is not set');
-    process.exit(1); // Exit the process with an error
-} else {
-    console.log('SendGrid API Key loaded successfully');
-}
-
-sgMail.setApiKey(SENDGRID_API_KEY);
-
-//test1
+// Configure Nodemailer
+const transporter = nodemailer_1.default.createTransport({
+    service: 'Gmail', // e.g., 'Gmail', 'Yahoo', 'Outlook', etc.
+    auth: {
+        user: 'pick6noreply@gmail.com',
+        pass: 'pucy najl xnyl fkoo'
+    }
+});
 router.post('/register', async (req, res) => {
     console.log('Register endpoint hit with data:', req.body);
     try {
         const { username, email, password } = req.body;
-
         if (!(email && password && username)) {
             return res.status(400).json({ message: "All input is required", type: "error" });
         }
-
-        const db = await connectToDatabase();
+        const db = await (0, connectDB_1.connectToDatabase)();
         const usersCollection = db.collection("users");
-
         // Check if username is already taken
         const existingUser = await usersCollection.findOne({ username: username.toLowerCase() });
         if (existingUser) {
             return res.status(409).json({ message: "Username is already taken", type: "error" });
         }
-
         // Check if email is already used
         const oldUser = await usersCollection.findOne({ email: email.toLowerCase() });
         if (oldUser) {
             return res.status(409).json({ message: "Email is already in use", type: "error" });
         }
-
         // Everything is unique, proceed to create user
-        const encryptedPassword = await bcrypt.hash(password, saltRounds);
-        const verificationToken = uuidv4();
-
+        const encryptedPassword = await bcrypt_1.default.hash(password, saltRounds);
+        const verificationToken = (0, uuid_1.v4)();
         await usersCollection.insertOne({
             username: username.toLowerCase(), // Store usernames in lowercase to ensure uniqueness
             email: email.toLowerCase(),
@@ -57,22 +48,26 @@ router.post('/register', async (req, res) => {
             verificationToken,
             verified: false,
         });
-
         // Send verification email
         const verificationUrl = `http://localhost:3000/users/verify/${verificationToken}`;
-        const msg = {
+        const mailOptions = {
+            from: 'pick6noreply',
             to: email,
-            from: 'pick6NoREPLY@gmail.com',
             subject: 'Please verify your email',
-            html: `<p>Please click this link to verify your email: <a href="${verificationUrl}">${verificationUrl}</a></p>`,
+            html: `<p>Please click this link to verify your email: <a href="${verificationUrl}">${verificationUrl}</a></p>`
         };
-        await sgMail.send(msg);
-
-        // Log and respond with success
-        console.log('Email sent successfully to:', email);
-        res.status(201).json({ error: false, message: "User created successfully. Please check your email to verify your account." });
-
-    } catch (error: any) {
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.error('Error sending email:', error);
+                return res.status(500).json({ message: "Internal Server Error", type: "error" });
+            }
+            else {
+                console.log('Email sent:', info.response);
+                res.status(201).json({ error: false, message: "User created successfully. Please check your email to verify your account." });
+            }
+        });
+    }
+    catch (error) {
         console.error('[Registration Error]', error);
         if (error.code === 11000) {
             // This is the error code for duplicate key violation (i.e., username not unique)
@@ -81,7 +76,6 @@ router.post('/register', async (req, res) => {
         res.status(500).json({ message: "Internal Server Error", type: "error" });
     }
 });
-*/
 router.get('/verify/:token', async (req, res) => {
     console.log('Verification endpoint hit with token:', req.params.token);
     try {

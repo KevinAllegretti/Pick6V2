@@ -1,28 +1,23 @@
+// Switch between login and registration forms
 document.getElementById('show-register').addEventListener('click', function() {
-    console.log('Clicked on Register link'); // to check if the click is detected
+    console.log('Clicked on Register link');
     document.querySelector('.form.login').classList.remove('active');
     document.querySelector('.form.register').classList.add('active');
-
-    // Check if the classes are toggled correctly
     console.log('Login form class:', document.querySelector('.form.login').className);
     console.log('Register form class:', document.querySelector('.form.register').className);
 });
 
 document.getElementById('show-login').addEventListener('click', function() {
-    console.log('Clicked on Login link'); // to check if the click is detected
+    console.log('Clicked on Login link');
     document.querySelector('.form.register').classList.remove('active');
     document.querySelector('.form.login').classList.add('active');
-
-    // Check if the classes are toggled correctly
     console.log('Register form class:', document.querySelector('.form.register').className);
     console.log('Login form class:', document.querySelector('.form.login').className);
 });
 
-// The rest of your login.js code...
-
+// Handle login form submission
 document.getElementById('login-form').addEventListener('submit', function(event) {
-    event.preventDefault(); // Prevent the default form submission behavior
-
+    event.preventDefault();
     var formData = new FormData(this);
     var object = {};
     formData.forEach(function(value, key){
@@ -42,8 +37,7 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         if (data.error) {
             alert(data.message); // Show error message
         } else if (data.redirect) {
-            // Perform redirection
-            window.location.href = data.redirect;
+            window.location.href = data.redirect; // Perform redirection
         }
     })
     .catch(error => {
@@ -51,12 +45,11 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         alert('An error occurred during the login process. Please try again.');
     });
 });
+
 // Handle registration form submission
 document.getElementById('registration-form').addEventListener('submit', function(event) {
-    event.preventDefault(); // Prevent the form from submitting the default way
+    event.preventDefault();
     var formData = new FormData(this);
-
-    // Convert formData to a plain object
     let object = {};
     formData.forEach((value, key) => object[key] = value);
     let json = JSON.stringify(object);
@@ -64,9 +57,9 @@ document.getElementById('registration-form').addEventListener('submit', function
     fetch('/users/register', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json', // Indicate that the request body is JSON
+            'Content-Type': 'application/json',
         },
-        body: json, // Send the JSON payload
+        body: json,
     })
     .then(response => response.json())
     .then(data => {
@@ -74,7 +67,6 @@ document.getElementById('registration-form').addEventListener('submit', function
             alert(data.message); // Show error message from the server
         } else {
             alert(data.message); // Success message
-            // Optionally switch to the login form display
             document.querySelector('.form.register').classList.remove('active'); // Hide registration form
             document.querySelector('.form.login').classList.add('active'); // Show login form
         }
@@ -85,6 +77,7 @@ document.getElementById('registration-form').addEventListener('submit', function
     });
 });
 
+// Handle account verification alerts
 window.addEventListener('load', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const isVerified = urlParams.get('verified');

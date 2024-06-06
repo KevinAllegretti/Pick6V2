@@ -90,7 +90,7 @@ if (now == betPollTimes.thursdayBetPoll || now == betPollTimes.sundayBetPoll1 ||
 ){
     fetchMLBScores();
 }
-
+calculateBetPollTimes();
 const timeString = now.toISOString();
 
 switch (timeString) {
