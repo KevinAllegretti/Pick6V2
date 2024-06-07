@@ -82,6 +82,7 @@ const calculateBetPollTimes = () => {
     };
 };
 
+
 // Calculate the times
 const betPollTimes = calculateBetPollTimes();
 if (now == betPollTimes.thursdayBetPoll || now == betPollTimes.sundayBetPoll1 ||
@@ -91,33 +92,28 @@ if (now == betPollTimes.thursdayBetPoll || now == betPollTimes.sundayBetPoll1 ||
     fetchMLBScores();
 }
 calculateBetPollTimes();
+
 const timeString = now.toISOString();
 
-switch (timeString) {
-    case betPollTimes.thursdayBetPoll.toISOString():
-        console.log("It's Thursday Bet Poll, now fetching scores");
-        fetchMLBScores();
-        break;
-    case betPollTimes.sundayBetPoll1.toISOString():
-        console.log("It's Sunday Bet Poll 1, now fetching scores");
-        fetchMLBScores();
-        break;
-    case betPollTimes.sundayBetPoll2.toISOString():
-        console.log("It's Sunday Bet Poll 2, now fetching scores");
-        fetchMLBScores();
-        break;
-    case betPollTimes.sundayBetPoll3.toISOString():
-        console.log("It's Sunday Bet Poll 3, now fetching scores");
-        fetchMLBScores();
-        break;
-    case betPollTimes.mondayBetPoll.toISOString():
-        console.log("It's Monday Bet Poll, now fetching scores");
-        fetchMLBScores();
-        break;
-    default:
-        console.log("No matching bet poll time");
+if (timeString === betPollTimes.thursdayBetPoll.toISOString()) {
+    console.log("It's Thursday Bet Poll, now fetching scores");
+    fetchMLBScores();
+} else if (timeString === betPollTimes.sundayBetPoll1.toISOString()) {
+    console.log("It's Sunday Bet Poll 1, now fetching scores");
+    fetchMLBScores();
+} else if (timeString === betPollTimes.sundayBetPoll2.toISOString()) {
+    console.log("It's Sunday Bet Poll 2, now fetching scores");
+    fetchMLBScores();
+} else if (timeString === betPollTimes.sundayBetPoll3.toISOString()) {
+    console.log("It's Sunday Bet Poll 3, now fetching scores");
+    fetchMLBScores();
+} else if (timeString === betPollTimes.mondayBetPoll.toISOString()) {
+    console.log("It's Monday Bet Poll, now fetching scores");
+    fetchMLBScores();
+} else {
+    console.log("No matching bet poll time");
 }
-
+console.log("now: ",timeString);
 console.log("Thursday Bet Poll Time:", betPollTimes.thursdayBetPoll);
 console.log("Sunday Bet Poll 1 Time:", betPollTimes.sundayBetPoll1);
 console.log("Sunday Bet Poll 2 Time:", betPollTimes.sundayBetPoll2);
@@ -232,7 +228,7 @@ function scheduleTask(time, taskFunction) {
     const updatedTimeUntilTask = time - now;
 
     setTimeout(() => {
-        taskFunction();
+       // taskFunction();
         scheduleTask(time, taskFunction); // Reschedule for the next week
     }, updatedTimeUntilTask);
 }
@@ -249,6 +245,19 @@ function scheduleAllTasks() {
 
             console.log("Tuesday Start Time:", tuesdayStartTime);
             console.log("Thursday Deadline Time:", thursdayDeadline);
+
+            const now = getCurrentTimeInUTC4();
+
+            const scheduleTask = (time, taskFunction) => {
+                const timeUntilTask = time - now;
+                const updatedTimeUntilTask = timeUntilTask <= 0 ? (time.setDate(time.getDate() + 7) - now) : timeUntilTask;
+
+                setTimeout(() => {
+                    taskFunction();
+                    scheduleTask(new Date(time), taskFunction); // Reschedule for the next week
+                }, updatedTimeUntilTask);
+            };
+
             scheduleTask(tuesdayTime, () => {
                 console.log("Executing Tuesday update tasks");
                 deleteResultsFromServer();
@@ -261,7 +270,8 @@ function scheduleAllTasks() {
                 updateTuesdayStartTime();
             });
 
-            Object.values(betPollTimes).forEach(time => {
+            Object.values(betPollTimes).forEach(timeString => {
+                const time = new Date(timeString);
                 scheduleTask(time, fetchMLBScores);
             });
         })
@@ -272,8 +282,6 @@ function scheduleAllTasks() {
 
 // Call this function to start the scheduling process
 scheduleAllTasks();
-
-
 
 async function fetchTimeWindows() {
     try {
@@ -1785,7 +1793,7 @@ function saveResultsToServer(results) {
     .catch(error => console.error('Failed to save results:', error));
 }
 
-function deleteResultsFromServer() {
+async function deleteResultsFromServer() {
     fetch('/api/deleteResults', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' }
