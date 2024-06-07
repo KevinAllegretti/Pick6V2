@@ -6,8 +6,9 @@ function getCurrentTimeInUTC4() {
     return nowUtc4;
 }
 
-const now = getCurrentTimeInUTC4();
-
+const now = new Date();
+console.log(now + "now");
+console.log(getCurrentTimeInUTC4() + "now2");
 // Set Thursday deadline
 let thursdayDeadline = new Date(now);
 thursdayDeadline.setDate(now.getDate() + ((4 + 7 - now.getDay()) % 7));
@@ -93,27 +94,27 @@ if (now == betPollTimes.thursdayBetPoll || now == betPollTimes.sundayBetPoll1 ||
 }
 calculateBetPollTimes();
 
-const timeString = now.toISOString();
 
-if (timeString === betPollTimes.thursdayBetPoll.toISOString()) {
+
+if (now === betPollTimes.thursdayBetPoll) {
     console.log("It's Thursday Bet Poll, now fetching scores");
     fetchMLBScores();
-} else if (timeString === betPollTimes.sundayBetPoll1.toISOString()) {
+} else if (now === betPollTimes.sundayBetPoll1) {
     console.log("It's Sunday Bet Poll 1, now fetching scores");
     fetchMLBScores();
-} else if (timeString === betPollTimes.sundayBetPoll2.toISOString()) {
+} else if (now === betPollTimes.sundayBetPoll2) {
     console.log("It's Sunday Bet Poll 2, now fetching scores");
     fetchMLBScores();
-} else if (timeString === betPollTimes.sundayBetPoll3.toISOString()) {
+} else if (now === betPollTimes.sundayBetPoll3) {
     console.log("It's Sunday Bet Poll 3, now fetching scores");
     fetchMLBScores();
-} else if (timeString === betPollTimes.mondayBetPoll.toISOString()) {
+} else if (now === betPollTimes.mondayBetPoll) {
     console.log("It's Monday Bet Poll, now fetching scores");
     fetchMLBScores();
 } else {
     console.log("No matching bet poll time");
 }
-console.log("now: ",timeString);
+console.log("now: ", now);
 console.log("Thursday Bet Poll Time:", betPollTimes.thursdayBetPoll);
 console.log("Sunday Bet Poll 1 Time:", betPollTimes.sundayBetPoll1);
 console.log("Sunday Bet Poll 2 Time:", betPollTimes.sundayBetPoll2);
@@ -157,7 +158,7 @@ async function updateTuesdayStartTime() {
     nextTuesday.setDate(nextTuesday.getDate() + ((2 + 7 - now.getDay()) % 7));
     nextTuesday.setHours(0, 0, 0, 0); // 12 AM EST
     nextTuesday.setMinutes(nextTuesday.getMinutes() + nextTuesday.getTimezoneOffset());
-    nextTuesday.setHours(nextTuesday.getHours() - 5); // Convert UTC to EST (UTC-5)
+    nextTuesday.setHours(nextTuesday.getHours() - 4); // Convert UTC to EST (UTC-5)
 
     // Ensure it's the next Tuesday
     if (now > nextTuesday) {
@@ -188,7 +189,7 @@ async function updateThursdayDeadline() {
     nextThursday.setDate(nextThursday.getDate() + ((4 + 7 - now.getDay()) % 7));
     nextThursday.setHours(19, 0, 0, 0); // 7 PM EST
     nextThursday.setMinutes(nextThursday.getMinutes() + nextThursday.getTimezoneOffset());
-    nextThursday.setHours(nextThursday.getHours() - 5); // Convert UTC to EST (UTC-5)
+    nextThursday.setHours(nextThursday.getHours() - 4); // Convert UTC to EST (UTC-5)
 
     // Ensure it's the next Thursday
     if (now > nextThursday) {
@@ -215,23 +216,6 @@ async function updateThursdayDeadline() {
 then put the ones that need to stay constant within the respective enable feature function
 */
 
-
-function scheduleTask(time, taskFunction) {
-    const now = getCurrentTimeInUTC4();
-    const timeUntilTask = time - now;
-
-    if (timeUntilTask <= 0) {
-        // If the scheduled time has already passed, reschedule for the next week
-        time.setDate(time.getDate() + 7);
-    }
-
-    const updatedTimeUntilTask = time - now;
-
-    setTimeout(() => {
-       // taskFunction();
-        scheduleTask(time, taskFunction); // Reschedule for the next week
-    }, updatedTimeUntilTask);
-}
 
 function scheduleAllTasks() {
     // Fetch the stored times from the database
