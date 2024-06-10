@@ -159,6 +159,17 @@ function scheduleTestPoll() {
 scheduleTestPoll();
 
 
+// Function to immediately test poll execution
+function scheduleImmediateTestPoll() {
+    setTimeout(() => {
+        appendLog("Immediate test poll: Fetching scores");
+        fetchMLBScores();
+    }, 5000); // 5 seconds for immediate test
+}
+
+// Call the immediate test poll scheduler
+scheduleImmediateTestPoll();
+
 
 function calculateEverydayPollTime() {
     const now = getCurrentTimeInUTC4();
