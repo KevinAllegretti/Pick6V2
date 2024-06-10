@@ -121,6 +121,36 @@ console.log("Sunday Bet Poll 2 Time:", betPollTimes.sundayBetPoll2);
 console.log("Sunday Bet Poll 3 Time:", betPollTimes.sundayBetPoll3);
 console.log("Monday Bet Poll Time:", betPollTimes.mondayBetPoll);
 
+function appendLog(message) {
+    const logList = document.getElementById('poll-log-list');
+    const logEntry = document.createElement('li');
+    logEntry.textContent = `${new Date().toLocaleString()}: ${message}`;
+    logList.appendChild(logEntry);
+}
+
+
+// Scheduling function for the Monday night poll (for testing)
+function scheduleTestPoll() {
+    const now = new Date();
+    const nextMondayNight = new Date(now);
+    nextMondayNight.setDate(now.getDate() + ((1 + 7 - now.getDay()) % 7)); // Set to next Monday
+    nextMondayNight.setHours(23, 30, 0, 0); // 11:30 PM
+
+    const timeUntilPoll = nextMondayNight - now;
+    setTimeout(() => {
+        appendLog("It's Monday Bet Poll time, now fetching scores");
+        fetchMLBScores();
+        scheduleTestPoll(); // Reschedule for the next week
+    }, timeUntilPoll);
+
+    
+    appendLog(`Scheduled test poll for: ${nextMondayNight.toLocaleString()}`);
+}
+
+// Call the test poll scheduler
+scheduleTestPoll();
+
+
 function calculateEverydayPollTime() {
     const now = getCurrentTimeInUTC4();
     let everydayPollTime = new Date(now);
@@ -229,6 +259,7 @@ function scheduleAllTasks() {
 
             console.log("Tuesday Start Time:", tuesdayStartTime);
             console.log("Thursday Deadline Time:", thursdayDeadline);
+            appendLog("Fetched stored times from the database.");
 
             const now = getCurrentTimeInUTC4();
 
@@ -244,12 +275,14 @@ function scheduleAllTasks() {
 
             scheduleTask(tuesdayTime, () => {
                 console.log("Executing Tuesday update tasks");
+                appendLog("Executing Tuesday update tasks");
                 deleteResultsFromServer();
                 updateThursdayDeadline();
             });
 
             scheduleTask(thursdayTime, () => {
                 console.log("Executing Thursday update tasks");
+                appendLog("Executing Thursday update tasks");
                 savePicksToLastWeek();
                 updateTuesdayStartTime();
             });
@@ -261,6 +294,7 @@ function scheduleAllTasks() {
         })
         .catch(error => {
             console.error('Error fetching time windows:', error);
+            appendLog(`Error fetching time windows: ${error.message}`);
         });
 }
 
@@ -1538,6 +1572,7 @@ const mlbToNflMap = {
   var gameScores = [];
 
   async function fetchMLBScores() {
+    appendLog('fetchMLBScores function started.');
       const url = 'https://odds.p.rapidapi.com/v4/sports/baseball_mlb/scores';
       const params = {
           daysFrom: 1,  // Adjust as needed
@@ -1560,7 +1595,7 @@ const mlbToNflMap = {
   
           const scores = await response.json();
           console.log("Scores data:", scores);
-  
+          appendLog('Scores fetched successfully.');
           gameScores = scores.map(event => {
               if (!event.scores || !Array.isArray(event.scores)) {
                   console.log(`Skipping event due to missing or invalid scores:`, event);
@@ -1583,7 +1618,9 @@ const mlbToNflMap = {
           console.log('Scores fetched:', gameScores);
           updateUIWithScores();
       } catch (error) {
+
           console.error('Error fetching MLB scores:', error);
+          appendLog(`Error: ${error.message}`);
       }
   }
   
