@@ -83,37 +83,44 @@ const calculateBetPollTimes = () => {
     };
 };
 
-
 // Calculate the times
 const betPollTimes = calculateBetPollTimes();
-if (now == betPollTimes.thursdayBetPoll || now == betPollTimes.sundayBetPoll1 ||
-    now == betPollTimes.sundayBetPoll2 || now == betPollTimes.sundayBetPoll3 ||
-    now == betPollTimes.mondayBetPoll
-){
+console.log("Current time:", now);
+console.log("Bet poll times:", betPollTimes);
+
+// Function to compare dates by their time values
+const isSameTime = (date1, date2) => date1.getTime() === date2.getTime();
+
+if (isSameTime(now, betPollTimes.thursdayBetPoll) ||
+    isSameTime(now, betPollTimes.sundayBetPoll1) ||
+    isSameTime(now, betPollTimes.sundayBetPoll2) ||
+    isSameTime(now, betPollTimes.sundayBetPoll3) ||
+    isSameTime(now, betPollTimes.mondayBetPoll)) {
+    console.log("Fetching MLB scores at:", now);
     fetchMLBScores();
+} else {
+    console.log("No matching bet poll time");
 }
-calculateBetPollTimes();
-
-
-
-if (now === betPollTimes.thursdayBetPoll) {
+/*
+if (isSameTime(now, betPollTimes.thursdayBetPoll)) {
     console.log("It's Thursday Bet Poll, now fetching scores");
     fetchMLBScores();
-} else if (now === betPollTimes.sundayBetPoll1) {
+} else if (isSameTime(now, betPollTimes.sundayBetPoll1)) {
     console.log("It's Sunday Bet Poll 1, now fetching scores");
     fetchMLBScores();
-} else if (now === betPollTimes.sundayBetPoll2) {
+} else if (isSameTime(now, betPollTimes.sundayBetPoll2)) {
     console.log("It's Sunday Bet Poll 2, now fetching scores");
     fetchMLBScores();
-} else if (now === betPollTimes.sundayBetPoll3) {
+} else if (isSameTime(now, betPollTimes.sundayBetPoll3)) {
     console.log("It's Sunday Bet Poll 3, now fetching scores");
     fetchMLBScores();
-} else if (now === betPollTimes.mondayBetPoll) {
+} else if (isSameTime(now, betPollTimes.mondayBetPoll)) {
     console.log("It's Monday Bet Poll, now fetching scores");
     fetchMLBScores();
 } else {
     console.log("No matching bet poll time");
 }
+*/
 console.log("now: ", now);
 console.log("Thursday Bet Poll Time:", betPollTimes.thursdayBetPoll);
 console.log("Sunday Bet Poll 1 Time:", betPollTimes.sundayBetPoll1);
@@ -137,18 +144,20 @@ function scheduleTestPoll() {
     nextMondayNight.setHours(23, 30, 0, 0); // 11:30 PM
 
     const timeUntilPoll = nextMondayNight - now;
+    appendLog(`Time until next Monday night poll: ${timeUntilPoll}ms`);
+    
     setTimeout(() => {
         appendLog("It's Monday Bet Poll time, now fetching scores");
         fetchMLBScores();
         scheduleTestPoll(); // Reschedule for the next week
     }, timeUntilPoll);
 
-    
     appendLog(`Scheduled test poll for: ${nextMondayNight.toLocaleString()}`);
 }
 
 // Call the test poll scheduler
 scheduleTestPoll();
+
 
 
 function calculateEverydayPollTime() {
