@@ -1860,6 +1860,7 @@ function saveResultsToServer(results) {
     .catch(error => console.error('Failed to save results:', error));
 }
 
+deleteResultsFromServer();
 async function deleteResultsFromServer() {
     fetch('/api/deleteResults', {
         method: 'DELETE',
