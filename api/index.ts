@@ -9,7 +9,12 @@ import poolRoutes from '../src/routes/poolRoutes';
 import InjuryRoutes from '../src/routes/InjuryRoutes';
 import mongoose from 'mongoose';
 import timeWindowRoutes from '../src/routes/timeWindowRoutes';
-const fetch = require('node-fetch');
+import { Server } from 'http';
+import { WebSocketServer } from 'ws';
+import cron from 'node-cron';
+import fetch from 'node-fetch';
+import '../src/microservices/websocket';  
+import '../src/microservices/scheduler';
 
 require("dotenv").config();
 
@@ -78,6 +83,26 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
+const server = new Server(app);
+const wss = new WebSocketServer({ server });
+
+wss.on('connection', ws => {
+  console.log('New client connected');
+  ws.send(JSON.stringify({ message: 'Welcome to the WebSocket server' }));
+
+  ws.on('close', () => {
+    console.log('Client disconnected');
+  });
+});
+
+function broadcastMessage(message: string) {
+  const clients = wss.clients as Set<WebSocket>;
+  clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  });
+}
 const mongoURI = 'mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/Pick6'
 
 
@@ -92,5 +117,40 @@ const options = {
 };
 
 mongoose.connect('mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/Pick6', options);
+// Thursday 11:30 PM
+cron.schedule('30 23 * * 4', () => {
+  console.log("It's Thursday Bet Poll time, now fetching scores");
+  broadcastMessage('fetchMLBScores');
+});
+
+// Sunday 4:15 PM
+cron.schedule('15 16 * * 0', () => {
+  console.log("It's Sunday Bet Poll 1 time, now fetching scores");
+  broadcastMessage('fetchMLBScores');
+});
+
+// Sunday 8:00 PM
+cron.schedule('0 20 * * 0', () => {
+  console.log("It's Sunday Bet Poll 2 time, now fetching scores");
+  broadcastMessage('fetchMLBScores');
+});
+
+// Sunday 11:30 PM
+cron.schedule('30 23 * * 0', () => {
+  console.log("It's Sunday Bet Poll 3 time, now fetching scores");
+  broadcastMessage('fetchMLBScores');
+});
+
+// Monday 11:30 PM
+cron.schedule('30 23 * * 1', () => {
+  console.log("It's Monday Bet Poll time, now fetching scores");
+  broadcastMessage('fetchMLBScores');
+});
+
+// Every day at 10:00 AM
+cron.schedule('0 10 * * *', () => {
+  console.log("It's Everyday Poll time, now fetching scores");
+  broadcastMessage('fetchMLBScores');
+});
 
 export default app;

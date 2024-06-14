@@ -1,3 +1,29 @@
+document.addEventListener('DOMContentLoaded', function() {
+    // WebSocket setup
+    const ws = new WebSocket('ws://localhost:8080');  
+
+    ws.onopen = function() {
+        console.log('WebSocket connection opened');
+    };
+
+    ws.onmessage = function(event) {
+        console.log('WebSocket message received:', event.data);
+        const message = JSON.parse(event.data);
+        if (message === 'fetchMLBScores') {
+            fetchMLBScores();
+        }
+    };
+
+    ws.onclose = function() {
+        console.log('WebSocket connection closed');
+    };
+
+    ws.onerror = function(error) {
+        console.error('WebSocket error:', error);
+    };
+});
+
+
 function getCurrentTimeInUTC4() {
     const now = new Date();
     const nowUtc4 = new Date(now);
@@ -158,7 +184,7 @@ function scheduleTestPoll() {
 // Call the test poll scheduler
 scheduleTestPoll();
 
-
+/*
 // Function to immediately test poll execution
 function scheduleImmediateTestPoll() {
     setTimeout(() => {
@@ -169,7 +195,7 @@ function scheduleImmediateTestPoll() {
 
 // Call the immediate test poll scheduler
 scheduleImmediateTestPoll();
-
+*/
 
 function calculateEverydayPollTime() {
     const now = getCurrentTimeInUTC4();
@@ -1595,8 +1621,8 @@ const mlbToNflMap = {
     appendLog('fetchMLBScores function started.');
       const url = 'https://odds.p.rapidapi.com/v4/sports/baseball_mlb/scores';
       const params = {
-          daysFrom: 1,  // Adjust as needed
-          apiKey: 'your_api_key_here'  // Replace with your actual API key
+          daysFrom: 1,  
+          apiKey: '3decff06f7mshbc96e9118345205p136794jsn629db332340e'  
       };
       const queryParams = new URLSearchParams(params);
   
@@ -1605,7 +1631,7 @@ const mlbToNflMap = {
               method: 'GET',
               headers: {
                   'x-rapidapi-host': 'odds.p.rapidapi.com',
-                  'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e'  // Replace with your actual API key
+                  'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e' 
               }
           });
   
