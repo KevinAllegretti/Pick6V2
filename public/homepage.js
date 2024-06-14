@@ -329,7 +329,7 @@ function scheduleAllTasks() {
             scheduleTask(thursdayTime, () => {
                 console.log("Executing Thursday update tasks");
                 appendLog("Executing Thursday update tasks");
-                savePicksToLastWeek();
+                //savePicksToLastWeek();
                 updateTuesdayStartTime();
             });
 
