@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     // WebSocket setup
-    const ws = new WebSocket('ws://pick6.club:8080');  
+    const ws = new WebSocket('wss://pick6.club:8080');  
 
     ws.onopen = function() {
         console.log('WebSocket connection opened');
