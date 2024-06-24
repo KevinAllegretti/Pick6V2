@@ -1,27 +1,54 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // WebSocket setup
-    const ws = new WebSocket('wss://pick6.club:8080');  
-
-    ws.onopen = function() {
-        console.log('WebSocket connection opened');
-    };
-
-    ws.onmessage = function(event) {
-        console.log('WebSocket message received:', event.data);
-        const message = JSON.parse(event.data);
-        if (message === 'fetchMLBScores') {
-            fetchMLBScores();
+    setTimeout(() => {
+      fetch('/api/getResults')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-    };
-
-    ws.onclose = function() {
-        console.log('WebSocket connection closed');
-    };
-
-    ws.onerror = function(error) {
-        console.error('WebSocket error:', error);
-    };
-});
+        return response.json();
+      })
+      .then(data => {
+        console.log("Received results:", data);
+        if (data.success && data.results) {
+          rebuildUIWithResults(data.results);
+        } else {
+          console.error('No results found or unable to fetch results:', data.message);
+        }
+      })
+      .catch(error => console.error('Failed to fetch results:', error));
+    }, 4000);  // Delay can be adjusted based on typical load times or removed if found unnecessary
+  });
+  
+  function rebuildUIWithResults(results) {
+    console.log('Received results for UI rebuild:', results);
+    const allPicks = document.querySelectorAll('.player-picks .pick, .immortal-lock');
+  
+    if (allPicks.length === 0) {
+      console.warn('No pick elements found, check if the DOM has fully loaded');
+      return;
+    }
+  
+    console.log(`Total picks found: ${allPicks.length}`);
+  
+    allPicks.forEach(pickElement => {
+      const teamLogo = pickElement.querySelector('.team-logo');
+      if (!teamLogo) {
+        console.error('Team logo not found in pick element', pickElement);
+        return; // Skip this iteration if no logo
+      }
+  
+      const teamName = teamLogo.alt;
+      console.log(`Processing UI update for team: ${teamName}`);
+  
+      const resultEntry = results.find(r => r.teamName === teamName);
+      if (resultEntry) {
+        console.log(`Applying UI result for ${teamName}:`, resultEntry);
+        pickElement.style.color = resultEntry.result === "hit" ? "#39FF14" : resultEntry.result === "miss" ? "red" : "yellow";
+      } else {
+        console.warn(`No result found for ${teamName} or mismatch in team names`, {teamName, results});
+      }
+    });
+}
 
 
 function getCurrentTimeInUTC4() {
@@ -1928,7 +1955,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => console.error('Failed to fetch results:', error));
-    }, 1000);  // Delay can be adjusted based on typical load times or removed if found unnecessary
+    }, 4000);  // Delay can be adjusted based on typical load times or removed if found unnecessary
 });
 
 

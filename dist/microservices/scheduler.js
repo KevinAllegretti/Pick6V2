@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const node_cron_1 = __importDefault(require("node-cron"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
-const websocket_1 = require("./websocket");
-let gameScores = []; // Define a variable to store the scores
+const serverUtils_1 = require("./serverUtils");
+let gameScores = [];
 const mlbToNflMap = {
     "Arizona Diamondbacks": "ARI Cardinals",
     "Atlanta Braves": "ATL Falcons",
@@ -50,7 +50,7 @@ async function fetchMLBScores() {
             method: 'GET',
             headers: {
                 'x-rapidapi-host': 'odds.p.rapidapi.com',
-                'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e' // Replace with your actual API key
+                'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e'
             }
         });
         if (!response.ok) {
@@ -61,7 +61,7 @@ async function fetchMLBScores() {
         gameScores = scores.map(event => {
             if (!event.scores || !Array.isArray(event.scores)) {
                 console.log(`Skipping event due to missing or invalid scores:`, event);
-                return null; // Return null for events without valid scores to filter them out later
+                return null;
             }
             const homeTeam = mlbToNflMap[event.home_team] || event.home_team;
             const awayTeam = mlbToNflMap[event.away_team] || event.away_team;
@@ -73,44 +73,69 @@ async function fetchMLBScores() {
                 home_score: parseInt(homeScore, 10),
                 away_score: parseInt(awayScore, 10)
             };
-        }).filter(match => match !== null); // Filter out the null entries
+        }).filter(match => match !== null);
         console.log('Scores fetched:', gameScores);
-        // Broadcast the scores to all connected clients
-        (0, websocket_1.broadcastScores)(gameScores);
+        await updateScores(gameScores);
     }
     catch (error) {
         console.error('Error fetching MLB scores:', error);
     }
 }
+async function updateScores(gameScores) {
+    console.log('gameScores at update:', gameScores);
+    let allResults = []; // Store all results for the current session
+    const allPicks = await (0, serverUtils_1.getAllPicks)();
+    for (const pick of allPicks) {
+        const { username, poolName, picks, immortalLock } = pick;
+        for (const pickEntry of picks) {
+            const { teamName, value: betValue } = pickEntry; // Adjust this part according to your actual data structure
+            const match = gameScores.find(m => m.home_team === teamName || m.away_team === teamName);
+            if (!match) {
+                console.log(`No game score available for ${teamName}, skipping...`);
+                continue;
+            }
+            if (!betValue) {
+                console.error('Invalid betValue for pickEntry:', pickEntry);
+                continue;
+            }
+            const homeTeamScore = match.home_team === teamName ? match.home_score : match.away_score;
+            const awayTeamScore = match.home_team === teamName ? match.away_score : match.home_score;
+            console.log(`Processing pick: ${betValue}, Home Team Score: ${homeTeamScore}, Away Team Score: ${awayTeamScore}`);
+            try {
+                const { result, odds } = (0, serverUtils_1.getBetResult)(betValue, homeTeamScore, awayTeamScore);
+                const points = (0, serverUtils_1.calculatePointsForResult)({ result, odds });
+                allResults.push({ teamName, betValue, result, points });
+                // Update user points
+                await (0, serverUtils_1.updateUserPoints)(username, points, poolName);
+                // Determine the increments for win, loss, and push
+                let winIncrement = 0, lossIncrement = 0, pushIncrement = 0;
+                if (result === 'hit') {
+                    winIncrement = 1;
+                }
+                else if (result === 'miss') {
+                    lossIncrement = 1;
+                }
+                else if (result === 'push') {
+                    pushIncrement = 1;
+                }
+                // Update user stats
+                await (0, serverUtils_1.updateUserStats)(username, poolName, winIncrement, lossIncrement, pushIncrement);
+            }
+            catch (error) {
+                console.error('Error processing bet result:', error);
+            }
+        }
+    }
+    console.log('All Results:', allResults);
+    // Save results to the server
+    await (0, serverUtils_1.saveResultsToServer)(allResults);
+}
 // Schedule tasks using cron expressions
-// Thursday 11:30 PM
-node_cron_1.default.schedule('30 23 * * 4', () => {
-    console.log("It's Thursday Bet Poll time, now fetching scores");
-    fetchMLBScores();
-});
-// Sunday 4:15 PM
-node_cron_1.default.schedule('15 16 * * 0', () => {
-    console.log("It's Sunday Bet Poll 1 time, now fetching scores");
-    fetchMLBScores();
-});
-// Sunday 8:00 PM
-node_cron_1.default.schedule('0 20 * * 0', () => {
-    console.log("It's Sunday Bet Poll 2 time, now fetching scores");
-    fetchMLBScores();
-});
-// Sunday 11:30 PM
-node_cron_1.default.schedule('30 23 * * 0', () => {
-    console.log("It's Sunday Bet Poll 3 time, now fetching scores");
-    fetchMLBScores();
-});
-// Monday 11:30 PM
-node_cron_1.default.schedule('30 23 * * 1', () => {
-    console.log("It's Monday Bet Poll time, now fetching scores");
-    fetchMLBScores();
-});
-// Every day at 10:00 AM
 node_cron_1.default.schedule('0 10 * * *', () => {
     console.log("It's Everyday Poll time, now fetching scores");
     fetchMLBScores();
 });
-console.log('Scheduled tasks are set up.');
+node_cron_1.default.schedule('30 14 * * *', () => {
+    console.log("It's 2:10 PM Poll time, now fetching scores");
+    fetchMLBScores();
+});

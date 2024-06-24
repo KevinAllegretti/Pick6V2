@@ -1,8 +1,8 @@
 import cron from 'node-cron';
 import fetch from 'node-fetch';
 import { broadcastScores } from './websocket';
-
-let gameScores: any[] = [];  // Define a variable to store the scores
+import { updateUserPoints, updateUserStats, saveResultsToServer, getAllPicks, getBetResult, calculatePointsForResult } from './serverUtils';
+let gameScores: any[] = [];
 
 const mlbToNflMap: { [key: string]: string } = {
     "Arizona Diamondbacks": "ARI Cardinals",
@@ -33,97 +33,127 @@ const mlbToNflMap: { [key: string]: string } = {
     "Texas Rangers": "DAL Cowboys",
     "Toronto Blue Jays": "BUF Bills",
     "Washington Nationals": "WAS Commanders"
-  };
-
+};
 async function fetchMLBScores() {
     console.log('fetchMLBScores function started.');
+  
     const url = 'https://odds.p.rapidapi.com/v4/sports/baseball_mlb/scores';
     const params = {
-        daysFrom: '1',
-        apiKey: '3decff06f7mshbc96e9118345205p136794jsn629db332340e'
+      daysFrom: '1',
+      apiKey: '3decff06f7mshbc96e9118345205p136794jsn629db332340e'
     };
     const queryParams = new URLSearchParams(params);
-
+  
     try {
-        const response = await fetch(`${url}?${queryParams}`, {
-            method: 'GET',
-            headers: {
-                'x-rapidapi-host': 'odds.p.rapidapi.com',
-                'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e'  // Replace with your actual API key
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+      const response = await fetch(`${url}?${queryParams}`, {
+        method: 'GET',
+        headers: {
+          'x-rapidapi-host': 'odds.p.rapidapi.com',
+          'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e'
         }
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+  
+      const scores = await response.json();
+      console.log("Scores data:", scores);
+  
+      gameScores = scores.map(event => {
+        if (!event.scores || !Array.isArray(event.scores)) {
+          console.log(`Skipping event due to missing or invalid scores:`, event);
+          return null;
+        }
+  
+        const homeTeam = mlbToNflMap[event.home_team] || event.home_team;
+        const awayTeam = mlbToNflMap[event.away_team] || event.away_team;
+        const homeScore = event.scores.find(s => mlbToNflMap[s.name] === homeTeam || s.name === event.home_team)?.score;
+        const awayScore = event.scores.find(s => mlbToNflMap[s.name] === awayTeam || s.name === event.away_team)?.score;
+  
+        return {
+          home_team: homeTeam,
+          away_team: awayTeam,
+          home_score: parseInt(homeScore, 10),
+          away_score: parseInt(awayScore, 10)
+        };
+      }).filter(match => match !== null);
+  
+      console.log('Scores fetched:', gameScores);
+  
+      await updateScores(gameScores);
+    } catch (error) {
+      console.error('Error fetching MLB scores:', error);
+    }
+  }
+  
+  async function updateScores(gameScores: any[]) {
+    console.log('gameScores at update:', gameScores);
+    let allResults: any[] = []; // Store all results for the current session
 
-        const scores = await response.json();
-        console.log("Scores data:", scores);
+    const allPicks = await getAllPicks();
 
-        gameScores = scores.map(event => {
-            if (!event.scores || !Array.isArray(event.scores)) {
-                console.log(`Skipping event due to missing or invalid scores:`, event);
-                return null; // Return null for events without valid scores to filter them out later
+    for (const pick of allPicks) {
+        const { username, poolName, picks, immortalLock } = pick;
+        for (const pickEntry of picks) {
+            const { teamName, value: betValue } = pickEntry; // Adjust this part according to your actual data structure
+            const match = gameScores.find(m => m.home_team === teamName || m.away_team === teamName);
+
+            if (!match) {
+                console.log(`No game score available for ${teamName}, skipping...`);
+                continue;
             }
 
-            const homeTeam = mlbToNflMap[event.home_team] || event.home_team;
-            const awayTeam = mlbToNflMap[event.away_team] || event.away_team;
-            const homeScore = event.scores.find(s => mlbToNflMap[s.name] === homeTeam || s.name === event.home_team)?.score;
-            const awayScore = event.scores.find(s => mlbToNflMap[s.name] === awayTeam || s.name === event.away_team)?.score;
+            if (!betValue) {
+                console.error('Invalid betValue for pickEntry:', pickEntry);
+                continue;
+            }
 
-            return {
-                home_team: homeTeam,
-                away_team: awayTeam,
-                home_score: parseInt(homeScore, 10),
-                away_score: parseInt(awayScore, 10)
-            };
-        }).filter(match => match !== null);  // Filter out the null entries
+            const homeTeamScore = match.home_team === teamName ? match.home_score : match.away_score;
+            const awayTeamScore = match.home_team === teamName ? match.away_score : match.home_score;
 
-        console.log('Scores fetched:', gameScores);
+            console.log(`Processing pick: ${betValue}, Home Team Score: ${homeTeamScore}, Away Team Score: ${awayTeamScore}`);
 
-        // Broadcast the scores to all connected clients
-        broadcastScores(gameScores);
-    } catch (error) {
-        console.error('Error fetching MLB scores:', error);
+            try {
+                const { result, odds } = getBetResult(betValue, homeTeamScore, awayTeamScore);
+                const points = calculatePointsForResult({ result, odds });
+
+                allResults.push({ teamName, betValue, result, points });
+
+                // Update user points
+                await updateUserPoints(username, points, poolName);
+
+                // Determine the increments for win, loss, and push
+                let winIncrement = 0, lossIncrement = 0, pushIncrement = 0;
+                if (result === 'hit') {
+                    winIncrement = 1;
+                } else if (result === 'miss') {
+                    lossIncrement = 1;
+                } else if (result === 'push') {
+                    pushIncrement = 1;
+                }
+
+                // Update user stats
+                await updateUserStats(username, poolName, winIncrement, lossIncrement, pushIncrement);
+            } catch (error) {
+                console.error('Error processing bet result:', error);
+            }
+        }
     }
+
+    console.log('All Results:', allResults);
+
+    // Save results to the server
+    await saveResultsToServer(allResults);
 }
 
-// Schedule tasks using cron expressions
-
-// Thursday 11:30 PM
-cron.schedule('30 23 * * 4', () => {
-    console.log("It's Thursday Bet Poll time, now fetching scores");
-    fetchMLBScores();
-});
-
-// Sunday 4:15 PM
-cron.schedule('15 16 * * 0', () => {
-    console.log("It's Sunday Bet Poll 1 time, now fetching scores");
-    fetchMLBScores();
-});
-
-// Sunday 8:00 PM
-cron.schedule('0 20 * * 0', () => {
-    console.log("It's Sunday Bet Poll 2 time, now fetching scores");
-    fetchMLBScores();
-});
-
-// Sunday 11:30 PM
-cron.schedule('30 23 * * 0', () => {
-    console.log("It's Sunday Bet Poll 3 time, now fetching scores");
-    fetchMLBScores();
-});
-
-// Monday 11:30 PM
-cron.schedule('30 23 * * 1', () => {
-    console.log("It's Monday Bet Poll time, now fetching scores");
-    fetchMLBScores();
-});
-
-// Every day at 10:00 AM
-cron.schedule('0 10 * * *', () => {
+  // Schedule tasks using cron expressions
+  cron.schedule('0 10 * * *', () => {
     console.log("It's Everyday Poll time, now fetching scores");
     fetchMLBScores();
-});
+  });
 
-console.log('Scheduled tasks are set up.');
+  cron.schedule('30 14 * * *', () => {
+    console.log("It's 2:10 PM Poll time, now fetching scores");
+    fetchMLBScores();
+  });
