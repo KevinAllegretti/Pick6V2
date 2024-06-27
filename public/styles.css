@@ -506,6 +506,7 @@ h4 {
   width: 100%; /* Full width of the parent element */
 }@import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap'); /* Importing a digital-style font */
 
+/* Existing styles for .game-container */
 .game-container {
   display: flex;
   flex-direction: row;
@@ -519,6 +520,17 @@ h4 {
   border: 2px solid #33d9ff; /* Neon border for futuristic look */
   box-shadow: 0 0 10px #33d9ff; /* Glow effect */
   min-width: 250px;
+}
+
+/* Media query for mobile devices */
+@media (max-width: 600px) {
+  .game-container {
+    justify-content: flex-start; /* Align items to the start */
+    padding-left: 10px; /* Adjust padding to move content to the left */
+    padding-right: 5px; /* Optional: adjust right padding if needed */
+    width: 100%; /* Ensure it takes full width */
+    box-sizing: border-box; /* Include padding and border in element's total width */
+  }
 }
 
 .team-container {
