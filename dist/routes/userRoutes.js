@@ -9,7 +9,7 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 require("dotenv").config();
 const router = express_1.default.Router();
 const saltRounds = 10;
-router.post('/register', async (req, res) => {
+router.post('/api/register', async (req, res) => {
     console.log('Register endpoint hit with data:', req.body);
     try {
         const { username, password } = req.body;
@@ -41,7 +41,7 @@ router.post('/register', async (req, res) => {
         res.status(500).json({ message: "Internal Server Error", type: "error" });
     }
 });
-router.post('/login', async (req, res) => {
+router.post('/api/login', async (req, res) => {
     console.log('Login endpoint hit with data:', req.body);
     try {
         const { username, password } = req.body;
