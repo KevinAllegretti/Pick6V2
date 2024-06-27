@@ -1068,15 +1068,11 @@ async function isCurrentTimePickTime() {
     }
 }
 async function fetchPicks(username, poolName, playerRow, teamLogos) {
+    const isPickTime = await isCurrentTimePickTime(); // Determine if it's pick time
+
     const encodedUsername = encodeURIComponent(username);
     const encodedPoolName = encodeURIComponent(poolName);
     const url = `/api/getPicks/${encodedUsername}/${encodedPoolName}`;
-
-    // Add console logs to debug
-    console.log(`Fetching picks for username: ${username}, poolName: ${poolName}, URL: ${url}`);
-
-    const currentTimeWindow = await checkCurrentTimeWindow();
-    const isPickTime = currentTimeWindow === 'Pick Time';
 
     fetch(url)
         .then(response => {
@@ -1086,89 +1082,77 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
             return response.json();
         })
         .then(picksData => {
-            console.log('Fetched picks data:', picksData); // Log fetched picks data for debugging
-
             const picksContainer = playerRow.querySelector('.player-picks');
             picksContainer.innerHTML = '';
 
-            if (isPickTime && username !== localStorage.getItem('username').toLowerCase()) {
-                console.log('Current time is Pick Time and username does not match the logged-in user. Replacing picks with banner.');
+            if (username === localStorage.getItem('username').toLowerCase() || !isPickTime) {
+                // Existing logic to fetch and display picks
+                if (picksData && picksData.picks && Array.isArray(picksData.picks) && picksData.picks.length > 0) {
+                    picksData.picks.forEach(pick => {
+                        const pickDiv = document.createElement('div');
+                        pickDiv.className = 'pick';
 
-                const banner = document.createElement('img');
-                banner.src = 'PickTime.png'; // Make sure this path is correct
-                banner.alt = 'Player Making Selections';
-                banner.classList.add('pick-time-banner');
+                        const teamName = pick.teamName;
+                        const value = pick.value;
 
-                console.log('Replacing with banner:', banner.src); // Log the banner URL
+                        if (teamName && teamLogos[teamName]) {
+                            const logoImg = document.createElement('img');
+                            logoImg.src = teamLogos[teamName];
+                            logoImg.alt = `${teamName}`;
+                            logoImg.className = 'team-logo';
+                            pickDiv.appendChild(logoImg);
+                        }
 
-                picksContainer.appendChild(banner);
-                return;
-            }
+                        if (value) {
+                            const valueSpan = document.createElement('span');
+                            valueSpan.textContent = value;
+                            pickDiv.appendChild(valueSpan);
+                        }
 
-            if (picksData && picksData.picks && Array.isArray(picksData.picks) && picksData.picks.length > 0) {
-                console.log('Rendering picks data for user:', username);
+                        picksContainer.appendChild(pickDiv);
+                    });
+                } else {
+                    const noPicksMessage = document.createElement('div');
+                    noPicksMessage.className = 'no-picks-message';
+                    noPicksMessage.textContent = 'No picks made';
+                    picksContainer.appendChild(noPicksMessage);
+                }
 
-                // Sort picks by commenceTime before rendering
-                picksData.picks.sort((a, b) => new Date(a.commenceTime) - new Date(b.commenceTime));
+                const immortalLockContainer = playerRow.querySelector('.player-immortal-lock');
+                if (picksData.immortalLock && picksData.immortalLock.length > 0) {
+                    const immortalPick = picksData.immortalLock[0];
+                    const lockDiv = document.createElement('div');
+                    lockDiv.className = 'immortal-lock';
 
-                picksData.picks.forEach(pick => {
-                    const pickDiv = document.createElement('div');
-                    pickDiv.className = 'pick';
-
-                    const teamName = pick.teamName;
-                    const value = pick.value;
+                    const teamName = immortalPick.teamName;
+                    const value = immortalPick.value;
 
                     if (teamName && teamLogos[teamName]) {
                         const logoImg = document.createElement('img');
                         logoImg.src = teamLogos[teamName];
                         logoImg.alt = `${teamName}`;
                         logoImg.className = 'team-logo';
-                        pickDiv.appendChild(logoImg);
+                        lockDiv.appendChild(logoImg);
                     }
 
                     if (value) {
                         const valueSpan = document.createElement('span');
                         valueSpan.textContent = value;
-                        pickDiv.appendChild(valueSpan);
+                        lockDiv.appendChild(valueSpan);
                     }
 
-                    picksContainer.appendChild(pickDiv);
-                });
-            } else {
-                const noPicksMessage = document.createElement('div');
-                noPicksMessage.className = 'no-picks-message';
-                noPicksMessage.textContent = 'No picks made';
-                picksContainer.appendChild(noPicksMessage);
-            }
-
-            const immortalLockContainer = playerRow.querySelector('.player-immortal-lock');
-            if (picksData.immortalLock && picksData.immortalLock.length > 0) {
-                const immortalPick = picksData.immortalLock[0];
-                const lockDiv = document.createElement('div');
-                lockDiv.className = 'immortal-lock';
-
-                const teamName = immortalPick.teamName;
-                const value = immortalPick.value;
-
-                if (teamName && teamLogos[teamName]) {
-                    const logoImg = document.createElement('img');
-                    logoImg.src = teamLogos[teamName];
-                    logoImg.alt = `${teamName}`;
-                    logoImg.className = 'team-logo';
-                    lockDiv.appendChild(logoImg);
+                    immortalLockContainer.appendChild(lockDiv);
+                } else {
+                    immortalLockContainer.textContent = '';
                 }
 
-                if (value) {
-                    const valueSpan = document.createElement('span');
-                    valueSpan.textContent = value;
-                    lockDiv.appendChild(valueSpan);
-                }
-
-                immortalLockContainer.appendChild(lockDiv);
             } else {
-                immortalLockContainer.textContent = '';
+                const bannerImage = document.createElement('img');
+                bannerImage.src = '/PickTime.png'; // Ensure the path is correct
+                bannerImage.alt = 'Player Making Selections';
+                bannerImage.className = 'pick-banner';
+                picksContainer.appendChild(bannerImage);
             }
-
         })
         .catch(error => {
             console.error('Error fetching picks for user:', username, 'in pool:', poolName, error);
