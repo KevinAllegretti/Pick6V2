@@ -76,4 +76,3 @@ document.getElementById('registration-form').addEventListener('submit', function
         alert('An error occurred during the registration process. Please try again.');
     });
 });
-v
