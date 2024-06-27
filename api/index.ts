@@ -118,40 +118,7 @@ const options = {
 };
 
 mongoose.connect('mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/Pick6', options);
-// Thursday 11:30 PM
-cron.schedule('30 23 * * 4', () => {
-  console.log("It's Thursday Bet Poll time, now fetching scores");
-  broadcastMessage('fetchMLBScores');
-});
 
-// Sunday 4:15 PM
-cron.schedule('15 16 * * 0', () => {
-  console.log("It's Sunday Bet Poll 1 time, now fetching scores");
-  broadcastMessage('fetchMLBScores');
-});
 
-// Sunday 8:00 PM
-cron.schedule('0 20 * * 0', () => {
-  console.log("It's Sunday Bet Poll 2 time, now fetching scores");
-  broadcastMessage('fetchMLBScores');
-});
-
-// Sunday 11:30 PM
-cron.schedule('30 23 * * 0', () => {
-  console.log("It's Sunday Bet Poll 3 time, now fetching scores");
-  broadcastMessage('fetchMLBScores');
-});
-
-// Monday 11:30 PM
-cron.schedule('30 23 * * 1', () => {
-  console.log("It's Monday Bet Poll time, now fetching scores");
-  broadcastMessage('fetchMLBScores');
-});
-
-// Every day at 10:00 AM
-cron.schedule('0 10 * * *', () => {
-  console.log("It's Everyday Poll time, now fetching scores");
-  broadcastMessage('fetchMLBScores');
-});
 
 export default app;
