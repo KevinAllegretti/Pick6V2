@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateTuesdayStartTime = exports.updateThursdayDeadline = exports.savePicksToLastWeek = exports.calculatePointsForResult = exports.getBetResult = exports.getAllPicks = exports.deleteResultsFromServer = exports.saveResultsToServer = exports.updateUserStats = exports.updateUserPoints = void 0;
 const node_fetch_1 = __importDefault(require("node-fetch"));
 const connectDB_1 = require("../microservices/connectDB");
-const baseUrl = 'http://localhost:3000'; // Replace with your actual server URL
+const baseUrl = 'http://localhost:3000' || 'www.pick6.club'; // Replace with your actual server URL
 // Function to update user points
 async function updateUserPoints(username, additionalPoints, poolName) {
     try {

@@ -1147,7 +1147,8 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
                 }
             } else {
                 const bannerImage = document.createElement('img');
-                bannerImage.src = 'PickTime.png';
+                bannerImage.src = '/PickTime.png'; // Adjusted path to ensure it's correct
+                console.log('Setting banner image path:', bannerImage.src);
                 bannerImage.alt = 'Player Making Selections';
                 bannerImage.className = 'pick-banner';
                 picksContainer.appendChild(bannerImage);
@@ -1163,6 +1164,7 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
             picksContainer.appendChild(errorMessage);
         });
 }
+
 
 
 
