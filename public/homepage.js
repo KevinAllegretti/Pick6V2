@@ -1074,6 +1074,8 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
     const encodedPoolName = encodeURIComponent(poolName);
     const url = `/api/getPicks/${encodedUsername}/${encodedPoolName}`;
 
+    console.log(`Fetching picks for username: ${username}, poolName: ${poolName}, URL: ${url}, isPickTime: ${isPickTime}`);
+
     fetch(url)
         .then(response => {
             if (!response.ok) {
@@ -1088,6 +1090,8 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
             if (username === localStorage.getItem('username').toLowerCase() || !isPickTime) {
                 // Existing logic to fetch and display picks
                 if (picksData && picksData.picks && Array.isArray(picksData.picks) && picksData.picks.length > 0) {
+                    console.log('Rendering picks for user:', username);
+
                     picksData.picks.forEach(pick => {
                         const pickDiv = document.createElement('div');
                         pickDiv.className = 'pick';
@@ -1145,12 +1149,16 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
                 } else {
                     immortalLockContainer.textContent = '';
                 }
-
             } else {
+                console.log(`Displaying pick time banner for user: ${username}`);
+
                 const bannerImage = document.createElement('img');
                 bannerImage.src = '/PickTime.png'; // Ensure the path is correct
                 bannerImage.alt = 'Player Making Selections';
                 bannerImage.className = 'pick-banner';
+
+                console.log('Banner image path:', bannerImage.src); // Log the banner image path
+
                 picksContainer.appendChild(bannerImage);
             }
         })
