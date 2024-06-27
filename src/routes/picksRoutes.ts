@@ -213,4 +213,5 @@ router.get('/api/getLastWeekPicks/:username/:poolName', async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to fetch last week picks' });
     }
    });
+   
 export default router;

@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const node_cron_1 = __importDefault(require("node-cron"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
+//import { broadcastScores } from './websocket';
 const serverUtils_1 = require("./serverUtils");
 let gameScores = [];
 const mlbToNflMap = {
@@ -130,12 +131,35 @@ async function updateScores(gameScores) {
     // Save results to the server
     await (0, serverUtils_1.saveResultsToServer)(allResults);
 }
-// Schedule tasks using cron expressions
-node_cron_1.default.schedule('0 10 * * *', () => {
-    console.log("It's Everyday Poll time, now fetching scores");
+node_cron_1.default.schedule('30 23 * * 4', () => {
+    console.log("It's Thursday 11:30 PM, now fetching scores");
     fetchMLBScores();
 });
-node_cron_1.default.schedule('30 14 * * *', () => {
-    console.log("It's 2:10 PM Poll time, now fetching scores");
+node_cron_1.default.schedule('15 16 * * 0', () => {
+    console.log("It's Sunday 4:15 PM, now fetching scores");
     fetchMLBScores();
+});
+node_cron_1.default.schedule('30 20 * * 0', () => {
+    console.log("It's Sunday 8:30 PM, now fetching scores");
+    fetchMLBScores();
+});
+node_cron_1.default.schedule('30 23 * * 0', () => {
+    console.log("It's Sunday 11:30 PM, now fetching scores");
+    fetchMLBScores();
+});
+node_cron_1.default.schedule('30 23 * * 1', () => {
+    console.log("It's Monday 11:30 PM, now fetching scores");
+    fetchMLBScores();
+});
+node_cron_1.default.schedule('0 0 * * 2', () => {
+    console.log("It's Tuesday 12:00 AM, now deleting results");
+    (0, serverUtils_1.deleteResultsFromServer)();
+    console.log("Updating Thursday deadline to the upcoming Thursday");
+    (0, serverUtils_1.updateThursdayDeadline)();
+});
+node_cron_1.default.schedule('0 19 * * 4', () => {
+    console.log("It's Thursday 7:00 PM, now saving picks to last week");
+    (0, serverUtils_1.savePicksToLastWeek)();
+    console.log("Updating Tuesday start time to the upcoming Tuesday");
+    (0, serverUtils_1.updateTuesdayStartTime)();
 });

@@ -44,6 +44,8 @@ export async function updateUserStats(username: string, poolName: string, winInc
 }
 
 // Function to save results to the server
+let scoresUpdated = false;
+
 export async function saveResultsToServer(results: any[]): Promise<void> {
     try {
         const response = await fetch(`${baseUrl}/api/saveResults`, {
@@ -56,9 +58,22 @@ export async function saveResultsToServer(results: any[]): Promise<void> {
             throw new Error(data.message || 'Failed to save results');
         }
         console.log('Results saved successfully');
+        scoresUpdated = true; // Set flag to indicate scores were updated
     } catch (error) {
         console.error('Failed to save results:', error);
         throw error;
+    }
+}
+
+export async function deleteResultsFromServer(): Promise<void> {
+    try {
+        const database = await connectToDatabase();
+        const resultsCollection = database.collection('betResultsGlobal');
+        await resultsCollection.deleteMany({});
+        console.log('Results deleted successfully');
+    } catch (error: any) {
+        console.error('Failed to delete results:', error);
+        throw new Error('Failed to delete results');
     }
 }
 
@@ -137,4 +152,99 @@ export function calculatePointsForResult({ result, odds, type }: { result: strin
             break;
     }
     return points;
+}
+
+async function fetchPicksData(username: string, poolName: string): Promise<any> {
+    const database = await connectToDatabase();
+    const picksCollection = database.collection('userPicks');
+    return picksCollection.findOne({ username: username.toLowerCase(), poolName });
+}
+
+// Function to save picks to last week's collection
+export async function savePicksToLastWeek(): Promise<void> {
+    try {
+        const database = await connectToDatabase();
+        const lastWeeksPicksCollection = database.collection('lastWeeksPicks');
+        const picksCollection = database.collection('userPicks');
+
+        const allPicks = await picksCollection.find({}).toArray();
+
+        for (const pickData of allPicks) {
+            const { username, poolName, picks, immortalLock } = pickData;
+            await lastWeeksPicksCollection.updateOne(
+                { username: username, poolName: poolName },
+                { $set: { picks: picks, immortalLockPick: immortalLock } },
+                { upsert: true }
+            );
+        }
+
+        console.log('Picks saved to last week collection successfully');
+    } catch (error: any) {
+        console.error('Error saving picks to last week collection:', error);
+        throw new Error('Failed to save picks to last week collection');
+    }
+}
+
+function getCurrentTimeInUTC4(): Date {
+    const now = new Date();
+    now.setHours(now.getHours() - 4); // Convert UTC to EST (UTC-4)
+    return now;
+}
+
+// Function to update the Thursday deadline
+export async function updateThursdayDeadline(): Promise<void> {
+    const now = getCurrentTimeInUTC4();
+    const nextThursday = new Date(now);
+    nextThursday.setDate(nextThursday.getDate() + ((4 + 7 - now.getDay()) % 7));
+    nextThursday.setHours(19, 0, 0, 0); // 7 PM EST
+    nextThursday.setMinutes(nextThursday.getMinutes() + nextThursday.getTimezoneOffset());
+    nextThursday.setHours(nextThursday.getHours() - 4); // Convert UTC to EST (UTC-4)
+
+    // Ensure it's the next Thursday
+    if (now > nextThursday) {
+        nextThursday.setDate(nextThursday.getDate() + 7); // Move to next Thursday
+    }
+
+    try {
+        const database = await connectToDatabase();
+        const timeWindowCollection = database.collection('timeWindows');
+        await timeWindowCollection.updateOne(
+            {},
+            { $set: { thursdayDeadline: nextThursday.toISOString() } },
+            { upsert: true }
+        );
+        console.log('Thursday deadline updated successfully.');
+    } catch (error) {
+        console.error('Error updating Thursday deadline:', error);
+        throw new Error('Failed to update Thursday deadline');
+    }
+}
+
+// Function to update the Tuesday start time
+export async function updateTuesdayStartTime(): Promise<void> {
+    const now = getCurrentTimeInUTC4();
+    const nextTuesday = new Date(now);
+    nextTuesday.setDate(nextTuesday.getDate() + ((2 + 7 - now.getDay()) % 7));
+    nextTuesday.setHours(0, 0, 0, 0); // 12 AM EST
+    nextTuesday.setMinutes(nextTuesday.getMinutes() + nextTuesday.getTimezoneOffset());
+    nextTuesday.setHours(nextTuesday.getHours() - 4); // Convert UTC to EST (UTC-4)
+
+    // Ensure it's the next Tuesday
+    if (now > nextTuesday) {
+        nextTuesday.setDate(nextTuesday.getDate() + 7); // Move to next Tuesday
+    }
+
+    try {
+        const database = await connectToDatabase();
+        const timeWindowCollection = database.collection('timeWindows');
+        await timeWindowCollection.updateOne(
+            {},
+            { $set: { tuesdayStartTime: nextTuesday.toISOString() } },
+            { upsert: true }
+        );
+        console.log('Tuesday start time updated successfully.');
+    } catch (error) {
+        console.error('Error updating Tuesday start time:', error);
+        throw new Error('Failed to update Tuesday start time');
+    }
 }

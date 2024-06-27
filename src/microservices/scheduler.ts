@@ -1,7 +1,10 @@
 import cron from 'node-cron';
 import fetch from 'node-fetch';
-import { broadcastScores } from './websocket';
-import { updateUserPoints, updateUserStats, saveResultsToServer, getAllPicks, getBetResult, calculatePointsForResult } from './serverUtils';
+//import { broadcastScores } from './websocket';
+import { updateUserPoints, updateUserStats, saveResultsToServer, 
+    deleteResultsFromServer, getAllPicks, getBetResult, calculatePointsForResult, 
+    savePicksToLastWeek,   updateThursdayDeadline,
+    updateTuesdayStartTime } from './serverUtils';
 let gameScores: any[] = [];
 
 const mlbToNflMap: { [key: string]: string } = {
@@ -147,13 +150,41 @@ async function fetchMLBScores() {
     await saveResultsToServer(allResults);
 }
 
-  // Schedule tasks using cron expressions
-  cron.schedule('0 10 * * *', () => {
-    console.log("It's Everyday Poll time, now fetching scores");
+cron.schedule('30 23 * * 4', () => {
+    console.log("It's Thursday 11:30 PM, now fetching scores");
     fetchMLBScores();
-  });
+});
 
-  cron.schedule('30 14 * * *', () => {
-    console.log("It's 2:10 PM Poll time, now fetching scores");
+cron.schedule('15 16 * * 0', () => {
+    console.log("It's Sunday 4:15 PM, now fetching scores");
     fetchMLBScores();
-  });
+});
+
+cron.schedule('30 20 * * 0', () => {
+    console.log("It's Sunday 8:30 PM, now fetching scores");
+    fetchMLBScores();
+});
+
+cron.schedule('30 23 * * 0', () => {
+    console.log("It's Sunday 11:30 PM, now fetching scores");
+    fetchMLBScores();
+});
+
+cron.schedule('30 23 * * 1', () => {
+    console.log("It's Monday 11:30 PM, now fetching scores");
+    fetchMLBScores();
+});
+
+cron.schedule('0 0 * * 2', () => {
+    console.log("It's Tuesday 12:00 AM, now deleting results");
+    deleteResultsFromServer();
+    console.log("Updating Thursday deadline to the upcoming Thursday");
+    updateThursdayDeadline();
+});
+
+cron.schedule('0 19 * * 4', () => {
+    console.log("It's Thursday 7:00 PM, now saving picks to last week");
+    savePicksToLastWeek();
+    console.log("Updating Tuesday start time to the upcoming Tuesday");
+    updateTuesdayStartTime();
+});

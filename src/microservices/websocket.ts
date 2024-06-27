@@ -1,4 +1,4 @@
-import WebSocket from 'ws';
+/*import WebSocket from 'ws';
 import { createServer } from 'http';
 import express from 'express';
 import path from 'path';
@@ -35,3 +35,4 @@ app.use(express.static(path.join(__dirname, '../public')));
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+*/

@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       })
       .catch(error => console.error('Failed to fetch results:', error));
-    }, 4000);  // Delay can be adjusted based on typical load times or removed if found unnecessary
+    }, 3000);  // Delay can be adjusted based on typical load times or removed if found unnecessary
   });
   
   function rebuildUIWithResults(results) {
@@ -109,85 +109,13 @@ async function saveInitialTimes() {
 
 //saveInitialTimes();
 
-const calculateBetPollTimes = () => {
-    const now = getCurrentTimeInUTC4();
-    const calculateTime = (day, hours, minutes) => {
-        let date = new Date(now);
-        date.setDate(date.getDate() + ((day + 7 - now.getDay()) % 7));
-        date.setHours(hours, minutes, 0, 0); // Set the specific time
-        date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
-        date.setHours(date.getHours() - 4); // Convert UTC to EST (UTC-4)
-        return date;
-    };
-
-    // Calculate each bet poll time
-    const thursdayBetPoll = calculateTime(4, 23, 30); // Thursday 11:30 PM
-    const sundayBetPoll1 = calculateTime(0, 16, 15);   // Sunday 4 PM
-    const sundayBetPoll2 = calculateTime(0, 20, 0);   // Sunday 8 PM
-    const sundayBetPoll3 = calculateTime(0, 23, 30);  // Sunday 11:30 PM
-    const mondayBetPoll = calculateTime(1, 23, 30);   // Monday 11:30 PM
-
-    return {
-        thursdayBetPoll,
-        sundayBetPoll1,
-        sundayBetPoll2,
-        sundayBetPoll3,
-        mondayBetPoll
-    };
-};
-
-// Calculate the times
-const betPollTimes = calculateBetPollTimes();
-console.log("Current time:", now);
-console.log("Bet poll times:", betPollTimes);
-
-// Function to compare dates by their time values
-const isSameTime = (date1, date2) => date1.getTime() === date2.getTime();
-
-if (isSameTime(now, betPollTimes.thursdayBetPoll) ||
-    isSameTime(now, betPollTimes.sundayBetPoll1) ||
-    isSameTime(now, betPollTimes.sundayBetPoll2) ||
-    isSameTime(now, betPollTimes.sundayBetPoll3) ||
-    isSameTime(now, betPollTimes.mondayBetPoll)) {
-    console.log("Fetching MLB scores at:", now);
-    fetchMLBScores();
-} else {
-    console.log("No matching bet poll time");
-}
-/*
-if (isSameTime(now, betPollTimes.thursdayBetPoll)) {
-    console.log("It's Thursday Bet Poll, now fetching scores");
-    fetchMLBScores();
-} else if (isSameTime(now, betPollTimes.sundayBetPoll1)) {
-    console.log("It's Sunday Bet Poll 1, now fetching scores");
-    fetchMLBScores();
-} else if (isSameTime(now, betPollTimes.sundayBetPoll2)) {
-    console.log("It's Sunday Bet Poll 2, now fetching scores");
-    fetchMLBScores();
-} else if (isSameTime(now, betPollTimes.sundayBetPoll3)) {
-    console.log("It's Sunday Bet Poll 3, now fetching scores");
-    fetchMLBScores();
-} else if (isSameTime(now, betPollTimes.mondayBetPoll)) {
-    console.log("It's Monday Bet Poll, now fetching scores");
-    fetchMLBScores();
-} else {
-    console.log("No matching bet poll time");
-}
-*/
-console.log("now: ", now);
-console.log("Thursday Bet Poll Time:", betPollTimes.thursdayBetPoll);
-console.log("Sunday Bet Poll 1 Time:", betPollTimes.sundayBetPoll1);
-console.log("Sunday Bet Poll 2 Time:", betPollTimes.sundayBetPoll2);
-console.log("Sunday Bet Poll 3 Time:", betPollTimes.sundayBetPoll3);
-console.log("Monday Bet Poll Time:", betPollTimes.mondayBetPoll);
-
-function appendLog(message) {
+/*(function appendLog(message) {
     const logList = document.getElementById('poll-log-list');
     const logEntry = document.createElement('li');
     logEntry.textContent = `${new Date().toLocaleString()}: ${message}`;
     logList.appendChild(logEntry);
 }
-
+*/
 
 // Scheduling function for the Monday night poll (for testing)
 function scheduleTestPoll() {
@@ -197,15 +125,15 @@ function scheduleTestPoll() {
     nextMondayNight.setHours(23, 30, 0, 0); // 11:30 PM
 
     const timeUntilPoll = nextMondayNight - now;
-    appendLog(`Time until next Monday night poll: ${timeUntilPoll}ms`);
+    //appendLog(`Time until next Monday night poll: ${timeUntilPoll}ms`);
     
     setTimeout(() => {
-        appendLog("It's Monday Bet Poll time, now fetching scores");
+      //  appendLog("It's Monday Bet Poll time, now fetching scores");
         fetchMLBScores();
         scheduleTestPoll(); // Reschedule for the next week
     }, timeUntilPoll);
 
-    appendLog(`Scheduled test poll for: ${nextMondayNight.toLocaleString()}`);
+   // appendLog(`Scheduled test poll for: ${nextMondayNight.toLocaleString()}`);
 }
 
 // Call the test poll scheduler
@@ -254,7 +182,7 @@ function scheduleEverydayPoll() {
 
 // Schedule the everyday poll function
 scheduleEverydayPoll();
-
+/*
 async function updateTuesdayStartTime() {
     const now = getCurrentTimeInUTC4();
     const nextTuesday = new Date(now);
@@ -314,11 +242,11 @@ async function updateThursdayDeadline() {
         console.error('Error updating Thursday deadline:', error);
     }
 }
-
+*/
 /* In the updates, alos put in the ones that are one timers.
 then put the ones that need to stay constant within the respective enable feature function
 */
-
+/*
 
 function scheduleAllTasks() {
     // Fetch the stored times from the database
@@ -332,7 +260,7 @@ function scheduleAllTasks() {
 
             console.log("Tuesday Start Time:", tuesdayStartTime);
             console.log("Thursday Deadline Time:", thursdayDeadline);
-            appendLog("Fetched stored times from the database.");
+          //  appendLog("Fetched stored times from the database.");
 
             const now = getCurrentTimeInUTC4();
 
@@ -348,32 +276,29 @@ function scheduleAllTasks() {
 
             scheduleTask(tuesdayTime, () => {
                 console.log("Executing Tuesday update tasks");
-                appendLog("Executing Tuesday update tasks");
+               // appendLog("Executing Tuesday update tasks");
                 deleteResultsFromServer();
                 updateThursdayDeadline();
             });
 
             scheduleTask(thursdayTime, () => {
                 console.log("Executing Thursday update tasks");
-                appendLog("Executing Thursday update tasks");
+               // appendLog("Executing Thursday update tasks");
                 //savePicksToLastWeek();
                 updateTuesdayStartTime();
             });
 
-            Object.values(betPollTimes).forEach(timeString => {
-                const time = new Date(timeString);
-                scheduleTask(time, fetchMLBScores);
-            });
+
         })
         .catch(error => {
             console.error('Error fetching time windows:', error);
-            appendLog(`Error fetching time windows: ${error.message}`);
+           // appendLog(`Error fetching time windows: ${error.message}`);
         });
 }
 
 // Call this function to start the scheduling process
 scheduleAllTasks();
-
+*/
 async function fetchTimeWindows() {
     try {
         const response = await fetch('/api/timeWindows');
@@ -1645,7 +1570,7 @@ const mlbToNflMap = {
   var gameScores = [];
 
   async function fetchMLBScores() {
-    appendLog('fetchMLBScores function started.');
+   // appendLog('fetchMLBScores function started.');
       const url = 'https://odds.p.rapidapi.com/v4/sports/baseball_mlb/scores';
       const params = {
           daysFrom: 1,  
@@ -1668,7 +1593,7 @@ const mlbToNflMap = {
   
           const scores = await response.json();
           console.log("Scores data:", scores);
-          appendLog('Scores fetched successfully.');
+         // appendLog('Scores fetched successfully.');
           gameScores = scores.map(event => {
               if (!event.scores || !Array.isArray(event.scores)) {
                   console.log(`Skipping event due to missing or invalid scores:`, event);
@@ -1693,7 +1618,7 @@ const mlbToNflMap = {
       } catch (error) {
 
           console.error('Error fetching MLB scores:', error);
-          appendLog(`Error: ${error.message}`);
+         // appendLog(`Error: ${error.message}`);
       }
   }
   
@@ -1936,7 +1861,7 @@ function rebuildUIWithResults(results) {
 }
 
 
-
+/*
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {  // Delay execution to ensure all scripts have processed
         fetch('/api/getResults')
@@ -1958,7 +1883,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 4000);  // Delay can be adjusted based on typical load times or removed if found unnecessary
 });
 
-
+*/
 //'3decff06f7mshbc96e9118345205p136794jsn629db332340e'
 
 function updateUserStats(username, poolName, winIncrement = 0, lossIncrement = 0, pushIncrement = 0) {
