@@ -524,7 +524,7 @@ h4 {
 /* Media query for mobile devices */
 @media (max-width: 600px) {
   .game-container {
-    margin-left: 15px;
+    margin-right: 15px;
   }
 }
 
