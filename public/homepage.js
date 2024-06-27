@@ -1086,6 +1086,7 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
             picksContainer.innerHTML = '';
 
             if (username === localStorage.getItem('username').toLowerCase() || !isPickTime) {
+                // Existing logic to fetch and display picks
                 if (picksData && picksData.picks && Array.isArray(picksData.picks) && picksData.picks.length > 0) {
                     picksData.picks.forEach(pick => {
                         const pickDiv = document.createElement('div');
@@ -1118,7 +1119,6 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
                 }
 
                 const immortalLockContainer = playerRow.querySelector('.player-immortal-lock');
-                immortalLockContainer.innerHTML = ''; // Clear the container before adding new elements
                 if (picksData.immortalLock && picksData.immortalLock.length > 0) {
                     const immortalPick = picksData.immortalLock[0];
                     const lockDiv = document.createElement('div');
@@ -1145,10 +1145,10 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
                 } else {
                     immortalLockContainer.textContent = '';
                 }
+
             } else {
                 const bannerImage = document.createElement('img');
-                bannerImage.src = '/PickTime.png'; // Adjusted path to ensure it's correct
-                console.log('Setting banner image path:', bannerImage.src);
+                bannerImage.src = '/PickTime.png'; // Ensure the path is correct
                 bannerImage.alt = 'Player Making Selections';
                 bannerImage.className = 'pick-banner';
                 picksContainer.appendChild(bannerImage);
@@ -1164,7 +1164,6 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
             picksContainer.appendChild(errorMessage);
         });
 }
-
 
 
 
