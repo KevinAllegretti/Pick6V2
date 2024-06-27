@@ -506,7 +506,6 @@ h4 {
   width: 100%; /* Full width of the parent element */
 }@import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap'); /* Importing a digital-style font */
 
-/* Existing styles for .game-container */
 .game-container {
   display: flex;
   flex-direction: row;
@@ -525,10 +524,9 @@ h4 {
 /* Media query for mobile devices */
 @media (max-width: 600px) {
   .game-container {
-    justify-content: flex-start; /* Align items to the start */
-    padding-left: 10px; /* Adjust padding to move content to the left */
-    padding-right: 5px; /* Optional: adjust right padding if needed */
-    width: 90%; /* Ensure it takes full width */
+    justify-content: center; /* Center items */
+    width: 90%; /* Ensure the container fits within the viewport */
+    margin: 0 auto; /* Center the container horizontally */
     box-sizing: border-box; /* Include padding and border in element's total width */
   }
 }
