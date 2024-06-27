@@ -1048,9 +1048,28 @@ function leavePool(poolName) {
         });
 }
 
+async function isCurrentTimePickTime() {
+    try {
+        const response = await fetch('/api/timeWindows');
+        if (!response.ok) {
+            throw new Error('Failed to fetch time windows.');
+        }
 
+        const { tuesdayStartTime, thursdayDeadline } = await response.json();
+        const now = getCurrentTimeInUTC4();
 
-function fetchPicks(username, poolName, playerRow, teamLogos) {
+        const tuesdayTime = new Date(tuesdayStartTime);
+        const thursdayTime = new Date(thursdayDeadline);
+
+        return now > tuesdayTime && now < thursdayTime;
+    } catch (error) {
+        console.error('Error determining the current time window:', error);
+        return false; // Default to game time if there's an error
+    }
+}
+async function fetchPicks(username, poolName, playerRow, teamLogos) {
+    const isPickTime = await isCurrentTimePickTime(); // Determine if it's pick time
+
     const encodedUsername = encodeURIComponent(username);
     const encodedPoolName = encodeURIComponent(poolName);
     const url = `/api/getPicks/${encodedUsername}/${encodedPoolName}`;
@@ -1063,79 +1082,76 @@ function fetchPicks(username, poolName, playerRow, teamLogos) {
             return response.json();
         })
         .then(picksData => {
-            console.log('Fetched picks data:', picksData); // Log fetched picks data for debugging
-
             const picksContainer = playerRow.querySelector('.player-picks');
             picksContainer.innerHTML = '';
 
-            if (picksData && picksData.picks && Array.isArray(picksData.picks) && picksData.picks.length > 0) {
-                // Log commenceTime values before sorting
-                console.log('Before sorting:', picksData.picks.map(pick => pick.commenceTime));
+            if (username === localStorage.getItem('username').toLowerCase() || !isPickTime) {
+                if (picksData && picksData.picks && Array.isArray(picksData.picks) && picksData.picks.length > 0) {
+                    picksData.picks.forEach(pick => {
+                        const pickDiv = document.createElement('div');
+                        pickDiv.className = 'pick';
 
-                // Sort picks by commenceTime before rendering
-                picksData.picks.sort((a, b) => new Date(a.commenceTime) - new Date(b.commenceTime));
+                        const teamName = pick.teamName;
+                        const value = pick.value;
 
-                // Log commenceTime values after sorting
-                console.log('After sorting:', picksData.picks.map(pick => pick.commenceTime));
+                        if (teamName && teamLogos[teamName]) {
+                            const logoImg = document.createElement('img');
+                            logoImg.src = teamLogos[teamName];
+                            logoImg.alt = `${teamName}`;
+                            logoImg.className = 'team-logo';
+                            pickDiv.appendChild(logoImg);
+                        }
 
-                picksData.picks.forEach(pick => {
-                    const pickDiv = document.createElement('div');
-                    pickDiv.className = 'pick';
+                        if (value) {
+                            const valueSpan = document.createElement('span');
+                            valueSpan.textContent = value;
+                            pickDiv.appendChild(valueSpan);
+                        }
 
-                    const teamName = pick.teamName;
-                    const value = pick.value;
+                        picksContainer.appendChild(pickDiv);
+                    });
+                } else {
+                    const noPicksMessage = document.createElement('div');
+                    noPicksMessage.className = 'no-picks-message';
+                    noPicksMessage.textContent = 'No picks made';
+                    picksContainer.appendChild(noPicksMessage);
+                }
+
+                const immortalLockContainer = playerRow.querySelector('.player-immortal-lock');
+                immortalLockContainer.innerHTML = ''; // Clear the container before adding new elements
+                if (picksData.immortalLock && picksData.immortalLock.length > 0) {
+                    const immortalPick = picksData.immortalLock[0];
+                    const lockDiv = document.createElement('div');
+                    lockDiv.className = 'immortal-lock';
+
+                    const teamName = immortalPick.teamName;
+                    const value = immortalPick.value;
 
                     if (teamName && teamLogos[teamName]) {
                         const logoImg = document.createElement('img');
                         logoImg.src = teamLogos[teamName];
                         logoImg.alt = `${teamName}`;
                         logoImg.className = 'team-logo';
-                        pickDiv.appendChild(logoImg);
+                        lockDiv.appendChild(logoImg);
                     }
 
                     if (value) {
                         const valueSpan = document.createElement('span');
                         valueSpan.textContent = value;
-                        pickDiv.appendChild(valueSpan);
+                        lockDiv.appendChild(valueSpan);
                     }
 
-                    picksContainer.appendChild(pickDiv);
-                });
-            } else {
-                const noPicksMessage = document.createElement('div');
-                noPicksMessage.className = 'no-picks-message';
-                noPicksMessage.textContent = 'No picks made';
-                picksContainer.appendChild(noPicksMessage);
-            }
-
-            const immortalLockContainer = playerRow.querySelector('.player-immortal-lock');
-            if (picksData.immortalLock && picksData.immortalLock.length > 0) {
-                const immortalPick = picksData.immortalLock[0];
-                const lockDiv = document.createElement('div');
-                lockDiv.className = 'immortal-lock';
-
-                const teamName = immortalPick.teamName;
-                const value = immortalPick.value;
-
-                if (teamName && teamLogos[teamName]) {
-                    const logoImg = document.createElement('img');
-                    logoImg.src = teamLogos[teamName];
-                    logoImg.alt = `${teamName}`;
-                    logoImg.className = 'team-logo';
-                    lockDiv.appendChild(logoImg);
+                    immortalLockContainer.appendChild(lockDiv);
+                } else {
+                    immortalLockContainer.textContent = '';
                 }
-
-                if (value) {
-                    const valueSpan = document.createElement('span');
-                    valueSpan.textContent = value;
-                    lockDiv.appendChild(valueSpan);
-                }
-
-                immortalLockContainer.appendChild(lockDiv);
             } else {
-                immortalLockContainer.textContent = '';
+                const bannerImage = document.createElement('img');
+                bannerImage.src = 'PickTime.png';
+                bannerImage.alt = 'Player Making Selections';
+                bannerImage.className = 'pick-banner';
+                picksContainer.appendChild(bannerImage);
             }
-
         })
         .catch(error => {
             console.error('Error fetching picks for user:', username, 'in pool:', poolName, error);
@@ -1147,6 +1163,8 @@ function fetchPicks(username, poolName, playerRow, teamLogos) {
             picksContainer.appendChild(errorMessage);
         });
 }
+
+
 
 /*document.getElementById('savePicksButton').addEventListener('click', () => {
     savePicksToLastWeek();
@@ -1528,10 +1546,7 @@ function changeUserPoints(username, points, poolName) {
         console.error('Error during the set points process:', error);
     });
 }
-// Example usage:
-//changeUserPoints('test3', 0, 'yuh'); // Replace with the actual username, new points value, and pool name
-//changeUserPoints('testuser', 0, 'testPool');
-//changeUserPoints('testuser2', 0, 'yuh');
+
 
 const mlbToNflMap = {
     "Arizona Diamondbacks": "ARI Cardinals",
@@ -1935,7 +1950,12 @@ function resetUserStats(username, poolName) {
     });
 }
 
+/*
+resetUserStats('test2', 'testPool');
+resetUserStats('testuser', 'testPool');
+resetUserStats('testuser2', 'testPool');
 
-//resetUserStats('test3', 'yuh');
-//resetUserStats('testuser', 'testPool');
-//resetUserStats('testuser2', 'yuh');
+changeUserPoints('test2', 0, 'testPool'); // Replace with the actual username, new points value, and pool name
+changeUserPoints('testuser', 0, 'testPool');
+changeUserPoints('testuser2', 0, 'testPool');
+*/
