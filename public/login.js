@@ -76,27 +76,4 @@ document.getElementById('registration-form').addEventListener('submit', function
         alert('An error occurred during the registration process. Please try again.');
     });
 });
-
-// Handle account verification alerts
-window.addEventListener('load', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const isVerified = urlParams.get('verified');
-
-    if (isVerified === 'true') {
-        alert('Account verified successfully! Please log in.');
-    } else if (isVerified === 'false') {
-        alert('Verification failed or link expired.');
-    } else if (isVerified === 'error') {
-        alert('An error occurred during verification.');
-    }
-});
-
-// After the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', (event) => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const isVerified = urlParams.get('verified');
-
-    if (isVerified) {
-        alert('Your account has been successfully verified. Please log in.');
-    }
-});
+v
