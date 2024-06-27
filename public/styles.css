@@ -521,7 +521,12 @@ h4 {
   min-width: 250px;
 }
 
-
+/* Media query for mobile devices */
+@media (max-width: 600px) {
+  .game-container {
+    margin-left: 15px;
+  }
+}
 
 .team-container {
   display: flex;
