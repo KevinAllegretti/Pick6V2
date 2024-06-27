@@ -1153,7 +1153,7 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
                 console.log(`Displaying pick time banner for user: ${username}`);
 
                 const bannerImage = document.createElement('img');
-                bannerImage.src = '/PickTime.png'; // Ensure the path is correct
+                bannerImage.src = 'PickTimeNew.png'; // Updated path
                 bannerImage.alt = 'Player Making Selections';
                 bannerImage.className = 'pick-banner';
 
