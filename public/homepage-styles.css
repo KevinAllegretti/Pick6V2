@@ -35,7 +35,7 @@ body {
     width: 50px; /* Adjust the size as needed */
     height: 50px;
     border-radius: 50%;
-    box-shadow: 0 0 5px #0af, 0 0 10px #0af, 0 0 15px #0af; /* This creates the neon glow */
+    box-shadow: 0 0 5px #33d9ff, 0 0 10px #33d9ff, 0 0 15px #33d9ff; /* This creates the neon glow */
     cursor: pointer;
     z-index: 100; /* Make sure it's above other elements */
 }
@@ -58,7 +58,7 @@ body {
     width: 120px; /* Larger than the one on the homepage */
     height: 120px; /* Keep the aspect ratio the same */
     border-radius: 50%; /* Circular shape */
-    box-shadow: 0 0 5px #0af, 0 0 10px #0af, 0 0 15px #0af; /* Neon glow */
+    box-shadow: 0 0 5px #33d9ff, 0 0 10px #33d9ff, 0 0 15px #33d9ff; /* Neon glow */
     object-fit: cover;
     border: 3px solid #33d9ff; /* Light blue border, made slightly thicker */
     cursor: pointer; /* Optional: if you want it to indicate it's clickable */
