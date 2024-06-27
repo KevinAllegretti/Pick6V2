@@ -521,15 +521,7 @@ h4 {
   min-width: 250px;
 }
 
-/* Media query for mobile devices */
-@media (max-width: 600px) {
-  .game-container {
-    justify-content: center; /* Center items */
-    width: 90%; /* Ensure the container fits within the viewport */
-    margin: 0 auto; /* Center the container horizontally */
-    box-sizing: border-box; /* Include padding and border in element's total width */
-  }
-}
+
 
 .team-container {
   display: flex;
