@@ -25,7 +25,7 @@ document.getElementById('login-form').addEventListener('submit', function(event)
     });
     var json = JSON.stringify(object);
 
-    fetch('/api/login', {
+    fetch('/users/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -54,7 +54,7 @@ document.getElementById('registration-form').addEventListener('submit', function
     formData.forEach((value, key) => object[key] = value);
     let json = JSON.stringify(object);
 
-    fetch('/api/register', {
+    fetch('/users/register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

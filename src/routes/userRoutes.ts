@@ -6,7 +6,7 @@ require("dotenv").config();
 const router = express.Router();
 const saltRounds = 10;
 
-router.post('/api/register', async (req, res) => {
+router.post('/register', async (req, res) => {
   console.log('Register endpoint hit with data:', req.body);
   try {
     const { username, password } = req.body;
@@ -44,7 +44,7 @@ router.post('/api/register', async (req, res) => {
   }
 });
 
-router.post('/api/login', async (req, res) => {
+router.post('/login', async (req, res) => {
   console.log('Login endpoint hit with data:', req.body);
   try {
     const { username, password } = req.body;

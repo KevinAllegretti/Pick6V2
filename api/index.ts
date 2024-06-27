@@ -59,7 +59,7 @@ app.get('/', (req, res) => {
 });
 
 
-app.use('/api', userRoutes);
+app.use('/users', userRoutes);
 
 app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/dashboard.html'));
