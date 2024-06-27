@@ -39,6 +39,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 */
 // Middleware for logging incoming requests
 app.use((req, res, next) => {
+  console.log(`Request URL: ${req.url}`);
   next();
 });
 
