@@ -5,10 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const connectDB_1 = require("../microservices/connectDB");
-const bcrypt_1 = __importDefault(require("bcrypt"));
 require("dotenv").config();
 const router = express_1.default.Router();
-const saltRounds = 10;
 router.post('/register', async (req, res) => {
     console.log('Register endpoint hit with data:', req.body);
     try {
@@ -25,10 +23,9 @@ router.post('/register', async (req, res) => {
             return res.status(409).json({ message: "Username is already taken", type: "error" });
         }
         // Everything is unique, proceed to create user
-        const encryptedPassword = await bcrypt_1.default.hash(password, saltRounds);
         await usersCollection.insertOne({
             username: username.toLowerCase(), // Store usernames in lowercase to ensure uniqueness
-            password: encryptedPassword,
+            password: password, // Store password as plain text
         });
         res.status(201).json({ error: false, message: "User created successfully. You can now log in." });
     }
@@ -51,9 +48,7 @@ router.post('/login', async (req, res) => {
         const user = await usersCollection.findOne({ username: username.toLowerCase() }); // Lowercase the username
         console.log('User found:', user);
         if (user) {
-            const passwordMatch = await bcrypt_1.default.compare(password, user.password);
-            console.log('Password match:', passwordMatch);
-            if (passwordMatch) {
+            if (password === user.password) { // Compare plain text passwords
                 console.log(`Redirecting ${username} to homepage`);
                 res.json({ error: false, redirect: `/homepage.html?username=${username}` });
             }
