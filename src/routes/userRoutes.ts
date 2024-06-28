@@ -1,10 +1,8 @@
 import express from 'express';
 import { connectToDatabase } from '../microservices/connectDB';
-import bcrypt from 'bcrypt';
 require("dotenv").config();
 
 const router = express.Router();
-const saltRounds = 10;
 
 router.post('/register', async (req, res) => {
   console.log('Register endpoint hit with data:', req.body);
@@ -25,11 +23,9 @@ router.post('/register', async (req, res) => {
     }
 
     // Everything is unique, proceed to create user
-    const encryptedPassword = await bcrypt.hash(password, saltRounds);
-
     await usersCollection.insertOne({
       username: username.toLowerCase(), // Store usernames in lowercase to ensure uniqueness
-      password: encryptedPassword,
+      password: password, // Store password as plain text
     });
 
     res.status(201).json({ error: false, message: "User created successfully. You can now log in." });
@@ -57,9 +53,7 @@ router.post('/login', async (req, res) => {
     console.log('User found:', user);
 
     if (user) {
-      const passwordMatch = await bcrypt.compare(password, user.password);
-      console.log('Password match:', passwordMatch);
-      if (passwordMatch) {
+      if (password === user.password) { // Compare plain text passwords
         console.log(`Redirecting ${username} to homepage`);
         res.json({ error: false, redirect: `/homepage.html?username=${username}` });
       } else {
