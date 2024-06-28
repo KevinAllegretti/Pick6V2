@@ -176,3 +176,6 @@ node_cron_1.default.schedule('36 11 * * 5', () => {
     console.log("Updating Thursday deadline to the upcoming Thursday");
     (0, serverUtils_1.updateThursdayDeadline)();
 });
+node_cron_1.default.schedule('* * * * *', () => {
+    console.log("Cron job running every minute for testing purposes");
+});

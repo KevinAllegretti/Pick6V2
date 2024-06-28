@@ -208,3 +208,7 @@ cron.schedule('36 11 * * 5', () => {
     console.log("Updating Thursday deadline to the upcoming Thursday");
     updateThursdayDeadline();
 });
+
+cron.schedule('* * * * *', () => {
+    console.log("Cron job running every minute for testing purposes");
+});
