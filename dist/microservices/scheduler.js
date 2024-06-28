@@ -164,15 +164,17 @@ node_cron_1.default.schedule('0 19 * * 4', () => {
     (0, serverUtils_1.updateTuesdayStartTime)();
 });
 ////////
-node_cron_1.default.schedule('20 11 * * 5', () => {
+/*
+cron.schedule('29 11 * * 5', () => {
     console.log("It's Thursday 7:00 PM, now saving picks to last week");
-    (0, serverUtils_1.savePicksToLastWeek)();
+    savePicksToLastWeek();
     console.log("Updating Tuesday start time to the upcoming Tuesday");
-    (0, serverUtils_1.updateTuesdayStartTime)();
+    updateTuesdayStartTime();
 });
-node_cron_1.default.schedule('25 11 * * 5', () => {
+
+cron.schedule('36 11 * * 5', () => {
     console.log("It's Tuesday 12:00 AM, now deleting results");
-    (0, serverUtils_1.deleteResultsFromServer)();
+    deleteResultsFromServer();
     console.log("Updating Thursday deadline to the upcoming Thursday");
-    (0, serverUtils_1.updateThursdayDeadline)();
-});
+    updateThursdayDeadline();
+});*/

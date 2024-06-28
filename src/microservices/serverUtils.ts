@@ -201,6 +201,7 @@ export async function updateThursdayDeadline(): Promise<void> {
     nextThursday.setHours(nextThursday.getHours() - 4); // Convert UTC to EST (UTC-4)
 
     // Ensure it's the next Thursday
+    
     if (now > nextThursday) {
         nextThursday.setDate(nextThursday.getDate() + 7); // Move to next Thursday
     }
@@ -210,7 +211,7 @@ export async function updateThursdayDeadline(): Promise<void> {
         const timeWindowCollection = database.collection('timewindows');
         await timeWindowCollection.updateOne(
             {},
-            { $set: { thursdayDeadline: nextThursday.toISOString() } },
+            { $set: { thursdayDeadline: nextThursday } }, // Store as Date object
             { upsert: true }
         );
         console.log('Thursday deadline updated successfully.');
@@ -239,7 +240,7 @@ export async function updateTuesdayStartTime(): Promise<void> {
         const timeWindowCollection = database.collection('timewindows');
         await timeWindowCollection.updateOne(
             {},
-            { $set: { tuesdayStartTime: nextTuesday.toISOString() } },
+            { $set: { tuesdayStartTime: nextTuesday } }, // Store as Date object
             { upsert: true }
         );
         console.log('Tuesday start time updated successfully.');
