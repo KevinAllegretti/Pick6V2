@@ -10,8 +10,6 @@ import InjuryRoutes from '../src/routes/InjuryRoutes';
 import mongoose from 'mongoose';
 import timeWindowRoutes from '../src/routes/timeWindowRoutes';
 import { Server } from 'http';
-import { WebSocketServer } from 'ws';
-import cron from 'node-cron';
 import fetch from 'node-fetch';
 import '../src/microservices/websocket';  
 import '../src/microservices/scheduler';
@@ -86,26 +84,8 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
-const server = new Server(app);
-const wss = new WebSocketServer({ server });
 
-wss.on('connection', ws => {
-  console.log('New client connected');
-  ws.send(JSON.stringify({ message: 'Welcome to the WebSocket server' }));
 
-  ws.on('close', () => {
-    console.log('Client disconnected');
-  });
-});
-
-function broadcastMessage(message: string) {
-  const clients = wss.clients as Set<WebSocket>;
-  clients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
-    }
-  });
-}
 const mongoURI = 'mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/Pick6'
 
 
