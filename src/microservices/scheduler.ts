@@ -191,24 +191,3 @@ cron.schedule('0 19 * * 4', () => {
 });
 
 
-
-
-////////
-
-cron.schedule('44 12 * * 5', () => {
-    console.log("It's Thursday 7:00 PM, now saving picks to last week");
-    savePicksToLastWeek();
-    console.log("Updating Tuesday start time to the upcoming Tuesday");
-    updateTuesdayStartTime();
-});
-
-cron.schedule('36 11 * * 5', () => {
-    console.log("It's Tuesday 12:00 AM, now deleting results");
-    deleteResultsFromServer();
-    console.log("Updating Thursday deadline to the upcoming Thursday");
-    updateThursdayDeadline();
-});
-
-cron.schedule('* * * * *', () => {
-    console.log("Cron job running every minute for testing purposes");
-});
