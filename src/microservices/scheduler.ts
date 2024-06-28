@@ -189,7 +189,7 @@ cron.schedule('0 19 * * 4', () => {
     updateTuesdayStartTime();
 });
 
-cron.schedule('05 11 * * 5', () => {
+cron.schedule('17 11 * * 5', () => {
     console.log("It's Thursday 7:00 PM, now saving picks to last week");
     savePicksToLastWeek();
     console.log("Updating Tuesday start time to the upcoming Tuesday");
