@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import fetch from 'node-fetch';
-const cron = require('node-cron');
+
 //import { broadcastScores } from './websocket';
 import { updateUserPoints, updateUserStats, saveResultsToServer, 
     deleteResultsFromServer, getAllPicks, getBetResult, calculatePointsForResult, 
