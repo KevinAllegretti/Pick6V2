@@ -59,8 +59,10 @@ app.get('/', (req, res) => {
 
 });
 
-
+// Add logging to confirm route registration
+console.log("Registering /users routes");
 app.use('/users', userRoutes);
+console.log("/users routes registered");
 
 app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/dashboard.html'));
