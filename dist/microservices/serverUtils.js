@@ -211,7 +211,7 @@ async function updateThursdayDeadline() {
     }
     try {
         const database = await (0, connectDB_1.connectToDatabase)();
-        const timeWindowCollection = database.collection('timeWindows');
+        const timeWindowCollection = database.collection('timewindows');
         await timeWindowCollection.updateOne({}, { $set: { thursdayDeadline: nextThursday.toISOString() } }, { upsert: true });
         console.log('Thursday deadline updated successfully.');
     }
@@ -235,7 +235,7 @@ async function updateTuesdayStartTime() {
     }
     try {
         const database = await (0, connectDB_1.connectToDatabase)();
-        const timeWindowCollection = database.collection('timeWindows');
+        const timeWindowCollection = database.collection('timewindows');
         await timeWindowCollection.updateOne({}, { $set: { tuesdayStartTime: nextTuesday.toISOString() } }, { upsert: true });
         console.log('Tuesday start time updated successfully.');
     }

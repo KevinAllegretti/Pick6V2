@@ -207,7 +207,7 @@ export async function updateThursdayDeadline(): Promise<void> {
 
     try {
         const database = await connectToDatabase();
-        const timeWindowCollection = database.collection('timeWindows');
+        const timeWindowCollection = database.collection('timewindows');
         await timeWindowCollection.updateOne(
             {},
             { $set: { thursdayDeadline: nextThursday.toISOString() } },
@@ -236,7 +236,7 @@ export async function updateTuesdayStartTime(): Promise<void> {
 
     try {
         const database = await connectToDatabase();
-        const timeWindowCollection = database.collection('timeWindows');
+        const timeWindowCollection = database.collection('timewindows');
         await timeWindowCollection.updateOne(
             {},
             { $set: { tuesdayStartTime: nextTuesday.toISOString() } },

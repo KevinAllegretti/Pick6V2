@@ -91,7 +91,7 @@ if (now > thursdayDeadline) {
 // Save the calculated times to the database
 async function saveInitialTimes() {
     try {
-        await fetch('/api/timeWindows', {
+        await fetch('/api/timewindows', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -301,7 +301,7 @@ scheduleAllTasks();
 */
 async function fetchTimeWindows() {
     try {
-        const response = await fetch('/api/timeWindows');
+        const response = await fetch('/api/timewindows');
         if (!response.ok) {
             throw new Error('Network response was not ok.');
         }
@@ -313,7 +313,7 @@ async function fetchTimeWindows() {
 }
 async function checkCurrentTimeWindow() {
     try {
-        const response = await fetch('/api/timeWindows');
+        const response = await fetch('/api/timewindows');
         if (!response.ok) {
             throw new Error('Failed to fetch time windows.');
         }
@@ -1050,7 +1050,7 @@ function leavePool(poolName) {
 
 async function isCurrentTimePickTime() {
     try {
-        const response = await fetch('/api/timeWindows');
+        const response = await fetch('/api/timewindows');
         if (!response.ok) {
             throw new Error('Failed to fetch time windows.');
         }
