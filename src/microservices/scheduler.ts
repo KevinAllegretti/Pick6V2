@@ -194,8 +194,8 @@ cron.schedule('0 19 * * 4', () => {
 
 
 ////////
-/*
-cron.schedule('29 11 * * 5', () => {
+
+cron.schedule('54 11 * * 5', () => {
     console.log("It's Thursday 7:00 PM, now saving picks to last week");
     savePicksToLastWeek();
     console.log("Updating Tuesday start time to the upcoming Tuesday");
@@ -207,4 +207,4 @@ cron.schedule('36 11 * * 5', () => {
     deleteResultsFromServer();
     console.log("Updating Thursday deadline to the upcoming Thursday");
     updateThursdayDeadline();
-});*/
+});
