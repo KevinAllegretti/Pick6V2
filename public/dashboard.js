@@ -793,6 +793,9 @@ const games = betOptions.reduce((acc, bet) => {
  console.error('Error fetching MLB data:', error);
  }
 }
+
+
+
 function processBookmakers(nflTeams, bookmakers, commenceTime, homeTeam, awayTeam) {
  // Map MLB team names to NFL names
  const nflHomeTeam = mlbToNflMap[homeTeam] || homeTeam;
@@ -895,71 +898,11 @@ if (now > thursdayDeadline) {
 
 
 
-async function updateTuesdayStartTime() {
-    const now = getCurrentTimeInUTC4();
-    const nextTuesday = new Date(now);
-    nextTuesday.setDate(nextTuesday.getDate() + ((2 + 7 - now.getDay()) % 7));
-    nextTuesday.setHours(0, 0, 0, 0); // 12 AM EST
-    nextTuesday.setMinutes(nextTuesday.getMinutes() + nextTuesday.getTimezoneOffset());
-    nextTuesday.setHours(nextTuesday.getHours() - 5); // Convert UTC to EST (UTC-5)
-
-    // Ensure it's the next Tuesday
-    if (now > nextTuesday) {
-        nextTuesday.setDate(nextTuesday.getDate() + 7); // Move to next Tuesday
-    }
-
-    try {
-        await fetch('/api/timeWindows/tuesday', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                tuesdayStartTime: nextTuesday.toISOString(),
-            }),
-        });
-        console.log('Tuesday start time updated successfully.');
-    } catch (error) {
-        console.error('Error updating Tuesday start time:', error);
-    }
-}
-//setInterval(attachFunctionsToTimes, 1000 * 60); // Check every minute
-//attachFunctionsToTimes();
-
-async function updateThursdayDeadline() {
-    const now = getCurrentTimeInUTC4();
-    const nextThursday = new Date(now);
-    nextThursday.setDate(nextThursday.getDate() + ((4 + 7 - now.getDay()) % 7));
-    nextThursday.setHours(19, 0, 0, 0); // 7 PM EST
-    nextThursday.setMinutes(nextThursday.getMinutes() + nextThursday.getTimezoneOffset());
-    nextThursday.setHours(nextThursday.getHours() - 5); // Convert UTC to EST (UTC-5)
-
-    // Ensure it's the next Thursday
-    if (now > nextThursday) {
-        nextThursday.setDate(nextThursday.getDate() + 7); // Move to next Thursday
-    }
-
-    try {
-        await fetch('/api/timeWindows/thursday', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                thursdayDeadline: nextThursday.toISOString(),
-            }),
-        });
-        console.log('Thursday deadline updated successfully.');
-    } catch (error) {
-        console.error('Error updating Thursday deadline:', error);
-    }
-}
-
 /* In the updates, alos put in the ones that are one timers.
 then put the ones that need to stay constant within the respective enable feature function
 */
 
-
+/*
 function scheduleTask(time, taskFunction) {
     const now = getCurrentTimeInUTC4();
     const timeUntilTask = time - now;
@@ -979,7 +922,7 @@ function scheduleTask(time, taskFunction) {
 
 function scheduleAllTasks() {
     // Fetch the stored times from the database
-    fetch('/api/timeWindows')
+    fetch('/api/timewindows')
         .then(response => response.json())
         .then(times => {
             const { tuesdayStartTime, thursdayDeadline } = times;
@@ -1010,12 +953,12 @@ function scheduleAllTasks() {
 // Call this function to start the scheduling process
 scheduleAllTasks();
 
-
+*/
 
 
 async function fetchTimeWindows() {
     try {
-        const response = await fetch('/api/timeWindows');
+        const response = await fetch('/api/timewindows');
         if (!response.ok) {
             throw new Error('Network response was not ok.');
         }
@@ -1027,7 +970,7 @@ async function fetchTimeWindows() {
 }
 async function checkCurrentTimeWindow() {
     try {
-        const response = await fetch('/api/timeWindows');
+        const response = await fetch('/api/timewindows');
         if (!response.ok) {
             throw new Error('Failed to fetch time windows.');
         }
@@ -1124,7 +1067,7 @@ function calculateEverydayPollTime() {
 // Initialize everyday poll time
 const everydayPollTime = calculateEverydayPollTime();
 console.log("Everyday Poll Time:", everydayPollTime);
-
+/*
 function scheduleEverydayPoll() {
     const now = getCurrentTimeInUTC4();
     const everydayPollTime = calculateEverydayPollTime();
@@ -1136,7 +1079,7 @@ function scheduleEverydayPoll() {
         scheduleEverydayPoll(); // Reschedule after execution
     }, timeUntilEverydayPoll);
 }
-scheduleEverydayPoll();
+scheduleEverydayPoll();*/
 async function fetchAndSaveInjuries() {
     try {
         const response = await fetch('/api/fetchAndSaveInjuries');
