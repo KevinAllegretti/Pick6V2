@@ -1,11 +1,17 @@
 import fetch from 'node-fetch';
 import { connectToDatabase } from '../microservices/connectDB';
 
-const baseUrl = 'http://localhost:3000' || 'www.pick6.club'; // Replace with your actual server URL
+const baseUrl = 'http://localhost:3000' || 'www.pick6.club'; 
 
 // Function to update user points
 export async function updateUserPoints(username: string, additionalPoints: number, poolName: string): Promise<void> {
+    if (additionalPoints === 0) {
+        console.log('No points to update for:', username);
+        return;
+    }
+
     try {
+        console.log(`Updating points for ${username}: ${additionalPoints} points in pool ${poolName}`);
         const response = await fetch(`${baseUrl}/pools/updateUserPointsInPoolByName`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -26,6 +32,7 @@ export async function updateUserPoints(username: string, additionalPoints: numbe
 // Function to update user stats
 export async function updateUserStats(username: string, poolName: string, winIncrement: number = 0, lossIncrement: number = 0, pushIncrement: number = 0): Promise<void> {
     try {
+        console.log(`Updating stats for ${username} in pool ${poolName} - Wins: ${winIncrement}, Losses: ${lossIncrement}, Pushes: ${pushIncrement}`);
         const response = await fetch(`${baseUrl}/pools/updateUserStatsInPoolByName`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -46,24 +53,36 @@ export async function updateUserStats(username: string, poolName: string, winInc
 // Function to save results to the server
 let scoresUpdated = false;
 
-export async function saveResultsToServer(results: any[]): Promise<void> {
+// Function to save results to the server
+export async function saveResultsToServer(newResults: any[]): Promise<void> {
     try {
-        const response = await fetch(`${baseUrl}/api/saveResults`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ results })
-        });
-        const data = await response.json();
-        if (!data.success) {
-            throw new Error(data.message || 'Failed to save results');
+        const database = await connectToDatabase();
+        const resultsCollection = database.collection('betResultsGlobal');
+
+        const existingResultsDoc = await resultsCollection.findOne({ identifier: 'currentResults' });
+
+        if (existingResultsDoc) {
+            // If there are existing results, append new results to the existing array
+            const updatedResults = existingResultsDoc.results.concat(newResults);
+            await resultsCollection.updateOne(
+                { identifier: 'currentResults' },
+                { $set: { results: updatedResults, updated: new Date() } }
+            );
+        } else {
+            // If no existing results, create a new document
+            await resultsCollection.insertOne({
+                identifier: 'currentResults',
+                results: newResults,
+                updated: new Date()
+            });
         }
         console.log('Results saved successfully');
-        scoresUpdated = true; // Set flag to indicate scores were updated
     } catch (error) {
         console.error('Failed to save results:', error);
         throw error;
     }
 }
+
 
 export async function deleteResultsFromServer(): Promise<void> {
     try {
@@ -154,7 +173,7 @@ export function calculatePointsForResult({ result, odds, type }: { result: strin
     return points;
 }
 
-async function fetchPicksData(username: string, poolName: string): Promise<any> {
+export async function fetchPicksData(username: string, poolName: string): Promise<any> {
     const database = await connectToDatabase();
     const picksCollection = database.collection('userPicks');
     return picksCollection.findOne({ username: username.toLowerCase(), poolName });

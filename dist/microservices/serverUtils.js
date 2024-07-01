@@ -3,13 +3,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateTuesdayStartTime = exports.updateThursdayDeadline = exports.savePicksToLastWeek = exports.calculatePointsForResult = exports.getBetResult = exports.getAllPicks = exports.deleteResultsFromServer = exports.saveResultsToServer = exports.updateUserStats = exports.updateUserPoints = void 0;
+exports.updateTuesdayStartTime = exports.updateThursdayDeadline = exports.savePicksToLastWeek = exports.fetchPicksData = exports.calculatePointsForResult = exports.getBetResult = exports.getAllPicks = exports.deleteResultsFromServer = exports.saveResultsToServer = exports.updateUserStats = exports.updateUserPoints = void 0;
 const node_fetch_1 = __importDefault(require("node-fetch"));
 const connectDB_1 = require("../microservices/connectDB");
-const baseUrl = 'http://localhost:3000' || 'www.pick6.club'; // Replace with your actual server URL
+const baseUrl = 'http://localhost:3000' || 'www.pick6.club';
 // Function to update user points
 async function updateUserPoints(username, additionalPoints, poolName) {
+    if (additionalPoints === 0) {
+        console.log('No points to update for:', username);
+        return;
+    }
     try {
+        console.log(`Updating points for ${username}: ${additionalPoints} points in pool ${poolName}`);
         const response = await (0, node_fetch_1.default)(`${baseUrl}/pools/updateUserPointsInPoolByName`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -32,6 +37,7 @@ exports.updateUserPoints = updateUserPoints;
 // Function to update user stats
 async function updateUserStats(username, poolName, winIncrement = 0, lossIncrement = 0, pushIncrement = 0) {
     try {
+        console.log(`Updating stats for ${username} in pool ${poolName} - Wins: ${winIncrement}, Losses: ${lossIncrement}, Pushes: ${pushIncrement}`);
         const response = await (0, node_fetch_1.default)(`${baseUrl}/pools/updateUserStatsInPoolByName`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -53,19 +59,26 @@ async function updateUserStats(username, poolName, winIncrement = 0, lossIncreme
 exports.updateUserStats = updateUserStats;
 // Function to save results to the server
 let scoresUpdated = false;
-async function saveResultsToServer(results) {
+// Function to save results to the server
+async function saveResultsToServer(newResults) {
     try {
-        const response = await (0, node_fetch_1.default)(`${baseUrl}/api/saveResults`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ results })
-        });
-        const data = await response.json();
-        if (!data.success) {
-            throw new Error(data.message || 'Failed to save results');
+        const database = await (0, connectDB_1.connectToDatabase)();
+        const resultsCollection = database.collection('betResultsGlobal');
+        const existingResultsDoc = await resultsCollection.findOne({ identifier: 'currentResults' });
+        if (existingResultsDoc) {
+            // If there are existing results, append new results to the existing array
+            const updatedResults = existingResultsDoc.results.concat(newResults);
+            await resultsCollection.updateOne({ identifier: 'currentResults' }, { $set: { results: updatedResults, updated: new Date() } });
+        }
+        else {
+            // If no existing results, create a new document
+            await resultsCollection.insertOne({
+                identifier: 'currentResults',
+                results: newResults,
+                updated: new Date()
+            });
         }
         console.log('Results saved successfully');
-        scoresUpdated = true; // Set flag to indicate scores were updated
     }
     catch (error) {
         console.error('Failed to save results:', error);
@@ -173,6 +186,7 @@ async function fetchPicksData(username, poolName) {
     const picksCollection = database.collection('userPicks');
     return picksCollection.findOne({ username: username.toLowerCase(), poolName });
 }
+exports.fetchPicksData = fetchPicksData;
 // Function to save picks to last week's collection
 async function savePicksToLastWeek() {
     try {

@@ -1247,6 +1247,7 @@ button:hover {
     width: 100%;
     padding: 25px;
     box-sizing: border-box; /* Include padding and border in width */
+
 }
 
 /* Scrollable Container */
