@@ -191,7 +191,3 @@ node_cron_1.default.schedule('0 19 * * 4', () => {
     console.log("Updating Tuesday start time to the upcoming Tuesday");
     (0, serverUtils_1.updateTuesdayStartTime)();
 });
-node_cron_1.default.schedule('15 15 * * 1', () => {
-    console.log("Testing scoring");
-    fetchMLBScores();
-});

@@ -229,7 +229,3 @@ cron.schedule('0 19 * * 4', () => {
 });
 
 
-cron.schedule('15 15 * * 1', () => {
-  console.log("Testing scoring");
-  fetchMLBScores();
-});
