@@ -828,8 +828,8 @@ function processBookmakers(nflTeams, bookmakers, commenceTime, homeTeam, awayTea
 }
 
 
-document.getElementById('savePicksButton').addEventListener('click', saveWeeklyPicks);
-document.getElementById('fetchOddsButton').addEventListener('click', fetchMLBData);
+//document.getElementById('savePicksButton').addEventListener('click', saveWeeklyPicks);
+//document.getElementById('fetchOddsButton').addEventListener('click', fetchMLBData);
 
 async function saveWeeklyPicks() {
  const picksData = betOptions;
@@ -1093,7 +1093,7 @@ async function fetchAndSaveInjuries() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const fetchAndSaveInjuriesBtn = document.getElementById('fetchAndSaveInjuriesBtn');
+   // const fetchAndSaveInjuriesBtn = document.getElementById('fetchAndSaveInjuriesBtn');
     const displayInjuriesBtn = document.getElementById('displayInjuriesBtn');
     const injuryContainer = document.getElementById('injuryContainer');
     const teamFilter = document.getElementById('teamFilter');
@@ -1101,7 +1101,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initially hide the injury container
     injuryContainer.classList.add('hidden-border'); // Add the hidden-border class initially
 
-    fetchAndSaveInjuriesBtn.addEventListener('click', async () => {
+  /*  fetchAndSaveInjuriesBtn.addEventListener('click', async () => {
         try {
             const response = await fetch('/api/fetchAndSaveInjuries');
             if (!response.ok) {
@@ -1111,7 +1111,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error fetching and saving injuries:', error);
         }
-    });
+    });*/
 
     displayInjuriesBtn.addEventListener('click', async () => {
         try {
