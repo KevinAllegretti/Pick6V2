@@ -534,7 +534,20 @@ document.addEventListener('DOMContentLoaded', function() {
     
     
 });
-    
+
+//testing purposes
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the current URL
+    var currentUrl = window.location.href;
+
+    // Parse the URL to remove query parameters
+    var url = new URL(currentUrl);
+    url.search = ''; // Remove query parameters
+
+    // Use replaceState to update the URL in the browser without reloading the page
+    window.history.replaceState({}, document.title, url.pathname);
+});
 
 
 //START OF POOLS AND PLAYERROWS
@@ -803,6 +816,8 @@ function setChatMode(button) {
     const chatBox = chatWrapper.querySelector('.chat-box');
     fetchMessages(poolName, chatBox);
 }
+
+
 
 // Update fetchMessages function
 function fetchMessages(poolName, chatBox) {
