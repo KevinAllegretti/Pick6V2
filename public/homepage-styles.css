@@ -1132,20 +1132,6 @@ button:hover {
 
 
 
-.delete-pool-button {
-    position: absolute;
-    right: 10px; /* Adjust as necessary to move it closer to the right edge of the pool */
-    bottom: -20px; /* Adjust this value to move closer to the bottom edge of the pool */
-    padding: 10px 20px; /* Match the padding of your Create Pool button */
-    background-color: #033; /* Background color to match the Create Pool button */
-    color: #0ff; /* Text color to match the Create Pool button */
-    border: 1px solid #0af; /* Border color to match the Create Pool button */
-    border-radius: 5px; /* Border radius to match the Create Pool button */
-    cursor: pointer;
-    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
-    font-weight: bold; /* If the Create Pool button has bold text */
-    font-size: .9em; /* Adjust font size as needed */
-}
 
 /* Styling for headers */
 .pool-header > span {
@@ -1310,7 +1296,7 @@ button:hover {
 /* Delete Pool Button */
 .delete-pool-button {
     position: absolute; /* Stay within the pool-and-delete-container */
-    right: 40px;
+    right: 0px;
     bottom: -10px;
     padding: 10px 20px;
     background-color: #033;
@@ -1318,7 +1304,7 @@ button:hover {
     border: 1px solid #0af;
     border-radius: 5px;
     cursor: pointer;
-    box-shadow: 0 0 5px #0af, 0 0 10px #0af, 0 0 15px #0af;
+    box-shadow: 0 0 5px #0af, 0 0 5px #0af, 0 0 5px #0af;
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
     font-weight: bold;
     font-size: .9em;
