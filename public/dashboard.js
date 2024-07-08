@@ -898,62 +898,6 @@ if (now > thursdayDeadline) {
 
 
 
-/* In the updates, alos put in the ones that are one timers.
-then put the ones that need to stay constant within the respective enable feature function
-*/
-
-/*
-function scheduleTask(time, taskFunction) {
-    const now = getCurrentTimeInUTC4();
-    const timeUntilTask = time - now;
-
-    if (timeUntilTask <= 0) {
-        // If the scheduled time has already passed, reschedule for the next week
-        time.setDate(time.getDate() + 7);
-    }
-
-    const updatedTimeUntilTask = time - now;
-
-    setTimeout(() => {
-        taskFunction();
-        scheduleTask(time, taskFunction); // Reschedule for the next week
-    }, updatedTimeUntilTask);
-}
-
-function scheduleAllTasks() {
-    // Fetch the stored times from the database
-    fetch('/api/timewindows')
-        .then(response => response.json())
-        .then(times => {
-            const { tuesdayStartTime, thursdayDeadline } = times;
-
-            const tuesdayTime = new Date(tuesdayStartTime);
-            const thursdayTime = new Date(thursdayDeadline);
-
-            console.log("Tuesday Start Time:", tuesdayStartTime);
-            console.log("Thursday Deadline Time:", thursdayDeadline);
-            scheduleTask(tuesdayTime, () => {
-                console.log("Executing Tuesday update tasks");
-
-                updateThursdayDeadline();
-            });
-
-            scheduleTask(thursdayTime, () => {
-                console.log("Executing Thursday update tasks");
-
-                updateTuesdayStartTime();
-            });
-
-        })
-        .catch(error => {
-            console.error('Error fetching time windows:', error);
-        });
-}
-
-// Call this function to start the scheduling process
-scheduleAllTasks();
-
-*/
 
 
 async function fetchTimeWindows() {
