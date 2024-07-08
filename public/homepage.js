@@ -472,8 +472,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     document.addEventListener('click', function(event) {
-        if (event.target.closest('.player-username')) {
-            const username = event.target.closest('.player-username').textContent.trim();
+        if (event.target.closest('.player-username') || event.target.closest('.player-profile-pic')) {
+            const username = event.target.closest('.player-user').querySelector('.player-username').textContent.trim()
             showInPoolUserProfile(username);
         }
     });
