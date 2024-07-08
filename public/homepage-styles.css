@@ -1238,6 +1238,7 @@ button:hover {
     justify-content: center; /* Center horizontally */
     width: 100%;
     margin: 20px 0;
+    margin-right: 48px;
 }
 
 /* Pool Wrapper */
