@@ -678,14 +678,14 @@ h2 {
 
 
 .pool-name {
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'exo', sans-serif;
     font-size: 20px;
     color: #0a0f22;
     text-shadow: 
-    -1px -1px 0 #0ff,  
-    1px -1px 0 #0ff,
-    -1px 1px 0 #0ff,
-    1px 1px 0 #0ff;
+    -.5px -.5px 0 #0ff,  
+    .5px -.5px 0 #0ff,
+    -.5px .5px 0 #0ff,
+    .5px .5px 0 #0ff;
     text-align: left; /* Align text to the left */
     width: 100%; /* Takes the full width of its parent */
     margin-bottom: 5px; /* Space between pool name and container */
