@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import fetch from 'node-fetch';
-import { fetchAndSaveInjuries } from './InjuryServices';
+//import { fetchAndSaveInjuries } from './src/InjuryRoutes.ts';
 import { updateUserPoints, updateUserStats, saveResultsToServer, 
     deleteResultsFromServer, getAllPicks, getBetResult, calculatePointsForResult, 
     savePicksToLastWeek,   updateThursdayDeadline,
@@ -228,7 +228,3 @@ cron.schedule('0 19 * * 4', () => {
 });
 
 
-cron.schedule('0 8 * * *', async () => {
-    console.log('Running the injury fetch and save task at 8 AM');
-    await fetchAndSaveInjuries();
-});

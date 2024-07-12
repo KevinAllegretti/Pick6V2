@@ -873,6 +873,30 @@ function getCurrentTimeInUTC4() {
 
 const now = getCurrentTimeInUTC4();
 
+// Set Thursday deadline
+let thursdayDeadline = new Date(now);
+thursdayDeadline.setDate(now.getDate() + ((4 + 7 - now.getDay()) % 7));
+thursdayDeadline.setHours(19, 0, 0, 0); // 7 PM EST
+thursdayDeadline.setMinutes(thursdayDeadline.getMinutes() + thursdayDeadline.getTimezoneOffset());
+thursdayDeadline.setHours(thursdayDeadline.getHours() - 4); // Convert UTC to EST (UTC-4)
+
+// Set Tuesday start time
+let tuesdayStartTime = new Date(now);
+tuesdayStartTime.setDate(now.getDate() + ((2 + 7 - now.getDay()) % 7));
+tuesdayStartTime.setHours(0, 0, 0, 0); // 12 AM EST
+tuesdayStartTime.setMinutes(tuesdayStartTime.getMinutes() + tuesdayStartTime.getTimezoneOffset());
+tuesdayStartTime.setHours(tuesdayStartTime.getHours() - 4); // Convert UTC to EST (UTC-4)
+
+// Adjust if current time is past this week's Tuesday 12 AM
+if (now > tuesdayStartTime) {
+    tuesdayStartTime.setDate(tuesdayStartTime.getDate() + 7); // Move to next Tuesday
+}
+
+// Adjust if current time is past this week's Thursday 7 PM
+if (now > thursdayDeadline) {
+    thursdayDeadline.setDate(thursdayDeadline.getDate() + 7); // Move to next Thursday
+}
+
 
 
 
@@ -970,7 +994,17 @@ function checkGameTime() {
     document.getElementById('resetPicks').addEventListener('click', resetPicks);
     document.getElementById('submitPicks').addEventListener('click', submitUserPicks);
 
-
+async function fetchAndSaveInjuries() {
+    try {
+        const response = await fetch('/api/fetchAndSaveInjuries');
+        if (!response.ok) {
+            throw new Error('Network response was not ok.');
+        }
+        console.log('Injuries fetched and saved successfully.');
+    } catch (error) {
+        console.error('Error fetching and saving injuries:', error);
+    }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
    // const fetchAndSaveInjuriesBtn = document.getElementById('fetchAndSaveInjuriesBtn');
