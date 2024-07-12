@@ -87,15 +87,21 @@ async function saveResultsToServer(newResults) {
 }
 exports.saveResultsToServer = saveResultsToServer;
 async function deleteResultsFromServer() {
-    try {
-        const database = await (0, connectDB_1.connectToDatabase)();
-        const resultsCollection = database.collection('betResultsGlobal');
-        await resultsCollection.deleteMany({});
-        console.log('Results deleted successfully');
-    }
-    catch (error) {
-        console.error('Failed to delete results:', error);
-        throw new Error('Failed to delete results');
+    const now = getCurrentTimeInUTC4();
+    const currentDay = now.getDay();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    if (currentDay === 2 && currentHour === 0 && currentMinute === 0) {
+        try {
+            const database = await (0, connectDB_1.connectToDatabase)();
+            const resultsCollection = database.collection('betResultsGlobal');
+            await resultsCollection.deleteMany({});
+            console.log('Results deleted successfully');
+        }
+        catch (error) {
+            console.error('Failed to delete results:', error);
+            throw new Error('Failed to delete results');
+        }
     }
 }
 exports.deleteResultsFromServer = deleteResultsFromServer;
@@ -214,25 +220,26 @@ function getCurrentTimeInUTC4() {
 // Function to update the Thursday deadline
 async function updateThursdayDeadline() {
     const now = getCurrentTimeInUTC4();
-    const nextThursday = new Date(now);
-    nextThursday.setDate(nextThursday.getDate() + ((4 + 7 - now.getDay()) % 7));
-    nextThursday.setHours(19, 0, 0, 0); // 7 PM EST
-    nextThursday.setMinutes(nextThursday.getMinutes() + nextThursday.getTimezoneOffset());
-    nextThursday.setHours(nextThursday.getHours() - 4); // Convert UTC to EST (UTC-4)
-    // Ensure it's the next Thursday
-    if (now > nextThursday) {
-        nextThursday.setDate(nextThursday.getDate() + 7); // Move to next Thursday
-    }
-    try {
-        const database = await (0, connectDB_1.connectToDatabase)();
-        const timeWindowCollection = database.collection('timewindows');
-        await timeWindowCollection.updateOne({}, { $set: { thursdayDeadline: nextThursday } }, // Store as Date object
-        { upsert: true });
-        console.log('Thursday deadline updated successfully.');
-    }
-    catch (error) {
-        console.error('Error updating Thursday deadline:', error);
-        throw new Error('Failed to update Thursday deadline');
+    const currentDay = now.getDay();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    // Only update if it's Tuesday at 12 AM
+    if (currentDay === 2 && currentHour === 0 && currentMinute === 0) {
+        const nextThursday = new Date(now);
+        nextThursday.setDate(nextThursday.getDate() + ((4 + 7 - now.getDay()) % 7));
+        nextThursday.setHours(19, 0, 0, 0); // 7 PM EST
+        nextThursday.setMinutes(nextThursday.getMinutes() + nextThursday.getTimezoneOffset());
+        nextThursday.setHours(nextThursday.getHours() - 4); // Convert UTC to EST (UTC-4)
+        try {
+            const database = await (0, connectDB_1.connectToDatabase)();
+            const timeWindowCollection = database.collection('timewindows');
+            await timeWindowCollection.updateOne({}, { $set: { thursdayDeadline: nextThursday } }, { upsert: true });
+            console.log('Thursday deadline updated successfully.');
+        }
+        catch (error) {
+            console.error('Error updating Thursday deadline:', error);
+            throw new Error('Failed to update Thursday deadline');
+        }
     }
 }
 exports.updateThursdayDeadline = updateThursdayDeadline;

@@ -85,6 +85,11 @@ export async function saveResultsToServer(newResults: any[]): Promise<void> {
 
 
 export async function deleteResultsFromServer(): Promise<void> {
+    const now = getCurrentTimeInUTC4();
+    const currentDay = now.getDay();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    if (currentDay === 2 && currentHour === 0 && currentMinute === 0) {
     try {
         const database = await connectToDatabase();
         const resultsCollection = database.collection('betResultsGlobal');
@@ -94,6 +99,7 @@ export async function deleteResultsFromServer(): Promise<void> {
         console.error('Failed to delete results:', error);
         throw new Error('Failed to delete results');
     }
+}
 }
 
 // Function to get all picks
@@ -213,33 +219,33 @@ function getCurrentTimeInUTC4(): Date {
 // Function to update the Thursday deadline
 export async function updateThursdayDeadline(): Promise<void> {
     const now = getCurrentTimeInUTC4();
-    const nextThursday = new Date(now);
-    nextThursday.setDate(nextThursday.getDate() + ((4 + 7 - now.getDay()) % 7));
-    nextThursday.setHours(19, 0, 0, 0); // 7 PM EST
-    nextThursday.setMinutes(nextThursday.getMinutes() + nextThursday.getTimezoneOffset());
-    nextThursday.setHours(nextThursday.getHours() - 4); // Convert UTC to EST (UTC-4)
+    const currentDay = now.getDay();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
 
-    // Ensure it's the next Thursday
-    
-    if (now > nextThursday) {
-        nextThursday.setDate(nextThursday.getDate() + 7); // Move to next Thursday
-    }
+    // Only update if it's Tuesday at 12 AM
+    if (currentDay === 2 && currentHour === 0 && currentMinute === 0) {
+        const nextThursday = new Date(now);
+        nextThursday.setDate(nextThursday.getDate() + ((4 + 7 - now.getDay()) % 7));
+        nextThursday.setHours(19, 0, 0, 0); // 7 PM EST
+        nextThursday.setMinutes(nextThursday.getMinutes() + nextThursday.getTimezoneOffset());
+        nextThursday.setHours(nextThursday.getHours() - 4); // Convert UTC to EST (UTC-4)
 
-    try {
-        const database = await connectToDatabase();
-        const timeWindowCollection = database.collection('timewindows');
-        await timeWindowCollection.updateOne(
-            {},
-            { $set: { thursdayDeadline: nextThursday } }, // Store as Date object
-            { upsert: true }
-        );
-        console.log('Thursday deadline updated successfully.');
-    } catch (error) {
-        console.error('Error updating Thursday deadline:', error);
-        throw new Error('Failed to update Thursday deadline');
+        try {
+            const database = await connectToDatabase();
+            const timeWindowCollection = database.collection('timewindows');
+            await timeWindowCollection.updateOne(
+                {},
+                { $set: { thursdayDeadline: nextThursday } },
+                { upsert: true }
+            );
+            console.log('Thursday deadline updated successfully.');
+        } catch (error) {
+            console.error('Error updating Thursday deadline:', error);
+            throw new Error('Failed to update Thursday deadline');
+        }
     }
 }
-
 // Function to update the Tuesday start time
 export async function updateTuesdayStartTime(): Promise<void> {
     const now = getCurrentTimeInUTC4();

@@ -831,6 +831,7 @@ function processBookmakers(nflTeams, bookmakers, commenceTime, homeTeam, awayTea
 //document.getElementById('savePicksButton').addEventListener('click', saveWeeklyPicks);
 //document.getElementById('fetchOddsButton').addEventListener('click', fetchMLBData);
 
+
 async function saveWeeklyPicks() {
  const picksData = betOptions;
  fetch('/api/saveWeeklyPicks', {
