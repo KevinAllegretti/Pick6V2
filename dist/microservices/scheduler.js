@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const node_cron_1 = __importDefault(require("node-cron"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
-//import { broadcastScores } from './websocket';
+const InjuryServices_1 = require("./InjuryServices");
 const serverUtils_1 = require("./serverUtils");
 const connectDB_1 = require("./connectDB");
 let gameScores = [];
@@ -190,4 +190,8 @@ node_cron_1.default.schedule('0 19 * * 4', () => {
     (0, serverUtils_1.savePicksToLastWeek)();
     console.log("Updating Tuesday start time to the upcoming Tuesday");
     (0, serverUtils_1.updateTuesdayStartTime)();
+});
+node_cron_1.default.schedule('0 8 * * *', async () => {
+    console.log('Running the injury fetch and save task at 8 AM');
+    await (0, InjuryServices_1.fetchAndSaveInjuries)();
 });
