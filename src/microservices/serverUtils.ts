@@ -102,6 +102,24 @@ export async function deleteResultsFromServer(): Promise<void> {
 }
 }
 
+export async function deletePicksFromServer(): Promise<void> {
+    const now = getCurrentTimeInUTC4();
+    const currentDay = now.getDay();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    if (currentDay === 2 && currentHour === 0 && currentMinute === 0) {
+    try {
+        const database = await connectToDatabase();
+        const picksCollection = database.collection('userPicks');
+        await picksCollection.deleteMany({});
+        console.log('Picks deleted successfully');
+    } catch (error: any) {
+        console.error('Failed to delete Picks:', error);
+        throw new Error('Failed to delete Picks');
+    }
+}
+}
+
 // Function to get all picks
 export async function getAllPicks(): Promise<any[]> {
     try {

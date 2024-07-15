@@ -4,7 +4,7 @@ import fetch from 'node-fetch';
 import { updateUserPoints, updateUserStats, saveResultsToServer, 
     deleteResultsFromServer, getAllPicks, getBetResult, calculatePointsForResult, 
     savePicksToLastWeek,   updateThursdayDeadline,
-    updateTuesdayStartTime } from './serverUtils';
+    updateTuesdayStartTime, deletePicksFromServer} from './serverUtils';
 import { connectToDatabase } from './connectDB';
 let gameScores: any[] = [];
 
@@ -216,6 +216,7 @@ cron.schedule('30 23 * * 1', () => {
 cron.schedule('0 0 * * 2', () => {
     console.log("It's Tuesday 12:00 AM, now deleting results");
     deleteResultsFromServer();
+    deletePicksFromServer();
     console.log("Updating Thursday deadline to the upcoming Thursday");
     updateThursdayDeadline();
 });
@@ -226,5 +227,4 @@ cron.schedule('0 19 * * 4', () => {
     console.log("Updating Tuesday start time to the upcoming Tuesday");
     updateTuesdayStartTime();
 });
-
 

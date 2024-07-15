@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateTuesdayStartTime = exports.updateThursdayDeadline = exports.savePicksToLastWeek = exports.fetchPicksData = exports.calculatePointsForResult = exports.getBetResult = exports.getAllPicks = exports.deleteResultsFromServer = exports.saveResultsToServer = exports.updateUserStats = exports.updateUserPoints = void 0;
+exports.updateTuesdayStartTime = exports.updateThursdayDeadline = exports.savePicksToLastWeek = exports.fetchPicksData = exports.calculatePointsForResult = exports.getBetResult = exports.getAllPicks = exports.deletePicksFromServer = exports.deleteResultsFromServer = exports.saveResultsToServer = exports.updateUserStats = exports.updateUserPoints = void 0;
 const node_fetch_1 = __importDefault(require("node-fetch"));
 const connectDB_1 = require("../microservices/connectDB");
 const baseUrl = 'http://localhost:3000' || 'www.pick6.club';
@@ -105,6 +105,25 @@ async function deleteResultsFromServer() {
     }
 }
 exports.deleteResultsFromServer = deleteResultsFromServer;
+async function deletePicksFromServer() {
+    const now = getCurrentTimeInUTC4();
+    const currentDay = now.getDay();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    if (currentDay === 2 && currentHour === 0 && currentMinute === 0) {
+        try {
+            const database = await (0, connectDB_1.connectToDatabase)();
+            const picksCollection = database.collection('userPicks');
+            await picksCollection.deleteMany({});
+            console.log('Picks deleted successfully');
+        }
+        catch (error) {
+            console.error('Failed to delete Picks:', error);
+            throw new Error('Failed to delete Picks');
+        }
+    }
+}
+exports.deletePicksFromServer = deletePicksFromServer;
 // Function to get all picks
 async function getAllPicks() {
     try {
