@@ -415,7 +415,7 @@ h1 {
         left: -100%; /* Start off-screen to the left */
         width: 60%; /* Takes up half the screen width */
         height: 100%; /* Full screen height */
-        background-color: #0a0f22; /* Dark background */
+        background-color: #17203a; /* Dark background */
         border-right: 2px solid #33d9ff; /* Neon blue border */
         box-shadow: 5px 0 10px rgba(0, 0, 0, 0.5); /* Soft shadow to the right */
         overflow-y: auto; /* In case the content overflows */
