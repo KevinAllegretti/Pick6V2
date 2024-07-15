@@ -582,7 +582,7 @@ h4 {
     background-color: rgba(255, 255, 255, 0.1); /* Subtle background */
     transition: background-color 0.3s ease;
     color: #fff;
-    font-family: 'quantico', sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     width: 100%
     /* Other styles... */
   }
