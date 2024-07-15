@@ -216,7 +216,7 @@ async function wasPickMadeLastWeek(username, poolName, currentPick) {
  
  // If the username exists in localStorage, update the h1 element
  if (storedUsername) {
- document.querySelector('h1').textContent = `Welcome, ${storedUsername}!`;
+ document.querySelector('h1').textContent = `Welcome ${storedUsername}, to the Pick Selection page!`;
  }
 
  //setting this here for test
