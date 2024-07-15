@@ -1179,6 +1179,8 @@ button:hover {
     align-items: center;
     justify-content: flex-end; /* Align items to the bottom of the container */
     width: 100%;
+   font-family: 'quantico', sans-serif;
+
 }
 
 .pick img, .immortal-lock img {
@@ -1353,6 +1355,8 @@ button:hover {
     font-size: 16px;  /* Adjust for readability */
     border: solid 2px #33d9ff;
     margin-right:40px;
+    font-family: 'montserrat', 'sans-serif';
+    text-transform: uppercase;
 }
 
 .chat-tab:hover {
