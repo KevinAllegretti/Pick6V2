@@ -854,11 +854,26 @@ function renderMessages(messages, chatBox) {
     messages.forEach(msg => {
         const prefix = msg.poolName ? '[L]' : '[G]';
         const messageElement = document.createElement('div');
-        messageElement.textContent = `${prefix} ${msg.username}: ${msg.message}`;
+
+        // Create a span for the username with a specific color
+        const usernameSpan = document.createElement('span');
+        usernameSpan.style.color = '#33d9ff'; 
+        usernameSpan.textContent = `${msg.username}: `;
+
+        // Create a span for the message
+        const messageSpan = document.createElement('span');
+        messageSpan.textContent = msg.message;
+
+        // Append the username and message spans to the message element
+        messageElement.appendChild(document.createTextNode(`${prefix} `));
+        messageElement.appendChild(usernameSpan);
+        messageElement.appendChild(messageSpan);
+
         chatBox.appendChild(messageElement);
     });
     chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom of the chat box
 }
+
 
 // Ensure the mode is set and messages are fetched accordingly when the chat is toggled
 function toggleChat(chatTab) {
