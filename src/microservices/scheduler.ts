@@ -5,6 +5,7 @@ import { updateUserPoints, updateUserStats, saveResultsToServer,
     deleteResultsFromServer, getAllPicks, getBetResult, calculatePointsForResult, 
     savePicksToLastWeek,   updateThursdayDeadline,
     updateTuesdayStartTime, deletePicksFromServer} from './serverUtils';
+    import { fetchAndSaveInjuries } from './InjuryServices';
 import { connectToDatabase } from './connectDB';
 let gameScores: any[] = [];
 
@@ -226,5 +227,10 @@ cron.schedule('0 19 * * 4', () => {
     savePicksToLastWeek();
     console.log("Updating Tuesday start time to the upcoming Tuesday");
     updateTuesdayStartTime();
+});
+
+cron.schedule('0 08 * * *', () => {
+    console.log("It's 8:00am fetching and saving injuries");
+    fetchAndSaveInjuries();
 });
 

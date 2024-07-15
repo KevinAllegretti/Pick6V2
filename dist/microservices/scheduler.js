@@ -7,6 +7,7 @@ const node_cron_1 = __importDefault(require("node-cron"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
 //import { fetchAndSaveInjuries } from './src/InjuryRoutes.ts';
 const serverUtils_1 = require("./serverUtils");
+const InjuryServices_1 = require("./InjuryServices");
 const connectDB_1 = require("./connectDB");
 let gameScores = [];
 const mlbToNflMap = {
@@ -191,4 +192,8 @@ node_cron_1.default.schedule('0 19 * * 4', () => {
     (0, serverUtils_1.savePicksToLastWeek)();
     console.log("Updating Tuesday start time to the upcoming Tuesday");
     (0, serverUtils_1.updateTuesdayStartTime)();
+});
+node_cron_1.default.schedule('0 08 * * *', () => {
+    console.log("It's 8:00am fetching and saving injuries");
+    (0, InjuryServices_1.fetchAndSaveInjuries)();
 });
