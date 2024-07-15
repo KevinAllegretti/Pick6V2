@@ -63,7 +63,7 @@ body {
     object-fit: cover;
     border: 3px solid #33d9ff; /* Light blue border, made slightly thicker */
     cursor: pointer; /* Optional: if you want it to indicate it's clickable */
-    background-color: #0a0f22; /* Dark blue background, to match the slide-out panel */
+    background-color: #17203a; /* Dark blue background, to match the slide-out panel */
 }
 
 .slide-out-panel {
@@ -72,7 +72,7 @@ body {
     left: -100%; /* Start off-screen to the left */
     width: 45%; /* Takes up half the screen width */
     height: 100%; /* Full screen height */
-    background-color: #0a0f22; /* Dark background */
+    background-color: #17203a; /* Dark background */
     border-right: 2px solid #33d9ff; /* Neon blue border */
     box-shadow: 5px 0 10px rgba(0, 0, 0, 0.5); /* Soft shadow to the right */
     overflow-y: auto; /* In case the content overflows */
@@ -89,7 +89,7 @@ body {
 .close-panel-btn {
     width: 40px; 
     height: 40px; 
-    background-color: #0a0f22; 
+    background-color: #17203a; 
     border: 2px solid #33d9ff; 
     border-radius: 10px; 
     color: #FFF; 
@@ -492,7 +492,7 @@ h2 {
     height: 80px; /* Adjusted for better text fit */
     margin: 0 auto;
     top: -10%;
-    background-color: #0a0f22;
+    background-color: #17203a;
      border: 2px solid #00ccff;
     border-radius: 2px;
 }
@@ -516,11 +516,11 @@ h2 {
 .rule-book-button:hover .neon-book::before,
 .rule-book-button:hover .neon-book::after {
     background-color: rgba(0, 204, 255, 0.8);
-    color: #0a0f22;
+    color: #17203a;
 }
 
 .rule-book-button:hover .rule-book-text{
-    color: #0a0f22;
+    color: #17203a;
 }
 
 .neon-book::after {
@@ -599,7 +599,7 @@ h2 {
     text-align: center;
     font-size: 1.2em;
     color: #00ccff;
-    background: #121212;
+    background: #17203a;
     border: 2px solid #00ccff;
     border-radius: 50%;
     box-shadow: 0px 4px 15px rgba(0, 204, 255, 0.4);
