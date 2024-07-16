@@ -989,6 +989,14 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
             const picksContainer = playerRow.querySelector('.player-picks');
             picksContainer.innerHTML = '';
 
+              // Log commenceTime values before sorting
+                console.log('Before sorting:', picksData.picks.map(pick => pick.commenceTime));
+
+                // Sort picks by commenceTime before rendering
+                picksData.picks.sort((a, b) => new Date(a.commenceTime) - new Date(b.commenceTime));
+
+                // Log commenceTime values after sorting
+                console.log('After sorting:', picksData.picks.map(pick => pick.commenceTime));
             if (username === localStorage.getItem('username').toLowerCase() || !isPickTime) {
                 // Existing logic to fetch and display picks
                 if (picksData && picksData.picks && Array.isArray(picksData.picks) && picksData.picks.length > 0) {
