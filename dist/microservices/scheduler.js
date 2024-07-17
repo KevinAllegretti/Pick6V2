@@ -160,6 +160,45 @@ async function processPick(username, poolName, pickEntry, gameScores, allResults
         console.error('Error processing bet result:', error);
     }
 }
+const fetchMLBData = async () => {
+    const response = await (0, node_fetch_1.default)('http://localhost:3000/api/fetchMLBData', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch MLB data');
+    }
+    const betOptions = await response.json();
+    console.log('Scheduled bet options:', betOptions);
+    // Return the betOptions to be used for saving
+    return betOptions;
+};
+const saveWeeklyPicks = async (betOptions) => {
+    const response = await (0, node_fetch_1.default)('http://localhost:3000/api/saveWeeklyPicks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ picks: betOptions })
+    });
+    if (!response.ok) {
+        throw new Error('Failed to save weekly picks');
+    }
+    const data = await response.json();
+    if (data.success) {
+        console.log('Picks saved successfully');
+    }
+    else {
+        console.error('Error saving picks');
+    }
+};
+node_cron_1.default.schedule('0 0 * * 2', async () => {
+    try {
+        const betOptions = await fetchMLBData();
+        await saveWeeklyPicks(betOptions);
+    }
+    catch (error) {
+        console.error('Scheduled job failed:', error);
+    }
+});
 node_cron_1.default.schedule('30 23 * * 4', () => {
     console.log("It's Thursday 11:30 PM, now fetching scores");
     fetchMLBScores();
@@ -201,3 +240,6 @@ node_cron_1.default.schedule('33 10 * * *', () => {
     console.log("Updating thursday time");
     (0, serverUtils_1.updateThursdayDeadline)();
 });
+function scheduleJob(arg0, arg1) {
+    throw new Error('Function not implemented.');
+}

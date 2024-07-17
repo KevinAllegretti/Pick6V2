@@ -13,6 +13,7 @@ import { Server } from 'http';
 import fetch from 'node-fetch';
 import '../src/microservices/websocket';  
 import '../src/microservices/scheduler';
+import dashRoutes from '../src/routes/dashRoutes'
 
 require("dotenv").config();
 
@@ -67,7 +68,7 @@ app.get('/dashboard', (req, res) => {
 });
 
 app.use(picksRoutes);
-
+app.use('/api', dashRoutes);
 app.use(profileRoutes);
 
 app.use('/api', InjuryRoutes);

@@ -187,7 +187,50 @@ async function fetchMLBScores() {
     }
 }
 
+const fetchMLBData = async () => {
+    const response = await fetch('http://localhost:3000/api/fetchMLBData', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
   
+    if (!response.ok) {
+      throw new Error('Failed to fetch MLB data');
+    }
+  
+    const betOptions = await response.json();
+    console.log('Scheduled bet options:', betOptions);
+  
+    // Return the betOptions to be used for saving
+    return betOptions;
+  };
+  
+  const saveWeeklyPicks = async (betOptions: any) => {
+    const response = await fetch('http://localhost:3000/api/saveWeeklyPicks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ picks: betOptions })
+    });
+  
+    if (!response.ok) {
+      throw new Error('Failed to save weekly picks');
+    }
+  
+    const data = await response.json();
+    if (data.success) {
+      console.log('Picks saved successfully');
+    } else {
+      console.error('Error saving picks');
+    }
+  };
+  
+ cron.schedule('0 0 * * 2', async () => { // every tuesday
+    try {
+      const betOptions = await fetchMLBData();
+      await saveWeeklyPicks(betOptions);
+    } catch (error) {
+      console.error('Scheduled job failed:', error);
+    }
+  });
 
 cron.schedule('30 23 * * 4', () => {
     console.log("It's Thursday 11:30 PM, now fetching scores");
@@ -238,3 +281,9 @@ cron.schedule('33 10 * * *', () => {
     console.log("Updating thursday time");
     updateThursdayDeadline();
 });
+
+
+function scheduleJob(arg0: string, arg1: () => Promise<void>) {
+    throw new Error('Function not implemented.');
+}
+
