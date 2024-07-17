@@ -1384,7 +1384,7 @@ button:hover {
     transition: max-height 0.3s ease;
     position: relative; /* Changed from absolute to relative */
     top: 0; /* Removed the previous value */
-    right: 0;
+    right: 20px;
 }
 
 .chat-box {

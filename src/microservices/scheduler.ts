@@ -283,7 +283,4 @@ cron.schedule('33 10 * * *', () => {
 });
 
 
-function scheduleJob(arg0: string, arg1: () => Promise<void>) {
-    throw new Error('Function not implemented.');
-}
 
