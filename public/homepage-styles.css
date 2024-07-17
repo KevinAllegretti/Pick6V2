@@ -276,19 +276,9 @@ input[type="file"] {
     text-align: center; /* Center the text horizontally */
     font-size: 24px; /* Increase font size or adjust as needed */
     margin: 20px 0; /* Add some margin around the text for spacing */
-}
-
-.neon-text {
-    color: #00BFFF; /* Light neon blue */
-    font-weight: bold;
-    text-shadow: 0 0 5px #00BFFF, 0 0 10px #00BFFF;
-    transition: text-shadow 0.3s ease-in-out;
     font-family: 'Montserrat', sans-serif;
 }
 
-.neon-text:hover {
-    text-shadow: 0 0 10px #00BFFF, 0 0 20px #00BFFF, 0 0 30px #00BFFF, 0 0 40px #00BFFF, 0 0 90px #00BFFF; /* Enhanced glowing effect on hover */
-}
 
 
 /* Add this CSS to your existing stylesheet */
@@ -687,10 +677,15 @@ h2 {
     -.5px .5px 0 #00ccff,
     .5px .5px 0 #00ccff;
     text-align: left; /* Align text to the left */
-    width: 100%; /* Takes the full width of its parent */
+    max-width:300px ;/* Takes the full width of its parent */
     margin-bottom: 5px; /* Space between pool name and container */
     margin-left: 10px;
+    overflow: hidden;
+    white-space: nowrap;
+    overflow-x: auto;
 }
+
+
 
 .player-card {
     position: relative;
@@ -1147,6 +1142,24 @@ button:hover {
     .content {
         flex: 1; /* reset flex */
     }
+    
+.pool-name {
+    font-family: 'exo', sans-serif;
+    font-size: 20px;
+    color: #0a0f22;
+    text-shadow: 
+    -.5px -.5px 0 #00ccff,  
+    .5px -.5px 0 #00ccff,
+    -.5px .5px 0 #00ccff,
+    .5px .5px 0 #00ccff;
+    text-align: left; /* Align text to the left */
+    max-width:100px ;/* Takes the full width of its parent */
+    margin-bottom: 5px; /* Space between pool name and container */
+    margin-left: 10px;
+    overflow: hidden;
+    white-space: nowrap;
+    overflow-x: auto;
+}
 }
 
 
