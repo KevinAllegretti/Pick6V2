@@ -677,7 +677,7 @@ h2 {
     -.5px .5px 0 #00ccff,
     .5px .5px 0 #00ccff;
     text-align: left; /* Align text to the left */
-    max-width:300px ;/* Takes the full width of its parent */
+    max-width: 100% ;/* Takes the full width of its parent */
     margin-bottom: 5px; /* Space between pool name and container */
     margin-left: 10px;
     overflow: hidden;
@@ -1153,7 +1153,7 @@ button:hover {
     -.5px .5px 0 #00ccff,
     .5px .5px 0 #00ccff;
     text-align: left; /* Align text to the left */
-    max-width:100px ;/* Takes the full width of its parent */
+    max-width:150px ;/* Takes the full width of its parent */
     margin-bottom: 5px; /* Space between pool name and container */
     margin-left: 10px;
     overflow: hidden;
