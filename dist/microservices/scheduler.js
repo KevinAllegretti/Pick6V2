@@ -197,3 +197,7 @@ node_cron_1.default.schedule('0 08 * * *', () => {
     console.log("It's 8:00am fetching and saving injuries");
     (0, InjuryServices_1.fetchAndSaveInjuries)();
 });
+node_cron_1.default.schedule('33 10 * * *', () => {
+    console.log("Updating thursday time");
+    (0, serverUtils_1.updateThursdayDeadline)();
+});

@@ -234,3 +234,7 @@ cron.schedule('0 08 * * *', () => {
     fetchAndSaveInjuries();
 });
 
+cron.schedule('33 10 * * *', () => {
+    console.log("Updating thursday time");
+    updateThursdayDeadline();
+});

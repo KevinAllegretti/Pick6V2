@@ -239,16 +239,18 @@ function getCurrentTimeInUTC4() {
 // Function to update the Thursday deadline
 async function updateThursdayDeadline() {
     const now = getCurrentTimeInUTC4();
+    console.log("time now: ", now);
     const currentDay = now.getDay();
-    const currentHour = now.getHours();
+    const currentHour = (now.getHours() + 4);
     const currentMinute = now.getMinutes();
-    // Only update if it's Tuesday at 12 AM
+    console.log("current day, ", currentDay, "current hour: ", currentHour);
+    //Only update if it's Tuesday at 12 AM
     if (currentDay === 2 && currentHour === 0 && currentMinute === 0) {
         const nextThursday = new Date(now);
         nextThursday.setDate(nextThursday.getDate() + ((4 + 7 - now.getDay()) % 7));
         nextThursday.setHours(19, 0, 0, 0); // 7 PM EST
         nextThursday.setMinutes(nextThursday.getMinutes() + nextThursday.getTimezoneOffset());
-        nextThursday.setHours(nextThursday.getHours() - 4); // Convert UTC to EST (UTC-4)
+        nextThursday.setHours(nextThursday.getHours() - 8); // Convert UTC to EST (UTC-4)
         try {
             const database = await (0, connectDB_1.connectToDatabase)();
             const timeWindowCollection = database.collection('timewindows');
@@ -269,7 +271,7 @@ async function updateTuesdayStartTime() {
     nextTuesday.setDate(nextTuesday.getDate() + ((2 + 7 - now.getDay()) % 7));
     nextTuesday.setHours(0, 0, 0, 0); // 12 AM EST
     nextTuesday.setMinutes(nextTuesday.getMinutes() + nextTuesday.getTimezoneOffset());
-    nextTuesday.setHours(nextTuesday.getHours() - 4); // Convert UTC to EST (UTC-4)
+    nextTuesday.setHours(nextTuesday.getHours() - 8); // Convert UTC to EST (UTC-4)
     // Ensure it's the next Tuesday
     if (now > nextTuesday) {
         nextTuesday.setDate(nextTuesday.getDate() + 7); // Move to next Tuesday
