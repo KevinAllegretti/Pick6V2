@@ -188,7 +188,7 @@ async function fetchMLBScores() {
 }
 
 const fetchMLBData = async () => {
-    const response = await fetch('http://localhost:3000/api/fetchMLBData', {
+    const response = await fetch('http://localhost:3000/api/fetchMLBData' || 'https://pick6.club/api/fetchMLBData', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -205,7 +205,7 @@ const fetchMLBData = async () => {
   };
   
   const saveWeeklyPicks = async (betOptions: any) => {
-    const response = await fetch('http://localhost:3000/api/saveWeeklyPicks', {
+    const response = await fetch('http://localhost:3000/api/saveWeeklyPicks' || 'https://pick6.club/api/fetchMLBData', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ picks: betOptions })

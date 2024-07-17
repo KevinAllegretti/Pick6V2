@@ -161,7 +161,7 @@ async function processPick(username, poolName, pickEntry, gameScores, allResults
     }
 }
 const fetchMLBData = async () => {
-    const response = await (0, node_fetch_1.default)('http://localhost:3000/api/fetchMLBData', {
+    const response = await (0, node_fetch_1.default)('http://localhost:3000/api/fetchMLBData' || 'https://pick6.club/api/fetchMLBData', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
     });
@@ -174,7 +174,7 @@ const fetchMLBData = async () => {
     return betOptions;
 };
 const saveWeeklyPicks = async (betOptions) => {
-    const response = await (0, node_fetch_1.default)('http://localhost:3000/api/saveWeeklyPicks', {
+    const response = await (0, node_fetch_1.default)('http://localhost:3000/api/saveWeeklyPicks' || 'https://pick6.club/api/fetchMLBData', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ picks: betOptions })
