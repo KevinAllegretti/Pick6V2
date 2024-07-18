@@ -192,10 +192,11 @@ async function checkCurrentTimeWindow() {
 
         const { tuesdayStartTime, thursdayDeadline } = await response.json();
         const now = getCurrentTimeInUTC4();
-
+console.log("now: ", now );
         const tuesdayTime = new Date(tuesdayStartTime);
         const thursdayTime = new Date(thursdayDeadline);
-
+        console.log("Tuesday Start time: ", tuesdayTime );
+        console.log("thursday deadline: ", thursdayTime );
         // Check if it is Pick Time or Game Time
         if (now > tuesdayTime && now < thursdayTime) {
             console.log('Current time window: Pick Time');
