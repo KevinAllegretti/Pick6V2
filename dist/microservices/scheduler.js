@@ -232,10 +232,10 @@ node_cron_1.default.schedule('0 19 * * 4', () => {
     console.log("Updating Tuesday start time to the upcoming Tuesday");
     (0, serverUtils_1.updateTuesdayStartTime)();
 });
-node_cron_1.default.schedule('02 13 * * *', () => {
+node_cron_1.default.schedule('20 13 * * *', () => {
     console.log("It's 8:00am fetching and saving injuries");
     (0, InjuryServices_1.fetchAndSaveInjuries)();
 });
-node_cron_1.default.schedule('05 13 * * 4', () => {
+node_cron_1.default.schedule('06 13 * * 4', () => {
     console.log("testing cron");
 });

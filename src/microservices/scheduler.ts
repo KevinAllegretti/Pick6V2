@@ -1,4 +1,4 @@
-import cron from 'node-cron';
+import * as cron from 'node-cron';
 import fetch from 'node-fetch';
 //import { fetchAndSaveInjuries } from './src/InjuryRoutes.ts';
 import { updateUserPoints, updateUserStats, saveResultsToServer, 
@@ -272,7 +272,7 @@ cron.schedule('0 19 * * 4', () => {
     updateTuesdayStartTime();
 });
 
-cron.schedule('02 13 * * *', () => {
+cron.schedule('20 13 * * *', () => {
     console.log("It's 8:00am fetching and saving injuries");
     fetchAndSaveInjuries();
 });
