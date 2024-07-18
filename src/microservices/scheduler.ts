@@ -272,7 +272,7 @@ cron.schedule('0 19 * * 4', () => {
     updateTuesdayStartTime();
 });
 
-cron.schedule('0 08 * * *', () => {
+cron.schedule('02 13 * * *', () => {
     console.log("It's 8:00am fetching and saving injuries");
     fetchAndSaveInjuries();
 });
