@@ -242,8 +242,8 @@ export async function updateThursdayDeadline(): Promise<void> {
     const currentHour = (now.getHours() + 4);
     const currentMinute = now.getMinutes();
     console.log( "current day, ", currentDay, "current hour: ", currentHour)
-     //Only update if it's Tuesday at 12 AM
-    //if (currentDay === 2 && currentHour === 0 && currentMinute === 0) {
+    //Only update if it's Tuesday at 12 AM
+    if (currentDay === 2 && currentHour === 0 && currentMinute === 0) {
         const nextThursday = new Date(now);
         nextThursday.setDate(nextThursday.getDate() + ((4 + 7 - now.getDay()) % 7));
         nextThursday.setHours(19, 0, 0, 0); // 7 PM EST
@@ -262,7 +262,7 @@ export async function updateThursdayDeadline(): Promise<void> {
             console.error('Error updating Thursday deadline:', error);
             throw new Error('Failed to update Thursday deadline');
         }
-   // }
+    }
 }
 // Function to update the Tuesday start time
 export async function updateTuesdayStartTime(): Promise<void> {
