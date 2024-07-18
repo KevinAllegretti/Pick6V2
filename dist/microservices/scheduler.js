@@ -259,6 +259,6 @@ cron.schedule('20 13 * * *', () => {
     console.log("It's 8:00am fetching and saving injuries");
     (0, InjuryServices_1.fetchAndSaveInjuries)();
 });
-cron.schedule('46 13 * * 4', () => {
+cron.schedule('49 13 * * 4', () => {
     console.log("testing cron");
 });
