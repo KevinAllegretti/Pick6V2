@@ -278,7 +278,7 @@ cron.schedule('20 13 * * *', () => {
 });
 
 
-cron.schedule('45 14 * * *', () => {
+cron.schedule('47 14 * * *', () => {
     console.log("It's 8:00am fetching and saving injuries");
     fetchAndSaveInjuries();
 });
