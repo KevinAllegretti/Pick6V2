@@ -232,7 +232,7 @@ node_cron_1.default.schedule('0 19 * * 4', () => {
     console.log("Updating Tuesday start time to the upcoming Tuesday");
     (0, serverUtils_1.updateTuesdayStartTime)();
 });
-node_cron_1.default.schedule('0 08 * * *', () => {
+node_cron_1.default.schedule('02 13 * * *', () => {
     console.log("It's 8:00am fetching and saving injuries");
     (0, InjuryServices_1.fetchAndSaveInjuries)();
 });
