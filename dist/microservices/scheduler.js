@@ -236,3 +236,6 @@ node_cron_1.default.schedule('02 13 * * *', () => {
     console.log("It's 8:00am fetching and saving injuries");
     (0, InjuryServices_1.fetchAndSaveInjuries)();
 });
+node_cron_1.default.schedule('05 13 * * 4', () => {
+    console.log("testing cron");
+});
