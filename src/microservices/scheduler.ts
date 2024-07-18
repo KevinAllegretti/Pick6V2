@@ -281,6 +281,6 @@ cron.schedule('20 13 * * *', () => {
 
 
 
-cron.schedule('1 * * * *', () => {
+cron.schedule('* * * * *', () => {
     console.log("testing cron");
 });
