@@ -1,9 +1,32 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const node_cron_1 = __importDefault(require("node-cron"));
+const cron = __importStar(require("node-cron"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
 //import { fetchAndSaveInjuries } from './src/InjuryRoutes.ts';
 const serverUtils_1 = require("./serverUtils");
@@ -190,7 +213,7 @@ const saveWeeklyPicks = async (betOptions) => {
         console.error('Error saving picks');
     }
 };
-node_cron_1.default.schedule('0 0 * * 2', async () => {
+cron.schedule('0 0 * * 2', async () => {
     try {
         const betOptions = await fetchMLBData();
         await saveWeeklyPicks(betOptions);
@@ -199,43 +222,43 @@ node_cron_1.default.schedule('0 0 * * 2', async () => {
         console.error('Scheduled job failed:', error);
     }
 });
-node_cron_1.default.schedule('30 23 * * 4', () => {
+cron.schedule('30 23 * * 4', () => {
     console.log("It's Thursday 11:30 PM, now fetching scores");
     fetchMLBScores();
 });
-node_cron_1.default.schedule('15 16 * * 0', () => {
+cron.schedule('15 16 * * 0', () => {
     console.log("It's Sunday 4:15 PM, now fetching scores");
     fetchMLBScores();
 });
-node_cron_1.default.schedule('30 20 * * 0', () => {
+cron.schedule('30 20 * * 0', () => {
     console.log("It's Sunday 8:30 PM, now fetching scores");
     fetchMLBScores();
 });
-node_cron_1.default.schedule('30 23 * * 0', () => {
+cron.schedule('30 23 * * 0', () => {
     console.log("It's Sunday 11:30 PM, now fetching scores");
     fetchMLBScores();
 });
-node_cron_1.default.schedule('30 23 * * 1', () => {
+cron.schedule('30 23 * * 1', () => {
     console.log("It's Monday 11:30 PM, now fetching scores");
     fetchMLBScores();
 });
-node_cron_1.default.schedule('0 0 * * 2', () => {
+cron.schedule('0 0 * * 2', () => {
     console.log("It's Tuesday 12:00 AM, now deleting results");
     (0, serverUtils_1.deleteResultsFromServer)();
     (0, serverUtils_1.deletePicksFromServer)();
     console.log("Updating Thursday deadline to the upcoming Thursday");
     (0, serverUtils_1.updateThursdayDeadline)();
 });
-node_cron_1.default.schedule('0 19 * * 4', () => {
+cron.schedule('0 19 * * 4', () => {
     console.log("It's Thursday 7:00 PM, now saving picks to last week");
     (0, serverUtils_1.savePicksToLastWeek)();
     console.log("Updating Tuesday start time to the upcoming Tuesday");
     (0, serverUtils_1.updateTuesdayStartTime)();
 });
-node_cron_1.default.schedule('20 13 * * *', () => {
+cron.schedule('20 13 * * *', () => {
     console.log("It's 8:00am fetching and saving injuries");
     (0, InjuryServices_1.fetchAndSaveInjuries)();
 });
-node_cron_1.default.schedule('06 13 * * 4', () => {
+cron.schedule('46 13 * * 4', () => {
     console.log("testing cron");
 });
