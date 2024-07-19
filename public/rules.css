@@ -111,27 +111,27 @@ h2 {
 
 
     .timeline-container {
-        height: 12vw;
+        height: 16vw;
     }
 
     .timeline {
-        height: 1.2vw;
-        top: 6vw;
+        height: 1.6vw;
+        top: 10vw;
     }
 
     .peg {
-        width: 1.2vw;
-        height: 6vw;
+        width: 1.6vw;
+        height: 10vw;
     }
 
     .time-label {
-        bottom: -5vw;
-        width: 7vw;
-        font-size: 1.2vw;
+        bottom: 0vw;
+        width: 11vw;
+        font-size: 1.6vw;
     }
 
     .period-label {
-        font-size: 1.5vw;
+        font-size: 1.9vw;
     }
 }
 ul {
