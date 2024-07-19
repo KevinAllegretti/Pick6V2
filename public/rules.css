@@ -52,6 +52,94 @@ h2 {
     text-shadow: 0 0 10px rgba(51, 217, 255, 0.5);
 }
 
+.timeline-container {
+    position: relative;
+    margin: 20px 0;
+    height: 100px; /* Increased height to accommodate labels */
+    width: 80%;
+    margin-left: 10%;
+}
+
+.timeline {
+    position: relative;
+    height: 10px;
+    background: linear-gradient(135deg, #33d9ff 0%, #0099CC 100%);
+    top: 50px; /* Adjusted to align with pegs */
+}
+
+.peg {
+    position: absolute;
+    bottom: 0px; /* Align peg to touch the timeline */
+    width: 10px; /* Made pegs thicker */
+    height: 50px; /* Height of the pegs */
+    background: linear-gradient(135deg, #33d9ff 0%, #0099CC 100%);
+    text-align: center;
+    font-size: 0.8em;
+    color: #f5f5f5;
+    text-shadow: 0 0 5px rgba(51, 217, 255, 0.5);
+}
+
+.time-label {
+    position: absolute;
+    bottom: -40px; /* Positioning the labels underneath the bar */
+    width: 60px;
+    transform: translateX(-50%);
+    font-size: 1em; /* Increased font size for visibility */
+    text-align: center;
+    color: #33d9ff; /* Added color for better visibility */
+    text-shadow: 0 0 10px rgba(51, 217, 255, 0.5);
+}
+
+.period-labels {
+    position: absolute;
+    top: -10px; /* Adjusted to move labels above the timeline */
+    width: 100%;
+    text-align: center;
+    color: #33d9ff;
+    font-weight: bold;
+}
+
+.period-label {
+    position: absolute;
+    font-size: 1.2em; /* Increased font size for visibility */
+    text-shadow: 0 0 10px rgba(51, 217, 255, 0.5);
+    transform: translateX(-50%); /* Center the labels horizontally */
+}
+
+/* Media query for smaller screens */
+@media (max-width: 600px) {
+    .rule-box {
+        width: 90%;
+    }
+
+    h2 {
+        font-size: 3vw;
+    }
+
+    .timeline-container {
+        height: 12vw;
+    }
+
+    .timeline {
+        height: 1.2vw;
+        top: 6vw;
+    }
+
+    .peg {
+        width: 1.2vw;
+        height: 6vw;
+    }
+
+    .time-label {
+        bottom: -5vw;
+        width: 7vw;
+        font-size: 1.2vw;
+    }
+
+    .period-label {
+        font-size: 1.5vw;
+    }
+}
 ul {
     list-style-type: none;
     padding: 0;
