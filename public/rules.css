@@ -108,13 +108,7 @@ h2 {
 
 /* Media query for smaller screens */
 @media (max-width: 600px) {
-    .rule-box {
-        width: 90%;
-    }
 
-    h2 {
-        font-size: 3vw;
-    }
 
     .timeline-container {
         height: 12vw;
