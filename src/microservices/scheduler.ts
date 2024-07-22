@@ -161,6 +161,16 @@ async function fetchMLBScores() {
         const { result, odds } = getBetResult(betValue, homeTeamScore, awayTeamScore);
         const points = calculatePointsForResult({ result, odds, type: isImmortalLock ? 'ImmortalLock' : undefined });
 
+        // Check if the pick is already in allResults
+        const resultAlreadyProcessed = allResults.find(
+            r => r.username === username && r.poolName === poolName && r.teamName === teamName && r.betValue === betValue
+        );
+
+        if (resultAlreadyProcessed) {
+            console.log(`Result already processed for ${teamName}, skipping...`);
+            return;
+        }
+
         allResults.push({ username, poolName, teamName, betValue, result, points, isImmortalLock });
 
         // Update user points
@@ -186,6 +196,7 @@ async function fetchMLBScores() {
         console.error('Error processing bet result:', error);
     }
 }
+
 
 const fetchMLBData = async () => {
     const response = await fetch('http://localhost:3000/api/fetchMLBData' || 'https://pick6.club/api/fetchMLBData', {
