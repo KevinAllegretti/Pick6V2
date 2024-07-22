@@ -277,3 +277,4 @@ cron.schedule('0 8 * * *', () => {
     fetchAndSaveInjuries();
 });
 
+

@@ -271,7 +271,7 @@ export async function updateTuesdayStartTime(): Promise<void> {
     nextTuesday.setDate(nextTuesday.getDate() + ((2 + 7 - now.getDay()) % 7));
     nextTuesday.setHours(0, 0, 0, 0); // 12 AM EST
     nextTuesday.setMinutes(nextTuesday.getMinutes() + nextTuesday.getTimezoneOffset());
-    nextTuesday.setHours(nextTuesday.getHours() - 4); // Convert UTC to EST (UTC-4)
+    nextTuesday.setHours(nextTuesday.getHours() - 4 ); // Convert UTC to EST (UTC-4)
 
     // Ensure it's the next Tuesday
     if (now > nextTuesday) {
