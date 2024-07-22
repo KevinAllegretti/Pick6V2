@@ -277,7 +277,3 @@ cron.schedule('0 8 * * *', () => {
     fetchAndSaveInjuries();
 });
 
-cron.schedule('9 15 * * *', () => {
-    console.log("It's 8:00am fetching and saving injuries");
-    updateThursdayDeadline();
-});
