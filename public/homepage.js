@@ -1871,11 +1871,7 @@ function resetUserStats(username, poolName) {
 }
 
 /*
-resetUserStats('test2', 'testPool');
-resetUserStats('testuser', 'testPool');
-resetUserStats('testuser2', 'testPool');
+resetUserStats('natowave', 'test');
 
-changeUserPoints('test2', 0, 'testPool'); // Replace with the actual username, new points value, and pool name
-changeUserPoints('testuser', 0, 'testPool');
-changeUserPoints('testuser2', 0, 'testPool');
+changeUserPoints('natowave', 0, 'test'); // Replace with the actual username, new points value, and pool name
 */
