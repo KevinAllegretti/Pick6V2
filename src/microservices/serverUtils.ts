@@ -2,7 +2,7 @@ import fetch from 'node-fetch';
 import { connectToDatabase } from '../microservices/connectDB';
 
 const baseUrl = 'http://localhost:3000' || 'https://www.pick6.club'; 
-
+//test
 // Function to update user points
 export async function updateUserPoints(username: string, additionalPoints: number, poolName: string): Promise<void> {
     if (additionalPoints === 0) {
