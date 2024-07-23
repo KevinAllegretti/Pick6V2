@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 import { connectToDatabase } from '../microservices/connectDB';
 
-const baseUrl = 'http://localhost:3000' || 'www.pick6.club'; 
+const baseUrl = 'http://localhost:3000' || 'https://www.pick6.club'; 
 
 // Function to update user points
 export async function updateUserPoints(username: string, additionalPoints: number, poolName: string): Promise<void> {
@@ -85,11 +85,8 @@ export async function saveResultsToServer(newResults: any[]): Promise<void> {
 
 
 export async function deleteResultsFromServer(): Promise<void> {
-    const now = getCurrentTimeInUTC4();
-    const currentDay = now.getDay();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-    if (currentDay === 2 && currentHour === 0 && currentMinute === 0) {
+
+
     try {
         const database = await connectToDatabase();
         const resultsCollection = database.collection('betResultsGlobal');
@@ -100,14 +97,10 @@ export async function deleteResultsFromServer(): Promise<void> {
         throw new Error('Failed to delete results');
     }
 }
-}
+
 
 export async function deletePicksFromServer(): Promise<void> {
-    const now = getCurrentTimeInUTC4();
-    const currentDay = now.getDay();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-    if (currentDay === 2 && currentHour === 0 && currentMinute === 0) {
+
     try {
         const database = await connectToDatabase();
         const picksCollection = database.collection('userPicks');
@@ -118,7 +111,7 @@ export async function deletePicksFromServer(): Promise<void> {
         throw new Error('Failed to delete Picks');
     }
 }
-}
+
 
 // Function to get all picks
 export async function getAllPicks(): Promise<any[]> {
@@ -237,13 +230,7 @@ function getCurrentTimeInUTC4(): Date {
 // Function to update the Thursday deadline
 export async function updateThursdayDeadline(): Promise<void> {
     const now = getCurrentTimeInUTC4();
-    console.log("time now: ", now)
-    const currentDay = now.getDay();
-    const currentHour = (now.getHours() + 4);
-    const currentMinute = now.getMinutes();
-    console.log( "current day, ", currentDay, "current hour: ", currentHour)
-    //Only update if it's Tuesday at 12 AM
-    if (currentDay === 2 && currentHour === 0 && currentMinute === 0) {
+
         const nextThursday = new Date(now);
         nextThursday.setDate(nextThursday.getDate() + ((4 + 7 - now.getDay()) % 7));
         nextThursday.setHours(19, 0, 0, 0); // 7 PM EST
@@ -263,7 +250,6 @@ export async function updateThursdayDeadline(): Promise<void> {
             throw new Error('Failed to update Thursday deadline');
         }
     }
-}
 // Function to update the Tuesday start time
 export async function updateTuesdayStartTime(): Promise<void> {
     const now = getCurrentTimeInUTC4();

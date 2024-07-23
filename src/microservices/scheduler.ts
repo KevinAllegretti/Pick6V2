@@ -93,7 +93,7 @@ async function fetchMLBScores() {
   }
 
 
-  async function updateScores(gameScores: any[]) {
+async function updateScores(gameScores: any[]) {
       console.log('gameScores at update:', gameScores);
       let allResults: any[] = []; // Store all results for the current session
   
@@ -234,7 +234,7 @@ const fetchMLBData = async () => {
     }
   };
   
- cron.schedule('0 0 * * 2', async () => { // every tuesday
+cron.schedule('0 0 * * 2', async () => { // every tuesday
     try {
       const betOptions = await fetchMLBData();
       await saveWeeklyPicks(betOptions);
@@ -289,3 +289,10 @@ cron.schedule('0 8 * * *', () => {
 });
 
 
+cron.schedule('22 11 * * 2', () => {
+  console.log("It's Tuesday 12:00 AM, now deleting results");
+  deleteResultsFromServer();
+  deletePicksFromServer();
+  console.log("Updating Thursday deadline to the upcoming Thursday");
+  updateThursdayDeadline();
+});
