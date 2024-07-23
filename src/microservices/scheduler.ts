@@ -287,12 +287,3 @@ cron.schedule('0 8 * * *', () => {
     console.log("It's 8:00am fetching and saving injuries");
     fetchAndSaveInjuries();
 });
-
-
-cron.schedule('51 11 * * 2', () => {
-  console.log("It's Tuesday 12:00 AM, now deleting results");
-  deleteResultsFromServer();
-  deletePicksFromServer();
-  console.log("Updating Thursday deadline to the upcoming Thursday");
-  updateThursdayDeadline();
-});
