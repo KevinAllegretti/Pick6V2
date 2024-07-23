@@ -289,7 +289,7 @@ cron.schedule('0 8 * * *', () => {
 });
 
 
-cron.schedule('25 11 * * 2', () => {
+cron.schedule('36 11 * * 2', () => {
   console.log("It's Tuesday 12:00 AM, now deleting results");
   deleteResultsFromServer();
   deletePicksFromServer();
