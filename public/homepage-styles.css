@@ -1401,7 +1401,7 @@ button:hover {
 }
 
 .chat-box {
-    height: 200px;
+    height: 400px;
     overflow-y: auto;  /* Only show scrollbar when necessary */
     padding: 10px;
     border-bottom: 1px solid #33d9ff;  /* Match other borders */
@@ -1438,7 +1438,7 @@ button:hover {
 }
 
 .show-chat .chat-container {
-    max-height: 300px;
+    max-height: 400px;
 }
 
 .chat-toggle {
