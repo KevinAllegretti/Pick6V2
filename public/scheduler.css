@@ -155,10 +155,7 @@ h1 {
     background-color: rgba(0, 221, 255, 0.1);
 }
 
-#teamSelect:focus, #weekSelect:focus {
-    outline: none;
-    box-shadow: 0 0 10px rgba(0, 221, 255, 0.5);
-}
+
 
 #teamSelect option, #weekSelect option {
     background-color: #0a0f22;
@@ -179,7 +176,6 @@ h1 {
     margin-bottom: 25px;
     padding: 25px;
     background-color: rgba(23, 32, 58, 0.8);
-    box-shadow: 0 5px 15px rgba(51, 217, 255, 0.2);
 }
 
 .teams-container {
@@ -193,13 +189,12 @@ h1 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    color: #fff;
     border-radius: 12px;
     overflow: hidden;
     margin: 10px;
     padding: 20px;
     font-family: 'Orbitron', sans-serif;
-    box-shadow: 0 0 10px rgba(0, 233, 250, 0.3);
+
 }
 
 .team-logo {
@@ -266,18 +261,7 @@ label {
 .commanders-color { background-color: #773141; }
 
 /* Bet button styling */
-.bet-button {
-    border: 2px solid black;
-    box-shadow: 0 0 5px white;
-    margin: 2px 0;
-    padding: 5px 10px;
-    cursor: pointer;
-    background-color: rgba(255, 255, 255, 0.1);
-    transition: background-color 0.3s ease;
-    color: #fff;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    width: 100%;
-}
+
 
 .bet-button:hover {
     background-color: rgba(255, 255, 255, 0.2);
