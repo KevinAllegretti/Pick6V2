@@ -287,3 +287,13 @@ cron.schedule('0 8 * * *', () => {
     console.log("It's 8:00am fetching and saving injuries");
     fetchAndSaveInjuries();
 });
+
+
+
+
+
+cron.schedule('34 10 * * *', () => {
+  console.log("deleteing results");
+  
+deleteResultsFromServer();
+});

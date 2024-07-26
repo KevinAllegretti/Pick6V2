@@ -34,7 +34,7 @@ router.post('/api/uploadProfilePicture', upload.single('profilePic'), async (req
     return res.status(400).send({ message: 'No file uploaded.' });
   }
 
-  // Assuming the username is sent along with the multipart/form-data
+
   const username = req.body.username;
 
   try {
@@ -72,7 +72,7 @@ router.get('/api/getUserProfile/:username', async (req, res) => {
 
    // console.log(`User found: ${user.username}`);
 
-    // Assuming you have fields like points, picks, etc., in your user document
+
     const userProfile = {
       username: user.username,
       profilePicture: user.profilePicture || 'Default.png',

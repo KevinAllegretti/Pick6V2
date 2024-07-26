@@ -1,7 +1,7 @@
 // poolController.ts
 import { Request, Response } from 'express';
 import { connectToDatabase } from '../microservices/connectDB';
-import Pool from '../models/Pool'; // Assuming you have a Pool model set up as previously discussed
+import Pool from '../models/Pool'; 
 import { Collection } from 'mongodb';
 
 // Helper function to find user by username and return the user object
@@ -68,7 +68,7 @@ export const createPool = async (req: Request, res: Response) => {
       user: adminUser._id, // The ObjectId of the admin user
       username: adminUsername,
       points: 0,
-      picks: [], // Assuming you have a default value for picks
+      picks: [], 
       win: 0,
       loss: 0,
       push: 0,

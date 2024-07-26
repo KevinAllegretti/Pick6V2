@@ -708,7 +708,7 @@ function createBetButtons(teamData) {
  if (teamData[type]) {
  const button = document.createElement('button');
  button.className = `bet-button ${teamColorClasses[teamData.teamName]}`;
- button.textContent = teamData[type]; // Assuming value is like '+1.5' or '-150'
+ button.textContent = teamData[type]; 
  button.onclick = () => selectBet({
  teamName: teamData.teamName,
  type: type,

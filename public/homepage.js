@@ -1193,7 +1193,7 @@ function loadAndDisplayUserPools() {
           .then(response => response.json())
           .then(userProfile => {
             // Fetch the user picks
-            const poolName = pool.name; // Assuming 'pool' is available in this scope and contains the pool name
+            const poolName = pool.name; 
             const encodedPoolName = encodeURIComponent(poolName);
             return fetch(`/api/getPicks/${member.username}/${encodedPoolName}`)
               .then(response => response.json())
@@ -1347,7 +1347,7 @@ function removePoolFromUI(poolName) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    const joinPoolForm = document.getElementById('join-pool-form-container'); // Assuming you have a container around your form
+    const joinPoolForm = document.getElementById('join-pool-form-container'); 
     const toggleJoinFormButton = document.getElementById('show-join-pool-form'); // This is the button to show the join form
     const poolNameInput = document.getElementById('pool-name2');
     const passwordInput = document.getElementById('join-password');
@@ -1504,101 +1504,7 @@ const mlbToNflMap = {
 
   var gameScores = [];
 
-  async function fetchMLBScores() {
-   // appendLog('fetchMLBScores function started.');
-      const url = 'https://odds.p.rapidapi.com/v4/sports/baseball_mlb/scores';
-      const params = {
-          daysFrom: 1,  
-          apiKey: '3decff06f7mshbc96e9118345205p136794jsn629db332340e'  
-      };
-      const queryParams = new URLSearchParams(params);
   
-      try {
-          const response = await fetch(`${url}?${queryParams}`, {
-              method: 'GET',
-              headers: {
-                  'x-rapidapi-host': 'odds.p.rapidapi.com',
-                  'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e' 
-              }
-          });
-  
-          if (!response.ok) {
-              throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-  
-          const scores = await response.json();
-          console.log("Scores data:", scores);
-         // appendLog('Scores fetched successfully.');
-          gameScores = scores.map(event => {
-              if (!event.scores || !Array.isArray(event.scores)) {
-                  console.log(`Skipping event due to missing or invalid scores:`, event);
-                  return null; // Return null for events without valid scores to filter them out later
-              }
-  
-              const homeTeam = mlbToNflMap[event.home_team] || event.home_team;
-              const awayTeam = mlbToNflMap[event.away_team] || event.away_team;
-              const homeScore = event.scores.find(s => mlbToNflMap[s.name] === homeTeam || s.name === event.home_team)?.score;
-              const awayScore = event.scores.find(s => mlbToNflMap[s.name] === awayTeam || s.name === event.away_team)?.score;
-  
-              return {
-                  home_team: homeTeam,
-                  away_team: awayTeam,
-                  home_score: parseInt(homeScore, 10),
-                  away_score: parseInt(awayScore, 10)
-              };
-          }).filter(match => match !== null);  // Filter out the null entries
-  
-          console.log('Scores fetched:', gameScores);
-          updateUIWithScores();
-      } catch (error) {
-
-          console.error('Error fetching MLB scores:', error);
-         // appendLog(`Error: ${error.message}`);
-      }
-  }
-  
- /* document.getElementById('fetchScoresButton').addEventListener('click', function() {
-      fetchMLBScores();
-      submitResults();
-      console.log("Fetching MLB scores...");
-  });*/
-  
-  function getBetResult(pick, homeTeamScore, awayTeamScore) {
-    let result = 'error';  // Default to error in case conditions fail
-    const numericValue = parseFloat(pick.replace(/[^-+\d.]/g, ''));  // Strip to just numeric, including negative
-
-    console.log('Evaluating Bet:', {pick, homeTeamScore, awayTeamScore, numericValue});
-
-    // Determine if it's a spread or moneyline based on the absolute value of numericValue
-    if (Math.abs(numericValue) < 100) {  // Spread logic
-        console.log('Handling as Spread');
-        // Calculate adjusted home team score with spread
-        const adjustedHomeScore = homeTeamScore + numericValue;
-        if (adjustedHomeScore > awayTeamScore) {
-            console.log('Spread result: hit');
-            return { result: "hit", odds: numericValue };
-        } else if (adjustedHomeScore < awayTeamScore) {
-            console.log('Spread result: miss');
-            return { result: "miss", odds: numericValue };
-        } else {
-            console.log('Spread result: push');
-            return { result: "push", odds: numericValue };  // This is a push condition
-        }
-    } else {  // Moneyline logic
-        console.log('Handling as Moneyline');
-        const didWin = (numericValue < 0 && homeTeamScore > awayTeamScore) || (numericValue > 0 && homeTeamScore < awayTeamScore);
-        const isFavorite = numericValue < 0;
-        console.log(`Moneyline details: { isFavorite: ${isFavorite}, didWin: ${didWin} }`);
-
-        if (didWin) {
-            console.log('Moneyline result: hit');
-            return { result: "hit", odds: numericValue };
-        } else {
-            console.log('Moneyline result: miss');
-            return { result: "miss", odds: numericValue };
-        }
-    }
-}
 
 
 // Function to find the pool name
@@ -1614,155 +1520,10 @@ function getUsernameForPick(pickElement) {
     return usernameElement ? usernameElement.textContent.trim() : null;
 }
 
-function updateUIWithScores() {
-    console.log('gameScores at update:', gameScores);
-    let allResults = []; // Store all results for the current session
-
-    document.querySelectorAll('.player-picks .pick, .immortal-lock').forEach(pickElement => {
-        const teamLogo = pickElement.querySelector('.team-logo');
-        console.log('Processing element:', pickElement);
-        if (!teamLogo) {
-            console.error('Team logo not found in pick element', pickElement);
-            return; // Skip if no logo
-        }
-
-        const teamName = teamLogo.alt;
-        const match = gameScores.find(m => m.home_team === teamName || m.away_team === teamName);
-        if (!match) {
-            console.log(`No game score available for ${teamName}, skipping...`);
-            return;
-        }
-
-        const homeTeamScore = match.home_team === teamName ? match.home_score : match.away_score;
-        const awayTeamScore = match.home_team === teamName ? match.away_score : match.home_score;
-        const betValue = pickElement.querySelector('span')?.textContent;
-        if (!betValue) {
-            console.error('Bet value not found in pick element', pickElement);
-            return; // Skip if no bet value
-        }
-
-        try {
-            const { result, odds } = getBetResult(betValue, homeTeamScore, awayTeamScore);
-            const points = calculatePointsForResult({ result, odds });
-            allResults.push({ teamName, betValue, result, points });
-            pickElement.style.color = result === "hit" ? "#39FF14" : result === "miss" ? "red" : "yellow";
-
-            const username = getUsernameForPick(pickElement);
-            const poolName = getPoolName();
-
-            // Update user points
-            updateUserPoints(username, points, poolName);
-
-            // Determine the increments for win, loss, and push
-            let winIncrement = 0, lossIncrement = 0, pushIncrement = 0;
-            if (result === 'hit') {
-                winIncrement = 1;
-            } else if (result === 'miss') {
-                lossIncrement = 1;
-            } else if (result === 'push') {
-                pushIncrement = 1;
-            }
-
-            // Update user stats
-            updateUserStats(username, poolName, winIncrement, lossIncrement, pushIncrement);
-        } catch (error) {
-            console.error('Error processing bet result:', error);
-        }
-    });
-
-    console.log('All Results:', allResults);
-    saveResultsToServer(allResults);
-}
 
 
 
-function calculatePointsForResult({ result, odds, type }) {
-    let points = 0;
 
-    console.log(`Calculating points for result: ${result}, odds: ${odds}, type: ${type}`);
-
-    switch (result) {
-        case 'hit':
-            if (Math.abs(odds) > 99) {
-                if (odds < 0) {
-                    // Favorite
-                    if (odds <= -250) {
-                        points += 0.5; // Less points for high favorites
-                        console.log("Favorite ML win with high odds");
-                    } else {
-                        points += 1; // Regular win for favorites
-                        console.log("Favorite ML win with normal odds");
-                    }
-                } else {
-                    // Underdog
-                    if (odds >= 400) {
-                        points += 4; // Additional points for extreme underdogs
-                        console.log("Underdog ML win with extreme odds");
-                    } else if (odds >= 250) {
-                        points += 2.5; // Extra points for big underdogs
-                        console.log("Underdog ML win with high odds");
-                    } else {
-                        points += 2; // Standard win for underdogs
-                        console.log("Underdog ML win with standard odds");
-                    }
-                }
-            } else if (Math.abs(odds) < 100) {
-                points += 1.5; // Points for spread win
-                console.log("Spread win");
-            } else if (type === "ImmortalLock") {
-                points += 1; // Points for immortal lock win
-                console.log("Immortal lock win");
-            }
-            break;
-        case 'miss':
-            if (type === "ImmortalLock") {
-                points -= 2; // Penalty for immortal lock loss
-                console.log("Immortal lock loss");
-            }
-            break;
-        case 'push':
-            points += 0.5; // Points for a push
-            console.log("Push");
-            break;
-    }
-
-    console.log(`Total points calculated: ${points}`);
-    return points;
-}
-
-
-
-function saveResultsToServer(results) {
-    fetch('/api/saveResults', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ results })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (!data.success) {
-            console.error('Error saving results:', data.message);
-        }
-    })
-    .catch(error => console.error('Failed to save results:', error));
-}
-
-//deleteResultsFromServer();
-async function deleteResultsFromServer() {
-    fetch('/api/deleteResults', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (!data.success) {
-            console.error('Error deleting results:', data.message);
-        } else {
-            console.log('Results deleted successfully');
-        }
-    })
-    .catch(error => console.error('Failed to delete results:', error));
-}
 
 function rebuildUIWithResults(results) {
     console.log('Received results for UI rebuild:', results);
@@ -1794,32 +1555,6 @@ function rebuildUIWithResults(results) {
         }
     });
 }
-
-
-/*
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(() => {  // Delay execution to ensure all scripts have processed
-        fetch('/api/getResults')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log("Received results:", data);
-            if (data.success && data.results) {
-                rebuildUIWithResults(data.results);
-            } else {
-                console.error('No results found or unable to fetch results:', data.message);
-            }
-        })
-        .catch(error => console.error('Failed to fetch results:', error));
-    }, 4000);  // Delay can be adjusted based on typical load times or removed if found unnecessary
-});
-
-*/
-//'3decff06f7mshbc96e9118345205p136794jsn629db332340e'
 
 function updateUserStats(username, poolName, winIncrement = 0, lossIncrement = 0, pushIncrement = 0) {
     fetch('/pools/updateUserStatsInPoolByName', {
