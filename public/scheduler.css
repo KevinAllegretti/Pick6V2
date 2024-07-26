@@ -201,7 +201,6 @@ h1 {
     width: 70px;
     height: 70px;
     margin-bottom: 10px;
-    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
 }
 
 .at-symbol {
