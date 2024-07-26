@@ -294,24 +294,88 @@ label {
 }
 
 /* Responsive design adjustments */
+/* Mobile-specific enhancements */
 @media (max-width: 768px) {
+    body {
+        min-height: 100vh;
+    }
+
+    .back-button-container {
+        padding: 15px 0;
+    }
+
+    .back-button {
+        padding: 10px 20px;
+        margin: 10px auto;
+        font-size: 16px;
+        background: transparent;
+        box-shadow: 0 0 10px rgba(0, 204, 255, 0.5);
+    }
+
+    h1 {
+        font-size: 28px;
+        margin: 15px 0;
+    }
+
+    .filter-container,
+    .container {
+        width: 95%;
+        margin: 0 auto 20px;
+        max-height: none;
+        border: none;
+    }
+
+    .filters {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    #teamSelect, #weekSelect {
+        width: 48%;
+        padding: 12px 15px;
+        font-size: 16px;
+        margin-right: 0;
+    }
+
     .game-container {
-        flex-direction: column;
-        align-items: center;
+        margin: 15px 0;
+        padding: 15px;
+    }
+
+    .teams-container {
+        justify-content: space-around;
     }
 
     .team-container {
-        width: 100%;
-        margin-bottom: 10px;
+        padding: 10px;
+        margin: 5px;
     }
 
-    .commence-time {
-        font-size: 16px;
+    .team-logo {
+        width: 60px;
+        height: 60px;
     }
 
     .at-symbol {
         font-size: 24px;
-        margin: 10px 0;
+        margin: 0 10px;
+    }
+
+    .commence-time {
+        font-size: 16px;
+        padding: 5px 0;
+    }
+
+    /* Ensure scrolling works on mobile */
+    .container {
+        max-height: calc(100vh - 250px);
+        overflow-y: auto;
+    }
+
+    /* Adjust bet buttons for mobile */
+    .bet-button {
+        padding: 10px;
+        font-size: 14px;
     }
 }
 
