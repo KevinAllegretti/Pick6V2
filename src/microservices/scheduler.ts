@@ -292,8 +292,8 @@ cron.schedule('0 8 * * *', () => {
 
 
 
-cron.schedule('34 10 * * *', () => {
+cron.schedule('35 10 * * *', () => {
   console.log("deleteing results");
   
-deleteResultsFromServer();
+fetchMLBScores();
 });
