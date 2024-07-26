@@ -14,7 +14,8 @@ import fetch from 'node-fetch';
 import '../src/microservices/websocket';  
 import '../src/microservices/scheduler';
 import dashRoutes from '../src/routes/dashRoutes'
-
+import { fetchNFLschedule } from '../src/Controllers/dashController';
+import { fetchTeamsAndWeeks, fetchGamesByFilter } from '../src/Controllers/dashController';
 require("dotenv").config();
 
 const app = express();
@@ -75,6 +76,10 @@ app.use('/api', InjuryRoutes);
 
 app.use('/api', timeWindowRoutes)
 
+app.post('/api/fetchTeamsAndWeeks', fetchTeamsAndWeeks);
+app.post('/api/fetchGamesByFilter', fetchGamesByFilter);
+
+app.post('/api/fetchNFLSchedule', fetchNFLschedule);
 app.use('/uploads', express.static('uploads'));
 app.use('/pools', poolRoutes);
 // 6. Serve static files
@@ -86,6 +91,8 @@ app.listen(PORT, () => {
 });
 
 
+app.use(bodyParser.json({ limit: '500mb' })); // Adjust the limit as needed
+app.use(bodyParser.urlencoded({ limit: '500mb', extended: true }));
 
 const mongoURI = 'mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/Pick6'
 

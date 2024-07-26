@@ -216,7 +216,7 @@ const fetchMLBData = async () => {
   };
   
   const saveWeeklyPicks = async (betOptions: any) => {
-    const response = await fetch('http://localhost:3000/api/saveWeeklyPicks' || 'https://pick6.club/api/fetchMLBData', {
+    const response = await fetch('http://localhost:3000/api/saveWeeklyPicks' || 'https://pick6.club/api/saveWeeklyPicks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ picks: betOptions })
@@ -293,4 +293,78 @@ cron.schedule('30 23 * * 4', () => {
   console.log("Its thursday, gettin scores");
   
 fetchMLBScores();
+});
+
+
+const fetchNFLschedule = async () => {
+  const response = await fetch('http://localhost:3000/api/fetchNFLschedule' || 'https://pick6.club/api/fetchNFLschedule', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch MLB data');
+  }
+
+  const betOptions = await response.json();
+  const dataSize = Buffer.byteLength(JSON.stringify(betOptions));
+  console.log(`Data size: ${dataSize} bytes`);
+  // Return the betOptions to be used for saving
+  return betOptions;
+};
+
+//fetchNFLschedule();
+
+const saveNFLSchedule = async (betOptions: any) => {
+  const chunkSize = 50; // Define the chunk size
+  const totalChunks = Math.ceil(betOptions.length / chunkSize);
+
+  console.log(`Total items: ${betOptions.length}`);
+  console.log(`Total chunks: ${totalChunks}`);
+
+  for (let i = 0; i < totalChunks; i++) {
+    const chunk = betOptions.slice(i * chunkSize, (i + 1) * chunkSize);
+    console.log(`Saving chunk ${i + 1}/${totalChunks}, size: ${Buffer.byteLength(JSON.stringify(chunk))} bytes`);
+
+    try {
+      const response = await fetch('http://localhost:3000/api/saveNFLSchedule' || 'https://pick6.club/api/saveNFLSchedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ picks: chunk })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save weekly picks');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        console.log(`Chunk ${i + 1} of ${totalChunks} saved successfully`);
+      } else {
+        console.error(`Error saving chunk ${i + 1} of ${totalChunks}`);
+      }
+    } catch (error) {
+      console.error(`Failed to save chunk ${i + 1}:`, error);
+    }
+  }
+};
+
+//const betOptions = fetchNFLschedule();
+//saveNFLSchedule(betOptions);
+cron.schedule('39 12 * * *', async () => { // every tuesday
+  try {
+    const betOptions = await fetchMLBData();
+    await saveWeeklyPicks(betOptions);
+  } catch (error) {
+    console.error('Scheduled job failed:', error);
+  }
+});
+
+cron.schedule('18 13 * * *', async () => { // every tuesday
+  try {
+    const betOptions = await fetchNFLschedule();
+    await saveNFLSchedule(betOptions);
+  } catch (error) {
+    console.error('Scheduled job failed:', error);
+  }
 });

@@ -805,3 +805,25 @@ h4 {
   display: inline-block;
   transform: rotate(45deg); /* Rotate the icon 45 degrees */
 }
+
+.filters {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.filter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#teamSelect, #weekSelect {
+  padding: 10px;
+  font-size: 1rem;
+  margin-top: 10px;
+  border-radius: 5px;
+  border: 1px solid #00DDFF;
+  background-color: rgba(0, 0, 0, 0.1);
+  color: #ddd;
+}

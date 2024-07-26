@@ -80,6 +80,54 @@ const fetchMLBData = async (req: Request, res: Response) => {
     }
   };
   
+const fetchNFLschedule = async (req: Request, res: Response) => {
+  const url = 'https://odds.p.rapidapi.com/v4/sports/americanfootball_nfl/odds';
+  const params = {
+    regions: 'us',
+    markets: 'h2h,spreads',
+    oddsFormat: 'american',
+  };
+  const queryParams = new URLSearchParams(params);
+  const betOptions: any[] = [];
+
+  try {
+    console.log(`Fetching data from: ${url}?${queryParams}`);
+    const response = await fetch(`${url}?${queryParams}`, {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-host': 'odds.p.rapidapi.com',
+        'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("Full API Data:", JSON.stringify(data, null, 2)); // Log the entire data set received from the API
+
+    data.forEach((event: any) => {
+      console.log('Processing event:', JSON.stringify(event, null, 2));
+      if (!event.teams || !Array.isArray(event.teams)) {
+        if (event.home_team && event.away_team) {
+          const nflHomeTeam = mlbToNflMap[event.home_team] || event.home_team;
+          const nflAwayTeam = mlbToNflMap[event.away_team] || event.away_team;
+          processBookmakers([nflHomeTeam, nflAwayTeam], event.bookmakers, event.commence_time, event.home_team, event.away_team, betOptions);
+        }
+      } else {
+        const nflTeams = event.teams.map((team: any) => mlbToNflMap[team] || team);
+        processBookmakers(nflTeams, event.bookmakers, event.commence_time, event.home_team, event.away_team, betOptions);
+      }
+    });
+
+    console.log("Processed Bet Options:", JSON.stringify(betOptions, null, 2)); // Log the processed bet options
+    res.json(betOptions);
+  } catch (error) {
+    console.error('Error fetching NFL data:', error);
+    res.status(500).send('Error fetching NFL data');
+  }
+};
   function processBookmakers(nflTeams: any, bookmakers: any, commenceTime: any, homeTeam: any, awayTeam: any, betOptions: any[]) {
     const nflHomeTeam = mlbToNflMap[homeTeam] || homeTeam;
     const nflAwayTeam = mlbToNflMap[awayTeam] || awayTeam;
@@ -132,5 +180,123 @@ const saveWeeklyPicks = async (req: Request, res: Response) => {
     }
   };
   
+  const saveNFLSchedule = async (req: Request, res: Response) => {
+    const { picks } = req.body; // Your NFL transformed data
+    try {
+      const database = await connectToDatabase();
+      const picksCollection = database.collection('nflSchedule');
+      const existingData = await picksCollection.findOne({ identifier: 'current' });
+  
+      let newPicks = picks;
+      if (existingData && existingData.picks) {
+        newPicks = existingData.picks.concat(picks);
+        console.log(`Existing picks length: ${existingData.picks.length}`);
+        console.log(`New picks length: ${newPicks.length}`);
+      }
+  
+      await picksCollection.updateOne(
+        { identifier: 'current' },
+        { $set: { picks: newPicks, updated: new Date() } },
+        { upsert: true }
+      );
+  
+      res.json({ success: true, message: 'Schedule saved successfully' });
+    } catch (error: any) {
+      console.error('Failed to save schedule:', error);
+      res.status(500).json({ success: false, message: 'Failed to save schedule', error: error.toString() });
+    }
+  };
+  // Fetch distinct teams and weeks
+export const fetchTeamsAndWeeks = async (req: Request, res: Response) => {
+  try {
+    const database = await connectToDatabase();
+    const picksCollection = database.collection('nflSchedule');
+    const scheduleData = await picksCollection.findOne({ identifier: 'current' });
 
-export { fetchMLBData, saveWeeklyPicks };
+    if (!scheduleData) {
+      return res.status(404).json({ success: false, message: 'No schedule data found' });
+    }
+
+    const teams = [...new Set(scheduleData.picks.map(game => game.awayTeam).concat(scheduleData.picks.map(game => game.homeTeam)))];
+    const weeks = Array.from({ length: 18 }, (_, i) => i + 1); // Weeks 1 to 18
+
+    res.json({ success: true, teams, weeks });
+  } catch (error: any) {
+    console.error('Failed to fetch teams and weeks:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch teams and weeks', error: error.toString() });
+  }
+};
+
+// Fetch games by team or week
+export const fetchGamesByFilter = async (req: Request, res: Response) => {
+  const { team, week } = req.body;
+  try {
+    const database = await connectToDatabase();
+    const picksCollection = database.collection('nflSchedule');
+    const scheduleData = await picksCollection.findOne({ identifier: 'current' });
+
+    if (!scheduleData) {
+      return res.status(404).json({ success: false, message: 'No schedule data found' });
+    }
+
+    let filteredGames = scheduleData.picks;
+
+    if (team) {
+      filteredGames = filteredGames.filter(game => game.awayTeam === team || game.homeTeam === team);
+    }
+
+    if (week) {
+      const weekNumber = parseInt(week);
+      filteredGames = filteredGames.filter(game => {
+        const gameDate = new Date(game.commenceTime);
+        const gameWeek = getNFLWeekNumber(gameDate);
+        return gameWeek === weekNumber;
+      });
+    }
+
+    // Filter out duplicate games
+    filteredGames = filterUniqueGames(filteredGames);
+
+    res.json({ success: true, games: filteredGames });
+  } catch (error: any) {
+    console.error('Failed to fetch games:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch games', error: error.toString() });
+  }
+};
+
+// Helper function to get the NFL week number
+const getNFLWeekNumber = (date: Date): number => {
+  // Define the start date of the NFL season (first Sunday of September)
+  const startMonth = 8; // September is the 8th month (0-indexed)
+  const year = date.getFullYear();
+  const firstDayOfMonth = new Date(year, startMonth, 1);
+  let firstSundayOfMonth = firstDayOfMonth;
+
+  // Find the first Sunday of September
+  while (firstSundayOfMonth.getDay() !== 0) {
+      firstSundayOfMonth.setDate(firstSundayOfMonth.getDate() + 1);
+  }
+
+  // Calculate the number of days since the start of the NFL season
+  const days = Math.floor((date.getTime() - firstSundayOfMonth.getTime()) / (24 * 60 * 60 * 1000));
+
+  // Calculate the week number
+  return Math.ceil(days / 7); // Ensure week count starts from 1
+};
+
+// Helper function to filter unique games
+const filterUniqueGames = (games: any[]): any[] => {
+  const seen = new Set();
+  return games.filter(game => {
+    const gameKey = `${game.homeTeam}-${game.awayTeam}-${game.commenceTime}`;
+    if (seen.has(gameKey)) {
+      return false;
+    }
+    seen.add(gameKey);
+    return true;
+  });
+};
+
+
+
+export { fetchMLBData, saveWeeklyPicks, fetchNFLschedule, saveNFLSchedule };

@@ -1,0 +1,325 @@
+body {
+    font-family: 'Oswald', sans-serif;
+    background-color: #0a0f22;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+h1 {
+    text-shadow: 2px 2px 15px rgba(0, 229, 255, 0.7);
+    text-align: center;
+    margin-bottom: 20px;
+    color: #00DDFF;
+}
+
+.back-button-container {
+    text-align: center;
+    width: 100%;
+    padding: 10px 0;
+}
+
+.back-button {
+    display: inline-block;
+    padding: 12px 25px;
+    margin: 20px auto;
+    text-align: center;
+    background: #121212;
+    color: #00ccff;
+    text-decoration: none;
+    border-radius: 50px;
+    border: 2px solid #00ccff;
+    transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0px 4px 15px rgba(0, 204, 255, 0.4);
+}
+
+.back-button:hover {
+    background-color: #00ccff;
+    color: #121212;
+    box-shadow: 0px 6px 20px rgba(0, 204, 255, 0.6);
+}
+
+.main-wrapper {
+    flex: 1;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding-top: 20px;
+}
+
+.filter-container {
+    width: 70%;
+    max-width: 800px;
+    margin-bottom: 20px;
+}
+
+.container {
+    width: 70%;
+    max-height: 632px;
+    overflow-y: auto;
+    margin: 0 auto;
+    box-shadow: 0 0 30px rgba(0, 229, 255, 0.7);
+    border-radius: 15px;
+    border: 2px solid #33d9ff;
+    overflow-x: hidden;
+}
+
+.container::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+.container::-webkit-scrollbar-track {
+    background: #1e1e1e;
+    border-radius: 10px;
+}
+
+.container::-webkit-scrollbar-thumb {
+    background-color: #33d9ff;
+    border-radius: 10px;
+    border: 3px solid #1e1e1e;
+}
+
+.container::-webkit-scrollbar-thumb:hover {
+    background-color: #00ccff;
+}
+
+@media (max-width: 768px) {
+    .main-wrapper {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .filter-container,
+    .container {
+        width: 95%;
+        margin: 0 auto;
+        max-width: none;
+        max-height: 400px;
+        margin-bottom: 20px;
+        transform: scale(1);
+        box-sizing: border-box;
+        padding: 0;
+        border: none;
+        min-width: 380px;
+        overflow-x: hidden;
+    }
+}
+
+@media (min-width: 769px) {
+    .container {
+        width: 50%;
+        margin: 0 1%;
+        max-height: 750px;
+        margin-top: -2%;
+    }
+}
+
+.filters {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 10px;
+}
+
+.filter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#teamSelect, #weekSelect {
+    padding: 12px 20px;
+    font-size: 1rem;
+    border-radius: 25px;
+    border: 2px solid #00DDFF;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #00DDFF;
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="%2300DDFF" d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 20px 20px;
+    transition: all 0.3s ease;
+    width: 200px;
+    max-width: 100%;
+    margin-right: 15px;
+}
+
+#teamSelect:hover, #weekSelect:hover {
+    background-color: rgba(0, 221, 255, 0.1);
+}
+
+#teamSelect:focus, #weekSelect:focus {
+    outline: none;
+    box-shadow: 0 0 10px rgba(0, 221, 255, 0.5);
+}
+
+#teamSelect option, #weekSelect option {
+    background-color: #0a0f22;
+    color: #00DDFF;
+    padding: 10px;
+}
+
+.games-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.game-container {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #00DDFF;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    padding: 25px;
+    background-color: rgba(23, 32, 58, 0.8);
+    box-shadow: 0 5px 15px rgba(51, 217, 255, 0.2);
+}
+
+.teams-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.team-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 10px;
+    padding: 20px;
+    font-family: 'Orbitron', sans-serif;
+    box-shadow: 0 0 10px rgba(0, 233, 250, 0.3);
+}
+
+.team-logo {
+    width: 70px;
+    height: 70px;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+}
+
+.at-symbol {
+    font-size: 36px;
+    color: #00e9fa;
+    margin: 0 20px;
+    text-shadow: 0 0 10px rgba(0, 233, 250, 0.5);
+}
+
+.commence-time {
+    width: 100%;
+    color: #4de4ff;
+    font-size: 20px;
+    text-align: center;
+    padding: 10px 0;
+    font-family: 'Montserrat', sans-serif;
+    text-shadow: 0 0 5px rgba(77, 228, 255, 0.5);
+    letter-spacing: 1px;
+}
+
+label {
+    color: #33d9ff;
+}
+
+/* NFL Team Colors */
+.cardinals-color { background-color: #97233F; }
+.falcons-color { background-color: #A71930; }
+.ravens-color { background-color: #241773; }
+.bills-color { background-color: #00338D; }
+.panthers-color { background-color: #0085CA; }
+.bears-color { background-color: #C83803; }
+.bengals-color { background-color: #FB4F14; }
+.browns-color { background-color: #835506; }
+.cowboys-color { background-color: #798498; }
+.broncos-color { background-color: #FB4F14; }
+.lions-color { background-color: #0076B6; }
+.packers-color { background-color: #203731; }
+.texans-color { background-color: #03202F; }
+.colts-color { background-color: #002C5F; }
+.jaguars-color { background-color: #006778; }
+.chiefs-color { background-color: #E31837; }
+.raiders-color { background-color: #A5ACAF; }
+.chargers-color { background-color: #0080C6; }
+.rams-color { background-color: #003594; }
+.dolphins-color { background-color: #008E97; }
+.vikings-color { background-color: #4F2683; }
+.patriots-color { background-color: #002244; }
+.saints-color { background-color: #D3BC8D; }
+.giants-color { background-color: #0B2265; }
+.jets-color { background-color: #125740; }
+.eagles-color { background-color: #004C54; }
+.steelers-color { background-color: #FFB612; }
+.FortyNiners-color { background-color: #AA0000; }
+.seahawks-color { background-color: #002244; }
+.buccaneers-color { background-color: #D50A0A; }
+.titans-color { background-color: #0C2340; }
+.commanders-color { background-color: #773141; }
+
+/* Bet button styling */
+.bet-button {
+    border: 2px solid black;
+    box-shadow: 0 0 5px white;
+    margin: 2px 0;
+    padding: 5px 10px;
+    cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: background-color 0.3s ease;
+    color: #fff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    width: 100%;
+}
+
+.bet-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.bet-button.selected {
+    background-color: #00ff00;
+    color: #000;
+}
+
+.bet-button.immortal-lock-selected {
+    background-color: #fffb00 !important;
+    color: #000;
+}
+
+/* Responsive design adjustments */
+@media (max-width: 768px) {
+    .game-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .team-container {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .commence-time {
+        font-size: 16px;
+    }
+
+    .at-symbol {
+        font-size: 24px;
+        margin: 10px 0;
+    }
+}
+
+@media (min-width: 769px) {
+    .container {
+        width: 50%;
+        margin: 0 1%;
+        max-height: 750px;
+        margin-top: -2%;
+    }
+}
