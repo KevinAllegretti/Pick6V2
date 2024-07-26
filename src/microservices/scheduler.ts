@@ -243,10 +243,7 @@ cron.schedule('0 0 * * 2', async () => { // every tuesday
     }
   });
 
-cron.schedule('30 23 * * 4', () => {
-    console.log("It's Thursday 11:30 PM, now fetching scores");
-    fetchMLBScores();
-});
+
 
 cron.schedule('15 16 * * 0', () => {
     console.log("It's Sunday 4:15 PM, now fetching scores");
@@ -292,8 +289,8 @@ cron.schedule('0 8 * * *', () => {
 
 
 
-cron.schedule('35 10 * * *', () => {
-  console.log("deleteing results");
+cron.schedule('30 23 * * 4', () => {
+  console.log("Its thursday, gettin scores");
   
 fetchMLBScores();
 });
