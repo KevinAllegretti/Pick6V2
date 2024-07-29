@@ -64,7 +64,7 @@ h1 {
     margin: 0 auto;
     box-shadow: 0 0 30px rgba(0, 229, 255, 0.7);
     border-radius: 15px;
-    border: 2px solid #33d9ff;
+
     overflow-x: hidden;
 }
 
@@ -89,25 +89,33 @@ h1 {
 }
 
 @media (max-width: 768px) {
-    .main-wrapper {
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+    .filter-container {
+        width: 90%;
+        max-width: 600px;
+        margin: 20px auto;
     }
 
-    .filter-container,
-    .container {
-        width: 95%;
-        margin: 0 auto;
-        max-width: none;
-        max-height: 400px;
-        margin-bottom: 20px;
-        transform: scale(1);
-        box-sizing: border-box;
-        padding: 0;
-        border: none;
-        min-width: 380px;
-        overflow-x: hidden;
+    .filters {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+    }
+
+    #teamSelect, #weekSelect {
+        width: 45%;
+        min-width: 150px;
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+
+    .filter {
+        width: 45%;
+    }
+
+    label {
+        font-size: 0.8rem;
+        margin-bottom: 5px;
     }
 }
 
@@ -122,9 +130,10 @@ h1 {
 
 .filters {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
     margin-bottom: 20px;
-    gap: 10px;
 }
 
 .filter {
@@ -134,9 +143,10 @@ h1 {
 }
 
 #teamSelect, #weekSelect {
-    padding: 12px 20px;
-    font-size: 1rem;
-    border-radius: 25px;
+    width: 200px;
+    padding: 10px 15px;
+    font-size: 0.9rem;
+    border-radius: 20px;
     border: 2px solid #00DDFF;
     background-color: rgba(0, 0, 0, 0.5);
     color: #00DDFF;
@@ -146,9 +156,6 @@ h1 {
     background-position: right 15px center;
     background-size: 20px 20px;
     transition: all 0.3s ease;
-    width: 200px;
-    max-width: 100%;
-    margin-right: 15px;
 }
 
 #teamSelect:hover, #weekSelect:hover {
@@ -194,6 +201,8 @@ h1 {
     margin: 10px;
     padding: 20px;
     font-family: 'Orbitron', sans-serif;
+    border: 2px solid #00DDFF;
+    box-shadow: 0 0 10px #33d9ff;
 
 }
 
