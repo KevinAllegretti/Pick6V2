@@ -196,10 +196,12 @@ async function updateScores(gameScores: any[]) {
         console.error('Error processing bet result:', error);
     }
 }
-
+const url = process.env.NODE_ENV === 'development'
+  ? 'http://localhost:3000/api/saveWeeklyPicks'
+  : 'https://pick6.club/api/saveWeeklyPicks';
 
 const fetchMLBData = async () => {
-    const response = await fetch('http://localhost:3000/api/fetchMLBData' || 'https://pick6.club/api/fetchMLBData', {
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -216,7 +218,7 @@ const fetchMLBData = async () => {
   };
   
   const saveWeeklyPicks = async (betOptions: any) => {
-    const response = await fetch('http://localhost:3000/api/saveWeeklyPicks' || 'https://pick6.club/api/saveWeeklyPicks', {
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ picks: betOptions })
@@ -294,7 +296,7 @@ cron.schedule('30 23 * * 4', () => {
   
 fetchMLBScores();
 });
-
+/*
 
 const fetchNFLschedule = async () => {
   const response = await fetch('http://localhost:3000/api/fetchNFLschedule' || 'https://pick6.club/api/fetchNFLschedule', {
@@ -349,4 +351,4 @@ const saveNFLSchedule = async (betOptions: any) => {
   }
 };
 
-
+*/

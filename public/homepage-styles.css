@@ -1606,10 +1606,10 @@ button:hover {
 }
 
 .ring {
-    width: 9px;
+    width: 5px;
     height: 13px;
     background: #00ccff;
-    border-radius: 50% 50% 0 0;
+    border-radius: 0 0 0 0;
     box-shadow: 0 0 10px rgba(0, 204, 255, 0.8);
     border: 1px solid #0a0f22;
 }
