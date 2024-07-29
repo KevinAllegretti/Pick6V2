@@ -1505,12 +1505,13 @@ button:hover {
     box-shadow: none;
     transition: color 0.3s ease;
     cursor: pointer;
+    top: 6.5px;
 }
 
 .neon-calendar {
     position: relative;
-    width: 60px; /* Slightly thinner width */
-    height: 80px; /* Slightly reduced height */
+    width: 65px; /* Slightly wider */
+    height: 70px; /* Slightly shorter */
     margin: 0 auto;
     top: -10%;
     background-color: #17203a;
@@ -1556,8 +1557,8 @@ button:hover {
 .calendar-top {
     position: absolute;
     top: 10px; /* Adjusted for smaller height */
-    left: 5px;
-    width: 50px;
+    left: 6px;
+    width: 55px; /* Slightly wider */
     height: 10px; /* Slightly reduced height */
     background: #00ccff;
     border-radius: 2px;
@@ -1565,12 +1566,12 @@ button:hover {
 
 .calendar-body {
     position: absolute;
-    top: 30px; /* Adjusted for smaller height */
+    top: 25px; /* Adjusted for smaller height */
     left: 5px;
-    width: 50px;
-    height: 40px; /* Slightly reduced height */
+    width: 60px; /* Slightly wider */
+    height: 35px; /* Slightly shorter */
     background: #17203a;
-    border: 2px solid #00ccff;
+    border-top: 2px solid #00ccff;
     border-radius: 2px;
 }
 
@@ -1599,7 +1600,7 @@ button:hover {
 .ring-binders {
     position: absolute;
     top: -7px;
-    left: 5px;
+    left: 7px; /* Adjusted for new width */
     width: 50px;
     display: flex;
     justify-content: space-around;
