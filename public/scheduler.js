@@ -181,3 +181,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 });
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const source = urlParams.get('source');
+    const poolName = urlParams.get('poolName');
+    const backButton = document.querySelector('.back-button');
+    
+    if (backButton) {
+        backButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (source === 'dashboard') {
+                // You'll need to handle getting the poolName if coming from dashboard
+                window.location.href = `dashboard.html?poolName=${encodeURIComponent(poolName)}`;
+            } else {
+                window.location.href = 'homepage.html'; // or 'index.html', whatever your homepage is called
+            }
+        });
+    }
+});

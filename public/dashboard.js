@@ -3,10 +3,13 @@ const queryParams = new URLSearchParams(window.location.search);
 const currentPoolName = queryParams.get('poolName'); // Get the pool name from URL query parameters
 
 if (!currentPoolName) {
- alert('Pool name is missing.');
+ //alert('Pool name is missing.');
  // Handle missing poolName appropriately, perhaps redirecting back or displaying an error message
 } else {
  localStorage.setItem('currentPoolName', currentPoolName);
+}
+function redirectToNFLScheduleWithPoolName(source) {
+    window.location.href = `scheduler.html?source=${encodeURIComponent(source)}&poolName=${encodeURIComponent(currentPoolName)}`;
 }
 
 const mlbToNflMap = {

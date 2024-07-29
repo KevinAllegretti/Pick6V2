@@ -1156,6 +1156,9 @@ function redirectToDashboard(poolName) {
     window.location.href = `dashboard.html?poolName=${encodeURIComponent(poolName)}`;
 }
 
+function redirectToNFLSchedule(source) {
+    window.location.href = `scheduler.html?source=${encodeURIComponent(source)}`;
+}
 
 function loadAndDisplayUserPools() {
 

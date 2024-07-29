@@ -1491,3 +1491,125 @@ button:hover {
     font-size: 1em;
     text-align: center;
 }
+.schedule-button {
+    position: relative;
+    display: inline-block;
+    padding: 10px 20px;
+    text-align: center;
+    color: #00ccff;
+    text-decoration: none;
+    font-size: 1.5em;
+    font-family: 'Georgia', serif;
+    background: none;
+    border: none;
+    box-shadow: none;
+    transition: color 0.3s ease;
+    cursor: pointer;
+}
+
+.neon-calendar {
+    position: relative;
+    width: 60px; /* Slightly thinner width */
+    height: 80px; /* Slightly reduced height */
+    margin: 0 auto;
+    top: -10%;
+    background-color: #17203a;
+    border: 2px solid #00ccff;
+    border-radius: 2px;
+}
+
+.neon-calendar::before,
+.neon-calendar::after {
+    content: '';
+    position: absolute;
+    border: 2px solid #00ccff;
+    border-radius: 2px;
+}
+
+.neon-calendar::before {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.schedule-button:hover .neon-calendar::before,
+.schedule-button:hover .neon-calendar::after {
+    background-color: rgba(0, 204, 255, 0.8);
+    color: #17203a;
+}
+
+.schedule-button:hover .calendar-title,
+.schedule-button:hover .calendar-date {
+    color: #17203a;
+}
+
+.neon-calendar::after {
+    top: 0;
+    left: 5px;
+    width: 95%;
+    height: 100%;
+    border-left: none;
+    box-shadow: 0 0 25px rgba(0, 204, 255, 0.8);
+}
+
+.calendar-top {
+    position: absolute;
+    top: 10px; /* Adjusted for smaller height */
+    left: 5px;
+    width: 50px;
+    height: 10px; /* Slightly reduced height */
+    background: #00ccff;
+    border-radius: 2px;
+}
+
+.calendar-body {
+    position: absolute;
+    top: 30px; /* Adjusted for smaller height */
+    left: 5px;
+    width: 50px;
+    height: 40px; /* Slightly reduced height */
+    background: #17203a;
+    border: 2px solid #00ccff;
+    border-radius: 2px;
+}
+
+.calendar-title {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: #17203a;
+    text-shadow: 0 0 20px rgba(23, 32, 58, 0.8);
+    text-align: center;
+}
+
+.calendar-date {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 20px;
+    color: #00ccff;
+    text-shadow: 0 0 20px rgba(0, 204, 255, 0.8);
+    text-align: center;
+}
+
+.ring-binders {
+    position: absolute;
+    top: -7px;
+    left: 5px;
+    width: 50px;
+    display: flex;
+    justify-content: space-around;
+}
+
+.ring {
+    width: 9px;
+    height: 13px;
+    background: #00ccff;
+    border-radius: 50% 50% 0 0;
+    box-shadow: 0 0 10px rgba(0, 204, 255, 0.8);
+    border: 1px solid #0a0f22;
+}
