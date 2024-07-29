@@ -349,22 +349,4 @@ const saveNFLSchedule = async (betOptions: any) => {
   }
 };
 
-//const betOptions = fetchNFLschedule();
-//saveNFLSchedule(betOptions);
-cron.schedule('39 12 * * *', async () => { // every tuesday
-  try {
-    const betOptions = await fetchMLBData();
-    await saveWeeklyPicks(betOptions);
-  } catch (error) {
-    console.error('Scheduled job failed:', error);
-  }
-});
 
-cron.schedule('18 13 * * *', async () => { // every tuesday
-  try {
-    const betOptions = await fetchNFLschedule();
-    await saveNFLSchedule(betOptions);
-  } catch (error) {
-    console.error('Scheduled job failed:', error);
-  }
-});
