@@ -946,6 +946,7 @@ button:hover {
     background-position: center; /* Center the image */
     margin-right: 10px; /* Space between image and username */
     flex-shrink: 0;
+    border: 1.5px solid #33d9ff;
 }
 
 .player-rank { order: 1 }
