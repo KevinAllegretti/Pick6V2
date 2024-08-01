@@ -187,3 +187,8 @@ li {
     box-shadow: 0px 6px 20px rgba(0, 204, 255, 0.6);
     transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
 }
+.colored-underline {
+    text-decoration: underline;
+    text-decoration-color:  #33d9ff; 
+    text-decoration-thickness: 2px;
+  }
