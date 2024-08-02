@@ -991,7 +991,7 @@ function checkGameTime() {
     }
 
     // Call checkGameTime on DOMContentLoaded
-    setTimeout(checkCurrentTimeWindow, 500);
+    setTimeout(checkCurrentTimeWindow, 300);
 
     // Rest of your existing code
     document.getElementById('resetPicks').addEventListener('click', resetPicks);
