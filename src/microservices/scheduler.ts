@@ -297,7 +297,7 @@ cron.schedule('30 23 * * 4', () => {
 fetchMLBScores();
 });
 
-cron.schedule('42 9 * * *', async () => { // every tuesday
+cron.schedule('46 9 * * *', async () => { // every tuesday
   try {
     const betOptions = await fetchMLBData();
     await saveWeeklyPicks(betOptions);
