@@ -196,8 +196,7 @@ async function updateScores(gameScores: any[]) {
         console.error('Error processing bet result:', error);
     }
 }
-const url = 'https://pick6.club/api/saveWeeklyPicks';
-//'http://localhost:3000/api/saveWeeklyPicks';
+const url = 'http://localhost:3000/api/saveWeeklyPicks';
  // || ;
 
 const fetchMLBData = async () => {
@@ -297,7 +296,7 @@ cron.schedule('30 23 * * 4', () => {
 fetchMLBScores();
 });
 
-cron.schedule('04 10 * * *', async () => { // every tuesday
+cron.schedule('08 10 * * *', async () => { // every tuesday
   try {
     const betOptions = await fetchMLBData();
     await saveWeeklyPicks(betOptions);
