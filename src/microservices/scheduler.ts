@@ -196,11 +196,12 @@ async function updateScores(gameScores: any[]) {
         console.error('Error processing bet result:', error);
     }
 }
-const url = 'http://localhost:3000/api/saveWeeklyPicks';
+const url1 = 'http://localhost:3000/api/saveWeeklyPicks';
+const url2 = 'http://localhost:3000/api/fetchMLBData';
  // || ;
 
 const fetchMLBData = async () => {
-    const response = await fetch(url, {
+    const response = await fetch(url2, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -218,7 +219,7 @@ const fetchMLBData = async () => {
   };
   
   const saveWeeklyPicks = async (betOptions: any) => {
-    const response = await fetch(url, {
+    const response = await fetch(url1, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ picks: betOptions })
@@ -296,7 +297,7 @@ cron.schedule('30 23 * * 4', () => {
 fetchMLBScores();
 });
 
-cron.schedule('08 10 * * *', async () => { // every tuesday
+cron.schedule('12 10 * * *', async () => { // every tuesday
   try {
     const betOptions = await fetchMLBData();
     await saveWeeklyPicks(betOptions);
