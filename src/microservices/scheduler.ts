@@ -207,9 +207,10 @@ const fetchMLBData = async () => {
     });
   
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Failed to fetch MLB data: ${response.status} - ${errorText}`);
       throw new Error('Failed to fetch MLB data');
     }
-  
     const betOptions = await response.json();
     console.log('Scheduled bet options:', betOptions);
   
