@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 import { connectToDatabase } from '../microservices/connectDB';
 
-const baseUrl = 'http://localhost:3000' || 'https://www.pick6.club'; 
+const baseUrl = 'https://www.pick6.club'; 
 //test
 // Function to update user points
 export async function updateUserPoints(username: string, additionalPoints: number, poolName: string): Promise<void> {
@@ -258,6 +258,7 @@ export async function updateTuesdayStartTime(): Promise<void> {
     nextTuesday.setHours(0, 0, 0, 0); // 12 AM EST
     nextTuesday.setMinutes(nextTuesday.getMinutes() + nextTuesday.getTimezoneOffset());
     nextTuesday.setHours(nextTuesday.getHours() - 4 ); // Convert UTC to EST (UTC-4)
+
 
     // Ensure it's the next Tuesday
     if (now > nextTuesday) {
