@@ -297,14 +297,7 @@ cron.schedule('30 23 * * 4', () => {
 fetchMLBScores();
 });
 
-cron.schedule('12 10 * * *', async () => { // every tuesday
-  try {
-    const betOptions = await fetchMLBData();
-    await saveWeeklyPicks(betOptions);
-  } catch (error) {
-    console.error('Scheduled job failed:', error);
-  }
-});
+
 /*
 
 const fetchNFLschedule = async () => {
