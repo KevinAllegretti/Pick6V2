@@ -198,6 +198,7 @@ async function updateScores(gameScores: any[]) {
 }
 const url1 = 'http://localhost:3000/api/saveWeeklyPicks';
 const url2 = 'http://localhost:3000/api/fetchMLBData';
+const url3 = 'http://localhost:3000/api/fetchNFLDataOneWeekOut';
  // || ;
 
 const fetchMLBData = async () => {
@@ -210,6 +211,24 @@ const fetchMLBData = async () => {
       const errorText = await response.text();
       console.error(`Failed to fetch MLB data: ${response.status} - ${errorText}`);
       throw new Error('Failed to fetch MLB data');
+    }
+    const betOptions = await response.json();
+    console.log('Scheduled bet options:', betOptions);
+  
+    // Return the betOptions to be used for saving
+    return betOptions;
+  };
+  
+  const fetchNFLDataOneWeekOut = async () => {
+    const response = await fetch(url3, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+  
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Failed to fetch NFL data: ${response.status} - ${errorText}`);
+      throw new Error('Failed to fetch NFL data');
     }
     const betOptions = await response.json();
     console.log('Scheduled bet options:', betOptions);

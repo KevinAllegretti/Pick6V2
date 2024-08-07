@@ -80,6 +80,67 @@ const fetchMLBData = async (req: Request, res: Response) => {
     }
   };
   
+  const fetchNFLDataOneWeekOut = async (req: Request, res: Response) => {
+    const url = 'https://odds.p.rapidapi.com/v4/sports/americanfootball_nfl/odds';
+    
+    // Calculate the date range for one week out
+    const today = new Date();
+    const oneWeekOutDate = new Date(today);
+    oneWeekOutDate.setDate(today.getDate() + 7);
+    
+    // Format the dates as ISO 8601
+    const commenceTimeFrom = today.toISOString();
+    const commenceTimeTo = oneWeekOutDate.toISOString();
+    
+    const params = {
+      regions: 'us',
+      markets: 'h2h,spreads',
+      oddsFormat: 'american',
+      commenceTimeFrom: commenceTimeFrom,
+      commenceTimeTo: commenceTimeTo,
+    };
+    const queryParams = new URLSearchParams(params);
+    const betOptions: any[] = [];
+  
+    try {
+      console.log(`Fetching data from: ${url}?${queryParams}`);
+      const response = await fetch(`${url}?${queryParams}`, {
+        method: 'GET',
+        headers: {
+          'x-rapidapi-host': 'odds.p.rapidapi.com',
+          'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e'
+        }
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      console.log("Full API Data:", JSON.stringify(data, null, 2)); // Log the entire data set received from the API
+  
+      data.forEach((event: any) => {
+        console.log('Processing event:', JSON.stringify(event, null, 2));
+        if (!event.teams || !Array.isArray(event.teams)) {
+          if (event.home_team && event.away_team) {
+            processBookmakers([event.home_team, event.away_team], event.bookmakers, event.commence_time, event.home_team, event.away_team, betOptions);
+          }
+        } else {
+          processBookmakers(event.teams, event.bookmakers, event.commence_time, event.home_team, event.away_team, betOptions);
+        }
+      });
+  
+      console.log("Processed Bet Options:", JSON.stringify(betOptions, null, 2)); // Log the processed bet options
+      res.json(betOptions);
+    } catch (error) {
+      console.error('Error fetching NFL data:', error);
+      res.status(500).send('Error fetching NFL data');
+    }
+  };
+  
+
+  
+
 const fetchNFLschedule = async (req: Request, res: Response) => {
   const url = 'https://odds.p.rapidapi.com/v4/sports/americanfootball_nfl/odds';
   const params = {
@@ -299,4 +360,4 @@ const filterUniqueGames = (games: any[]): any[] => {
 
 
 
-export { fetchMLBData, saveWeeklyPicks, fetchNFLschedule, saveNFLSchedule };
+export { fetchMLBData, saveWeeklyPicks, fetchNFLschedule, saveNFLSchedule, fetchNFLDataOneWeekOut };
