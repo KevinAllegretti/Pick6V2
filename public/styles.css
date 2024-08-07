@@ -74,7 +74,7 @@ body {
         font-size: 0.9rem; /* Smaller font size on smaller screens */
       }
       .back-button {
-        font-family: 'montserrat', 'sans-serif';
+        font-family: 'Montserrat', sans-serif;
           display: inline-block;
           padding: 12px 25px;
           margin: 10px auto;
