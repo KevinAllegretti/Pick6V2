@@ -73,7 +73,21 @@ body {
         padding: 15px; /* Adjust padding on smaller screens */
         font-size: 0.9rem; /* Smaller font size on smaller screens */
       }
-
+      .back-button {
+        font-family: 'montserrat', 'sans-serif';
+          display: inline-block;
+          padding: 12px 25px;
+          margin: 10px auto;
+          text-align: center;
+          background: #121212;
+          color: #00ccff;
+          text-decoration: none;
+          border-radius: 50px;
+          border: 2px solid #00ccff;
+          transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+          cursor: pointer;
+          box-shadow: 0px 4px 15px rgba(0, 204, 255, 0.4);
+      }
 }
 @media (min-width: 769px) {
   /* This will only apply to screens wider than 768px */
