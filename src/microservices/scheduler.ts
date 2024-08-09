@@ -92,6 +92,58 @@ async function fetchMLBScores() {
     }
   }
 
+  async function fetchNFLScores() {
+    console.log('fetchMLBScores function started.');
+  
+    const url = 'https://odds.p.rapidapi.com/v4/sports/americanfootball_nfl/scores';
+    const params = {
+      daysFrom: '1',
+      apiKey: '3decff06f7mshbc96e9118345205p136794jsn629db332340e'
+    };
+    const queryParams = new URLSearchParams(params);
+  
+    try {
+      const response = await fetch(`${url}?${queryParams}`, {
+        method: 'GET',
+        headers: {
+          'x-rapidapi-host': 'odds.p.rapidapi.com',
+          'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e'
+        }
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+  
+      const scores = await response.json();
+      console.log("Scores data:", scores);
+  
+      gameScores = scores.map(event => {
+        if (!event.scores || !Array.isArray(event.scores)) {
+          console.log(`Skipping event due to missing or invalid scores:`, event);
+          return null;
+        }
+  
+        const homeTeam = mlbToNflMap[event.home_team] || event.home_team;
+        const awayTeam = mlbToNflMap[event.away_team] || event.away_team;
+        const homeScore = event.scores.find(s => mlbToNflMap[s.name] === homeTeam || s.name === event.home_team)?.score;
+        const awayScore = event.scores.find(s => mlbToNflMap[s.name] === awayTeam || s.name === event.away_team)?.score;
+  
+        return {
+          home_team: homeTeam,
+          away_team: awayTeam,
+          home_score: parseInt(homeScore, 10),
+          away_score: parseInt(awayScore, 10)
+        };
+      }).filter(match => match !== null);
+  
+      console.log('Scores fetched:', gameScores);
+  
+      await updateScores(gameScores);
+    } catch (error) {
+      console.error('Error fetching NFL scores:', error);
+    }
+  }
 
 async function updateScores(gameScores: any[]) {
       console.log('gameScores at update:', gameScores);

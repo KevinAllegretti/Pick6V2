@@ -160,7 +160,7 @@
             text-shadow: 0 0 10px rgba(51, 217, 255, 0.5);
         }
 
-        .profile-panel-container, .pool-manager-pic-container, .pool-pic-container,
+        .profile-panel-container, .pool-manager-pic-container, .rule-book-container, .schedule-container, .pool-pic-container,
         .profile-panel-other-container, .icon-container, .top-picks-container,
         .game-container, .injuries {
             display: flex;
@@ -179,6 +179,13 @@
             border-radius: 8px;
         }
 
+        .rule-book-pic, .schedule-pic{
+            width: 50%;
+            max-width: 100px;
+            height: auto;
+            border: 2px solid #00ccff;
+            border-radius: 8px;
+        }
         .back-button-container {
             text-align: center;
             margin: 20px 0;
@@ -251,7 +258,7 @@
         </div>
         <div class="info-container">
             <div class="info-box" id="home">
-                <p>This page will explain the main features of Pick 6</p>
+                <p>Welcome to Pick 6! A season long battle where you and your friends accumulate points from picks each week. </p>
             </div>
             <div class="info-box" id="homepage">
                 <h2>Homepage</h2>
@@ -270,7 +277,17 @@
                 <p>The Pool Manager allows you to create or join a pool. When creating a pool you can choose to make it private by toggling the Private Pool feature and will allow you to enter a password. When you create a pool, you will become the admin and will have the ability to delete it if needed.</p>
                 
                 <h6 id="rule-book">Rule Book:</h6>
+                <div class="rule-book-container">
+                    <img src='ruleBook.png' alt="ruleBook" class="rule-book-pic" />
+                </div>
                 <p>Selecting on the Rule Book will bring you to a different page that explains the rules of Pick 6. </p>
+
+                <h6 id="Schedule">Schedule:</h6>
+                <div class="schedule-container">
+                    <img src='schedule.png' alt="schedule" class="schedule-pic" />
+                </div>
+                <p>Selecting on the Schedule will bring you to a different page that allows you to see the entire NFL seasons schedule.
+                    You can either sort by team or week to see the matchups. </p>
 
                 <h6 id="the-pool">The Pool:</h6>
                 <div class="pool-pic-container">

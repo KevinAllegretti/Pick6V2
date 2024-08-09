@@ -2,7 +2,7 @@
 body {
     font-family: 'Arial', sans-serif;
     background-color: #0a0f22; /* Darker background for contrast */
-    background-image: url('P6.png');
+    /*background-image: url('P6.png');
     background-size: 1500px; /* Resize the background image to cover the entire container */
     background-repeat: no-repeat; /* Prevents the background image from repeating */
     background-position: center -290px; /* Centers the background image */
