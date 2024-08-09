@@ -294,7 +294,7 @@ input[type="file"] {
   /* Media query for smaller screens */
   @media screen and (max-width: 768px) {
     .welcome-message {
-      font-size: 5vw; /* Slightly larger on smaller screens */
+      font-size: 15vw; /* Slightly larger on smaller screens */
     }
   }
 
