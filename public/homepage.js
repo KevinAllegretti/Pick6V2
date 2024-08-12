@@ -448,7 +448,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             setTimeout(() => {
                 updateSlideOutPanelInPool(userData);
-            }, 2000);
+            }, 500);
     
         } catch (error) {
             console.error('Error fetching user profile:', error);
