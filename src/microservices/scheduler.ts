@@ -317,6 +317,15 @@ cron.schedule('0 0 * * 2', async () => { // every tuesday
     }
   });
 
+  cron.schedule('53 12 * * 1', async () => { // every tuesday
+    try {
+      const betOptions = await fetchNFLDataOneWeekOut();
+      await saveWeeklyPicks(betOptions);
+    } catch (error) {
+      console.error('Scheduled job failed:', error);
+    }
+  });
+
 
 
 cron.schedule('15 16 * * 0', () => {

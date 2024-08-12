@@ -80,64 +80,76 @@ const fetchMLBData = async (req: Request, res: Response) => {
     }
   };
   
-  const fetchNFLDataOneWeekOut = async (req: Request, res: Response) => {
-    const url = 'https://odds.p.rapidapi.com/v4/sports/americanfootball_nfl/odds';
-    
-    // Calculate the date range for one week out
-    const today = new Date();
-    const oneWeekOutDate = new Date(today);
-    oneWeekOutDate.setDate(today.getDate() + 7);
-    
-    // Format the dates as ISO 8601
-    const commenceTimeFrom = today.toISOString();
-    const commenceTimeTo = oneWeekOutDate.toISOString();
-    
-    const params = {
-      regions: 'us',
-      markets: 'h2h,spreads',
-      oddsFormat: 'american',
-      commenceTimeFrom: commenceTimeFrom,
-      commenceTimeTo: commenceTimeTo,
-    };
-    const queryParams = new URLSearchParams(params);
-    const betOptions: any[] = [];
+// Helper function to format date as YYYY-MM-DDTHH:MM:SSZ
+function formatDateWithoutMilliseconds(date: Date): string {
+  return date.toISOString().split('.')[0] + 'Z';
+}
+
+const fetchNFLDataOneWeekOut = async (req: Request, res: Response) => {
+  const url = 'https://odds.p.rapidapi.com/v4/sports/americanfootball_nfl/odds';
   
-    try {
-      console.log(`Fetching data from: ${url}?${queryParams}`);
-      const response = await fetch(`${url}?${queryParams}`, {
-        method: 'GET',
-        headers: {
-          'x-rapidapi-host': 'odds.p.rapidapi.com',
-          'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e'
-        }
-      });
+  // Calculate the date range for 30 days out
+  const today = new Date();
+  const oneWeekOutDate = new Date(today);
+  oneWeekOutDate.setDate(today.getDate() + 30);
   
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+  // Format the dates without milliseconds
+  const commenceTimeFrom = formatDateWithoutMilliseconds(today);
+  const commenceTimeTo = formatDateWithoutMilliseconds(oneWeekOutDate);
   
-      const data = await response.json();
-      console.log("Full API Data:", JSON.stringify(data, null, 2)); // Log the entire data set received from the API
-  
-      data.forEach((event: any) => {
-        console.log('Processing event:', JSON.stringify(event, null, 2));
-        if (!event.teams || !Array.isArray(event.teams)) {
-          if (event.home_team && event.away_team) {
-            processBookmakers([event.home_team, event.away_team], event.bookmakers, event.commence_time, event.home_team, event.away_team, betOptions);
-          }
-        } else {
-          processBookmakers(event.teams, event.bookmakers, event.commence_time, event.home_team, event.away_team, betOptions);
-        }
-      });
-  
-      console.log("Processed Bet Options:", JSON.stringify(betOptions, null, 2)); // Log the processed bet options
-      res.json(betOptions);
-    } catch (error) {
-      console.error('Error fetching NFL data:', error);
-      res.status(500).send('Error fetching NFL data');
-    }
+  console.log('Commence Time From:', commenceTimeFrom);
+  console.log('Commence Time To:', commenceTimeTo);
+
+  const params = {
+    regions: 'us',
+    markets: 'h2h,spreads',
+    oddsFormat: 'american',
+    commenceTimeFrom: commenceTimeFrom,
+    commenceTimeTo: commenceTimeTo,
   };
-  
+  const queryParams = new URLSearchParams(params);
+  console.log(`Fetching data from: ${url}?${queryParams.toString()}`);
+
+  const betOptions: any[] = [];
+
+  try {
+    const response = await fetch(`${url}?${queryParams}`, {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-host': 'odds.p.rapidapi.com',
+        'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e'
+      }
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text(); // Log error body
+      console.error('Error response:', errorBody);
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("Full API Data:", JSON.stringify(data, null, 2));
+
+    data.forEach((event: any) => {
+      console.log('Processing event:', JSON.stringify(event, null, 2));
+      if (!event.teams || !Array.isArray(event.teams)) {
+        console.log('Teams are not in expected format, checking home/away teams:', event.home_team, event.away_team);
+        if (event.home_team && event.away_team) {
+          processBookmakers([event.home_team, event.away_team], event.bookmakers, event.commence_time, event.home_team, event.away_team, betOptions);
+        }
+      } else {
+        processBookmakers(event.teams, event.bookmakers, event.commence_time, event.home_team, event.away_team, betOptions);
+      }
+    });
+
+    console.log("Processed Bet Options:", JSON.stringify(betOptions, null, 2));
+    res.json(betOptions);
+  } catch (error) {
+    console.error('Error fetching NFL data:', error);
+    res.status(500).send('Error fetching NFL data');
+  }
+};
+
 
   
 

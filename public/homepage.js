@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const resultEntry = results.find(r => r.teamName === teamName);
       if (resultEntry) {
         console.log(`Applying UI result for ${teamName}:`, resultEntry);
-        pickElement.style.color = resultEntry.result === "hit" ? "#39FF14" : resultEntry.result === "miss" ? "red" : "yellow";
+        pickElement.style.color = resultEntry.result === "hit" ? "#39FF14" : resultEntry.result === "miss" ? "red" :  "yellow";
       } else {
         console.warn(`No result found for ${teamName} or mismatch in team names`, {teamName, results});
       }
@@ -1526,7 +1526,7 @@ function getUsernameForPick(pickElement) {
 
 
 
-
+/*
 
 function rebuildUIWithResults(results) {
     console.log('Received results for UI rebuild:', results);
@@ -1558,7 +1558,7 @@ function rebuildUIWithResults(results) {
         }
     });
 }
-
+*/
 function updateUserStats(username, poolName, winIncrement = 0, lossIncrement = 0, pushIncrement = 0) {
     fetch('/pools/updateUserStatsInPoolByName', {
         method: 'POST',
