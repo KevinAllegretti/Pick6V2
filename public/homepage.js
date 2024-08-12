@@ -461,13 +461,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         document.querySelector('#slideOutPanelInPool .profile-icon-center').src = userData.profilePicture || 'Default.png';
         document.getElementById('displayNameInPool').textContent = userData.username;
-        setTimeout(() => {
-            const userRecordContainer = document.getElementById('userRecordInPool');
-            userRecordContainer.innerHTML = `
-                <div>Win: ${userData.win} | Loss: ${userData.loss} | Push: ${userData.push}</div>
-            `;
-        }, 100);
         document.getElementById('userBioInPool').textContent = userData.bio || 'No bio available';
+        const userRecordContainer = document.getElementById('userRecordInPool');
+        userRecordContainer.innerHTML = `
+            <div>Win: ${userData.win} | Loss: ${userData.loss} | Push: ${userData.push}</div>
+        `;
         panelContent.classList.add('visible');
         document.getElementById('closePanelBtnInPool').addEventListener('click', () => {
             panelContent.classList.remove('visible');
