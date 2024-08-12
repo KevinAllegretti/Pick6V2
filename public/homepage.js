@@ -446,7 +446,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const bioData = await bioResponse.json();
             userData.bio = bioData.bio;
 
-            updateSlideOutPanelInPool(userData);
+            setTimeout(() => {
+                updateSlideOutPanelInPool(userData);
+            }, 2000);
+    
         } catch (error) {
             console.error('Error fetching user profile:', error);
         }
