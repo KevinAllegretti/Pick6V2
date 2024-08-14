@@ -307,10 +307,12 @@ const fetchMLBData = async () => {
       console.error('Error saving picks');
     }
   };
+
+
   /*
-cron.schedule('0 0 * * 2', async () => { // every tuesday
+cron.schedule('* * * * 2', async () => { // every tuesday
     try {
-      const betOptions = await fetchMLBData();
+      const betOptions = await fetchNFLDataOneWeekOut();
       await saveWeeklyPicks(betOptions);
     } catch (error) {
       console.error('Scheduled job failed:', error);
@@ -370,10 +372,10 @@ fetchMLBScores();
 });
 
 
-/*
+const url4 = 'http://localhost:3000/api/fetchNFLschedule';
 
 const fetchNFLschedule = async () => {
-  const response = await fetch('http://localhost:3000/api/fetchNFLschedule' || 'https://pick6.club/api/fetchNFLschedule', {
+  const response = await fetch( url4, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' }
   });
@@ -389,8 +391,9 @@ const fetchNFLschedule = async () => {
   return betOptions;
 };
 
-//fetchNFLschedule();
 
+
+const url5 = 'http://localhost:3000/api/saveNFLSchedule'
 const saveNFLSchedule = async (betOptions: any) => {
   const chunkSize = 50; // Define the chunk size
   const totalChunks = Math.ceil(betOptions.length / chunkSize);
@@ -403,7 +406,7 @@ const saveNFLSchedule = async (betOptions: any) => {
     console.log(`Saving chunk ${i + 1}/${totalChunks}, size: ${Buffer.byteLength(JSON.stringify(chunk))} bytes`);
 
     try {
-      const response = await fetch('http://localhost:3000/api/saveNFLSchedule' || 'https://pick6.club/api/saveNFLSchedule', {
+      const response = await fetch(url5, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ picks: chunk })
@@ -424,5 +427,3 @@ const saveNFLSchedule = async (betOptions: any) => {
     }
   }
 };
-
-*/

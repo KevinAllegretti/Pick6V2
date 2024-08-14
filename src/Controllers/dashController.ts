@@ -339,23 +339,31 @@ export const fetchGamesByFilter = async (req: Request, res: Response) => {
 
 // Helper function to get the NFL week number
 const getNFLWeekNumber = (date: Date): number => {
-  // Define the start date of the NFL season (first Sunday of September)
-  const startMonth = 8; // September is the 8th month (0-indexed)
+  const startMonth = 8; // September
   const year = date.getFullYear();
   const firstDayOfMonth = new Date(year, startMonth, 1);
-  let firstSundayOfMonth = firstDayOfMonth;
+  let firstThursdayOfMonth = firstDayOfMonth;
 
-  // Find the first Sunday of September
-  while (firstSundayOfMonth.getDay() !== 0) {
-      firstSundayOfMonth.setDate(firstSundayOfMonth.getDate() + 1);
+  // Find the first Thursday of September
+  while (firstThursdayOfMonth.getDay() !== 4) {
+    firstThursdayOfMonth.setDate(firstThursdayOfMonth.getDate() + 1);
   }
 
   // Calculate the number of days since the start of the NFL season
-  const days = Math.floor((date.getTime() - firstSundayOfMonth.getTime()) / (24 * 60 * 60 * 1000));
+  const days = Math.floor((date.getTime() - firstThursdayOfMonth.getTime()) / (24 * 60 * 60 * 1000));
 
-  // Calculate the week number
-  return Math.ceil(days / 7); // Ensure week count starts from 1
+  // Calculate the week number, ensuring correct handling of all weeks
+  let weekNumber = Math.ceil((days + 3) / 7);
+
+  // Special handling for the last week of the season (Week 18)
+  if (weekNumber > 18) {
+    weekNumber = 18;
+  }
+
+  return weekNumber;
 };
+
+
 
 // Helper function to filter unique games
 const filterUniqueGames = (games: any[]): any[] => {
