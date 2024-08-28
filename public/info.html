@@ -160,7 +160,7 @@
             text-shadow: 0 0 10px rgba(51, 217, 255, 0.5);
         }
 
-        .profile-panel-container, .pool-manager-pic-container, .rule-book-container, .schedule-container, .pool-pic-container,
+        .profile-panel-container, .pool-manager-pic-container, .rule-book-container, .schedule-container, .pool-pic-container, .Makepicks-pic-container,.chat-pic-container,
         .profile-panel-other-container, .icon-container, .top-picks-container,
         .game-container, .injuries {
             display: flex;
@@ -169,7 +169,7 @@
             width: 100%;
         }
 
-        .profile-panel-pic, .pool-manager-pic, .pool-pic,
+        .profile-panel-pic, .pool-manager-pic, .pool-pic, .Makepicks-pic, .chat-pic,
         .profile-panel-other-pic, .icon-pic, .top-picks,
         .game-container-pic, .injuries-pic {
             width: 100%;
@@ -186,6 +186,7 @@
             border: 2px solid #00ccff;
             border-radius: 8px;
         }
+
         .back-button-container {
             text-align: center;
             margin: 20px 0;
@@ -258,7 +259,7 @@
         </div>
         <div class="info-container">
             <div class="info-box" id="home">
-                <p>Welcome to Pick 6! A season long battle where you and your friends accumulate points from picks each week. </p>
+                <p>Welcome to Pick 6!</p>
             </div>
             <div class="info-box" id="homepage">
                 <h2>Homepage</h2>
@@ -300,12 +301,18 @@
                 <p>Once a player joins a pool, their player row will be added to the pool and aptly sorted based on their rank, which is calculated by their current points. </p>
                 <p>The player row consists of these fields but specifically for each player and will display their stats during the season.</p>
 
-                <p>The picks column will only display your picks during 'Pick Time' and a banner will cover up other players picks. During this time you are allowed access to the Pick Selection page from the 'Make Picks' button in the pool header.</p>
+                <p>The picks column will only display your picks during 'Pick Time' and a banner will cover up other players picks. </p>
+                <div class="Makepicks-pic-container">
+                    <img src='Makepicks.png' alt="Makepicks" class="Makepicks-pic" />
+                </div>
+                <p>During this time you are allowed access to the Pick Selection page from the 'Make Picks' button in the pool header.</p>
                 <p>The picks column will display every users picks during 'Game Time' and will periodically update showing everyone 
                     if they hit their pick with green text, missed it with red text, or pushed it with yellow text. During this time the 'Make Picks' button will also be disabled. In addition, when fetching results, the pool will 
                     update every users rank, points, win, loss, and push.</p>
                 <p>Result Times: THURSDAY: 11:30 PM EST | SUNDAY: 4:15 PM, 8:30 PM, 11:30 PM EST | MONDAY: 11:30 PM EST</p>
-
+                <div class="chat-pic-container">
+                    <img src='chat.png' alt="chat" class="chat-pic" />
+                </div>
                 <p>The chat room can be clicked on and automatically toggles on the local chat, which is everyone in the current pool. 
                     You can click on global chat to switch over to chat with people from every other pool in Pick 6.
                 </p>
