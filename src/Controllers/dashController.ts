@@ -91,7 +91,7 @@ const fetchNFLDataOneWeekOut = async (req: Request, res: Response) => {
   // Calculate the date range for 30 days out
   const today = new Date();
   const oneWeekOutDate = new Date(today);
-  oneWeekOutDate.setDate(today.getDate() + 30);
+  oneWeekOutDate.setDate(today.getDate() + 7);
   
   // Format the dates without milliseconds
   const commenceTimeFrom = formatDateWithoutMilliseconds(today);

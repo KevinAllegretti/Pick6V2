@@ -309,7 +309,7 @@ const fetchMLBData = async () => {
   };
 
 
-  /*
+  
 cron.schedule('* * * * 2', async () => { // every tuesday
     try {
       const betOptions = await fetchNFLDataOneWeekOut();
@@ -317,7 +317,7 @@ cron.schedule('* * * * 2', async () => { // every tuesday
     } catch (error) {
       console.error('Scheduled job failed:', error);
     }
-  });*/
+  });
 
   
 
