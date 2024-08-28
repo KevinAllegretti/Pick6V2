@@ -282,7 +282,7 @@ input[type="file"] {
 .welcome-message {
     text-transform: uppercase;
     text-align: center;
-    font-size: 3vw; /* Base font size using viewport width */
+    font-size: 3.8vw; /* Base font size using viewport width */
     white-space: nowrap; /* Prevent wrapping */
     overflow: hidden; /* Hide overflow */
     width: 100%; /* Full width of container */
@@ -293,7 +293,7 @@ input[type="file"] {
   /* Media query for smaller screens */
   @media screen and (max-width: 768px) {
     .welcome-message {
-      font-size: 3.5vw; /* Slightly larger on smaller screens */
+      font-size: 3.8vw; /* Slightly larger on smaller screens */
     }
   }
 
