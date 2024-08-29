@@ -324,22 +324,22 @@ cron.schedule('* * * * 2', async () => { // every tuesday
 
 cron.schedule('15 16 * * 0', () => {
     console.log("It's Sunday 4:15 PM, now fetching scores");
-    fetchMLBScores();
+    fetchNFLScores();
 });
 
 cron.schedule('30 20 * * 0', () => {
     console.log("It's Sunday 8:30 PM, now fetching scores");
-    fetchMLBScores();
+    fetchNFLScores();
 });
 
 cron.schedule('30 23 * * 0', () => {
     console.log("It's Sunday 11:30 PM, now fetching scores");
-    fetchMLBScores();
+    fetchNFLScores();
 });
 
 cron.schedule('30 23 * * 1', () => {
     console.log("It's Monday 11:30 PM, now fetching scores");
-    fetchMLBScores();
+    fetchNFLScores();
 });
 
 cron.schedule('0 0 * * 2', () => {
@@ -363,12 +363,16 @@ cron.schedule('0 8 * * *', () => {
 });
 
 
-
+cron.schedule('30 23 * * 5', () => {
+  console.log("Its thursday, gettin scores");
+  
+fetchNFLScores();
+});
 
 cron.schedule('30 23 * * 4', () => {
   console.log("Its thursday, gettin scores");
   
-fetchMLBScores();
+fetchNFLScores();
 });
 
 
