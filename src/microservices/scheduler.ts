@@ -429,8 +429,8 @@ const saveNFLSchedule = async (betOptions: any) => {
 };
 
 /*
-cron.schedule('47 12 * * 4', () => {
+cron.schedule('54 12 * * 4', () => {
   console.log("Its thursday, gettin scores");
   
-fetchMLBScores();
+fetchNFLScores();
 });*/

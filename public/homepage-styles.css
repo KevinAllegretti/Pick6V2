@@ -630,6 +630,15 @@ h2 {
     margin-top: 20px; /* Add space below the "teams" */
 }
 
+.week {
+    font-size: 1.5rem; /* Adjust as needed */
+    font-family: 'Russo one', sans-serif;
+    color: rgb(255, 255, 255);
+    text-align: center;
+    text-shadow: 0 0 5px rgb(254, 237, 237), 0 0 10px rgb(246, 239, 239), 0 0 15px #00a2ff, 0 0 20px #00a2ff, 0 0 25px #00a2ff, 0 0 30px #00a2ff, 0 0 35px #00a2ff;
+    animation: neonFlicker 1.5s infinite alternate;
+    margin-top: 20px; /* Add space below the "teams" */
+}
 @keyframes neonFlicker {
     0% { opacity: 0.2; }
     50% { opacity: 1; }
