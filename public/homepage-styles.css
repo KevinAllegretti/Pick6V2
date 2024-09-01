@@ -1060,8 +1060,9 @@ button:hover {
 }
 
 .crown-icon {
-    margin-left: 0.2em;
+    margin-left: 0.3em;
     padding-right: 4px;
+    margin-bottom:0.2em;
     font-size: 1.0rem; /* Adjust as needed */
     z-index: 10;
     color: gold;
