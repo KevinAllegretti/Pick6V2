@@ -1046,7 +1046,8 @@ button:hover {
 
 .admin-badge {
     color: rgb(1, 211, 1); /* Green color for the admin badge */
-    margin-left: 0.5em; /* Space between the username and the badge */
+    margin-left: 0.3em; /* Space between the username and the badge */
+    margin-right: 0.2em;
 }
 
 .player-user {

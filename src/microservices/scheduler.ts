@@ -319,7 +319,6 @@ cron.schedule('* * * * 2', async () => { // every tuesday
     }
   });
 
-  
 
 
 cron.schedule('15 16 * * 0', () => {
