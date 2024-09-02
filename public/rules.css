@@ -160,6 +160,10 @@ li {
     font-weight: bold;
 }
 
+.blue-highlight {
+    color: #33d9ff;
+    font-weight: bold;
+}
 /* Refined back button design with silver undertones */
 .back-button-container {
     text-align: center;
