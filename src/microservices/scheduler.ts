@@ -98,7 +98,7 @@ async function fetchMLBScores() {
     const url = 'https://odds.p.rapidapi.com/v4/sports/americanfootball_nfl/scores';
     const params = {
       daysFrom: '1',
-      apiKey: '3decff06f7mshbc96e9118345205p136794jsn629db332340e'
+      apiKey: 'e5859daf3amsha3927ab000fb4a3p1b5686jsndea26f3d7448'
     };
     const queryParams = new URLSearchParams(params);
   
@@ -107,7 +107,7 @@ async function fetchMLBScores() {
         method: 'GET',
         headers: {
           'x-rapidapi-host': 'odds.p.rapidapi.com',
-          'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e'
+          'x-rapidapi-key': 'e5859daf3amsha3927ab000fb4a3p1b5686jsndea26f3d7448'
         }
       });
   
