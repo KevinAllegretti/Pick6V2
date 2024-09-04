@@ -368,6 +368,7 @@ cron.schedule('30 23 * * 5', () => {
 fetchNFLScores();
 });
 
+
 cron.schedule('30 23 * * 4', () => {
   console.log("Its thursday, gettin scores");
   

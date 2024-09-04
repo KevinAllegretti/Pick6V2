@@ -9,8 +9,132 @@ body {
     display: flex;
     flex-direction: column; /* Stack children vertically */
 }
+.legend-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;  /* Center the title and the legend */
+  margin-bottom: -2px;   /* Adjust the spacing below the title */
+}
+.legend-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #00CCFF;  /* Light blue text */
+  text-align: center;
+  text-shadow: 0 0 10px rgba(0, 204, 255, 0.8), 0 0 20px rgba(0, 204, 255, 0.6);
+  margin-bottom: -5px;  /* Space between title and legend */
+  font-family: 'Orbitron', sans-serif;  /* Matching font for consistency */
+}
+
+.legend-container {
+  display: flex;
+  justify-content: center;  /* Align both columns in the center */
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 325px;  /* Adjust width as needed */
+  border: 2px solid #00e9fa;
+  border-radius: 8px;
+  box-shadow: 0 0 10px #00e9fa;; /* Blue glow */
+
+}
+
+.legend-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;  /* Aligns items on the right edge */
+}
+
+.middle-column {
+  margin-left: 50px;  /* Adds some space between the left and middle columns */
+  align-items: flex-start;  /* Aligns items on the left edge */
+}
+
+.legend-item {
+  display: flex;
+  justify-content: flex-start;  /* Align items close to each other */
+  align-items: center;
+  margin-bottom: 15px;
+  width: 150px;  /* Ensure consistent width between button and text */
+}
+.legend-bet-button {
+  border: 2px solid black; /* Black border */
+  box-shadow: 0 0 5px white; /* White glow */
+  margin: 2px 0;  /* Spacing between buttons */
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.1);  /* Subtle background */
+  transition: background-color 0.3s ease;
+  color: #fff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  width: 58px;  /* Keeping the width the same */
+  height: 40px;  /* Keeping the height the same */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  border-radius: 10px;
+}
 
 
+.legend-bet-button.heavy-favorite {
+  background-color: #0b2a8f;  /* Red for heavy favorite */
+}
+
+.legend-bet-button.favorite {
+  background-color: #0b2a8f;  /* Grey for favorite */
+}
+
+.legend-bet-button.spread {
+  background-color: #0b2a8f;  /* Yellow for spread */
+}
+
+.legend-bet-button.underdog {
+  background-color: #0b2a8f;  /* Teal for underdog */
+}
+
+.legend-bet-button.bigger-underdog {
+  background-color: #0b2a8f;  /* Blue for bigger underdog */
+}
+
+.legend-bet-button.heavy-underdog {
+  background-color: #0b2a8f;  /* Dark green for heavy underdog */
+}
+
+.legend-item p {
+  font-size: 1em;
+  margin: 0;
+  margin-left: 2.2px;
+/* Brings the points closer to the button */
+}
+.legend-item span.p5 {
+  margin-left: 5px;  /* Add space between "or > :" and the next point */
+  color: #00eeff;  /* Light blue color */
+  font-size: 1em;
+  font-family: 'Montserrat', 'sans-serif';
+}
+
+/* Gradient color for the points */
+.legend-item:first-child p {
+  color: #fffb00; /* Yellow for Heavy Favorite ML */
+}
+
+.legend-item:nth-child(2) p {
+  color: #1a8a0c; /* Olive Green for Favorite ML */
+}
+
+.legend-item:nth-child(3) p {
+  color: #039603; /* Lime Green for Spread */
+}
+
+.middle-column .legend-item:nth-child(1) p {
+  color: #02c55a; /* Bright Green for Underdog ML */
+}
+
+.middle-column .legend-item:nth-child(2) p {
+  color: #00ff4c; /* Spring Green for Bigger Underdog ML */
+}
+
+.middle-column .legend-item:nth-child(3) p {
+  color: #7FFF00; /* Chartreuse for Heavy Underdog ML */
+}
 
 .main-wrapper {
     flex: 1; 
