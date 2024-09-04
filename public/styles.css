@@ -101,11 +101,11 @@ body {
 .legend-item p {
   font-size: 1em;
   margin: 0;
-  margin-left: 2.2px;
+  margin-left: 3px;
 /* Brings the points closer to the button */
 }
 .legend-item span.p5 {
-  margin-left: 5px;  /* Add space between "or > :" and the next point */
+  margin-left: 4px;  /* Add space between "or > :" and the next point */
   color: #00eeff;  /* Light blue color */
   font-size: 1em;
   font-family: 'Montserrat', 'sans-serif';
