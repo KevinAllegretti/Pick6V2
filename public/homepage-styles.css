@@ -1303,6 +1303,7 @@ button:hover {
 .pool-scrollable-container {
     overflow-x: auto; /* Enable horizontal scrolling */
     width: 113%;
+    overflow-y: hidden; /* Disable vertical scrolling */
     /*padding-bottom: 10px;*/
     /*box-sizing: border-box; /* Include padding in width */
    /* border-right: 2px solid#33d9ff;
