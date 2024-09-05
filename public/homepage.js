@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       })
       .catch(error => console.error('Failed to fetch results:', error));
-    }, 1500);  // Delay can be adjusted based on typical load times or removed if found unnecessary
+    }, 3000);  // Delay can be adjusted based on typical load times or removed if found unnecessary
   });
   
   function rebuildUIWithResults(results) {
