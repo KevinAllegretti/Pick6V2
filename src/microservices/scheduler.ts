@@ -369,7 +369,7 @@ fetchNFLScores();
 });
 
 
-cron.schedule('59 23 * * 4', () => {
+cron.schedule('02 0 * * 5', () => {
   console.log("Its thursday, gettin scores");
   
 fetchNFLScores();
