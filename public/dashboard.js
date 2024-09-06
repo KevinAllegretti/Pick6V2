@@ -1065,7 +1065,7 @@ function checkGameTime() {
         const submitPicksButton = document.getElementById('submitPicks');
         const resetPicksButton = document.getElementById('resetPicks');
         
-        submitPicksButton.classList.remove('disabled');
+       submitPicksButton.classList.remove('disabled');
         resetPicksButton.classList.remove('disabled');
 
         submitPicksButton.disabled = false;
