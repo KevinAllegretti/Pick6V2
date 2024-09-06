@@ -126,6 +126,7 @@ export async function getAllPicks(): Promise<any[]> {
     }
 }
 
+/*
 // Function to calculate bet result
 export function getBetResult(pick: string, homeTeamScore: number, awayTeamScore: number): { result: string, odds: number } {
     let result = 'error'; // Default to error in case conditions fail
@@ -160,6 +161,71 @@ export function getBetResult(pick: string, homeTeamScore: number, awayTeamScore:
         }
     }
 }
+*/
+
+// Function to calculate bet result
+// Function to calculate bet result for NFL data
+export function getBetResult(pick: string, homeTeamScore: number, awayTeamScore: number, teamName: string, homeTeam: string, awayTeam: string): { result: string, odds: number } {
+    let result = 'error'; // Default to error in case conditions fail
+    if (!pick) {
+        console.error('Invalid pick:', pick);
+        return { result, odds: 0 };
+    }
+
+    const numericValue = parseFloat(pick.replace(/[^-+\d.]/g, '')); // Strip to just numeric, including negative
+    console.log('Evaluating Bet:', { pick, teamName, homeTeam, awayTeam, homeTeamScore, awayTeamScore, numericValue });
+
+    // Determine if it's a spread or moneyline based on the absolute value of numericValue
+    if (Math.abs(numericValue) < 100) { 
+        // Spread logic
+        console.log('Handling as Spread');
+        
+        let adjustedScore;
+        
+        // Check if the user bet on the home team
+        if (teamName === homeTeam) {
+            adjustedScore = homeTeamScore + numericValue;
+            // Compare adjusted home score to away score
+            if (adjustedScore > awayTeamScore) {
+                return { result: "hit", odds: numericValue };
+            } else if (adjustedScore < awayTeamScore) {
+                return { result: "miss", odds: numericValue };
+            } else {
+                return { result: "push", odds: numericValue };
+            }
+        } else {
+            // The bet is on the away team, so adjust the away team's score
+            adjustedScore = awayTeamScore + numericValue;
+            // Compare adjusted away score to home score
+            if (adjustedScore > homeTeamScore) {
+                return { result: "hit", odds: numericValue };
+            } else if (adjustedScore < homeTeamScore) {
+                return { result: "miss", odds: numericValue };
+            } else {
+                return { result: "push", odds: numericValue };
+            }
+        }
+
+    } else { 
+        // Moneyline logic
+        console.log('Handling as Moneyline');
+
+        // Determine if the bet was on the home or away team
+        const isHomeTeamBet = teamName === homeTeam;
+
+        // Moneyline logic for a "hit"
+        const didWin = (isHomeTeamBet && homeTeamScore > awayTeamScore) || (!isHomeTeamBet && awayTeamScore > homeTeamScore);
+
+        if (didWin) {
+            console.log('Bet hit, awarding points.');
+            return { result: "hit", odds: numericValue };
+        } else {
+            console.log('Bet missed.');
+            return { result: "miss", odds: numericValue };
+        }
+    }
+}
+
 
 // Function to calculate points for a result
 export function calculatePointsForResult({ result, odds, type }: { result: string, odds: number, type?: string }): number {

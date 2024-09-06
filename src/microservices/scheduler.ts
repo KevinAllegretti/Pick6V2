@@ -173,7 +173,7 @@ async function updateScores(gameScores: any[]) {
       // Save results to the server
       await saveResultsToServer(allResults);
   }
-  
+  /*
   async function processPick(username, poolName, pickEntry, gameScores, allResults, resultsCollection, isImmortalLock) {
     const { teamName, value: betValue } = pickEntry;
     const match = gameScores.find(m => m.home_team === teamName || m.away_team === teamName);
@@ -247,7 +247,86 @@ async function updateScores(gameScores: any[]) {
     } catch (error) {
         console.error('Error processing bet result:', error);
     }
+}*/
+
+async function processPick(username, poolName, pickEntry, gameScores, allResults, resultsCollection, isImmortalLock) {
+  const { teamName, value: betValue } = pickEntry;
+  const match = gameScores.find(m => m.home_team === teamName || m.away_team === teamName);
+
+  if (!match) {
+      console.log(`No game score available for ${teamName}, skipping...`);
+      return;
+  }
+
+  if (!betValue) {
+      console.error('Invalid betValue for pickEntry:', pickEntry);
+      return;
+  }
+
+  const homeTeamScore = match.home_score;
+  const awayTeamScore = match.away_score;
+  const homeTeam = match.home_team;
+  const awayTeam = match.away_team;
+
+  console.log(`Processing pick: ${betValue}, Home Team: ${homeTeam}, Away Team: ${awayTeam}, Home Team Score: ${homeTeamScore}, Away Team Score: ${awayTeamScore}`);
+
+  try {
+      // Check if the result is already in the database
+      const existingResult = await resultsCollection.findOne({ 
+          identifier: 'currentResults', 
+          "results.username": username, 
+          "results.poolName": poolName, 
+          "results.teamName": teamName, 
+          "results.betValue": betValue 
+      });
+
+      console.log(`Existing result for ${teamName}:`, existingResult);
+
+      if (existingResult) {
+          console.log(`Result already exists for ${teamName}, skipping...`);
+          return;
+      }
+
+      // Get the bet result using the updated function, now passing homeTeam and awayTeam
+      const { result, odds } = getBetResult(betValue, homeTeamScore, awayTeamScore, teamName, homeTeam, awayTeam);
+      const points = calculatePointsForResult({ result, odds, type: isImmortalLock ? 'ImmortalLock' : undefined });
+
+      // Check if the pick is already in allResults
+      const resultAlreadyProcessed = allResults.find(
+          r => r.username === username && r.poolName === poolName && r.teamName === teamName && r.betValue === betValue
+      );
+
+      if (resultAlreadyProcessed) {
+          console.log(`Result already processed for ${teamName}, skipping...`);
+          return;
+      }
+
+      allResults.push({ username, poolName, teamName, betValue, result, points, isImmortalLock });
+
+      // Update user points
+      if (points !== 0) {
+          console.log(`Updating points for ${username}: ${points} points in pool ${poolName}`);
+          await updateUserPoints(username, points, poolName);
+      }
+
+      // Determine the increments for win, loss, and push
+      let winIncrement = 0, lossIncrement = 0, pushIncrement = 0;
+      if (result === 'hit') {
+          winIncrement = 1;
+      } else if (result === 'miss') {
+          lossIncrement = 1;
+      } else if (result === 'push') {
+          pushIncrement = 1;
+      }
+
+      console.log(`Updating stats for ${username} in pool ${poolName} - Wins: ${winIncrement}, Losses: ${lossIncrement}, Pushes: ${pushIncrement}`);
+      // Update user stats
+      await updateUserStats(username, poolName, winIncrement, lossIncrement, pushIncrement);
+  } catch (error) {
+      console.error('Error processing bet result:', error);
+  }
 }
+
 const url1 = 'http://localhost:3000/api/saveWeeklyPicks';
 const url2 = 'http://localhost:3000/api/fetchMLBData';
 const url3 = 'http://localhost:3000/api/fetchNFLDataOneWeekOut';
@@ -369,11 +448,12 @@ fetchNFLScores();
 });
 
 
-cron.schedule('02 0 * * 5', () => {
+cron.schedule('30 23 * * 4', () => {
   console.log("Its thursday, gettin scores");
   
 fetchNFLScores();
 });
+
 
 
 const url4 = 'http://localhost:3000/api/fetchNFLschedule';
