@@ -405,6 +405,12 @@ cron.schedule('15 16 * * 0', () => {
     fetchNFLScores();
 });
 
+cron.schedule('26 16 * * 0', () => {
+  console.log("It's Sunday 4:15 PM, now fetching scores");
+  fetchNFLScores();
+});
+
+
 cron.schedule('30 20 * * 0', () => {
     console.log("It's Sunday 8:30 PM, now fetching scores");
     fetchNFLScores();
