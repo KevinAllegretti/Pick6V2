@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
       .catch(error => console.error('Failed to fetch results:', error));
     }, 3000);  // Delay can be adjusted based on typical load times or removed if found unnecessary
   });
-  /*
+  
   function rebuildUIWithResults(results) {
     console.log('Received results for UI rebuild:', results);
     const allPicks = document.querySelectorAll('.player-picks .pick, .immortal-lock');
@@ -73,8 +73,8 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 }
-*/
 
+/*
 function rebuildUIWithResults(results) {
     console.log('Received results for UI rebuild:', results);
     const allPicks = document.querySelectorAll('.player-picks .pick, .immortal-lock');
@@ -130,7 +130,7 @@ function rebuildUIWithResults(results) {
             console.warn(`No result found for ${teamName} or mismatch in team names`, { teamName, results });
         }
     });
-}
+}*/
 
 
 
