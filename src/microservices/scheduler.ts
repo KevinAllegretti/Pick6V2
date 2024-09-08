@@ -91,7 +91,7 @@ async function fetchMLBScores() {
       console.error('Error fetching MLB scores:', error);
     }
   }
-
+/*
   async function fetchNFLScores() {
     console.log('fetchMLBScores function started.');
   
@@ -143,7 +143,65 @@ async function fetchMLBScores() {
     } catch (error) {
       console.error('Error fetching NFL scores:', error);
     }
-  }
+  }*/
+
+    async function fetchNFLScores() {
+      console.log('fetchNFLScores function started.');
+      
+      const url = 'https://odds.p.rapidapi.com/v4/sports/americanfootball_nfl/scores';
+      const params = {
+        daysFrom: '3',
+        apiKey: 'e5859daf3amsha3927ab000fb4a3p1b5686jsndea26f3d7448'
+      };
+      const queryParams = new URLSearchParams(params);
+    
+      try {
+        const response = await fetch(`${url}?${queryParams}`, {
+          method: 'GET',
+          headers: {
+            'x-rapidapi-host': 'odds.p.rapidapi.com',
+            'x-rapidapi-key': 'e5859daf3amsha3927ab000fb4a3p1b5686jsndea26f3d7448'
+          }
+        });
+    
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+    
+        const scores = await response.json();
+        console.log("Scores data:", scores);
+    
+        // Filter out ongoing games based on `completed` field
+        const completedGames = scores.filter(event => event.completed === true);
+    
+        gameScores = completedGames.map(event => {
+          if (!event.scores || !Array.isArray(event.scores)) {
+            console.log(`Skipping event due to missing or invalid scores:`, event);
+            return null;
+          }
+    
+          // Map team names if necessary, else use NFL names directly
+          const homeTeam = mlbToNflMap[event.home_team] || event.home_team;
+          const awayTeam = mlbToNflMap[event.away_team] || event.away_team;
+          const homeScore = event.scores.find(s => mlbToNflMap[s.name] === homeTeam || s.name === event.home_team)?.score;
+          const awayScore = event.scores.find(s => mlbToNflMap[s.name] === awayTeam || s.name === event.away_team)?.score;
+    
+          return {
+            home_team: homeTeam,
+            away_team: awayTeam,
+            home_score: parseInt(homeScore, 10),
+            away_score: parseInt(awayScore, 10)
+          };
+        }).filter(match => match !== null);  // Remove any null entries
+    
+        console.log('Completed scores fetched:', gameScores);
+    
+        await updateScores(gameScores);
+      } catch (error) {
+        console.error('Error fetching NFL scores:', error);
+      }
+    }
+    
 
 async function updateScores(gameScores: any[]) {
       console.log('gameScores at update:', gameScores);
@@ -173,6 +231,11 @@ async function updateScores(gameScores: any[]) {
       // Save results to the server
       await saveResultsToServer(allResults);
   }
+
+
+
+
+
   /*
   async function processPick(username, poolName, pickEntry, gameScores, allResults, resultsCollection, isImmortalLock) {
     const { teamName, value: betValue } = pickEntry;
@@ -247,8 +310,9 @@ async function updateScores(gameScores: any[]) {
     } catch (error) {
         console.error('Error processing bet result:', error);
     }
-}*/
-
+}
+*/
+/*
 async function processPick(username, poolName, pickEntry, gameScores, allResults, resultsCollection, isImmortalLock) {
   const { teamName, value: betValue } = pickEntry;
   const match = gameScores.find(m => m.home_team === teamName || m.away_team === teamName);
@@ -325,7 +389,101 @@ async function processPick(username, poolName, pickEntry, gameScores, allResults
   } catch (error) {
       console.error('Error processing bet result:', error);
   }
+}*/
+
+async function processPick(username, poolName, pickEntry, gameScores, allResults, resultsCollection, isImmortalLock) {
+  const { teamName, value: betValue } = pickEntry;
+  
+  // Find the match in the gameScores
+  const match = gameScores.find(m => m.home_team === teamName || m.away_team === teamName);
+
+  if (!match) {
+      console.log(`No game score available for ${teamName}, skipping...`);
+      return;
+  }
+
+  // Optionally add a check to ensure the game has completed
+  if (typeof match.completed !== 'undefined' && !match.completed) {
+      console.log(`Game for ${teamName} is still ongoing, skipping...`);
+      return;
+  }
+
+  if (!betValue) {
+      console.error('Invalid betValue for pickEntry:', pickEntry);
+      return;
+  }
+
+  // Ensure scores are valid numbers
+  const homeTeamScore = parseInt(match.home_score, 10);
+  const awayTeamScore = parseInt(match.away_score, 10);
+  const homeTeam = match.home_team;
+  const awayTeam = match.away_team;
+
+  // Check for valid scores
+  if (isNaN(homeTeamScore) || isNaN(awayTeamScore)) {
+      console.error(`Invalid scores for match between ${homeTeam} and ${awayTeam}. Skipping...`);
+      return;
+  }
+
+  console.log(`Processing pick: ${betValue}, Home Team: ${homeTeam}, Away Team: ${awayTeam}, Home Team Score: ${homeTeamScore}, Away Team Score: ${awayTeamScore}`);
+
+  try {
+      // Check if the result is already in the database
+      const existingResult = await resultsCollection.findOne({ 
+          identifier: 'currentResults', 
+          "results.username": username, 
+          "results.poolName": poolName, 
+          "results.teamName": teamName, 
+          "results.betValue": betValue 
+      });
+
+      console.log(`Existing result for ${teamName}:`, existingResult);
+
+      if (existingResult) {
+          console.log(`Result already exists for ${teamName}, skipping...`);
+          return;
+      }
+
+      // Get the bet result using the updated function, now passing homeTeam and awayTeam
+      const { result, odds } = getBetResult(betValue, homeTeamScore, awayTeamScore, teamName, homeTeam, awayTeam);
+      const points = calculatePointsForResult({ result, odds, type: isImmortalLock ? 'ImmortalLock' : undefined });
+
+      // Check if the pick is already in allResults
+      const resultAlreadyProcessed = allResults.find(
+          r => r.username === username && r.poolName === poolName && r.teamName === teamName && r.betValue === betValue
+      );
+
+      if (resultAlreadyProcessed) {
+          console.log(`Result already processed for ${teamName}, skipping...`);
+          return;
+      }
+
+      allResults.push({ username, poolName, teamName, betValue, result, points, isImmortalLock });
+
+      // Update user points
+      if (points !== 0) {
+          console.log(`Updating points for ${username}: ${points} points in pool ${poolName}`);
+          await updateUserPoints(username, points, poolName);
+      }
+
+      // Determine the increments for win, loss, and push
+      let winIncrement = 0, lossIncrement = 0, pushIncrement = 0;
+      if (result === 'hit') {
+          winIncrement = 1;
+      } else if (result === 'miss') {
+          lossIncrement = 1;
+      } else if (result === 'push') {
+          pushIncrement = 1;
+      }
+
+      console.log(`Updating stats for ${username} in pool ${poolName} - Wins: ${winIncrement}, Losses: ${lossIncrement}, Pushes: ${pushIncrement}`);
+      // Update user stats
+      await updateUserStats(username, poolName, winIncrement, lossIncrement, pushIncrement);
+  } catch (error) {
+      console.error('Error processing bet result:', error);
+  }
 }
+
 
 const url1 = 'http://localhost:3000/api/saveWeeklyPicks';
 const url2 = 'http://localhost:3000/api/fetchMLBData';
@@ -405,7 +563,7 @@ cron.schedule('15 16 * * 0', () => {
     fetchNFLScores();
 });
 
-cron.schedule('26 16 * * 0', () => {
+cron.schedule('17 18 * * 0', () => {
   console.log("It's Sunday 4:15 PM, now fetching scores");
   fetchNFLScores();
 });
