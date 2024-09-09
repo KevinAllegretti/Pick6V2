@@ -1771,9 +1771,20 @@ function resetUserStats(username, poolName) {
         console.error('Error during the reset process:', error);
     });
 }
-
 /*
-resetUserStats('natowave', 'test');
+const usernames = [
+    'tz', 'gilb17', 'keee', 'helen hlushko', 'brett.niermeier',
+    'chrisruiz', 'liam azar', 'pedrissimo', 'patrickbrow', 'bear jew',
+    'slimjesus', 'upperdeckysiuuup', 'matt allegretti', 'slangmastergeneral',
+    'waltuh', 'azink', 'fallegretti', 'kevdoer island', 'keys to the yard',
+    'mak4532', 'primitive picks', 'midnight professional', 'parlay prodigy'
+  ];
+  
+  usernames.forEach(username => {
+    resetUserStats(username, 'The Gauntlet');
+    changeUserPoints(username, 0, 'The Gauntlet');
+  });
+//resetUserStats('kevdoer island', 'The Gauntlet');
 
-changeUserPoints('natowave', 0, 'test'); // Replace with the actual username, new points value, and pool name
-*/
+//changeUserPoints('kevdoer island', 0, 'The Gauntlet'); 
+*/// Replace with the actual username, new points value, and pool name
