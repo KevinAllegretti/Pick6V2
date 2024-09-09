@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+/*document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
       fetch('/api/getResults')
       .then(response => {
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.warn(`No result found for ${teamName} or mismatch in team names`, {teamName, results});
       }
     });
-}
+}*/
 
 /*
 function rebuildUIWithResults(results) {
@@ -131,6 +131,81 @@ function rebuildUIWithResults(results) {
         }
     });
 }*/
+
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        fetch('/api/getResults')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.results) {
+                    rebuildUIWithResults(data.results);
+                } else {
+                    console.error('No results found or unable to fetch results:', data.message);
+                }
+            })
+            .catch(error => console.error('Failed to fetch results:', error));
+    }, 3000); // Delay for load time
+});
+
+function rebuildUIWithResults(results) {
+    const allPicks = document.querySelectorAll('.player-picks .pick, .immortal-lock');
+
+    if (allPicks.length === 0) {
+        console.warn('No pick elements found, check if the DOM has fully loaded');
+        return;
+    }
+
+    console.log(`Processing ${results.length} results to match against ${allPicks.length} picks on screen.`);
+
+    // Iterate over each pick element to process results
+    allPicks.forEach(pickElement => {
+        const teamLogo = pickElement.querySelector('.team-logo');
+        const displayedBetValue = pickElement.querySelector('span').textContent.trim(); // Get the displayed bet value
+        
+        if (!teamLogo) {
+            console.warn('Team logo not found in pick element', pickElement);
+            return; // Skip if no logo is found
+        }
+        
+        const teamName = teamLogo.alt;
+        console.log(`Processing pick for team: ${teamName} with bet value ${displayedBetValue}`);
+
+        // Find the result for this specific team and bet value
+        const matchingResult = results.find(r => 
+            r.teamName === teamName && r.betValue.toString().trim() === displayedBetValue
+        );
+
+        if (matchingResult) {
+            console.log(`Matching result found for ${teamName}:`, matchingResult);
+
+            // Apply color based on the result
+            let color;
+            if (matchingResult.result === "hit") {
+                color = "#39FF14"; // Green for a win
+            } else if (matchingResult.result === "miss") {
+                color = "red"; // Red for a loss
+            } else if (matchingResult.result === "push") {
+                color = "yellow"; // Yellow for a push
+            } else {
+                console.warn(`Unknown result for ${teamName}: ${matchingResult.result}`);
+                color = "gray"; // Gray for any unknown result
+            }
+
+            // Apply the color to the pick element (in this case, the span with the bet value)
+            pickElement.querySelector('span').style.setProperty('color', color, 'important');
+            console.log(`Applied ${color} to ${teamName} for bet value ${displayedBetValue}`);
+        } else {
+            console.warn(`No matching result found for ${teamName} with bet value ${displayedBetValue}`);
+        }
+    });
+}
+
+
 
 
 
