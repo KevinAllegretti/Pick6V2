@@ -570,7 +570,7 @@ function resetPicks() {
  }
 }
 
-
+/* OG FUNCTION
 function renderBetOptions() {
     const container = document.getElementById('picksContainer');
     container.innerHTML = '';
@@ -641,7 +641,7 @@ function renderBetOptions() {
     });
 
     blackOutPreviousBets();
-}
+}*/
 /*
 const injuryTeamNameMap = {
     'Arizona Cardinals': 'ARI Cardinals',
@@ -784,6 +784,36 @@ function displayInjuries(injuries, isFiltered = false) {
 
     console.log("Injury list updated HTML:", injuryList.innerHTML);
 }
+
+/* OG FUNCTION:
+function createTeamContainer(game, teamRole) {
+    const teamData = game[teamRole + 'Team'];
+    const teamContainer = document.createElement('div');
+    teamContainer.className = `team-container ${game['colorClass' + teamRole.charAt(0).toUpperCase() + teamRole.slice(1)]}`;
+
+
+    const teamLogo = document.createElement('img');
+    teamLogo.src = teamRole === 'away' ? game.logoAway : game.logoHome;
+    teamLogo.alt = teamData + ' logo';
+    teamLogo.className = 'team-logo';
+    teamContainer.appendChild(teamLogo);
+
+
+    game.bets.filter(bet => bet.team === teamData).forEach(bet => {
+        const betButton = document.createElement('button');
+        betButton.className = `bet-button ${teamContainer.className}`;
+        betButton.textContent = bet.value;
+        betButton.dataset.team = teamData.replace(/\s+/g, '-').toLowerCase();
+        betButton.dataset.type = bet.type.toLowerCase();
+        betButton.onclick = () => selectBet({ teamName: teamData, type: bet.type, value: bet.value });
+        teamContainer.appendChild(betButton);
+    });
+
+
+    return teamContainer;
+}
+*/
+
 function createTeamContainer(game, teamRole) {
     const teamData = game[teamRole + 'Team'];
     const teamContainer = document.createElement('div');
@@ -796,107 +826,13 @@ function createTeamContainer(game, teamRole) {
     teamLogo.className = 'team-logo';
     teamContainer.appendChild(teamLogo);
    
-    // Create the popup container
+    // Create the popup container for displaying next week's matchups
     const popupContainer = document.createElement('div');
     popupContainer.className = 'popup-container';
-    popupContainer.innerHTML = `<p>Info for ${teamData}</p>`;
+    popupContainer.innerHTML = ' ';
     teamContainer.appendChild(popupContainer);
    
-    teamLogo.addEventListener('click', async function() {
-        console.log('Team logo clicked:', teamLogo.alt);
-        const teamName = teamLogo.alt.replace(' logo', ''); // Extract team name
-   
-        // Check if this popup is already active and for the same team
-        if (popupContainer.classList.contains('active') && popupContainer.dataset.team === teamName) {
-            // If the same logo is clicked again, close the popup
-            popupContainer.classList.remove('active');
-            popupContainer.style.maxHeight = '0'; // Collapse the popup
-            popupContainer.style.opacity = '0'; // Fade out the popup
-            popupContainer.dataset.team = ''; // Reset the stored team
-            return; // Exit function to avoid reopening it immediately
-        }
-   
-        // Hide any other active popups before showing this one
-        document.querySelectorAll('.popup-container.active').forEach(activePopup => {
-            activePopup.classList.remove('active');
-            activePopup.style.maxHeight = '0'; // Collapse previous popups
-            activePopup.style.opacity = '0'; // Hide them fully
-            activePopup.dataset.team = ''; // Clear the dataset for team
-        });
-   
-        // Fetch the games two weeks ahead from the back-end
-        const response = await fetch('/api/fetchGamesTwoWeeksAhead');
-        const data = await response.json();
-   
-        if (data.success && data.games) {
-            // Filter games for the selected team
-            const teamGames = data.games.filter(game =>
-                game.homeTeam === teamName || game.awayTeam === teamName
-            );
-   
-            if (teamGames.length > 0) {
-                const nextGame = teamGames[0]; // Assuming you want the first available game
-   
-                // Retrieve the logos for home and away teams
-                const awayLogo = `<img src="${teamLogos[nextGame.awayTeam]}" alt="${nextGame.awayTeam} logo" class="popup-team-logo">`;
-                const homeLogo = `<img src="${teamLogos[nextGame.homeTeam]}" alt="${nextGame.homeTeam} logo" class="popup-team-logo">`;
-   
-                // Update the popup content with the team's logos and @ symbol
-                popupContainer.innerHTML = `
-             
-                    <div class="popup-matchup">
-                        ${awayLogo}
-                        <div class="popup-at-symbol">@</div>
-                        ${homeLogo}
-                    </div>
-                `;
-            } else {
-                popupContainer.innerHTML = '<p>No upcoming matchups found for this team.</p>';
-            }
-        } else {
-            popupContainer.innerHTML = '<p>Failed to fetch matchups.</p>';
-        }
-   
-        // Position the popup below the clicked logo (adjusting so it doesn't overflow)
-        const teamContainer = this.parentElement;
-        const containerTop = teamContainer.offsetTop;
-        const containerLeft = teamContainer.offsetLeft;
-        const containerWidth = teamContainer.offsetWidth;
-   
-        // Calculate where the popup should appear below the container
-        let popupLeft = containerLeft + (containerWidth / 2) - (popupContainer.offsetWidth / 2);
-        let popupTop = containerTop + teamContainer.offsetHeight + 10; // Position below the container
-   
-        // Ensure popup doesn't overflow out of the left or right of the container
-        const picksContainer = document.getElementById('picksContainer');
-        const picksContainerWidth = picksContainer.offsetWidth;
-   
-        if (popupLeft + popupContainer.offsetWidth > picksContainerWidth) {
-            popupLeft = picksContainerWidth - popupContainer.offsetWidth - 20;
-        } else if (popupLeft < 0) {
-            popupLeft = 20;
-        }
-   
-        popupContainer.style.top = `${popupTop}px`;
-        popupContainer.style.left = `${popupLeft}px`;
-        popupContainer.style.zIndex = '10000';
-   
-        // Store the current team in the popup for toggling behavior
-        popupContainer.dataset.team = teamName;
-   
-        // Show the popup for the clicked team logo
-        popupContainer.classList.add('active');
-        popupContainer.style.maxHeight = '95px'; // Expand the popup downwards
-        popupContainer.style.opacity = '1'; // Fade in the popup
-    });
-   
-
-
-   
-   
-   
-   
-    // Add bet buttons dynamically (assuming this part of the code is unchanged)
+    // Add bet buttons dynamically (Reintroducing this logic)
     game.bets.filter(bet => bet.team === teamData).forEach(bet => {
         const betButton = document.createElement('button');
         betButton.className = `bet-button ${teamContainer.className}`;
@@ -908,6 +844,154 @@ function createTeamContainer(game, teamRole) {
     });
    
     return teamContainer;
+}
+
+function renderBetOptions() {
+    const container = document.getElementById('picksContainer');
+    container.innerHTML = '';
+
+    const games = betOptions.reduce((acc, bet) => {
+        const gameKey = `${bet.awayTeam} vs ${bet.homeTeam}`;
+        if (!acc[gameKey]) {
+            acc[gameKey] = {
+                awayTeam: bet.awayTeam,
+                homeTeam: bet.homeTeam,
+                bets: [],
+                commenceTime: bet.commenceTime,
+                logoAway: teamLogos[bet.awayTeam],
+                logoHome: teamLogos[bet.homeTeam],
+                colorClassAway: teamColorClasses[bet.awayTeam],
+                colorClassHome: teamColorClasses[bet.homeTeam]
+            };
+        }
+        let formattedValue = String(bet.value);
+        formattedValue = formattedValue.startsWith('+') || formattedValue.startsWith('-') ? formattedValue : (formattedValue > 0 ? `+${formattedValue}` : formattedValue);
+        acc[gameKey].bets.push({ type: bet.type, value: formattedValue, team: bet.teamName });
+        return acc;
+    }, {});
+
+    Object.values(games).forEach(game => {
+        const gameContainer = document.createElement('div');
+        gameContainer.className = 'game-container';
+        gameContainer.style.display = 'flex';
+        gameContainer.style.flexDirection = 'column';
+        gameContainer.style.alignItems = 'center';
+
+        // Create "Next Week Matchups" button (Move to the top of the game container)
+        const nextWeekButton = document.createElement('button');
+        nextWeekButton.className = 'next-week-matchup-button';
+        nextWeekButton.textContent = 'Next Week Matchups';
+
+        // Add event listener for the button to toggle both popups
+        nextWeekButton.addEventListener('click', function() {
+            const homePopupContainer = homeTeamContainer.querySelector('.popup-container');
+            const awayPopupContainer = awayTeamContainer.querySelector('.popup-container');
+
+            const homeActive = homePopupContainer.classList.contains('active');
+            const awayActive = awayPopupContainer.classList.contains('active');
+
+            if (homeActive && awayActive) {
+                // Collapse both popups
+                homePopupContainer.classList.remove('active');
+                awayPopupContainer.classList.remove('active');
+                homePopupContainer.style.maxHeight = '0';
+                awayPopupContainer.style.maxHeight = '0';
+                homePopupContainer.style.opacity = '0';
+                awayPopupContainer.style.opacity = '0';
+            } else {
+                // Expand both popups
+                homePopupContainer.classList.add('active');
+                awayPopupContainer.classList.add('active');
+                homePopupContainer.style.maxHeight = '150px'; // Adjust the height as needed
+                awayPopupContainer.style.maxHeight = '150px';
+                homePopupContainer.style.opacity = '1';
+                awayPopupContainer.style.opacity = '1';
+
+                // Fetch and update the popup content
+                fetchAndUpdatePopupContent(homeTeamContainer, game, 'home');
+                fetchAndUpdatePopupContent(awayTeamContainer, game, 'away');
+            }
+        });
+
+        gameContainer.appendChild(nextWeekButton); // Ensure the button is at the top
+
+        const teamsContainer = document.createElement('div');
+        teamsContainer.style.display = 'flex';
+        teamsContainer.style.alignItems = 'center';
+
+        const awayTeamContainer = createTeamContainer(game, 'away');
+        const homeTeamContainer = createTeamContainer(game, 'home');
+
+        teamsContainer.appendChild(awayTeamContainer);
+        const atSymbol = document.createElement('div');
+        atSymbol.textContent = '@';
+        atSymbol.className = 'at-symbol';
+        teamsContainer.appendChild(atSymbol);
+        teamsContainer.appendChild(homeTeamContainer);
+
+        gameContainer.appendChild(teamsContainer);
+
+        const commenceTime = document.createElement('div');
+        commenceTime.textContent = new Date(game.commenceTime).toLocaleString('en-US', {
+            weekday: 'long',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+        commenceTime.className = 'commence-time';
+        gameContainer.appendChild(commenceTime);
+
+        // Add the "Matchup Injuries" button
+        const matchupInjuryButton = document.createElement('button');
+        matchupInjuryButton.className = 'matchup-injury-button';
+        matchupInjuryButton.innerHTML = '<i class="fas fa-bone"></i> Matchup Injuries';
+        matchupInjuryButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            fetchAndDisplayMatchupInjuries(game, matchupInjuryButton);
+        });
+        gameContainer.appendChild(matchupInjuryButton);
+
+        container.appendChild(gameContainer);
+    });
+
+    blackOutPreviousBets();
+}
+
+// Fetch and update the popup content with next week’s matchups
+async function fetchAndUpdatePopupContent(teamContainer, game, teamRole) {
+    const teamName = game[teamRole + 'Team'];
+    const popupContainer = teamContainer.querySelector('.popup-container');
+
+    // Fetch the games two weeks ahead from the back-end
+    const response = await fetch('/api/fetchGamesTwoWeeksAhead');
+    const data = await response.json();
+
+    if (data.success && data.games) {
+        const teamGames = data.games.filter(game =>
+            game.homeTeam === teamName || game.awayTeam === teamName
+        );
+
+        if (teamGames.length > 0) {
+            const nextGame = teamGames[0]; // Assuming you want the first available game
+
+            // Retrieve the logos for home and away teams
+            const awayLogo = `<img src="${teamLogos[nextGame.awayTeam]}" alt="${nextGame.awayTeam} logo" class="popup-team-logo">`;
+            const homeLogo = `<img src="${teamLogos[nextGame.homeTeam]}" alt="${nextGame.homeTeam} logo" class="popup-team-logo">`;
+
+            // Update the popup content with the team's logos and @ symbol
+            popupContainer.innerHTML = `
+                <div class="popup-matchup">
+                    ${awayLogo}
+                    <div class="popup-at-symbol">@</div>
+                    ${homeLogo}
+                </div>
+            `;
+        } else {
+            popupContainer.innerHTML = '<p>No upcoming matchups found for this team.</p>';
+        }
+    } else {
+        popupContainer.innerHTML = '<p>Failed to fetch matchups.</p>';
+    }
 }
 
 function createBetButtons(teamData) {

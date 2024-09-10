@@ -1099,6 +1099,7 @@ h4 {
   .popup-container {
     position: absolute;
     width: 85px;
+    margin-top:182px;
     background-color: #001f3f;
     border: 2px solid #00e9fa;
     padding: 5px;
@@ -1141,17 +1142,18 @@ h4 {
     width: 30px; /* Smaller logo size */
     height: 30px;
     display: inline-block;
-    margin: 0 5px; /* Smaller spacing between logos */
   }
   
   
   /* Styles for @ symbol */
   .popup-at-symbol {
+    position: relative;
     font-size: 18px; /* Smaller font size for @ */
     color: #00e9fa; /* Neon blue for @ symbol */
     margin: 0 5px;
     text-shadow: 0 0 10px rgba(0, 233, 250, 0.5);
     font-family: 'Montserrat', 'sans-serif';
+    top: -5px;
   }
   
   
@@ -1163,6 +1165,35 @@ h4 {
   @media (min-width: 769px) {
     .popup-container {
         display: none; /* Or you can adjust how the popup behaves for larger screens */
+    }
+  }
+  
+  .next-week-matchup-button {
+    display: none; /* Initially hidden */
+    align-items: center;
+    padding: 8px 12px;
+    margin-top: 8px;
+    font-size: 14px;
+    color: #00ccff;
+    background-color: #121212;
+    border: 1px solid #00ccff;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  .next-week-matchup-button i {
+    margin-right: 5px;
+  }
+  
+  .next-week-matchup-button:hover {
+    background-color: #00ccff;
+    color: #121212;
+  }
+  
+  /* Show the button only on smaller viewports */
+  @media (max-width: 768px) {
+    .next-week-matchup-button {
+      display: inline-flex; /* Show only on smaller viewports */
     }
   }
   
