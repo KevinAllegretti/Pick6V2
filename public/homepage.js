@@ -1016,18 +1016,22 @@ function sendMessage(username, poolName, message, chatBox) {
 
 function renderMessages(messages, chatBox) {
     chatBox.innerHTML = ''; // Clear the chat box before rendering new messages
+    const urlRegex = /(https?:\/\/[^\s]+)/g; // Regex to identify URLs
+
     messages.forEach(msg => {
         const prefix = msg.poolName ? '[L]' : '[G]';
         const messageElement = document.createElement('div');
 
         // Create a span for the username with a specific color
         const usernameSpan = document.createElement('span');
-        usernameSpan.style.color = '#33d9ff'; 
+        usernameSpan.style.color = '#33d9ff';
         usernameSpan.textContent = `${msg.username}: `;
 
         // Create a span for the message
         const messageSpan = document.createElement('span');
-        messageSpan.textContent = msg.message;
+        messageSpan.innerHTML = msg.message.replace(urlRegex, function(url) {
+            return `<a href="${url}" target="_blank">${url}</a>`; // Replace URLs with anchor tags
+        });
 
         // Append the username and message spans to the message element
         messageElement.appendChild(document.createTextNode(`${prefix} `));
@@ -1038,6 +1042,7 @@ function renderMessages(messages, chatBox) {
     });
     chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom of the chat box
 }
+
 
 
 // Ensure the mode is set and messages are fetched accordingly when the chat is toggled
