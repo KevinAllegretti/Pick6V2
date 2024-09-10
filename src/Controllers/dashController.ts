@@ -379,5 +379,49 @@ const filterUniqueGames = (games: any[]): any[] => {
 };
 
 
+export const fetchGamesTwoWeeksAhead = async (req: Request, res: Response) => {
+  try {
+    // Get today's date
+    const today = new Date();
+
+
+    // Calculate the date one week from now (to exclude this week's games)
+    const oneWeekAhead = new Date(today);
+    oneWeekAhead.setDate(today.getDate() + 7);
+
+
+    // Calculate the date two weeks from now
+    const twoWeeksAhead = new Date(today);
+    twoWeeksAhead.setDate(today.getDate() + 14);
+
+
+    const database = await connectToDatabase();
+    const picksCollection = database.collection('nflSchedule');
+    const scheduleData = await picksCollection.findOne({ identifier: 'current' });
+
+
+    if (!scheduleData) {
+      return res.status(404).json({ success: false, message: 'No schedule data found' });
+    }
+
+
+    // Filter games that are scheduled between one week and two weeks from now
+    let filteredGames = scheduleData.picks.filter(game => {
+      const gameDate = new Date(game.commenceTime);
+      return gameDate > oneWeekAhead && gameDate <= twoWeeksAhead;
+    });
+
+
+    // Filter out duplicate games (if needed)
+    filteredGames = filterUniqueGames(filteredGames);
+
+
+    res.json({ success: true, games: filteredGames });
+  } catch (error: any) {
+    console.error('Failed to fetch games:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch games', error: error.toString() });
+  }
+};
+
 
 export { fetchMLBData, saveWeeklyPicks, fetchNFLschedule, saveNFLSchedule, fetchNFLDataOneWeekOut };

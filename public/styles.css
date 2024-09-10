@@ -1093,3 +1093,76 @@ h4 {
   box-shadow: 0 0 10px rgba(0, 204, 255, 0.8);
   border: 1px solid #0a0f22;
 }
+
+@media (max-width: 768px) {
+  /* Popup container styles */
+  .popup-container {
+    position: absolute;
+    width: 85px;
+    background-color: #001f3f;
+    border: 2px solid #00e9fa;
+    padding: 5px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    text-align: center;
+    overflow: hidden;
+    height: 80px;
+    max-height: 0; /* Start with a collapsed container */
+    opacity: 0; /* Initially transparent */
+    transform-origin: top; /* Set the origin to the top for downward sliding */
+    transition: max-height 0.5s ease, opacity 0.5s ease; /* Smooth transition */
+  }
+  
+  
+  .popup-container.active {
+    max-height: 95px; /* Adjust to the maximum height when expanded */
+    opacity: 1; /* Fully visible when active */
+  }
+  
+  
+  .popup-title{
+    font-size: 6px;
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  /* Styles for team logos */
+  .popup-team-logo {
+    width: 30px; /* Smaller logo size */
+    height: 30px;
+    display: inline-block;
+    margin: 0 5px; /* Smaller spacing between logos */
+  }
+  
+  
+  /* Styles for @ symbol */
+  .popup-at-symbol {
+    font-size: 18px; /* Smaller font size for @ */
+    color: #00e9fa; /* Neon blue for @ symbol */
+    margin: 0 5px;
+    text-shadow: 0 0 10px rgba(0, 233, 250, 0.5);
+    font-family: 'Montserrat', 'sans-serif';
+  }
+  
+  
+  
+  
+  }
+  
+  
+  @media (min-width: 769px) {
+    .popup-container {
+        display: none; /* Or you can adjust how the popup behaves for larger screens */
+    }
+  }
+  

@@ -784,18 +784,119 @@ function displayInjuries(injuries, isFiltered = false) {
 
     console.log("Injury list updated HTML:", injuryList.innerHTML);
 }
-
 function createTeamContainer(game, teamRole) {
     const teamData = game[teamRole + 'Team'];
     const teamContainer = document.createElement('div');
     teamContainer.className = `team-container ${game['colorClass' + teamRole.charAt(0).toUpperCase() + teamRole.slice(1)]}`;
-
+   
+    // Create the team logo
     const teamLogo = document.createElement('img');
     teamLogo.src = teamRole === 'away' ? game.logoAway : game.logoHome;
     teamLogo.alt = teamData + ' logo';
     teamLogo.className = 'team-logo';
     teamContainer.appendChild(teamLogo);
+   
+    // Create the popup container
+    const popupContainer = document.createElement('div');
+    popupContainer.className = 'popup-container';
+    popupContainer.innerHTML = `<p>Info for ${teamData}</p>`;
+    teamContainer.appendChild(popupContainer);
+   
+    teamLogo.addEventListener('click', async function() {
+        console.log('Team logo clicked:', teamLogo.alt);
+        const teamName = teamLogo.alt.replace(' logo', ''); // Extract team name
+   
+        // Check if this popup is already active and for the same team
+        if (popupContainer.classList.contains('active') && popupContainer.dataset.team === teamName) {
+            // If the same logo is clicked again, close the popup
+            popupContainer.classList.remove('active');
+            popupContainer.style.maxHeight = '0'; // Collapse the popup
+            popupContainer.style.opacity = '0'; // Fade out the popup
+            popupContainer.dataset.team = ''; // Reset the stored team
+            return; // Exit function to avoid reopening it immediately
+        }
+   
+        // Hide any other active popups before showing this one
+        document.querySelectorAll('.popup-container.active').forEach(activePopup => {
+            activePopup.classList.remove('active');
+            activePopup.style.maxHeight = '0'; // Collapse previous popups
+            activePopup.style.opacity = '0'; // Hide them fully
+            activePopup.dataset.team = ''; // Clear the dataset for team
+        });
+   
+        // Fetch the games two weeks ahead from the back-end
+        const response = await fetch('/api/fetchGamesTwoWeeksAhead');
+        const data = await response.json();
+   
+        if (data.success && data.games) {
+            // Filter games for the selected team
+            const teamGames = data.games.filter(game =>
+                game.homeTeam === teamName || game.awayTeam === teamName
+            );
+   
+            if (teamGames.length > 0) {
+                const nextGame = teamGames[0]; // Assuming you want the first available game
+   
+                // Retrieve the logos for home and away teams
+                const awayLogo = `<img src="${teamLogos[nextGame.awayTeam]}" alt="${nextGame.awayTeam} logo" class="popup-team-logo">`;
+                const homeLogo = `<img src="${teamLogos[nextGame.homeTeam]}" alt="${nextGame.homeTeam} logo" class="popup-team-logo">`;
+   
+                // Update the popup content with the team's logos and @ symbol
+                popupContainer.innerHTML = `
+             
+                    <div class="popup-matchup">
+                        ${awayLogo}
+                        <div class="popup-at-symbol">@</div>
+                        ${homeLogo}
+                    </div>
+                `;
+            } else {
+                popupContainer.innerHTML = '<p>No upcoming matchups found for this team.</p>';
+            }
+        } else {
+            popupContainer.innerHTML = '<p>Failed to fetch matchups.</p>';
+        }
+   
+        // Position the popup below the clicked logo (adjusting so it doesn't overflow)
+        const teamContainer = this.parentElement;
+        const containerTop = teamContainer.offsetTop;
+        const containerLeft = teamContainer.offsetLeft;
+        const containerWidth = teamContainer.offsetWidth;
+   
+        // Calculate where the popup should appear below the container
+        let popupLeft = containerLeft + (containerWidth / 2) - (popupContainer.offsetWidth / 2);
+        let popupTop = containerTop + teamContainer.offsetHeight + 10; // Position below the container
+   
+        // Ensure popup doesn't overflow out of the left or right of the container
+        const picksContainer = document.getElementById('picksContainer');
+        const picksContainerWidth = picksContainer.offsetWidth;
+   
+        if (popupLeft + popupContainer.offsetWidth > picksContainerWidth) {
+            popupLeft = picksContainerWidth - popupContainer.offsetWidth - 20;
+        } else if (popupLeft < 0) {
+            popupLeft = 20;
+        }
+   
+        popupContainer.style.top = `${popupTop}px`;
+        popupContainer.style.left = `${popupLeft}px`;
+        popupContainer.style.zIndex = '10000';
+   
+        // Store the current team in the popup for toggling behavior
+        popupContainer.dataset.team = teamName;
+   
+        // Show the popup for the clicked team logo
+        popupContainer.classList.add('active');
+        popupContainer.style.maxHeight = '95px'; // Expand the popup downwards
+        popupContainer.style.opacity = '1'; // Fade in the popup
+    });
+   
 
+
+   
+   
+   
+   
+    // Add bet buttons dynamically (assuming this part of the code is unchanged)
     game.bets.filter(bet => bet.team === teamData).forEach(bet => {
         const betButton = document.createElement('button');
         betButton.className = `bet-button ${teamContainer.className}`;
@@ -805,7 +906,7 @@ function createTeamContainer(game, teamRole) {
         betButton.onclick = () => selectBet({ teamName: teamData, type: bet.type, value: bet.value });
         teamContainer.appendChild(betButton);
     });
-
+   
     return teamContainer;
 }
 
