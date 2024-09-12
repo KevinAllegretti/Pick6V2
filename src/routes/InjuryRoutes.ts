@@ -53,6 +53,16 @@ const fetchInjuriesWithRetry = async (teamId: number, retries: number = 5): Prom
     throw new Error(`Failed to fetch injuries for team ${teamId} after ${retries} attempts`);
 };
 
+// Helper function to check if a date is within the last 14 days
+const isInLastTwoWeeks = (dateString: string) => {
+    const injuryDate = new Date(dateString);
+    const today = new Date();
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(today.getDate() - 14);
+
+    return injuryDate >= twoWeeksAgo && injuryDate <= today;
+};
+
 router.get('/fetchAndSaveInjuries', async (req, res) => {
     try {
         let injuries: Injury[] = [];
@@ -60,7 +70,11 @@ router.get('/fetchAndSaveInjuries', async (req, res) => {
         for (let i = 0; i < teamIds.length; i++) {
             const teamId = teamIds[i];
             const teamInjuries = await fetchInjuriesWithRetry(teamId);
-            injuries = injuries.concat(teamInjuries);
+
+            // Filter injuries that are within the last two weeks
+            const recentInjuries = teamInjuries.filter(injury => isInLastTwoWeeks(injury.date));
+
+            injuries = injuries.concat(recentInjuries);
 
             // Adding a delay of 1 second between requests
             await delay(1000);
@@ -72,10 +86,10 @@ router.get('/fetchAndSaveInjuries', async (req, res) => {
             }
         }
 
-        console.log('Injury API response:', injuries); // Log the API response
+        console.log('Filtered Injury API response:', injuries); // Log the filtered API response
 
         if (injuries.length === 0) {
-            throw new Error('No injury data found.');
+            throw new Error('No recent injury data found.');
         }
 
         const db = await connectToDatabase();
@@ -90,7 +104,7 @@ router.get('/fetchAndSaveInjuries', async (req, res) => {
         }));
 
         await injuryCollection.bulkWrite(bulkOps);
-        res.status(200).send({ message: 'Injuries fetched and saved successfully.' });
+        res.status(200).send({ message: 'Recent injuries fetched and saved successfully.' });
     } catch (error: any) {
         console.error('Error fetching and saving injuries:', error);
         res.status(500).send({ error: 'Error fetching and saving injuries', details: error.message });
