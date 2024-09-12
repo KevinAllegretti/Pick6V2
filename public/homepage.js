@@ -1024,7 +1024,8 @@ function renderMessages(messages, chatBox) {
 
         // Create a span for the username with a specific color
         const usernameSpan = document.createElement('span');
-        usernameSpan.style.color = '#33d9ff';
+      //  usernameSpan.style.color= '#be33ff' //halloween version
+         usernameSpan.style.color = '#33d9ff';
         usernameSpan.textContent = `${msg.username}: `;
 
         // Create a span for the message

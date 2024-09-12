@@ -1,3 +1,5 @@
+
+
 /* General Styling */
 body {
     font-family: 'Arial', sans-serif;
@@ -12,19 +14,23 @@ body {
     justify-content: center;
 }
 
+
 .container {
     width: 90%;
     margin: 0 auto;
     padding-top: 1em;
 }
 
+
 .containerbutton {
     position:relative;
-    margin-bottom: 20px; 
+    margin-bottom: 20px;
     display: flex;
     justify-content: center; /* Center the buttons horizontally */
     padding-top: 1em;
 }
+
+
 
 
 /* Profile icon container */
@@ -41,6 +47,7 @@ body {
     z-index: 100; /* Make sure it's above other elements */
 }
 
+
 .profile-icon {
     width: 100%;
     height: 100%;
@@ -48,12 +55,14 @@ body {
     object-fit: cover; /* This ensures the image covers the area without being stretched */
 }
 
+
 /* Styles for the profile icon inside the slide-out panel */
 .profile-icon-container-center {
     display: flex;
     justify-content: center; /* Center horizontally */
     margin-top: 20px; /* Add some space from the top of the panel */
 }
+
 
 .profile-icon-center {
     width: 120px; /* Larger than the one on the homepage */
@@ -65,6 +74,7 @@ body {
     cursor: pointer; /* Optional: if you want it to indicate it's clickable */
     background-color: #17203a; /* Dark blue background, to match the slide-out panel */
 }
+
 
 .slide-out-panel {
     position: fixed;
@@ -81,46 +91,56 @@ body {
 }
 
 
+
+
 .slide-out-panel.visible {
     left: 0; /* Slide in from the left */
 }
 
 
+
+
 .close-panel-btn {
-    width: 40px; 
-    height: 40px; 
-    background-color: #17203a; 
-    border: 2px solid #33d9ff; 
-    border-radius: 10px; 
-    color: #FFF; 
-    font-size: 1.5rem; 
-    cursor: pointer; 
+    width: 40px;
+    height: 40px;
+    background-color: #17203a;
+    border: 2px solid #33d9ff;
+    border-radius: 10px;
+    color: #FFF;
+    font-size: 1.5rem;
+    cursor: pointer;
     display: flex;
-    justify-content: center; 
-    align-items: center; 
-    box-shadow: 0 0 5px #33d9ff, 0 0 5px #33d9ff, 0 0 10px #33d9ff; 
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 5px #33d9ff, 0 0 5px #33d9ff, 0 0 10px #33d9ff;
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
-    margin: 20px auto; 
+    margin: 20px auto;
     margin-top: 1px;
 }
 
+
 .close-panel-btn:hover {
-    box-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff, 0 0 30px #33d9ff; 
-    transform: scale(1.1); 
+    box-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff, 0 0 30px #33d9ff;
+    transform: scale(1.1);
 }
 
+
 .close-panel-btn:focus {
-    outline: none; 
+    outline: none;
 }
+
+
 
 
 .panel-content {
     padding: 20px;
 }
 
+
 .account-options .option {
     margin-bottom: 10px;
 }
+
 
 .custom-file-upload {
     padding: 12px 20px;
@@ -137,12 +157,15 @@ body {
     text-decoration: none; /* Removes underline text */
     max-width: 200px;
 
+
 }
+
 
 .custom-file-upload:hover {
     background: linear-gradient(135deg, #0099CC 0%, #33d9ff 100%);
     box-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff, 0 0 30px #33d9ff; /* Enhanced neon glow effect on hover */
 }
+
 
 .custom-file-upload i {
     margin-right: 8px; /* Adds some space between the icon and the text */
@@ -158,6 +181,7 @@ body {
     text-align: left;
 }
 
+
 .pool-title {
     font-size: 1.8em;
     color: #33d9ff;
@@ -167,6 +191,7 @@ body {
     text-align: center;
 }
 
+
 .user-record {
     font-size: 1.3em;
     color: #fff;
@@ -175,9 +200,11 @@ body {
     text-shadow: 0 0 5px #0af, 0 0 10px #0af, 0 0 15px #0af;
 }
 
+
 .user-record div {
     margin: 0 10px;
 }
+
 
 .bio-container, .bio-info {
     background-color: #0a0f22;
@@ -190,6 +217,7 @@ body {
     text-align: left;
 }
 
+
 .bio-title {
     font-size: 1.5em;
     color: #33d9ff;
@@ -198,6 +226,7 @@ body {
     margin-bottom: 10px;
     text-align: center;
 }
+
 
 #userBio {
     width: 100%;
@@ -214,6 +243,7 @@ body {
     box-sizing: border-box;
 }
 
+
 #saveBioButton {
     margin-left: 10px;
     background-color: #33d9ff;
@@ -227,9 +257,12 @@ body {
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
 }
 
+
 #saveBioButton:focus {
     outline: none;
 }
+
+
 
 
 .bio-info, .season-record-info {
@@ -243,6 +276,7 @@ body {
     text-align: left;
 }
 
+
 .bio-title, .season-record-title {
     font-size: 1.5em;
     color: #33d9ff;
@@ -252,12 +286,14 @@ body {
     text-align: center;
 }
 
+
 .bio-content, .season-record-content {
     font-size: 1.2em;
     color: #fff;
     text-align: center;
     margin-top: 10px;
 }
+
 
 /* Hide the file input visually but remain accessible to screen readers. */
 input[type="file"] {
@@ -271,6 +307,7 @@ input[type="file"] {
     width: 1px;
 }
 
+
 .welcome-message {
     text-transform: uppercase;
     text-align: center; /* Center the text horizontally */
@@ -278,6 +315,7 @@ input[type="file"] {
     margin: 20px 0; /* Add some margin around the text for spacing */
     font-family: 'Montserrat', sans-serif;
 }
+
 
 .welcome-message {
     text-transform: uppercase;
@@ -289,7 +327,7 @@ input[type="file"] {
     padding: 5px;
     box-sizing: border-box;
   }
-  
+ 
   /* Media query for smaller screens */
   @media screen and (max-width: 768px) {
     .welcome-message {
@@ -297,10 +335,12 @@ input[type="file"] {
     }
   }
 
+
 /* Add this CSS to your existing stylesheet */
 .hidden {
     display: none;
 }
+
 
 #teamFilter {
     margin-top: 10px;
@@ -313,21 +353,25 @@ input[type="file"] {
     transition: all 0.3s ease;
 }
 
+
 #teamFilter:focus {
     outline: none;
     border-color: #33d9ff;
 }
+
 
 #displayInjuriesBtn {
     display: block;
     margin-bottom: 10px;
 }
 
+
 /* Add transition for smooth showing */
 .show {
     display: block !important;
     transition: opacity 0.5s ease;
 }
+
 
 #injuryList {
     max-height: 400px;
@@ -337,10 +381,12 @@ input[type="file"] {
     margin-top: 0;
 }
 
+
 #injuryList.show {
     max-height: 1000px; /* Arbitrary large value to accommodate content */
     margin-top: 10px;
 }
+
 
 .injury-item {
     display: flex;
@@ -349,16 +395,19 @@ input[type="file"] {
     border-bottom: 1px solid #2c2c2c;
 }
 
+
 .injury-item img {
     width: 50px;
     height: 50px;
     margin-right: 15px;
 }
 
+
 .injury-details {
     text-align: left;
     font-family: 'montserrat', sans-serif;
 }
+
 
 .injury-details h4 {
     margin: 0;
@@ -366,11 +415,13 @@ input[type="file"] {
     color: #33d9ff;
 }
 
+
 .injury-details p {
     margin: 2px 0;
     font-size: 14px;
     color: rgb(255, 255, 255);
 }
+
 
 .injury-container {
     max-height: 0;
@@ -379,10 +430,14 @@ input[type="file"] {
     padding: 0;
 }
 
+
 .injury-container.visible {
     max-height: 1000px; /* Set to a high enough value to accommodate the content */
     padding: 20px 0;
 }
+
+
+
 
 
 
@@ -395,6 +450,7 @@ h1 {
     margin-bottom: 20px;
 }
 
+
 .underline {
     height: 4px; /* Or however thick you want it */
     background-color: #33d9ff; /* Neon light blue */
@@ -402,12 +458,14 @@ h1 {
     margin-top: 5px; /* Space between the text and the line */
 }
 
+
 .players {
     display: flex;
     flex-wrap: wrap;
     overflow-y: auto; /* Allow vertical scrolling */
     justify-content: space-around;
 }
+
 
 @media (max-width: 768px) {
     .players {
@@ -430,6 +488,7 @@ h1 {
     }
 }
 
+
 .total-points {
     font-style: oblique;
     position: absolute; /* This will position the element relative to its nearest positioned ancestor */
@@ -443,10 +502,12 @@ h1 {
     z-index: 1; /* Ensure it's above other content */
 }
 
+
 .player-card:hover {
     transform: translateY(-5px);
     box-shadow: 0px 0px 25px #33d9ff, 0px 0px 5px #33d9ff; /* Enhanced shadow on hover */
 }
+
 
 h2 {
     font-size: 1.4em;
@@ -455,7 +516,7 @@ h2 {
 }
 /*
 .rules-button {
-    margin: 0 auto; 
+    margin: 0 auto;
     padding: 12px 25px;
     text-align: center;
     background: #121212;
@@ -467,6 +528,7 @@ h2 {
     cursor: pointer;
     box-shadow: 0px 4px 15px rgba(0, 204, 255, 0.4);
 }
+
 
 .rules-button:hover {
     background-color: #00ccff;
@@ -492,6 +554,9 @@ h2 {
 
 
 
+
+
+
 .neon-book {
     position: relative;
     width: 50px; /* Adjusted for better text fit */
@@ -503,6 +568,7 @@ h2 {
     border-radius: 2px;
 }
 
+
 .neon-book::before,
 .neon-book::after {
     content: '';
@@ -510,7 +576,9 @@ h2 {
     border: 2px solid #00ccff;
     border-radius: 2px;
 
+
 }
+
 
 .neon-book::before {
     top: 0;
@@ -519,15 +587,18 @@ h2 {
     height: 100%;
 }
 
+
 .rule-book-button:hover .neon-book::before,
 .rule-book-button:hover .neon-book::after {
     background-color: rgba(0, 204, 255, 0.8);
     color: #17203a;
 }
 
+
 .rule-book-button:hover .rule-book-text{
     color: #17203a;
 }
+
 
 .neon-book::after {
     top: 0;
@@ -547,8 +618,9 @@ h2 {
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
     border-top: 15px solid #0a0f22; /* Dark blue for the main triangle */
-    
+   
 }
+
 
 /* Creating the two light blue mini triangles */
 .bookmark::before,
@@ -563,13 +635,17 @@ h2 {
     border-top: 7.5px solid rgba(0, 204, 255, 0.8); /* Light blue color */
 }
 
+
 .bookmark::before {
     left: -10px; /* Position to the left of the main triangle */
 }
 
+
 .bookmark::after {
     right: -10px; /* Position to the right of the main triangle */
 }
+
+
 
 
 .title-line {
@@ -582,6 +658,7 @@ h2 {
     box-shadow: 0 0 20px rgba(0, 204, 255, 0.8);
 }
 
+
 .rule-book-text {
     position: absolute;
     top: 40%; /* Adjusted for vertical alignment */
@@ -592,6 +669,7 @@ h2 {
     text-shadow: 0 0 20px rgba(0, 204, 255, 0.8);
     text-align: center;
 }
+
 
 .info-button {
     position: absolute;
@@ -614,6 +692,7 @@ h2 {
     font-family: 'Georgia', serif;
 }
 
+
 .info-button:hover {
     background-color: #00ccff;
     color: #121212;
@@ -630,6 +709,7 @@ h2 {
     margin-top: 20px; /* Add space below the "teams" */
 }
 
+
 .week {
     font-size: 1.5rem; /* Adjust as needed */
     font-family: 'Russo one', sans-serif;
@@ -645,6 +725,7 @@ h2 {
     100% { opacity: 0.8; }
 }
 
+
 /* The dunce cap */
 .dunce-icon {
     margin-left: 0.2em;
@@ -654,11 +735,15 @@ h2 {
     color: rgb(177, 121, 0);
 }
 
+
 .player-username {
     text-transform: uppercase;
     font-family: 'Montserrat', sans-serif;
     font-size: 5px; /* or you could specify a size like 0.9em or 14px */
 }
+
+
+
 
 
 
@@ -676,10 +761,12 @@ h2 {
     display: block; /* Make it block level to center with margin auto */
 }
 
+
 .logout-button:hover {
     box-shadow: 0 0 10px #0af, 0 0 20px #0af, 0 0 30px #0af;
     transform: scale(1.05);
 }
+
 
 .team-logo {
     width: 35px; /* Or your desired width */
@@ -692,11 +779,15 @@ h2 {
 
 
 
+
+
+
+
 .pool-name {
     font-family: 'Electrolize', sans-serif;
     font-size: 20px;
     color: #0a0f22;
-    text-shadow: 
+    text-shadow:
     -.5px -.5px 0 #00ccff,  
     .5px -.5px 0 #00ccff,
     -.5px .5px 0 #00ccff,
@@ -712,6 +803,9 @@ h2 {
 
 
 
+
+
+
 .player-card {
     position: relative;
     width: 220px;
@@ -723,6 +817,7 @@ h2 {
     box-shadow: 0px 0px 20px #33d9ff; /* Neon light blue shadow for depth */
     transition: transform 0.2s, box-shadow 0.2s; /* Animation for hover */
 }
+
 
 /* Input fields styling */
 input[type="text"], input[type="password"], input[type="checkbox"] {
@@ -738,12 +833,14 @@ input[type="text"], input[type="password"], input[type="checkbox"] {
     transition: box-shadow 0.3s ease-in-out;
 }
 
+
 /* Enhance the neon glow when the input is focused */
 input[type="text"]:focus, input[type="password"]:focus {
     box-shadow: 0 0 6px #0af,
     0 0 6px #0af,
     0 0 6px #0af;
 }
+
 
 /* Styling for checkboxes to match the neon theme */
 input[type="checkbox"] {
@@ -759,6 +856,7 @@ input[type="checkbox"] {
     cursor: pointer;
 }
 
+
 input[type="checkbox"]:checked {
     background-color: #0af;
     box-shadow: inset 0 0 5px #0af, /* Inner shadow for a glowing effect */
@@ -766,12 +864,14 @@ input[type="checkbox"]:checked {
     0 0 10px #0af;
 }
 
+
 /* Labels for a cleaner, professional look */
 label {
     color: #33d9ff; /* Neon text color */
     font-weight: bold;
     margin-right: 10px;
 }
+
 
 /* Button Styling */
 button {
@@ -786,6 +886,7 @@ button {
     margin-bottom: 20px;
 }
 
+
 /* Hover effect for the button to make it pop */
 button:hover {
     box-shadow: 0 0 5px #0af,
@@ -793,6 +894,7 @@ button:hover {
     0 0 7px #0af;
     transform: scale(1.05);
 }
+
 
 /* Styling for the form container */
 .form-container {
@@ -804,12 +906,14 @@ button:hover {
     0 0 5px #0af;
 }
 
+
 /* Enhances the layout of form elements */
 .form-field {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
 }
+
 
 /* Give the create pool section a distinct look */
 #create-pool-section {
@@ -822,10 +926,12 @@ button:hover {
     margin: 20px 0;
 }
 
+
 /* Increase spacing between form elements */
 #pool-name, #pool-password {
     margin-bottom: 15px; /* Adds more space below the input fields */
 }
+
 
 /* Style for the checkbox label */
 #private-pool-label {
@@ -834,11 +940,13 @@ button:hover {
     vertical-align: middle; /* Aligns label with the checkbox */
 }
 
+
 /* Style for the checkbox */
 #is-private {
     vertical-align: middle; /* Aligns checkbox vertically with the label */
     margin-right: 15px; /* Adds space between the checkbox and the 'Create Pool' button */
 }
+
 
 /* Transform 'Create Pool' button into 'Go Back' button */
 #toggle-create-button.reverse {
@@ -846,10 +954,12 @@ button:hover {
     transform: rotate(180deg); /* Rotate the button to indicate 'go back' */
 }
 
+
 /* Hide password field initially */
 #pool-password {
     display: none;
 }
+
 
 /* Additional styling for the container to fix position issue */
 .create-pool-container {
@@ -861,6 +971,7 @@ button:hover {
     border-bottom: 1px solid #33d9ff; /* Neon-like blue border */
     padding-bottom: 20px; /* Space above the border */
 }
+
 
 #create-pool-form input[type="submit"] {
     background-color: #033; /* Dark background for the button */
@@ -879,9 +990,11 @@ button:hover {
     display: block; /* Ensure the button is a block element to take up full width */
 }
 
+
 #create-pool-form-container {
     border-bottom: 2px solid rgb(0, 247, 255); /* Neon border color */
 }
+
 
 #show-create-pool-form,
 #show-join-pool-form {
@@ -893,15 +1006,18 @@ button:hover {
     margin: 20px auto; /* Top and bottom margin with auto horizontal margins */
 }
 
+
 #main-content button {
     margin-bottom: 0px;
 }
+
 
 #main-content form {
     display: flex;
     flex-wrap: wrap; /* This will allow items to wrap to the next line if needed */
     gap: 10px; /* This adds some space between your form items */
 }
+
 
 #main-content label,
 #main-content input[type="text"],
@@ -911,21 +1027,25 @@ button:hover {
     margin-bottom: 10px; /* Add space below each form element */
 }
 
+
 #main-content .form-field {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
 }
 
+
 .form-field-row {
     flex-basis: 50%; /* Adjust as needed */
 }
+
 
 #main-content label[for="pool-password"],
 #main-content #pool-password {
     display: inline-block; /* This makes the label and input align horizontally */
     width: auto; /* Adjust width as needed or use flex-grow property */
 }
+
 
 #main-content input[type="submit"][value="Create Pool"] {
     background-color: #033; /* Dark background for the button */
@@ -941,9 +1061,11 @@ button:hover {
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
 }
 
+
 .player-row:last-child {
     border-bottom: none; /* Removes the line from the last row */
 }
+
 
 /* Ensure the container elements are flex */
 .pool-header, .player-row {
@@ -954,6 +1076,7 @@ button:hover {
     border-bottom: 1px solid #33d9ff;
 }
 
+
 /* Flex items in the header and rows */
 .pool-header > span, .player-row > div {
     flex: 1; /* Default flex grow */
@@ -961,6 +1084,7 @@ button:hover {
     position: relative; /* For vertical lines */
     padding: 10px 0; /* Consistent padding for all items */
 }
+
 
 /* Style for the profile picture */
 .player-profile-pic {
@@ -974,6 +1098,7 @@ button:hover {
     border: 1.5px solid #33d9ff;
 }
 
+
 .player-rank { order: 1 }
 .player-user { order: 2 }
 .player-points { order: 3 }
@@ -981,6 +1106,7 @@ button:hover {
 .player-win { order: 5 }
 .player-loss { order: 6 }
 .player-push { order: 7 }
+
 
 /* Specific flex values to match the header with the rows */
 /* Vertical lines with consistent height */
@@ -996,10 +1122,12 @@ button:hover {
     background-color: #33d9ff;
 }
 
+
 /* Remove the general rule that applies the line after every div */
 .player-row > div::after {
     content: none;
 }
+
 
 /* Apply the vertical line specifically after the 'Picks' column */
 .player-row > div:nth-child(7)::after {
@@ -1012,6 +1140,7 @@ button:hover {
     width: 1px;
     background-color: #33d9ff;
 }
+
 
 /* Other cosmetic styling (background colors, hover effects, etc.) can be added as needed */
 /* Flex settings for player row items */
@@ -1044,11 +1173,13 @@ button:hover {
 .pool-header .header-loss, .player-row .player-loss { flex: 1; }
 .pool-header .header-push, .player-row .player-push { flex: 1; }
 
+
 .admin-badge {
     color: rgb(1, 211, 1); /* Green color for the admin badge */
     margin-left: 0.3em; /* Space between the username and the badge */
     margin-right: 0.2em;
 }
+
 
 .player-user {
     flex: 2.5;
@@ -1059,6 +1190,7 @@ button:hover {
     cursor: pointer;
 }
 
+
 .crown-icon {
     margin-left: 0.3em;
     padding-right: 4px;
@@ -1068,6 +1200,7 @@ button:hover {
     color: gold;
 }
 
+
 .player-username {
     font-size: 1rem; /* Fixed font size, adjust as needed */
     overflow: hidden; /* Hide overflow */
@@ -1075,25 +1208,30 @@ button:hover {
     overflow-x: auto;
 }
 
+
 /* Scrollbar styling */
 .player-username::-webkit-scrollbar {
     height: 4px; /* Height of horizontal scrollbar */
     background-color: rgba(0, 110, 255, 0.1); /* Scrollbar track color */
 }
 
+
 .player-username::-webkit-scrollbar-thumb {
     background-color: rgba(1, 141, 255, 0.2); /* Scrollbar thumb color */
     border-radius: 2px;
 }
+
 
 .player-username::-webkit-scrollbar-thumb {
     background-clip: content-box; /* Avoid dragging on the padding area */
     border: 2px solid transparent;
 }
 
+
 .player-username:hover::-webkit-scrollbar-thumb {
     background-color: rgba(0, 195, 255, 0.5); /* Scrollbar thumb color on hover */
 }
+
 
 .pool-manager {
     width: 200px; /* Set the width of the box */
@@ -1105,15 +1243,18 @@ button:hover {
     transition: margin 0.3s ease-in-out;
 }
 
+
 /* Flex settings for pool manager */
 .pool-manager.centered {
     align-self: center;
 }
 
+
 /* Move the pool manager down when there are pools */
 .pool-manager.bottom {
     margin-top: 20px;
 }
+
 
 .content {
     margin-left: 20%; /* This should match the width of your .pool-manager */
@@ -1122,10 +1263,12 @@ button:hover {
     background-color: #012; /* Change to match your page's theme */
 }
 
+
 /* Style your forms within the pool-manager */
 #join-pool-form, #create-pool-form {
     margin-bottom: 20px;
 }
+
 
 #join-pool-form input[type="submit"] {
     background-color: #033; /* Dark background for the button */
@@ -1142,12 +1285,14 @@ button:hover {
     margin-top: 20px;
 }
 
+
 #join-pool-form input[type="submit"]:hover {
     box-shadow: 0 0 10px #0af, /* Neon glow effect */
     0 0 20px #0af,
     0 0 30px #0af;
     transform: scale(1.05);
 }
+
 
 #join-pool-form label,
 #join-pool-form input {
@@ -1157,25 +1302,28 @@ button:hover {
     box-sizing: border-box; /* Include padding in width calculation */
 }
 
+
 @media (max-width: 768px) {
     .container {
         flex-direction: column;
     }
+
 
     .pool-manager {
         max-width: 100%; /* full width on smaller screens */
         height: auto; /* adjust height */
     }
 
+
     .content {
         flex: 1; /* reset flex */
     }
-    
+   
 .pool-name {
     font-family: 'Electrolize', sans-serif;
     font-size: 20px;
     color: #0a0f22;
-    text-shadow: 
+    text-shadow:
     -.5px -.5px 0 #00ccff,  
     .5px -.5px 0 #00ccff,
     -.5px .5px 0 #00ccff,
@@ -1193,6 +1341,10 @@ button:hover {
 
 
 
+
+
+
+
 /* Styling for headers */
 .pool-header > span {
     color: #ffffff; /* Change to the color that fits your design */
@@ -1201,15 +1353,19 @@ button:hover {
     text-transform: uppercase; /* Capitalize your headers for more impact */
 }
 
+
 .pool-header .header-rank {
     text-align: right; /* Ensure text is aligned to right */
 }
+
 
 .header-immortal-lock .fas {
     margin-left: 5px; /* Add a little space between the text and the icon */
 }
 
+
 .player-row .player-immortal-lock { order: 5 } /* Assign proper order and flex */
+
 
 .player-picks, .player-immortal-lock {
     display: flex;
@@ -1228,28 +1384,34 @@ button:hover {
     width: 100%;
    font-family: 'quantico', sans-serif;
 
+
 }
+
 
 .pick img, .immortal-lock img {
     margin-bottom: 8px; /* Add space between the icon and the text */
     padding-left: 10px;
 }
 
+
 .pick span, .immortal-lock span {
     line-height: 1; /* Ensure consistent line height */
     margin-top: auto; /* Ensure the text is pushed to the bottom */
 }
+
 
 .pool-header .header-rank {
     text-align: right; /* Keep text aligned to the right */
     position: relative; /* Required for transform to work */
 }
 
+
 .pool-header .header-rank::before {
     content: "RANK";
     display: inline-block;
     transform: translateX(-10px); /* Move the text to the left */
 }
+
 
 .leave-pool-button {
     position: absolute;
@@ -1278,6 +1440,7 @@ button:hover {
     width: 100%;
 }
 
+
 /* Pool Container Wrapper */
 #pool-container-wrapper {
     display: flex;
@@ -1289,6 +1452,7 @@ button:hover {
     margin-right: 48px;
 }
 
+
 /* Pool Wrapper */
 .pool-wrapper {
     display: flex;
@@ -1297,7 +1461,9 @@ button:hover {
     padding: 25px;
     box-sizing: border-box; /* Include padding and border in width */
 
+
 }
+
 
 /* Scrollable Container */
 .pool-scrollable-container {
@@ -1311,14 +1477,17 @@ button:hover {
 }
 /* Ensure the right border stays visible when scrolling */
 
+
 .pool-scrollable-container::-webkit-scrollbar {
     height: 8px; /* Height of the horizontal scrollbar */
 }
+
 
 .pool-scrollable-container::-webkit-scrollbar-track {
     background: #0a0f22; /* Track background color */
     border-radius: 10px;
 }
+
 
 .pool-scrollable-container::-webkit-scrollbar-thumb {
     background-color: #33d9ff; /* Thumb (scroll handle) color */
@@ -1326,13 +1495,16 @@ button:hover {
     border: 2px solid #0a0f22; /* Border color to give it a rounded appearance */
 }
 
+
 .pool-scrollable-container::-webkit-scrollbar-thumb:hover {
     background-color: #1bb1d5; /* Color when hovered */
 }
 
+
 .pool-scrollable-container::-webkit-scrollbar-thumb:active {
     background-color: #00BFFF; /* Color when active (clicked) */
 }
+
 
 /* Pool Container */
 .pool-container {
@@ -1345,6 +1517,7 @@ button:hover {
     text-align: left;
 }
 
+
 /* Pool and Delete Container */
 .pool-and-delete-container {
     display: flex;
@@ -1355,6 +1528,7 @@ button:hover {
     width: 100%;
     max-width: 1250px;
 }
+
 
 /* Delete Pool Button */
 .delete-pool-button {
@@ -1374,10 +1548,12 @@ button:hover {
     z-index: 1; /* Ensure the button stays on top */
 }
 
+
 .delete-pool-button:hover {
     box-shadow: 0 0 10px #0af, 0 0 20px #0af, 0 0 30px #0af;
     transform: scale(1.05);
 }
+
 
 .chat-wrapper {
     position: absolute;
@@ -1388,6 +1564,7 @@ button:hover {
     flex-direction: column;
     align-items: center;
 }
+
 
 .chat-tab {
     width: 100px;  /* Match existing buttons */
@@ -1407,11 +1584,13 @@ button:hover {
     text-transform: uppercase;
 }
 
+
 .chat-tab:hover {
     background-color: #33d9ff;  /* Darker blue on hover */
     transform: translateY(-2px);  /* Lift effect on hover */
     border: solid 2px #17203a;
 }
+
 
 .chat-container {
     width: 300px;  /* Match input width */
@@ -1429,6 +1608,7 @@ button:hover {
     right: 20px;
 }
 
+
 .chat-box {
     height: 400px;
     overflow-y: auto;  /* Only show scrollbar when necessary */
@@ -1436,6 +1616,7 @@ button:hover {
     border-bottom: 1px solid #33d9ff;  /* Match other borders */
     background-color: #061b3a;  /* Match dark theme */
 }
+
 
 .chat-input {
     width: calc(100% - 20px);
@@ -1449,6 +1630,7 @@ button:hover {
     font-size: 16px;
 }
 
+
 .send-chat-button {
     width: 90%;  /* Match input width */
     padding: 10px;
@@ -1461,20 +1643,24 @@ button:hover {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+
 .send-chat-button:hover {
     background: linear-gradient(135deg, #0099CC 0%, #33d9ff 100%);
     box-shadow: 0 0 5px #33d9ff, 0 0 5px #33d9ff, 0 0 5px #33d9ff; /* Enhanced neon glow effect on hover */
 }
 
+
 .show-chat .chat-container {
     max-height: 400px;
 }
+
 
 .chat-toggle {
     display: flex;
     justify-content: space-around;
     margin: 10px 0;
 }
+
 
 .chat-toggle-button {
     width: 45%;
@@ -1485,6 +1671,7 @@ button:hover {
     border-radius: 5px;
     cursor: pointer;
 }
+
 
 .choose-picks-button {
     position: relative;
@@ -1503,12 +1690,16 @@ button:hover {
 }
 
 
+
+
 .choose-picks-button.disabled {
     background: black;
     color: rgb(214, 13, 13);
     border: 2px solid rgb(24, 23, 23); /* Optional: add a red border */
     font-family: 'montserrat', 'sans-serif';
 }
+
+
 
 
 .choose-picks-button.disabled::before {
@@ -1537,6 +1728,7 @@ button:hover {
     top: 6.5px;
 }
 
+
 .neon-calendar {
     position: relative;
     width: 65px; /* Slightly wider */
@@ -1548,6 +1740,7 @@ button:hover {
     border-radius: 2px;
 }
 
+
 .neon-calendar::before,
 .neon-calendar::after {
     content: '';
@@ -1556,6 +1749,7 @@ button:hover {
     border-radius: 2px;
 }
 
+
 .neon-calendar::before {
     top: 0;
     left: 0;
@@ -1563,16 +1757,19 @@ button:hover {
     height: 100%;
 }
 
+
 .schedule-button:hover .neon-calendar::before,
 .schedule-button:hover .neon-calendar::after {
     background-color: rgba(0, 204, 255, 0.8);
     color: #17203a;
 }
 
+
 .schedule-button:hover .calendar-title,
 .schedule-button:hover .calendar-date {
     color: #17203a;
 }
+
 
 .neon-calendar::after {
     top: 0;
@@ -1583,6 +1780,7 @@ button:hover {
     box-shadow: 0 0 25px rgba(0, 204, 255, 0.8);
 }
 
+
 .calendar-top {
     position: absolute;
     top: 10px; /* Adjusted for smaller height */
@@ -1592,6 +1790,7 @@ button:hover {
     background: #00ccff;
     border-radius: 2px;
 }
+
 
 .calendar-body {
     position: absolute;
@@ -1604,6 +1803,7 @@ button:hover {
     border-radius: 2px;
 }
 
+
 .calendar-title {
     position: absolute;
     top: 0;
@@ -1614,6 +1814,7 @@ button:hover {
     text-shadow: 0 0 20px rgba(23, 32, 58, 0.8);
     text-align: center;
 }
+
 
 .calendar-date {
     position: absolute;
@@ -1626,6 +1827,7 @@ button:hover {
     text-align: center;
 }
 
+
 .ring-binders {
     position: absolute;
     top: -7px;
@@ -1635,6 +1837,7 @@ button:hover {
     justify-content: space-around;
 }
 
+
 .ring {
     width: 5px;
     height: 13px;
@@ -1643,3 +1846,6 @@ button:hover {
     box-shadow: 0 0 10px rgba(0, 204, 255, 0.8);
     border: 1px solid #0a0f22;
 }
+
+
+
