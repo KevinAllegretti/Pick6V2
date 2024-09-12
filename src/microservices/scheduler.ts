@@ -601,14 +601,8 @@ cron.schedule('0 8 * * *', () => {
 });
 
 
-cron.schedule('0 0 * * 6', () => {
-  console.log("Its thursday, gettin scores");
-  
-fetchNFLScores();
-});
 
-
-cron.schedule('30 23 * * 4', () => {
+cron.schedule('50 23 * * 4', () => {
   console.log("Its thursday, gettin scores");
   
 fetchNFLScores();
