@@ -565,9 +565,10 @@ cron.schedule('25 16 * * 0', () => {
 
 
 
-cron.schedule('30 20 * * 0', () => {
-    console.log("It's Sunday 8:30 PM, now fetching scores");
-    fetchNFLScores();
+
+cron.schedule('35 19 * * 0', () => {
+  console.log("It's Sunday 8:30 PM, now fetching scores");
+  fetchNFLScores();
 });
 
 cron.schedule('46 23 * * 0', () => {
