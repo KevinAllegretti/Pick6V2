@@ -558,7 +558,7 @@ cron.schedule('0 0 * * 2', async () => { // every tuesday
 
 
 
-cron.schedule('15 16 * * 0', () => {
+cron.schedule('25 16 * * 0', () => {
     console.log("It's Sunday 4:15 PM, now fetching scores");
     fetchNFLScores();
 });
