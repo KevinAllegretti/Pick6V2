@@ -571,7 +571,7 @@ cron.schedule('35 19 * * 0', () => {
   fetchNFLScores();
 });
 
-cron.schedule('46 23 * * 0', () => {
+cron.schedule('55 23 * * 0', () => {
     console.log("It's Sunday 11:30 PM, now fetching scores");
     fetchNFLScores();
 });
