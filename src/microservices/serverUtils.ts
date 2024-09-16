@@ -228,11 +228,15 @@ export function getBetResult(pick: string, homeTeamScore: number, awayTeamScore:
 
 
 // Function to calculate points for a result
+// Function to calculate points for a result
 export function calculatePointsForResult({ result, odds, type }: { result: string, odds: number, type?: string }): number {
     let points = 0;
+
     switch (result) {
         case 'hit':
-            if (Math.abs(odds) > 99) {
+            if (type === "ImmortalLock") {
+                points += 1; // Points for immortal lock win
+            } else if (Math.abs(odds) > 99) {
                 if (odds < 0) {
                     points += odds <= -250 ? 0.5 : 1; // Less points for high favorites
                 } else {
@@ -240,21 +244,23 @@ export function calculatePointsForResult({ result, odds, type }: { result: strin
                 }
             } else if (Math.abs(odds) < 100) {
                 points += 1.5; // Points for spread win
-            } else if (type === "ImmortalLock") {
-                points += 1; // Points for immortal lock win
             }
             break;
+            
         case 'miss':
             if (type === "ImmortalLock") {
                 points -= 2; // Penalty for immortal lock loss
             }
             break;
+            
         case 'push':
             points += 0.5; // Points for a push
             break;
     }
+
     return points;
 }
+
 
 export async function fetchPicksData(username: string, poolName: string): Promise<any> {
     const database = await connectToDatabase();
