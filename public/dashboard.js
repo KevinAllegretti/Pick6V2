@@ -295,113 +295,20 @@ async function wasPickMadeLastWeek(username, poolName, currentPick) {
  //setting this here for test
  //another test
  
- async function fetchUserPicksAndRender(username, poolName) {
-    const userPicksData = await fetchUserPicks(username, poolName);
-    
-    // Log the full data to ensure we have both picks and the immortal lock
-    console.log("Fetched picks: ", userPicksData);
 
-    // Check if there is an Immortal Lock
-    const immortalLockPick = userPicksData.immortalLock && userPicksData.immortalLock.length > 0 
-                             ? userPicksData.immortalLock[0] 
-                             : null;
+ function updateBetCell(option, isSelected, isImmortalLock = false) {
+ const teamClass = option.teamName.replace(/\s+/g, '-').toLowerCase();
+ const typeClass = option.type.toLowerCase();
+ const betButtons = document.querySelectorAll(`.bet-button[data-team="${teamClass}"][data-type="${typeClass}"]`);
 
-    // Log to check the Immortal Lock pick
-    console.log("Immortal Lock Pick: ", immortalLockPick);
-
-    // If there's an Immortal Lock, set the flag and render it
-    if (immortalLockPick) {
-        immortalLockPick.isImmortalLock = true;
-        const immortalLockCheckbox = document.getElementById('immortalLockCheck');
-        immortalLockCheckbox.checked = true; // Toggle the checkbox on
-        
-        // Render the Immortal Lock pick
-        selectBet(immortalLockPick, true);
-    }
-
-    // Render all the regular picks
-    userPicksData.picks.forEach(pick => {
-        selectBet(pick, true); // true flag indicates rendering from previous data
-    });
+ betButtons.forEach(button => {
+ button.classList.toggle('selected', isSelected);
+ button.classList.toggle('immortal-lock-selected', isSelected && isImmortalLock);
+ });
 }
-
-
-
-
-async function fetchUserPicks(username, poolName) { 
-    const url = `/api/getPicks/${encodeURIComponent(username)}/${encodeURIComponent(poolName)}`; 
-    try {
-        console.log('Fetching user picks from URL:', url); // Log the URL being fetched
-        const response = await fetch(url); 
-        if (!response.ok) { 
-            throw new Error('Failed to fetch user picks');
-        } 
-        const userPicksData = await response.json(); 
-        console.log('User picks data fetched:', userPicksData); // Log the data fetched
-
-        // Extract the regular picks and Immortal Lock
-        const previousPicks = userPicksData.picks || [];
-        const immortalLockPick = userPicksData.immortalLock && userPicksData.immortalLock.length > 0 
-                                 ? userPicksData.immortalLock[0] 
-                                 : null; 
-
-        console.log('Previous picks:', previousPicks); // Log the parsed picks array
-        console.log('Immortal Lock pick:', immortalLockPick); // Log the Immortal Lock pick
-
-        // Render the regular picks
-        if (previousPicks.length) {
-            previousPicks.forEach(pick => {
-                console.log('Rendering pick:', pick); // Log each pick before rendering
-                selectBet(pick, true); // Render the pick (true indicates rendering from previously submitted data)
-            });
-        }
-
-        // Render the Immortal Lock pick, if present, and apply Immortal Lock logic
-        if (immortalLockPick) {
-            console.log('Rendering Immortal Lock:', immortalLockPick);
-            selectBet(immortalLockPick, true); // Render the Immortal Lock pick
-
-            // Ensure the Immortal Lock checkbox is checked
-            document.getElementById('immortalLockCheck').checked = true;
-            userImortalLock[0] = immortalLockPick; // Set the Immortal Lock in user's data
-            updateBetCell(immortalLockPick, true, true); // Update the Immortal Lock cell with yellow styling
-        }
-
-        return previousPicks; // Return the previous picks for further use if needed
-    } catch (error) {
-        console.error('Error fetching user picks:', error); 
-        return []; // Return an empty array in case of failure
-    } 
-}
-
-
-
-
-
-
-function updateBetCell(option, isSelected, isImmortalLock = false) {
-    const teamClass = option.teamName.replace(/\s+/g, '-').toLowerCase();
-    const typeClass = option.type.toLowerCase();
-    const betButtons = document.querySelectorAll(`.bet-button[data-team="${teamClass}"][data-type="${typeClass}"]`);
-    
-    betButtons.forEach(button => {
-        button.classList.toggle('selected', isSelected);
-        button.classList.toggle('immortal-lock-selected', isSelected && isImmortalLock);
-    });
-}
-
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        const storedUsername = localStorage.getItem('username');
-        const currentPoolName = localStorage.getItem('currentPoolName');
-        if (storedUsername && currentPoolName) {
-            fetchUserPicksAndRender(storedUsername.toLowerCase(), currentPoolName);
-        }
-    }, 500); // Delay to ensure DOM is ready
-});
 
  
-async function selectBet(option, isRenderingPrevious = false) {
+async function selectBet(option) {
     const immortalLockCheckbox = document.getElementById('immortalLockCheck');
 
     const storedUsername = localStorage.getItem('username')?.toLowerCase();
@@ -412,34 +319,6 @@ async function selectBet(option, isRenderingPrevious = false) {
         return; // Exit the function if pool name or username is not available
     }
 
- // Log the option being processed to check for Immortal Lock
- console.log("selectBet called with option: ", option);
- console.log("Is this an Immortal Lock? ", option.isImmortalLock);
-
- if (isRenderingPrevious) {
-     const currentMatchup = betOptions.find(bet => (bet.homeTeam === option.teamName || bet.awayTeam === option.teamName));
-     const currentPick = {
-         teamName: option.teamName,
-         type: option.type,
-         value: option.value,
-         commenceTime: currentMatchup.commenceTime
-     };
-
-     // Log whether the pick is being rendered as Immortal Lock
-     if (option.isImmortalLock) {
-         console.log("Applying Immortal Lock styling to: ", currentPick);
-         userImortalLock[0] = currentPick; // Set Immortal Lock
-         updateBetCell(option, true, true); // Apply Immortal Lock styling
-     } else {
-         console.log("Rendering regular pick for: ", option.teamName);
-         userPicks.push(currentPick);
-         picksCount++;
-         updateBetCell(option, true); // Regular pick styling
-     }
-
-     return;
- }
-    
     // Check if the button has the custom data attribute indicating it was a previous pick
     const betButton = document.querySelector(`.bet-button[data-team="${option.teamName.replace(/\s+/g, '-').toLowerCase()}"][data-type="${option.type.toLowerCase()}"]`);
     if (betButton && betButton.dataset.previousPick === 'true') {
