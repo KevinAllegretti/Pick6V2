@@ -295,107 +295,158 @@ async function wasPickMadeLastWeek(username, poolName, currentPick) {
  //setting this here for test
  //another test
  
+ let userImmortalLock = null;
 
- function updateBetCell(option, isSelected, isImmortalLock = false) {
- const teamClass = option.teamName.replace(/\s+/g, '-').toLowerCase();
- const typeClass = option.type.toLowerCase();
- const betButtons = document.querySelectorAll(`.bet-button[data-team="${teamClass}"][data-type="${typeClass}"]`);
-
- betButtons.forEach(button => {
- button.classList.toggle('selected', isSelected);
- button.classList.toggle('immortal-lock-selected', isSelected && isImmortalLock);
- });
+// Fetch user picks and render them
+async function fetchUserPicksAndRender(username, poolName) {
+    try {
+        const response = await fetch(`/api/getPicks/${encodeURIComponent(username)}/${encodeURIComponent(poolName)}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch user picks');
+        }
+        const userPicksData = await response.json();
+        
+        // Render regular picks
+        userPicksData.picks.forEach(pick => renderPick(pick, false));
+        
+        // Render Immortal Lock if present
+        if (userPicksData.immortalLock && userPicksData.immortalLock.length > 0) {
+            renderPick(userPicksData.immortalLock[0], true);
+        }
+    } catch (error) {
+        console.error('Error fetching user picks:', error);
+    }
 }
 
- 
-async function selectBet(option) {
+// Render a single pick
+function renderPick(pick, isImmortalLock) {
+    const option = {
+        teamName: pick.teamName,
+        type: pick.type,
+        value: pick.value
+    };
+    selectBet(option, true, isImmortalLock);
+}
+
+// Main function to handle bet selection
+function selectBet(option, isRendering = false, isImmortalLock = false) {
     const immortalLockCheckbox = document.getElementById('immortalLockCheck');
 
-    const storedUsername = localStorage.getItem('username')?.toLowerCase();
-    const currentPoolName = localStorage.getItem('currentPoolName');
-
-    if (!storedUsername || !currentPoolName) {
-        alert('Username or Pool Name is missing.');
-        return; // Exit the function if pool name or username is not available
+    // Handle deselection of Immortal Lock
+    if (userImmortalLock && userImmortalLock.teamName === option.teamName && userImmortalLock.type === option.type) {
+        deselectImmortalLock();
+        return;
     }
 
-    // Check if the button has the custom data attribute indicating it was a previous pick
-    const betButton = document.querySelector(`.bet-button[data-team="${option.teamName.replace(/\s+/g, '-').toLowerCase()}"][data-type="${option.type.toLowerCase()}"]`);
-    if (betButton && betButton.dataset.previousPick === 'true') {
-        alert("You made this pick last week.");
-        return; // Exit the function without adding the new bet
-    }
+    // Check for existing pick
+    const existingPickIndex = userPicks.findIndex(pick => pick.teamName === option.teamName && pick.type === option.type);
 
-    // Find if a pick for the same team and type already exists
-    let existingPickIndex = userPicks.findIndex(pick => pick.teamName === option.teamName && pick.type === option.type);
-
-    // If the same pick was already selected, remove it (toggle off)
-    if (existingPickIndex !== -1) {
+    // Toggle off existing pick
+    if (existingPickIndex !== -1 && !isRendering) {
         userPicks.splice(existingPickIndex, 1);
         picksCount--;
         updateBetCell(option, false);
-        return; // Exit the function after toggling off
+        return;
     }
 
-    // Identify the current matchup based on the selected team
-    const currentMatchup = betOptions.find(bet =>
-        (bet.homeTeam === option.teamName || bet.awayTeam === option.teamName)
+    // Validate pick
+    if (!validatePick(option)) return;
+
+    const currentPick = createPickObject(option);
+
+    // Handle Immortal Lock selection
+    if (immortalLockCheckbox.checked || isImmortalLock) {
+        handleImmortalLockSelection(currentPick);
+    } else if (picksCount < 6) {
+        // Add regular pick
+        userPicks.push(currentPick);
+        picksCount++;
+        updateBetCell(option, true);
+    } else {
+        alert('You can only select 6 picks. Set your Immortal Lock or deselect a pick.');
+    }
+}
+
+// Validate a new pick
+function validatePick(option) {
+    const currentMatchup = betOptions.find(bet => bet.homeTeam === option.teamName || bet.awayTeam === option.teamName);
+    
+    // Check for opposing team bet
+    const opposingTeamBet = userPicks.find(pick => 
+        (currentMatchup.homeTeam !== option.teamName && pick.teamName === currentMatchup.homeTeam) ||
+        (currentMatchup.awayTeam !== option.teamName && pick.teamName === currentMatchup.awayTeam)
     );
-
-    // Check if a pick for the opposing team in the same matchup already exists
-    const opposingTeamBet = userPicks.find(pick => {
-        return (
-            (currentMatchup.homeTeam !== option.teamName && pick.teamName === currentMatchup.homeTeam) ||
-            (currentMatchup.awayTeam !== option.teamName && pick.teamName === currentMatchup.awayTeam)
-        );
-    });
-
     if (opposingTeamBet) {
         alert("You cannot select a pick from both teams in the same matchup.");
-        return; // Exit the function without adding the new bet
+        return false;
     }
 
-    // Check if a different bet for the same team already exists
+    // Check for multiple bets on same team
     const existingTeamPick = userPicks.find(pick => pick.teamName === option.teamName);
-
     if (existingTeamPick) {
         alert("Only one pick per team is allowed.");
-        return; // Exit the function without adding the new bet
+        return false;
     }
 
-    const currentPick = {
+    return true;
+}
+
+// Create a pick object
+function createPickObject(option) {
+    const currentMatchup = betOptions.find(bet => bet.homeTeam === option.teamName || bet.awayTeam === option.teamName);
+    return {
         teamName: option.teamName,
         type: option.type,
         value: option.value,
-        commenceTime: currentMatchup.commenceTime // Ensure commenceTime is included
+        commenceTime: currentMatchup.commenceTime
     };
-
-    // Check if the user has already selected 6 picks and Immortal Lock is not set
-    if (picksCount >= 6 && !immortalLockCheckbox.checked) {
-        alert('You can only select 6 picks. Set your Immortal Lock or deselect a pick.');
-        return; // Exit the function if pick limit is reached
-    }
-
-    // If Immortal Lock is checked and we already have 6 picks, the next pick is the Immortal Lock
-    if (immortalLockCheckbox.checked && picksCount >= 6) {
-        // Replace the existing Immortal Lock with the new selection
-        if (userImortalLock.length > 0) {
-            alert('Replacing the existing Immortal Lock with the new selection.');
-            updateBetCell(userImortalLock[0], false); // Remove highlighting from the old Immortal Lock
-        }
-        userImortalLock[0] = currentPick; // Set the new Immortal Lock
-        updateBetCell(option, true, true); // Highlight the Immortal Lock pick
-        return; // Exit the function after setting Immortal Lock
-    }
-
-    // Add the new pick if none of the above conditions are met
-    userPicks.push(currentPick);
-    picksCount++;
-    updateBetCell(option, true);
 }
 
+// Handle Immortal Lock selection
+function handleImmortalLockSelection(pick) {
+    if (userImmortalLock) {
+        updateBetCell(userImmortalLock, false, true);
+    }
+    userImmortalLock = pick;
+    updateBetCell(pick, true, true);
+    document.getElementById('immortalLockCheck').checked = true;
+}
 
+// Deselect Immortal Lock
+function deselectImmortalLock() {
+    if (userImmortalLock) {
+        updateBetCell(userImmortalLock, false, true);
+        userImmortalLock = null;
+        document.getElementById('immortalLockCheck').checked = false;
+    }
+}
 
+// Update bet cell styling
+function updateBetCell(option, isSelected, isImmortalLock = false) {
+    const teamClass = option.teamName.replace(/\s+/g, '-').toLowerCase();
+    const typeClass = option.type.toLowerCase();
+    const betButtons = document.querySelectorAll(`.bet-button[data-team="${teamClass}"][data-type="${typeClass}"]`);
+    betButtons.forEach(button => {
+        button.classList.toggle('selected', isSelected);
+        button.classList.toggle('immortal-lock-selected', isSelected && isImmortalLock);
+    });
+}
+
+// Submit user picks
+function submitUserPicks() {
+    // ... (existing submitUserPicks function logic)
+}
+
+// Initialize dashboard
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const storedUsername = localStorage.getItem('username');
+        const currentPoolName = localStorage.getItem('currentPoolName');
+        if (storedUsername && currentPoolName) {
+            fetchUserPicksAndRender(storedUsername.toLowerCase(), currentPoolName);
+        }
+    }, 500); // Delay to ensure DOM is ready
+});
 
 
 function resetPicks() {
@@ -462,61 +513,60 @@ function resetPicks() {
  isDeadline = false;
  
  function submitUserPicks() {
- if (!currentPoolName) {
- alert('Current pool name is not set.');
- return;
- }
- if (userPicks.length === 0) {
- alert('Please add at least one pick before submitting.');
- return; // Exit the function
- }
+    if (!currentPoolName) {
+        alert('Current pool name is not set.');
+        return;
+    }
+    if (userPicks.length === 0) {
+        alert('Please add at least one pick before submitting.');
+        return;
+    }
 
- const validateDate = (date) => {
- const parsedDate = Date.parse(date);
- return !isNaN(parsedDate) ? new Date(parsedDate).toISOString() : null;
- };
+    const validateDate = (date) => {
+        const parsedDate = Date.parse(date);
+        return !isNaN(parsedDate) ? new Date(parsedDate).toISOString() : null;
+    };
 
- // Create the data object with picks
- const data = {
- picks: userPicks.map(pick => ({
- teamName: pick.teamName,
- type: pick.type,
- value: pick.value,
- commenceTime: validateDate(pick.commenceTime) // Ensure commenceTime is in ISO format or null
- })),
- immortalLock: userImortalLock.map(pick => ({
- teamName: pick.teamName,
- type: pick.type,
- value: pick.value,
- commenceTime: validateDate(pick.commenceTime) // Ensure commenceTime is in ISO format or null
- })),
- poolName: currentPoolName
- };
+    // Create the data object with picks
+    const data = {
+        picks: userPicks.map(pick => ({
+            teamName: pick.teamName,
+            type: pick.type,
+            value: pick.value,
+            commenceTime: validateDate(pick.commenceTime)
+        })),
+        immortalLock: userImmortalLock ? [{
+            teamName: userImmortalLock.teamName,
+            type: userImmortalLock.type,
+            value: userImmortalLock.value,
+            commenceTime: validateDate(userImmortalLock.commenceTime)
+        }] : [],
+        poolName: currentPoolName
+    };
 
- // console.log('Submitting picks data:', data);
+    console.log('Submitting picks data:', data); // Log the data being submitted
 
- fetch(`/api/savePicks/${storedUsername}/${currentPoolName}`, {
- method: 'POST',
- headers: {
- 'Content-Type': 'application/json'
- },
- body: JSON.stringify(data)
- })
- .then(response => response.json())
- .then(data => {
- if (data.success) {
- alert('Picks successfully submitted!');
- // Additional code to handle successful submission
- } else {
- alert('Error submitting picks. Please try again.');
- }
- })
- .catch(error => {
- console.error('Error:', error);
- alert('An error occurred. Please try again later.');
- });
+    fetch(`/api/savePicks/${storedUsername}/${currentPoolName}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Picks successfully submitted!');
+            // Additional code to handle successful submission
+        } else {
+            alert('Error submitting picks. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again later.');
+    });
 }
-
 
 
 
