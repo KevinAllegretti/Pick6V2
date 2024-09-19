@@ -1,0 +1,1352 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+
+
+body {
+    font-family: 'Oswald', sans-serif;
+    background-color: #150a22;
+    /*color: #ddd;*/
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column; /* Stack children vertically */
+}
+.legend-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;  /* Center the title and the legend */
+  margin-bottom: -2px;   /* Adjust the spacing below the title */
+}
+.legend-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #be33ff;  /* Light blue text */
+  text-align: center;
+  text-shadow: 0 0 10px rgba(132, 0, 255, 0.8), 0 0 20px rgba(153, 0, 255, 0.6);
+  margin-bottom: -5px;  /* Space between title and legend */
+  font-family: 'Orbitron', sans-serif;  /* Matching font for consistency */
+}
+
+
+.legend-container {
+  display: flex;
+  justify-content: center;  /* Align both columns in the center */
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 325px;  /* Adjust width as needed */
+  border: 2px solid #be33ff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px #be33ff;; /* Blue glow */
+
+
+}
+
+
+.legend-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;  /* Aligns items on the right edge */
+}
+
+
+.middle-column {
+  margin-left: 50px;  /* Adds some space between the left and middle columns */
+  align-items: flex-start;  /* Aligns items on the left edge */
+}
+
+
+.legend-item {
+  display: flex;
+  justify-content: flex-start;  /* Align items close to each other */
+  align-items: center;
+  margin-bottom: 15px;
+  width: 150px;  /* Ensure consistent width between button and text */
+}
+.legend-bet-button {
+  border: 2px solid black; /* Black border */
+  box-shadow: 0 0 5px white; /* White glow */
+  margin: 2px 0;  /* Spacing between buttons */
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.1);  /* Subtle background */
+  transition: background-color 0.3s ease;
+  color: #5f067a;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  width: 58px;  /* Keeping the width the same */
+  height: 40px;  /* Keeping the height the same */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  border-radius: 10px;
+}
+
+
+
+
+.legend-bet-button.heavy-favorite {
+  background-color: #fdbc09;  /* Red for heavy favorite */
+}
+
+
+.legend-bet-button.favorite {
+  background-color: #fdbc09;  /* Grey for favorite */
+}
+
+
+.legend-bet-button.spread {
+  background-color: #fdbc09;  /* Yellow for spread */
+}
+
+
+.legend-bet-button.underdog {
+  background-color: #fdbc09;  /* Teal for underdog */
+}
+
+
+.legend-bet-button.bigger-underdog {
+  background-color: #fdbc09;  /* Blue for bigger underdog */
+}
+
+
+.legend-bet-button.heavy-underdog {
+  background-color: #fdbc09;  /* Dark green for heavy underdog */
+}
+
+
+.legend-item p {
+  font-size: 1em;
+  margin: 0;
+  margin-left: 3px;
+/* Brings the points closer to the button */
+}
+.legend-item span.p5 {
+  margin-left: 4px;  /* Add space between "or > :" and the next point */
+  color: #be33ff;  /* Light blue color */
+  font-size: 1em;
+  font-family: 'Montserrat', 'sans-serif';
+}
+
+
+/* Gradient color for the points */
+.legend-item:first-child p {
+  color: #fffb00; /* Yellow for Heavy Favorite ML */
+}
+
+
+.legend-item:nth-child(2) p {
+  color: #1a8a0c; /* Olive Green for Favorite ML */
+}
+
+
+.legend-item:nth-child(3) p {
+  color: #039603; /* Lime Green for Spread */
+}
+
+
+.middle-column .legend-item:nth-child(1) p {
+  color: #02c55a; /* Bright Green for Underdog ML */
+}
+
+
+.middle-column .legend-item:nth-child(2) p {
+  color: #00ff4c; /* Spring Green for Bigger Underdog ML */
+}
+
+
+.middle-column .legend-item:nth-child(3) p {
+  color: #7FFF00; /* Chartreuse for Heavy Underdog ML */
+}
+
+
+.main-wrapper {
+    flex: 1;
+    max-width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+   /* overflow-y: auto;  */
+    padding-top: 20px;
+    max-height: 100vh;
+}
+
+
+
+
+/* Webkit browsers */
+.container::-webkit-scrollbar {
+  width: 12px; /* width for vertical scrollbar */
+  height: 12px; /* height for horizontal scrollbar */
+}
+
+
+.container::-webkit-scrollbar-track {
+  background: #1e1e1e; /* track color */
+  border-radius: 10px;
+}
+
+
+.container::-webkit-scrollbar-thumb {
+  background-color: #be33ff; /* thumb color */
+  border-radius: 10px;
+  border: 3px solid #1e1e1e; /* space around thumb */
+}
+
+
+.container::-webkit-scrollbar-thumb:hover {
+  background-color: #be33ff; /* thumb hover color */
+}
+
+
+
+
+@media (max-width: 768px) {
+    .main-wrapper {
+        flex-direction: column; /* Stack children vertically on small screens */
+        align-items: center; /* Center the children horizontally */
+        justify-content: center;
+    }
+
+
+    .container{
+        width: 95%; /* Use the full width of the screen */
+        margin: 0 auto; /* Center the containers */
+        max-width: none; /* Override any max-width */
+        max-height: 400px; /* Override any max-height, or set a new max-height as needed */
+        margin-bottom: 20px; /* Add some space between the containers */
+        transform: scale(1); /* Reset the scale transformation if it was reducing the size */
+        width: 95%; /* Adjusted to match .info-box */
+        box-sizing: border-box; /* This should fix the issue if padding or borders are causing it */
+        padding: 0; /* Reset padding to ensure it doesn't affect width */
+        border: none; /* Remove borders if they are not needed */
+        min-width: 380px;
+        overflow-x: hidden; /* Prevent horizontal scroll */
+    }
+
+
+
+
+
+
+    .info-box {
+        width: 95%; /* Full width on smaller screens */
+        padding: 15px; /* Adjust padding on smaller screens */
+        font-size: 0.9rem; /* Smaller font size on smaller screens */
+      }
+      .back-button {
+        font-family: 'Montserrat', sans-serif;
+          display: inline-block;
+          padding: 12px 25px;
+          margin: 10px auto;
+          text-align: center;
+          background: #121212;
+          color: #be33ff;
+          text-decoration: none;
+          border-radius: 50px;
+          border: 2px solid #be33ff;
+          transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+          cursor: pointer;
+          box-shadow: 0px 4px 15px rgba(132, 0, 255, 0.4);
+      }
+}
+@media (min-width: 769px) {
+  /* This will only apply to screens wider than 768px */
+  .container, .image-container {
+      /* Set the width to 48% for desktop screens */
+      width: 50%;
+      /* Reset the margins as they were for desktop */
+      margin: 0 1%;
+      /* Other styles... */
+      max-height: 750px;
+      /* Ensure transform scaling is not applied */
+      margin-top: -2%;
+  }
+}
+
+
+/* Button Group */
+.button-group {
+  display: flex;
+  flex-direction: column; /* Stack buttons vertically */
+  align-items: center; /* Center buttons horizontally */
+  margin-bottom: 20px; /* Some spacing after the button group */
+  gap: 15px; /* Space between buttons */
+}
+
+
+/* Individual Buttons */
+.button-group button {
+  width: 80%; /* Set a width for the buttons */
+  padding: 12px 24px;
+  margin: 0; /* Remove default margin */
+  font-size: 1.1em;
+  font-family: 'Montserrat', sans-serif;
+  background: linear-gradient(45deg, #be33ff, #be33ff); /* Adjusted gradient background */
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+
+.button-group button:hover {
+  background: linear-gradient(45deg, #be33ff, #be33ff);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+
+#addPick {
+    width: 100%; /* Take the full width of its parent */
+}
+
+
+h1, h2 {
+    text-shadow: 2px 2px 15px rgba(255, 145, 0, 0.7);
+    text-align: center;
+    margin-bottom: 20px;
+    color: #ff893b; /* Unified neon blue */
+    font-family: "New Rocker", cursive;
+}
+
+
+#addPick, #immortalLock {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-left: 5%;
+}
+
+
+button {
+  background-color: #be33ff; /* Neon blue */
+  color: #150a22;
+  border: none;
+  padding: 12px 24px;
+  margin: 10px auto;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.2em;
+  transition: background-color 0.3s, color 0.3s;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+
+
+
+
+
+input, select {
+    padding: 8px;
+    margin-right: 10px;
+    border: 1px solid #be33ff;
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #ddd;
+}
+
+
+#picksContainer {
+    margin-bottom: 20px;
+}
+
+
+#pick6Title {
+    height: 40px;
+    font-size: 50px;
+    text-align: center;
+    margin-bottom: 5px;
+    margin: 0;
+    padding: 10px 0;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+}
+/* Immortal Lock Option */
+#immortalLockOption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.2em;
+  color: #be33ff;
+  padding: 10px 0; /* Added padding for spacing */
+}
+
+
+#immortalLockCheck {
+  display: none;
+}
+
+
+#immortalLockCheck + label {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 25px;
+  background: #1e1e1e; /* Adjusted background color */
+  border-radius: 25px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  border: 2px solid #be33ff; /* Added border to match theme */
+}
+
+
+#immortalLockCheck + label::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 21px;
+  height: 21px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+
+#immortalLockCheck:checked + label {
+  background: #be33ff; /* Adjusted checked background color */
+}
+
+
+#immortalLockCheck:checked + label::before {
+  transform: translateX(25px);
+}
+
+
+#immortalLockOption label {
+  cursor: pointer;
+  margin-left: 10px;
+  color: #be33ff;
+  font-weight: bold;
+}
+
+
+#immortalLockOption label:hover {
+  color: #be33ff;
+}
+
+
+
+
+/* Back to Home Button */
+.back-button {
+  font-family: 'Montserrat', sans-serif;
+    display: inline-block;
+    padding: 12px 25px;
+    margin: 10px auto;
+    text-align: center;
+    background: #121212;
+    color: #be33ff;
+    text-decoration: none;
+    border-radius: 50px;
+    border: 2px solid #be33ff;
+    transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0px 4px 15px rgba(0, 204, 255, 0.4);
+}
+
+
+.back-button:hover {
+    background-color: #be33ff;
+    color: #121212;
+    box-shadow: 0px 6px 20px rgba(76, 0, 255, 0.6);
+}
+
+
+.back-button-container {
+    text-align: center;
+    width: 100%;
+    padding: 10px 0; /* Adjust padding as needed */
+}
+
+
+
+
+.centered-button {
+    display: flex;
+    justify-content: center; /* Center the button horizontally */
+    width: 100%; /* Take the full width of its parent */
+    margin-top: 20px; /* Optional space above the button */
+  }
+ 
+
+
+
+
+.image-container img {
+    max-width: 100%;
+    border-radius: 10px;
+
+
+}
+
+
+/* Assuming their parent is body (based on your current setup) */
+
+
+.main-wrapper {
+    display: flex;
+    justify-content: center; /* Center the children horizontally */
+    align-items: flex-start; /* Align children to the start of the cross axis */
+    max-width: 100%;
+    padding-top: 20px;
+}
+
+
+.container {
+    width: 70%; /* Set the desired width of the container */
+    max-height: 632px;
+    overflow-y: auto;
+    margin: 0 auto; /* Auto margins for horizontal centering */
+    box-shadow: 0 0 30px rgba(119, 0, 255, 0.7);
+    border-radius: 15px;
+    border: 2px solid #be33ff; /* Neon border for futuristic look */
+    overflow-x: hidden;
+}
+#container::-webkit-scrollbar {
+  width: 8px;
+}
+
+
+#container::-webkit-scrollbar-track {
+  background: #121212;
+  border-radius: 10px;
+}
+#container::-webkit-scrollbar-thumb {
+  background-color: #be33ff;
+  border-radius: 10px;
+  border: 2px solid #121212;
+}
+
+
+/* VERSION 1*/
+ 
+.picks-container {
+    width: auto;
+    color: #000;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* Creates a grid with flexible columns */
+    grid-auto-rows: minmax(50px, auto); /* Adjust row height as needed */
+    gap: 5px; /* Spacing between grid items */
+    padding: 10px; /* Padding inside the container */
+    /*overflow: auto; /* Add scrolling to the container */
+    max-height: 90vh; /* Adjust based on your layout's needs */
+  }
+  .betCell {
+    color: #fff;
+    padding: 5px; /* Padding inside each cell */
+    text-align: center;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+    font-size: 0.8em; /* Smaller font size to fit content */
+    display: flex; /* To center the content inside the cell */
+    align-items: center; /* Center content vertically */
+    justify-content: center; /* Center content horizontally */
+  }
+
+
+  /* NFL Team Colors */
+.cardinals-color { background-color: #97233F; }
+.falcons-color { background-color: #A71930; }
+.ravens-color { background-color: #241773; }
+.bills-color { background-color: #00338D; }
+.panthers-color { background-color: #0085CA; }
+.bears-color { background-color: #C83803; }
+.bengals-color { background-color: #FB4F14; }
+.browns-color { background-color: #835506; }
+.cowboys-color { background-color: #798498; }
+.broncos-color { background-color: #FB4F14; }
+.lions-color { background-color: #0076B6; }
+.packers-color { background-color: #203731; }
+.texans-color { background-color: #03202F; }
+.colts-color { background-color: #002C5F; }
+.jaguars-color { background-color: #006778; }
+.chiefs-color { background-color: #E31837; }
+.raiders-color { background-color: #A5ACAF; }
+.chargers-color { background-color: #0080C6; }
+.rams-color { background-color: #003594; }
+.dolphins-color { background-color: #008E97; }
+.vikings-color { background-color: #4F2683; }
+.patriots-color { background-color: #002244; }
+.saints-color { background-color: #D3BC8D; }
+.giants-color { background-color: #0B2265; }
+.jets-color { background-color: #125740; }
+.eagles-color { background-color: #004C54; }
+.steelers-color { background-color: #FFB612; }
+.FortyNiners-color { background-color: #AA0000; }
+.seahawks-color { background-color: #002244; }
+.buccaneers-color { background-color: #D50A0A; }
+.titans-color { background-color: #0C2340; }
+.commanders-color { background-color: #773141; }
+ 
+ 
+  .betCell:hover {
+    transform: scale(1.05); /* Slight zoom on hover */
+  }
+ 
+  .betCell.selected {
+    background-color: #00ff00; /* A fully green background for selected bets */
+    color: #ffffff; /* White text to maintain contrast */
+    /* Add any other styles you want for the selected cell */
+  }
+ 
+.betCell.immortal-lock-selected {
+    background-color: #fffb00 !important; /* Example: bright yellow background */
+    color: #000; /* Black text color for contrast */
+    /* Add any other styles you want for the Immortal Lock selected cell */
+}
+
+
+
+
+ 
+  .info-box {
+    background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent background */
+    color: #ddd; /* Text color */
+    margin: 20px auto; /* Centering the box */
+    padding: 20px; /* Padding inside the box */
+    border-radius: 15px; /* Rounded corners */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5); /* Box shadow for depth */
+    width: 90%; /* Match the width of your container, or adjust as necessary */
+    max-width: 1200px; /* Maximum width */
+    text-align: left; /* Align text to the left */
+    font-size: 1rem; /* Adjust font size as necessary */
+    line-height: 1.5; /* Line height for better readability */
+    border: 1px solid #be33ff; /* Border color to match the theme */
+  }
+ 
+  .info-box h2 {
+    color: #be33ff; /* Heading color to stand out */
+    margin-bottom: 10px; /* Space below the heading */
+  }
+ 
+  .info-box p {
+    margin-bottom: 10px; /* Space between paragraphs */
+    text-align: center;
+  }
+ 
+  /* Additional media query to handle responsiveness */
+  @media (max-width: 768px) {
+
+
+  }
+
+
+
+
+ 
+  .green-highlight {
+    color: #33ff57;
+}
+.pink-highlight {
+    color: #ff39ce;
+}
+
+
+.red-highlight {
+    color: #ed322c;
+}
+
+
+.gold-highlight {
+    color: #ebff69
+}
+
+
+#userPicksContainer, #userImmortalLockContainer {
+    display: flex;
+    flex-direction: column; /* Stacks children vertically */
+    align-items: center; /* Centers children horizontally */
+    justify-content: center; /* Centers children vertically if there is space */
+    height: auto; /* Adjusts height based on content */
+    margin: auto; /* Center the container itself if it's not full width */
+    width: 30%; /* Adjust width as needed */
+    background: #000; /* Background color */
+    color: #fff; /* Text color */
+    border: 1px solid #be33ff; /* Border color */
+    border-radius: 10px; /* Rounded corners */
+    padding: 10px; /* Padding around the text */
+    gap: 10px; /* Space between child elements */
+}
+ 
+
+
+.user-pick span, .user-immortal-lock span {
+    font-size: 0.9em;
+    line-height: 1.2;
+}
+
+
+.team-logo{
+    margin-bottom: -5px;
+}
+h4 {
+    font-size: 25px;
+    text-align: center;
+    margin-bottom: 5px;
+    color: #00CCFF;
+    text-shadow: 2px 2px 10px rgba(0, 229, 255, 0.7);
+    margin: 0;
+    padding: 10px 0;
+    background: rgba(18, 17, 17, 0.7);
+
+
+
+
+}
+
+
+.disabled {
+    background-color: #0f0f0f; /* A light grey background */
+    color: #de1818;           /* A darker grey text color */
+    cursor: not-allowed;      /* The cursor indicates the element is not allowed to be interacted with */
+    opacity: 0.5;             /* Makes the bet cell look faded */
+  }
+ 
+  .bet-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    padding: 10px;
+    border-radius: 8px; /* Rounded corners for the container */
+    background-color: #2a173a;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    align-items: center; /* Center items vertically */
+}
+.picks-container {  /* Assuming this is the parent container for all game-containers */
+  display: flex;
+  flex-wrap: wrap; /* Ensures elements wrap to the next line */
+  justify-content: space-around; /* Spaces out the children evenly */
+  align-items: flex-start; /* Aligns items to the top of the container */
+  width: 100%; /* Full width of the parent element */
+}@import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap'); /* Importing a digital-style font */
+
+
+.game-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  background: #26173a; /* Dark background for game-like feel */
+  border: 2px solid #be33ff; /* Neon border for futuristic look */
+  box-shadow: 0 0 10px #be33ff; /* Glow effect */
+  min-width: 250px;
+}
+
+
+/* Media query for mobile devices */
+@media (max-width: 600px) {
+  .game-container {
+    margin-right: 20px;
+  }
+}
+
+
+.team-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 5px;
+  padding: 20px;
+
+
+  font-family: 'Orbitron', sans-serif; /* Digital font for game feel */
+  box-shadow: 0 0 5px #be33ff;; /* Blue glow */
+}
+
+
+.at-symbol {
+  font-size: 30px; /* Larger for emphasis */
+  color: #be33ff; /* Bright red for visibility */
+  margin: 0 15px;
+  flex: 0 0 50px; /* Bigger and bolder */
+  padding-left: 18px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+
+.commence-time {
+  width: 100%;
+  color: #ffc933; /* Bright green for high visibility */
+  font-size: 18px;
+  text-align: center;
+  padding: 5px 0;
+  font-family: 'Montserrat', sans-serif;
+}
+
+
+
+
+
+
+.team-logo {
+  width: 55px; /* Slightly larger logos */
+  height: 55px;
+  margin: 5px 0; /* Adjust margin around logos */
+}
+ 
+  .bet-options {
+    display: flex;
+    flex-direction: column;
+  }
+ 
+  .bet-button {
+    border: 2px solid black; /* Black border */
+    box-shadow: 0 0 5px white; /* White glow */
+    margin: 2px 0; /* Spacing between buttons */
+    padding: 5px 10px;
+    cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.1); /* Subtle background */
+    transition: background-color 0.3s ease;
+    color: #fff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    width: 100%
+    /* Other styles... */
+  }
+ 
+
+
+ 
+  .selected {
+    background-color: #00ff00; /* Green background for selected */
+    color: rgb(0, 0, 0); /* White text for selected */
+  }
+ 
+  .immortal-lock-selected {
+    background-color: #fffc68; /* Specific color for immortal lock */
+    color: rgb(0, 0, 0); /* Text color for contrast */
+  }
+
+
+  .picks-container2 {
+    display: flex;
+    gap: 20px; /* Add space between game day containers */
+}
+
+
+.game-day-container {
+    background-color: rgba(255, 255, 255, 0.05); /* Slight background to differentiate sections */
+    border-radius: 8px;
+    padding: 20px;
+    flex-grow: 1; /* Allows the container to grow */
+}
+
+
+.game-day-container h3 {
+    text-align: center;
+    color: #be33ff;
+    margin-bottom: 15px;
+}
+
+
+.bet-button.disabled {
+  background-color: #fc0000; /* Grey out the button */
+  color: #888; /* Change text color to grey */
+  cursor: not-allowed; /* Change cursor to indicate disabled state */
+}
+.hidden {
+  display: none !important;
+}
+
+
+.injury-section {
+  width: 40%;
+  margin: auto;
+  padding: 20px;
+  background-color: transparent;
+  border-radius: 10px;
+  min-width: 350px;
+
+
+}
+
+
+#teamFilter {
+  margin-top: 10px;
+  padding: 5px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #5900ff;
+  background-color: #121212;
+  color: #be33ff;
+  transition: all 0.3s ease;
+  margin-left: auto;
+  margin-right: auto;
+  display: block; /* Ensure it takes the width it needs */
+}
+
+
+#teamFilter:focus {
+  outline: none;
+  border-color: #be33ff;
+}
+#displayInjuriesBtn {
+  display: block;
+  margin: 20px auto 10px;
+  padding: 12px 25px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #be33ff;
+  background: #121212;
+  border: 2px solid #be33ff;
+  border-radius: 50px;
+  transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0px 4px 15px rgba(98, 0, 255, 0.4);
+}
+
+
+#displayInjuriesBtn:hover {
+  background: #be33ff;
+  color: #121212;
+  box-shadow: 0px 6px 20px rgba(204, 0, 255, 0.6);
+}
+
+
+#displayInjuriesBtn:before {
+  content: url('https://img.icons8.com/ios-filled/50/00ccff/broken-bone.png'); /* Replace with the icon URL */
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+
+#injuryList {
+  max-height: 400px;
+  overflow: hidden;
+  overflow-y: scroll;
+  transition: max-height 0.5s ease-out, margin-top 0.5s ease-out;
+  margin-top: 0;
+}
+
+
+#injuryList.show {
+  max-height: 1000px;
+  margin-top: 10px;
+}
+
+
+.injury-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 10px;
+  border-bottom: 1px solid #2c2c2c;
+}
+
+
+.injury-item img {
+  width: 50px;
+  height: 50px;
+  margin-right: 15px;
+}
+
+
+.injury-details {
+  text-align: left;
+  font-family: 'Montserrat', sans-serif;
+  flex-grow: 1; /* Ensure it takes the remaining space */
+  display: flex;
+  flex-direction: column;
+  white-space: normal; /* Ensure text wraps */
+}
+
+
+.injury-details h4 {
+  margin: 0;
+  font-size: 18px;
+  color: #ffb833;
+  background-color: #150a22;
+  width: 100%; /* Ensure it takes the full width of the container */
+  white-space: nowrap; /* Prevent text from wrapping */
+  overflow: hidden;
+  text-overflow: ellipsis; /* Add ellipsis for overflow text */
+  text-align: left;
+}
+
+
+.injury-details p {
+  margin: 2px 0;
+  font-size: 14px;
+  color: rgb(255, 255, 255);
+  width: 100%; /* Ensure it takes the full width of the container */
+  white-space: normal; /* Prevent text from wrapping */
+}
+
+
+.injury-container {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease, padding 0.5s ease;
+  padding: 0;
+  border: 2px solid #be33ff;
+  border-radius: 8px;
+}
+
+
+.hidden-border {
+  border: none;
+}
+
+
+.visible-border {
+  border: 2px solid #be33ff;
+}
+
+
+.injury-container.visible {
+  max-height: 1000px;
+  padding: 20px 0;
+}
+
+
+
+
+/* Custom Scrollbar */
+#injuryList::-webkit-scrollbar {
+  width: 8px;
+}
+
+
+#injuryList::-webkit-scrollbar-track {
+  background: #121212;
+  border-radius: 10px;
+}
+#injuryList::-webkit-scrollbar-thumb {
+  background-color: #be33ff;
+  border-radius: 10px;
+  border: 2px solid #121212;
+}
+
+
+
+
+
+
+.matchup-injury-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  margin-top: 8px;
+  font-size: 14px;
+  color: #be33ff;
+  background-color: #121212;
+  border: 1px solid #be33ff;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+
+.matchup-injury-button i {
+  margin-right: 5px;
+}
+
+
+.matchup-injury-button:hover {
+  background-color: #be33ff;
+  color: #121212;
+}
+/* Customizing the bone icon */
+#displayInjuriesBtn:before {
+  content: url('https://img.icons8.com/ios-filled/50/ffffff/broken-bone.png'); /* Replace with the white bone icon URL */
+  margin-right: 10px;
+  vertical-align: middle;
+  display: inline-block;
+  transform: rotate(45deg); /* Rotate the icon 45 degrees */
+}
+
+
+.filters {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+
+.filter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+
+#teamSelect, #weekSelect {
+  padding: 10px;
+  font-size: 1rem;
+  margin-top: 10px;
+  border-radius: 5px;
+  border: 1px solid #be33ff;
+  background-color: rgba(0, 0, 0, 0.1);
+  color: #ddd;
+}
+
+
+.schedule-button {
+  position: relative;
+  display: inline-block;
+  padding: 10px 20px;
+  text-align: center;
+  color: #be33ff;
+  text-decoration: none;
+  font-size: 1.5em;
+  font-family: 'Georgia', serif;
+  background: none;
+  border: none;
+  box-shadow: none;
+  transition: color 0.3s ease;
+  cursor: pointer;
+  top: 6.5px;
+
+
+}
+
+
+
+
+.neon-calendar {
+  position: relative;
+  width: 65px; /* Slightly wider */
+  height: 70px; /* Slightly shorter */
+  margin: 0 auto;
+  top: -10%;
+  background-color: #1c1138;
+  border: 2px solid #6f00ff;
+  border-radius: 2px;
+}
+
+
+
+
+
+
+.neon-calendar::before,
+.neon-calendar::after {
+    content: '';
+    position: absolute;
+    border: 2px solid #6f00ff;
+    border-radius: 2px;
+}
+
+
+
+
+.neon-calendar::before {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+
+
+
+.schedule-button:hover .neon-calendar::before,
+.schedule-button:hover .neon-calendar::after {
+    background-color: rgba(132, 0, 255, 0.8);
+    color: #1c1138;
+}
+
+
+.schedule-button:hover .calendar-title,
+.schedule-button:hover .calendar-date {
+  color: #1c1138;
+}
+
+
+.neon-calendar::after {
+  top: 0;
+  left: 5px;
+  width: 95%;
+  height: 100%;
+  border-left: none;
+  box-shadow: 0 0 25px rgba(132, 0, 255, 0.8);
+}
+
+
+.calendar-top {
+  position: absolute;
+  top: 10px; /* Adjusted for smaller height */
+  left: 6px;
+  width: 55px; /* Slightly wider */
+  height: 10px; /* Slightly reduced height */
+  background: #6f00ff;
+  border-radius: 2px;
+}
+
+
+.calendar-body {
+  position: absolute;
+  top: 25px; /* Adjusted for smaller height */
+  left: 5px;
+  width: 60px; /* Slightly wider */
+  height: 35px; /* Slightly shorter */
+  background: #1c1138;
+  border-top: 2px solid #6f00ff;
+  border-radius: 2px;
+}
+
+
+.calendar-title {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: #17203a;
+  text-shadow: 0 0 20px rgba(41, 23, 58, 0.8);
+  text-align: center;
+}
+
+
+.calendar-date {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20px;
+  color: #6f00ff;
+  text-shadow: 0 0 20px rgba(132, 0, 255, 0.8);
+  text-align: center;
+}
+
+
+.ring-binders {
+  position: absolute;
+  top: -7px;
+  left: 7px; /* Adjusted for new width */
+  width: 50px;
+  display: flex;
+  justify-content: space-around;
+}
+
+
+
+
+.ring {
+  width: 5px;
+  height: 13px;
+  background: #6f00ff;
+  border-radius: 0 0 0 0;
+  box-shadow: 0 0 10px rgba(132, 0, 255, 0.8);
+  border: 1px solid #150a22;
+}
+
+
+@media (max-width: 768px) {
+  /* Popup container styles */
+  .popup-container {
+    position: absolute;
+    width: 85px;
+    margin-top:182px;
+    background-color: #150a22;
+    border: 2px solid #be33ff;
+    padding: 5px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    text-align: center;
+    overflow: hidden;
+    height: 80px;
+    max-height: 0; /* Start with a collapsed container */
+    opacity: 0; /* Initially transparent */
+    transform-origin: top; /* Set the origin to the top for downward sliding */
+    transition: max-height 0.5s ease, opacity 0.5s ease; /* Smooth transition */
+  }
+ 
+ 
+  .popup-container.active {
+    max-height: 95px; /* Adjust to the maximum height when expanded */
+    opacity: 1; /* Fully visible when active */
+  }
+ 
+ 
+  .popup-title{
+    font-size: 6px;
+  }
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  /* Styles for team logos */
+  .popup-team-logo {
+    width: 30px; /* Smaller logo size */
+    height: 30px;
+    display: inline-block;
+  }
+ 
+ 
+  /* Styles for @ symbol */
+  .popup-at-symbol {
+    position: relative;
+    font-size: 18px; /* Smaller font size for @ */
+    color: #be33ff; /* Neon blue for @ symbol */
+    margin: 0 5px;
+    text-shadow: 0 0 10px rgba(87, 0, 250, 0.5);
+    font-family: 'Montserrat', 'sans-serif';
+    top: -5px;
+  }
+ 
+ 
+ 
+ 
+  }
+ 
+ 
+  @media (min-width: 769px) {
+    .popup-container {
+        display: none; /* Or you can adjust how the popup behaves for larger screens */
+    }
+  }
+ 
+  .next-week-matchup-button {
+    display: none; /* Initially hidden */
+    align-items: center;
+    padding: 8px 12px;
+    margin-top: 8px;
+    font-size: 14px;
+    color:
+    #be33ff;
+    background-color: #150a22;
+    border: 1px solid #be33ff;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+ 
+  .next-week-matchup-button i {
+    margin-right: 5px;
+  }
+ 
+  .next-week-matchup-button:hover {
+    background-color: #be33ff;
+    color: #150a22;
+  }
+ 
+  /* Show the button only on smaller viewports */
+  @media (max-width: 768px) {
+    .next-week-matchup-button {
+      display: inline-flex; /* Show only on smaller viewports */
+    }
+  }
+ 
+
+
+

@@ -332,6 +332,11 @@ function renderPick(pick, isImmortalLock) {
 function selectBet(option, isRendering = false, isImmortalLock = false) {
     const immortalLockCheckbox = document.getElementById('immortalLockCheck');
 
+    const betButton = document.querySelector(`.bet-button[data-team="${option.teamName.replace(/\s+/g, '-').toLowerCase()}"][data-type="${option.type.toLowerCase()}"]`);
+    if (betButton && betButton.dataset.previousPick === 'true' && !isRendering) {
+        alert("You made this pick last week. You cannot select it again.");
+        return;
+    }
     // Handle deselection of Immortal Lock
     if (userImmortalLock && userImmortalLock.teamName === option.teamName && userImmortalLock.type === option.type) {
         deselectImmortalLock();
