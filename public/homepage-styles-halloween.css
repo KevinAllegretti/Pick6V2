@@ -31,20 +31,6 @@ body {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* Profile icon container */
 .profile-icon-container {
     position: absolute;
@@ -54,16 +40,10 @@ body {
     height: 50px;
     border-radius: 50%;
     border: 2px solid #ff5100;
-    box-shadow: 0 0 5px #400fc7, 0 0 10px #400fc7, 0 0 15px #400fc7; /* This creates the neon glow */
+    box-shadow: 0 0 5px #ff7300, 0 0 10px #ff7300, 0 0 15px #ff7300; /* This creates the neon glow */
     cursor: pointer;
     z-index: 100; /* Make sure it's above other elements */
 }
-
-
-
-
-
-
 
 
 .profile-icon {
@@ -82,28 +62,16 @@ body {
 }
 
 
-
-
-
-
-
-
 .profile-icon-center {
     width: 120px; /* Larger than the one on the homepage */
     height: 120px; /* Keep the aspect ratio the same */
     border-radius: 50%; /* Circular shape */
-    box-shadow: 0 0 5px #be33ff, 0 0 10px #be33ff, 0 0 15px #be33ff; /* Neon glow */
+    box-shadow: 0 0 5px #ff7300, 0 0 10px #ff7300, 0 0 15px #ff7300; /* Neon glow */
     object-fit: cover;
     border: 3px solid #ff5100; /* Light blue border, made slightly thicker */
     cursor: pointer; /* Optional: if you want it to indicate it's clickable */
     background-color: #1c1138; /* Dark blue background, to match the slide-out panel */
 }
-
-
-
-
-
-
 
 
 .slide-out-panel {
@@ -112,26 +80,13 @@ body {
     left: -100%; /* Start off-screen to the left */
     width: 45%; /* Takes up half the screen width */
     height: 100%; /* Full screen height */
-    background-color: #1b0c29; /* Dark background */
-    border-right: 2px solid #be33ff; /* Neon blue border */
+    background-color: #3e004d; /* Dark background */
+    border-right: 2px solid #ff7300; /* Neon blue border */
     box-shadow: 5px 0 10px rgba(0, 0, 0, 0.5); /* Soft shadow to the right */
     overflow-y: auto; /* In case the content overflows */
     transition: left 0.3s ease-out; /* Smooth slide-in transition */
     z-index: 100; /* Above everything except the profile icon */
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -141,24 +96,11 @@ body {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 .close-panel-btn {
     width: 40px;
     height: 40px;
     background-color: #1c1138;
-    border: 2px solid #be33ff;
+    border: 2px solid #ff7300;
     border-radius: 10px;
     color: #FFF;
     font-size: 1.5rem;
@@ -166,28 +108,17 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 0 5px #be33ff, 0 0 5px #be33ff, 0 0 10px #be33ff;
+    box-shadow: 0 0 5px #ff7300, 0 0 5px #ff7300, 0 0 10px #ff7300;
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
     margin: 20px auto;
     margin-top: 1px;
 }
 
 
-
-
-
-
-
-
 .close-panel-btn:hover {
-    box-shadow: 0 0 10px #be33ff, 0 0 20px #be33ff, 0 0 30px #be33ff;
+    box-shadow: 0 0 10px #ff7300, 0 0 20px #ff7300, 0 0 30px #ff7300;
     transform: scale(1.1);
 }
-
-
-
-
-
 
 
 
@@ -196,29 +127,9 @@ body {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .panel-content {
     padding: 20px;
 }
-
-
-
-
-
-
 
 
 .account-options .option {
@@ -226,16 +137,10 @@ body {
 }
 
 
-
-
-
-
-
-
 .custom-file-upload {
     padding: 12px 20px;
-    background: linear-gradient(135deg, #be33ff 0%, #8b00cc 100%);
-    border: 2px solid #8b00cc;
+    background: linear-gradient(135deg, #ff7300 0%, #d33c00 100%);
+    border: 2px solid #ff7300;
     border-radius: 10px;
     color: #FFF;
     font-weight: bold;
@@ -249,30 +154,13 @@ body {
 
 
 
-
-
-
-
-
 }
-
-
-
-
-
-
 
 
 .custom-file-upload:hover {
-    background: linear-gradient(135deg, #8b00cc 0%, #be33ff 100%);
-    box-shadow: 0 0 10px #be33ff, 0 0 20px #be33ff, 0 0 30px #be33ff; /* Enhanced neon glow effect on hover */
+    background: linear-gradient(135deg, #f36100 0%, #ff7300 100%);
+    box-shadow: 0 0 10px #ff7300, 0 0 20px #ff7300, 0 0 30px #ff7300; /* Enhanced neon glow effect on hover */
 }
-
-
-
-
-
-
 
 
 .custom-file-upload i {
@@ -280,10 +168,10 @@ body {
 }
 .pool-info {
     background-color: #0a0f22;
-    border: 2px solid #be33ff;
+    border: 2px solid #ff7300;
     border-radius: 10px;
     padding: 20px;
-    box-shadow: 0 0 10px #be33ff, 0 0 20px #be33ff;
+    box-shadow: 0 0 10px #ff7300, 0 0 20px #ff7300;
     margin: 30px auto;
     max-width: 300px;
     text-align: left;
@@ -291,25 +179,14 @@ body {
 
 
 
-
-
-
-
-
 .pool-title {
     font-size: 1.8em;
     color: #ff5100;
-    border-bottom: 2px solid #be33ff;
+    border-bottom: 2px solid #ff7300;
     padding-bottom: 5px;
     margin-bottom: 15px;
     text-align: center;
 }
-
-
-
-
-
-
 
 
 .user-record {
@@ -317,13 +194,8 @@ body {
     color: #fff;
     display: flex;
     justify-content: space-around;
-    text-shadow: 0 0 5px rgb(111, 0, 255), 0 0 10px rgb(111, 0, 255), 0 0 15px rgb(111, 0, 255);
+    text-shadow: 0 0 5px #ff7300, 0 0 10px #ff7300, 0 0 15px #ff7300;
 }
-
-
-
-
-
 
 
 
@@ -332,43 +204,25 @@ body {
 }
 
 
-
-
-
-
-
-
 .bio-container, .bio-info {
     background-color: #150a22;
-    border: 1px solid #be33ff;
+    border: 1px solid #ff7300;
     border-radius: 5px;
     padding: 15px 20px;
-    box-shadow: 0 0 10px #be33ff, 0 0 20px #be33ff;
+    box-shadow: 0 0 10px #ff7300, 0 0 20px #ff7300;
     margin: 20px auto;
     max-width: 300px;
     text-align: left;
 }
 
-
-
-
-
-
-
-
 .bio-title {
     font-size: 1.5em;
-    color: #be33ff;
-    border-bottom: 1px solid #be33ff;
+    color: #ff7300;
+    border-bottom: 1px solid #ff7300;
     padding-bottom: 5px;
     margin-bottom: 10px;
     text-align: center;
 }
-
-
-
-
-
 
 
 
@@ -377,7 +231,7 @@ body {
     height: 60px;
     border-radius: 5px;
     padding: 10px;
-    border: 2px solid #be33ff;
+    border: 2px solid #ff7300;
     background-color: #150a22;
     color: #fff;
     font-size: 1em;
@@ -389,29 +243,18 @@ body {
 
 
 
-
-
-
-
-
 #saveBioButton {
     margin-left: 10px;
-    background-color: #be33ff;
+    background-color: #ffd0b4;
     border: none;
     border-radius: 5px;
-    color: #150a22;
+    color: #ff7300;
     padding: 10px 20px;
     cursor: pointer;
     font-size: 1em;
-    box-shadow: 0 0 5px #be33ff, 0 0 10px #be33ff, 0 0 15px #be33ff;
+    box-shadow: 0 0 5px #ff7300, 0 0 10px #ff7300, 0 0 15px #ff7300;
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
 }
-
-
-
-
-
-
 
 
 #saveBioButton:focus {
@@ -420,25 +263,12 @@ body {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 .bio-info, .season-record-info {
     background-color: #150a22;
-    border: 1px solid #be33ff;
+    border: 1px solid #ff7300;
     border-radius: 5px;
     padding: 15px 20px;
-    box-shadow: 0 0 10px #be33ff, 0 0 20px #be33ff;
+    box-shadow: 0 0 10px #ff7300, 0 0 20px #ff7300;
     margin: 20px auto;
     max-width: 300px;
     text-align: left;
@@ -446,24 +276,14 @@ body {
 
 
 
-
-
-
-
-
 .bio-title, .season-record-title {
     font-size: 1.5em;
-    color: #be33ff;
-    border-bottom: 1px solid #be33ff;
+    color: #ff7300;
+    border-bottom: 1px solid #ff7300;
     padding-bottom: 5px;
     margin-bottom: 10px;
     text-align: center;
 }
-
-
-
-
-
 
 
 
@@ -473,12 +293,6 @@ body {
     text-align: center;
     margin-top: 10px;
 }
-
-
-
-
-
-
 
 
 /* Hide the file input visually but remain accessible to screen readers. */
@@ -495,23 +309,14 @@ input[type="file"] {
 
 
 
-
-
-
-
-
 .welcome-message {
     text-transform: uppercase;
     text-align: center; /* Center the text horizontally */
     font-size: 24px; /* Increase font size or adjust as needed */
     margin: 20px 0; /* Add some margin around the text for spacing */
     font-family: 'Montserrat', sans-serif;
+   color:  #ff7300;
 }
-
-
-
-
-
 
 
 
@@ -523,6 +328,7 @@ input[type="file"] {
     overflow: hidden; /* Hide overflow */
     width: 100%; /* Full width of container */
     padding: 5px;
+    color: #ff7300;
     box-sizing: border-box;
   }
  
@@ -535,19 +341,10 @@ input[type="file"] {
 
 
 
-
-
-
-
-
 /* Add this CSS to your existing stylesheet */
 .hidden {
     display: none;
 }
-
-
-
-
 
 
 
@@ -566,19 +363,10 @@ input[type="file"] {
 
 
 
-
-
-
-
 #teamFilter:focus {
     outline: none;
     border-color: #be33ff;
 }
-
-
-
-
-
 
 
 
@@ -588,22 +376,11 @@ input[type="file"] {
 }
 
 
-
-
-
-
-
-
 /* Add transition for smooth showing */
 .show {
     display: block !important;
     transition: opacity 0.5s ease;
 }
-
-
-
-
-
 
 
 
@@ -617,21 +394,10 @@ input[type="file"] {
 
 
 
-
-
-
-
-
 #injuryList.show {
     max-height: 1000px; /* Arbitrary large value to accommodate content */
     margin-top: 10px;
 }
-
-
-
-
-
-
 
 
 .injury-item {
@@ -640,12 +406,6 @@ input[type="file"] {
     padding: 10px;
     border-bottom: 1px solid #2c2c2c;
 }
-
-
-
-
-
-
 
 
 .injury-item img {
@@ -657,19 +417,10 @@ input[type="file"] {
 
 
 
-
-
-
-
 .injury-details {
     text-align: left;
     font-family: 'montserrat', sans-serif;
 }
-
-
-
-
-
 
 
 
@@ -681,22 +432,11 @@ input[type="file"] {
 
 
 
-
-
-
-
-
 .injury-details p {
     margin: 2px 0;
     font-size: 14px;
     color: rgb(255, 255, 255);
 }
-
-
-
-
-
-
 
 
 .injury-container {
@@ -709,10 +449,6 @@ input[type="file"] {
 
 
 
-
-
-
-
 .injury-container.visible {
     max-height: 1000px; /* Set to a high enough value to accommodate the content */
     padding: 20px 0;
@@ -720,39 +456,14 @@ input[type="file"] {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 h1 {
     font-size: 2.5em;
     text-align: center;
-    color: #be33ff; /* Neon light blue */
-    border-bottom: 2px solid #be33ff;
+    color: #ff7300; /* Neon light blue */
+    border-bottom: 2px solid #ff7300;
     padding-bottom: 10px;
     margin-bottom: 20px;
 }
-
-
-
-
 
 
 
@@ -765,23 +476,12 @@ h1 {
 }
 
 
-
-
-
-
-
-
 .players {
     display: flex;
     flex-wrap: wrap;
     overflow-y: auto; /* Allow vertical scrolling */
     justify-content: space-around;
 }
-
-
-
-
-
 
 
 
@@ -797,7 +497,7 @@ h1 {
         left: -100%; /* Start off-screen to the left */
         width: 60%; /* Takes up half the screen width */
         height: 100%; /* Full screen height */
-        background-color: #1c1138; /* Dark background */
+        background-color: #3e004d; /* Dark background */
         border-right: 2px solid #ff5100; /* Neon blue border */
         box-shadow: 5px 0 10px rgba(0, 0, 0, 0.5); /* Soft shadow to the right */
         overflow-y: auto; /* In case the content overflows */
@@ -805,11 +505,6 @@ h1 {
         z-index: 100; /* Above everything except the profile icon */
     }
 }
-
-
-
-
-
 
 
 
@@ -828,27 +523,17 @@ h1 {
 
 
 
-
-
-
-
-
 .player-card:hover {
     transform: translateY(-5px);
     box-shadow: 0px 0px 25px #be33ff, 0px 0px 5px #be33ff; /* Enhanced shadow on hover */
 }
 
 
-
-
-
-
-
-
 h2 {
     font-size: 1.4em;
     text-align: center;
     margin-bottom: 10px;
+    color: #ff7b00;
 }
 /*
 .rules-button {
@@ -864,12 +549,6 @@ h2 {
     cursor: pointer;
     box-shadow: 0px 4px 15px rgba(0, 204, 255, 0.4);
 }
-
-
-
-
-
-
 
 
 .rules-button:hover {
@@ -895,28 +574,6 @@ h2 {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .neon-book {
     position: relative;
     width: 50px; /* Adjusted for better text fit */
@@ -930,11 +587,6 @@ h2 {
 
 
 
-
-
-
-
-
 .neon-book::before,
 .neon-book::after {
     content: '';
@@ -944,17 +596,7 @@ h2 {
 
 
 
-
-
-
-
-
 }
-
-
-
-
-
 
 
 
@@ -967,11 +609,6 @@ h2 {
 
 
 
-
-
-
-
-
 .rule-book-button:hover .neon-book::before,
 .rule-book-button:hover .neon-book::after {
     background-color: #ff5100;
@@ -980,19 +617,9 @@ h2 {
 
 
 
-
-
-
-
-
 .rule-book-button:hover .rule-book-text{
     color: #1c1138;
 }
-
-
-
-
-
 
 
 
@@ -1013,13 +640,9 @@ h2 {
     height: 0;
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
-    border-top: 15px solid rgb(138, 106, 0); /* Dark blue for the main triangle */
+    border-top: 15px solid rgb(87, 0, 138); /* Dark blue for the main triangle */
    
 }
-
-
-
-
 
 
 
@@ -1039,38 +662,15 @@ h2 {
 
 
 
-
-
-
-
-
 .bookmark::before {
     left: -10px; /* Position to the left of the main triangle */
 }
 
 
 
-
-
-
-
-
 .bookmark::after {
     right: -10px; /* Position to the right of the main triangle */
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1085,12 +685,6 @@ h2 {
 }
 
 
-
-
-
-
-
-
 .rule-book-text {
     position: absolute;
     top: 40%; /* Adjusted for vertical alignment */
@@ -1101,12 +695,6 @@ h2 {
     text-shadow: 0 0 20px rgba(132, 0, 255, 0.8);
     text-align: center;
 }
-
-
-
-
-
-
 
 
 .info-button {
@@ -1124,7 +712,7 @@ h2 {
     background: #ffd0b4;
     border: 2px solid #ff5100;
     border-radius: 50%;
-    box-shadow: 0px 4px 15px rgba(0, 204, 255, 0.4);
+    box-shadow: 0px 4px 15px rgba(255, 136, 0, 0.678);
     transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
     cursor: pointer;
     font-family: 'Georgia', serif;
@@ -1144,30 +732,52 @@ h2 {
     transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
 }
 .neon-sign {
-    position: relative; /* Ensures proper layering */
-    font-size: 2rem; /* Adjust as needed */
+    position: relative;
+    font-size: 2rem;
     font-family: 'New Rocker', cursive;
     color: rgb(255, 255, 255);
     text-align: center;
-    text-shadow: 0 0 5px rgb(254, 237, 237), 
-                 0 0 10px rgb(246, 239, 239), 
-                 0 0 15px #ff893b, 
-                 0 0 20px #ff893b, 
-                 0 0 25px #ff893b, 
-                 0 0 30px #ff893b, 
+    text-shadow: 0 0 5px rgb(254, 237, 237),
+                 0 0 10px rgb(246, 239, 239),
+                 0 0 15px #ff893b,
+                 0 0 20px #ff893b,
+                 0 0 25px #ff893b,
+                 0 0 30px #ff893b,
                  0 0 35px #ff893b;
     animation: neonFlicker 1.5s infinite alternate;
-    margin-top: 20px; /* Adds space above the neon sign */
-    
-    /* New Background Properties */
-    background-image: url('bat_animation.gif'); /* Update the path as needed */
-    background-size: cover; /* Ensures the GIF covers the entire element */
-    background-position: center; /* Centers the GIF */
-    background-repeat: no-repeat; /* Prevents the GIF from repeating */
-    padding: 20px; /* Adds space around the text */
-    z-index: 1; /* Sets the stacking order */
+   /* margin-top: 20px;*/
+    background-image: url('bat_animation.gif');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    padding: 10px;
+    z-index: 1;
 }
 
+.six-with-hat {
+    position: relative;
+    display: inline-block;
+    animation: none !important; /* Prevents any animation */
+    opacity: 1 !important;
+}
+
+.six-with-hat::after {
+    content: '';
+    position: absolute;
+    top: -25px; /* Adjusted to accommodate larger hat */
+    right: -25px; /* Adjusted to center larger hat */
+    width: 40px; /* Increased size */
+    height: 40px; /* Increased size */
+    background-image: url('hat.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    z-index: 2;
+    transform: rotate(15deg); /* Rotates the hat 15 degrees clockwise */
+    animation: none; /* Ensures the hat doesn't flicker */
+    animation: none !important; /* Prevents any animation */
+    opacity: 1 !important;
+}
 /* Optional: Semi-Transparent Overlay for Better Text Visibility */
 .neon-sign::before {
     content: "";
@@ -1197,11 +807,6 @@ h2 {
 
 
 
-
-
-
-
-
 /* The dunce cap */
 .dunce-icon {
     margin-left: 0.2em;
@@ -1210,12 +815,6 @@ h2 {
     z-index: 10;
     color: rgb(177, 121, 0);
 }
-
-
-
-
-
-
 
 
 .player-username {
@@ -1227,44 +826,19 @@ h2 {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .logout-button {
-    background-color: rgb(15, 0, 51); /* Dark button background */
-    color: rgb(76, 0, 255); /* Neon text color */
+ background-color: #ffd0b4; /* Dark button background */
+    color: #ff7b00; /* Neon text color */
     border: 1px solid rgb(111, 0, 255); /* Neon border */
     padding: 10px 20px;
     font-size: 1em;
     border-radius: 5px;
     cursor: pointer;
-    box-shadow: 0 0 5px rgb(111, 0, 255), 0 0 10px rgb(111, 0, 255), 0 0 15px rgb(111, 0, 255); /* Neon glow effect */
+    box-shadow: 0 0 5px #ff7b00, 0 0 10px #ff7b00, 0 0 15px #ff7b00; /* Neon glow effect */
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
     margin: 20px auto; /* Center horizontally */
     display: block; /* Make it block level to center with margin auto */
 }
-
-
-
-
-
 
 
 
@@ -1273,13 +847,6 @@ h2 {
     transform: scale(1.05);
 }
 
-
-
-
-
-
-
-
 .team-logo {
     width: 35px; /* Or your desired width */
     height: auto;
@@ -1287,35 +854,6 @@ h2 {
     margin-bottom: -5px;
     /* Add any other styling you need */
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1338,28 +876,6 @@ h2 {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .player-card {
     position: relative;
     width: 220px;
@@ -1373,19 +889,13 @@ h2 {
 }
 
 
-
-
-
-
-
-
 /* Input fields styling */
 input[type="text"], input[type="password"], input[type="checkbox"] {
-    background-color: #022; /* Dark background for the input */
-    border: 1px solid rgb(111, 0, 255); /* Neon border color */
+    background-color: rgb(20, 0, 34); /* Dark background for the input */
+    border: 1px solid rgb(255, 81, 0); /* Neon border color */
     padding: 10px;
     margin: 0 8px 0 0;
-    color: rgb(76, 0, 255); /* Neon text color */
+    color: rgb(255, 94, 0); /* Neon text color */
     border-radius: 5px;
     box-shadow: 0 0 3px rgb(111, 0, 255), /* Neon glow effect */
     0 0 3px rgb(111, 0, 255),
@@ -1393,26 +903,12 @@ input[type="text"], input[type="password"], input[type="checkbox"] {
     transition: box-shadow 0.3s ease-in-out;
 }
 
-
-
-
-
-
-
-
 /* Enhance the neon glow when the input is focused */
 input[type="text"]:focus, input[type="password"]:focus {
     box-shadow: 0 0 6px rgb(111, 0, 255),
     0 0 6px rgb(111, 0, 255),
     0 0 6px rgb(111, 0, 255);
 }
-
-
-
-
-
-
-
 
 /* Styling for checkboxes to match the neon theme */
 input[type="checkbox"] {
@@ -1429,24 +925,12 @@ input[type="checkbox"] {
 }
 
 
-
-
-
-
-
-
 input[type="checkbox"]:checked {
     background-color: rgb(111, 0, 255);
     box-shadow: inset 0 0 5px rgb(111, 0, 255), /* Inner shadow for a glowing effect */
     0 0 5px rgb(111, 0, 255), /* Outer glow */
     0 0 10px rgb(111, 0, 255);
 }
-
-
-
-
-
-
 
 
 /* Labels for a cleaner, professional look */
@@ -1457,16 +941,10 @@ label {
 }
 
 
-
-
-
-
-
-
 /* Button Styling */
 button {
-    background-color: rgb(15, 0, 51); /* Dark button background */
-    color: rgb(76, 0, 255); /* Neon text color */
+    background-color: #ffd0b4; /* Dark button background */
+    color: #ff7b00; /* Neon text color */
     border: 1px solid rgb(111, 0, 255); /* Neon border */
     padding: 10px 20px;
     font-size: 1em;
@@ -1475,12 +953,6 @@ button {
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
     margin-bottom: 20px;
 }
-
-
-
-
-
-
 
 
 /* Hover effect for the button to make it pop */
@@ -1492,27 +964,15 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 /* Styling for the form container */
 .form-container {
-    background-color: #011; /* Slightly lighter form background */
+    background-color: #ff7b00; /* Slightly lighter form background */
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 5px rgb(111, 0, 255), /* Neon glow effect */
     0 0 5px rgb(111, 0, 255),
     0 0 5px rgb(111, 0, 255);
 }
-
-
-
-
-
-
 
 
 /* Enhances the layout of form elements */
@@ -1523,17 +983,11 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 /* Give the create pool section a distinct look */
 #create-pool-section {
     padding: 20px;
-    background: rgba(10, 15, 34, 0.85); /* Translucent background */
-    border: 2px solid #be33ff; /* Neon border */
+    background: #ffd0b4; /* Translucent background */
+    border: 2px solid #ff7b00; /* Neon border */
     border-radius: 10px;
     box-shadow: 0 0 5px #be33ff, /* Outer neon glow */
     0 0 5px #be33ff;
@@ -1541,22 +995,10 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 /* Increase spacing between form elements */
 #pool-name, #pool-password {
     margin-bottom: 15px; /* Adds more space below the input fields */
 }
-
-
-
-
-
-
 
 
 /* Style for the checkbox label */
@@ -1566,24 +1008,11 @@ button:hover {
     vertical-align: middle; /* Aligns label with the checkbox */
 }
 
-
-
-
-
-
-
-
 /* Style for the checkbox */
 #is-private {
     vertical-align: middle; /* Aligns checkbox vertically with the label */
     margin-right: 15px; /* Adds space between the checkbox and the 'Create Pool' button */
 }
-
-
-
-
-
-
 
 
 /* Transform 'Create Pool' button into 'Go Back' button */
@@ -1593,22 +1022,10 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 /* Hide password field initially */
 #pool-password {
     display: none;
 }
-
-
-
-
-
-
 
 
 /* Additional styling for the container to fix position issue */
@@ -1621,12 +1038,6 @@ button:hover {
     border-bottom: 1px solid #be33ff; /* Neon-like blue border */
     padding-bottom: 20px; /* Space above the border */
 }
-
-
-
-
-
-
 
 
 #create-pool-form input[type="submit"] {
@@ -1648,19 +1059,9 @@ button:hover {
 
 
 
-
-
-
-
-
 #create-pool-form-container {
     border-bottom: 2px solid rgb(0, 247, 255); /* Neon border color */
 }
-
-
-
-
-
 
 
 
@@ -1675,21 +1076,9 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 #main-content button {
     margin-bottom: 0px;
 }
-
-
-
-
-
-
 
 
 #main-content form {
@@ -1697,12 +1086,6 @@ button:hover {
     flex-wrap: wrap; /* This will allow items to wrap to the next line if needed */
     gap: 10px; /* This adds some space between your form items */
 }
-
-
-
-
-
-
 
 
 #main-content label,
@@ -1714,12 +1097,6 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 #main-content .form-field {
     display: flex;
     align-items: center;
@@ -1727,21 +1104,9 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 .form-field-row {
     flex-basis: 50%; /* Adjust as needed */
 }
-
-
-
-
-
-
 
 
 #main-content label[for="pool-password"],
@@ -1749,13 +1114,6 @@ button:hover {
     display: inline-block; /* This makes the label and input align horizontally */
     width: auto; /* Adjust width as needed or use flex-grow property */
 }
-
-
-
-
-
-
-
 
 #main-content input[type="submit"][value="Create Pool"] {
     background-color: rgb(15, 0, 51); /* Dark background for the button */
@@ -1773,19 +1131,9 @@ button:hover {
 
 
 
-
-
-
-
-
 .player-row:last-child {
     border-bottom: none; /* Removes the line from the last row */
 }
-
-
-
-
-
 
 
 
@@ -1799,12 +1147,6 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 /* Flex items in the header and rows */
 .pool-header > span, .player-row > div {
     flex: 1; /* Default flex grow */
@@ -1812,11 +1154,6 @@ button:hover {
     position: relative; /* For vertical lines */
     padding: 10px 0; /* Consistent padding for all items */
 }
-
-
-
-
-
 
 
 
@@ -1832,13 +1169,6 @@ button:hover {
     border: 1.5px solid #ff5100;
 }
 
-
-
-
-
-
-
-
 .player-rank { order: 1 }
 .player-user { order: 2 }
 .player-points { order: 3 }
@@ -1846,13 +1176,6 @@ button:hover {
 .player-win { order: 5 }
 .player-loss { order: 6 }
 .player-push { order: 7 }
-
-
-
-
-
-
-
 
 /* Specific flex values to match the header with the rows */
 /* Vertical lines with consistent height */
@@ -1869,22 +1192,10 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 /* Remove the general rule that applies the line after every div */
 .player-row > div::after {
     content: none;
 }
-
-
-
-
-
-
 
 
 /* Apply the vertical line specifically after the 'Picks' column */
@@ -1898,12 +1209,6 @@ button:hover {
     width: 1px;
     background-color: #ffb833;
 }
-
-
-
-
-
-
 
 
 /* Other cosmetic styling (background colors, hover effects, etc.) can be added as needed */
@@ -1938,22 +1243,11 @@ button:hover {
 .pool-header .header-push, .player-row .player-push { flex: 1; }
 
 
-
-
-
-
-
-
 .admin-badge {
     color: rgb(1, 211, 1); /* Green color for the admin badge */
     margin-left: 0.3em; /* Space between the username and the badge */
     margin-right: 0.2em;
 }
-
-
-
-
-
 
 
 
@@ -1967,12 +1261,6 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 .crown-icon {
     margin-left: 0.3em;
     padding-right: 4px;
@@ -1981,12 +1269,6 @@ button:hover {
     z-index: 10;
     color: gold;
 }
-
-
-
-
-
-
 
 
 .player-username {
@@ -1998,11 +1280,6 @@ button:hover {
 
 
 
-
-
-
-
-
 /* Scrollbar styling */
 .player-username::-webkit-scrollbar {
     height: 4px; /* Height of horizontal scrollbar */
@@ -2010,22 +1287,10 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 .player-username::-webkit-scrollbar-thumb {
     background-color: rgba(162, 1, 255, 0.2); /* Scrollbar thumb color */
     border-radius: 2px;
 }
-
-
-
-
-
-
 
 
 .player-username::-webkit-scrollbar-thumb {
@@ -2035,37 +1300,20 @@ button:hover {
 
 
 
-
-
-
-
-
 .player-username:hover::-webkit-scrollbar-thumb {
     background-color: rgba(204, 0, 255, 0.5); /* Scrollbar thumb color on hover */
 }
 
 
-
-
-
-
-
-
 .pool-manager {
     width: 200px; /* Set the width of the box */
     padding: 20px; /* Padding inside the box */
-    background-color: rgb(18, 0, 34); /* Background color of the box */
+    background-color: #1b003f; /* Background color of the box */
     border: 2px solid #ff5100; /* Neon light blue border */
     border-radius: 8px; /* Optional border radius for rounded corners */
     margin: 20px 0; /* Space around the pool manager */
     transition: margin 0.3s ease-in-out;
 }
-
-
-
-
-
-
 
 
 /* Flex settings for pool manager */
@@ -2074,22 +1322,10 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 /* Move the pool manager down when there are pools */
 .pool-manager.bottom {
     margin-top: 20px;
 }
-
-
-
-
-
-
 
 
 .content {
@@ -2101,20 +1337,10 @@ button:hover {
 
 
 
-
-
-
-
-
 /* Style your forms within the pool-manager */
 #join-pool-form, #create-pool-form {
     margin-bottom: 20px;
 }
-
-
-
-
-
 
 
 
@@ -2134,17 +1360,12 @@ button:hover {
 }
 
 
-
 #join-pool-form input[type="submit"]:hover {
     box-shadow: 0 0 10px rgb(111, 0, 255), /* Neon glow effect */
     0 0 20px rgb(111, 0, 255),
     0 0 30px rgb(111, 0, 255);
     transform: scale(1.05);
 }
-
-
-
-
 
 
 #join-pool-form label,
@@ -2384,12 +1605,6 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 /* Pool and Delete Container */
 .pool-and-delete-container {
     display: flex;
@@ -2402,21 +1617,15 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 /* Delete Pool Button */
 .delete-pool-button {
     position: absolute; /* Stay within the pool-and-delete-container */
     right: 0px;
     bottom: -10px;
     padding: 10px 20px;
-    background-color: rgb(15, 0, 51);
-    color: rgb(76, 0, 255);
-    border: 1px solid rgb(111, 0, 255);
+    background-color: #ffd0b4;
+    color: #ff7b00;
+    border: 1px solid #ff7b00;
     border-radius: 5px;
     cursor: pointer;
     box-shadow: 0 0 5px rgb(111, 0, 255), 0 0 5px rgb(111, 0, 255), 0 0 5px rgb(111, 0, 255);
@@ -2428,19 +1637,10 @@ button:hover {
 
 
 
-
-
-
-
-
 .delete-pool-button:hover {
     box-shadow: 0 0 10px rgb(111, 0, 255), 0 0 20px rgb(111, 0, 255), 0 0 30px rgb(111, 0, 255);
     transform: scale(1.05);
 }
-
-
-
-
 
 
 
@@ -2454,11 +1654,6 @@ button:hover {
     flex-direction: column;
     align-items: center;
 }
-
-
-
-
-
 
 
 
@@ -2482,21 +1677,11 @@ button:hover {
 
 
 
-
-
-
-
-
 .chat-tab:hover {
-    background-color: #be33ff;  /* Darker blue on hover */
+    background-color: #3a0055;  /* Darker blue on hover */
     transform: translateY(-2px);  /* Lift effect on hover */
     border: solid 2px #1c1138;
 }
-
-
-
-
-
 
 
 
@@ -2504,8 +1689,8 @@ button:hover {
     width: 300px;  /* Match input width */
     max-height: 0;
     overflow: hidden;
-    background-color: #380842;  /* Match theme */
-    color: #ddd;  /* Light grey text */
+    background-color: #52006b;  /* Match theme */
+    color: #fff9f5;  /* Light grey text */
     border-radius: 0 0 10px 10px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
     display: flex;
@@ -2517,25 +1702,13 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 .chat-box {
     height: 400px;
     overflow-y: auto;  /* Only show scrollbar when necessary */
     padding: 10px;
     border-bottom: 1px solid #be33ff;  /* Match other borders */
-    background-color: #2e063a;  /* Match dark theme */
+    background-color: #3b004d;   /* Match dark theme */
 }
-
-
-
-
-
-
 
 
 .chat-input {
@@ -2543,8 +1716,8 @@ button:hover {
     padding: 10px;
     margin: 10px;
     border: 1px solid #be33ff;  /* Match other borders */
-    background-color: #333;  /* Match input background */
-    color: #ddd;  /* Light grey text */
+    background-color: #ff3c00;  /* Match input background */
+    color: #ff7300;  /* Light grey text */
     border-radius: 5px;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
     font-size: 16px;
@@ -2552,27 +1725,17 @@ button:hover {
 
 
 
-
-
-
-
-
 .send-chat-button {
     width: 90%;  /* Match input width */
     padding: 10px;
     margin: 10px auto;
-    background: linear-gradient(135deg, #be33ff 0%, #8b00cc 100%);
+    background: linear-gradient(135deg, #ffd0b4 0%, #f3c0a2  100%);
     border: none;
     border-radius: 5px;
-    color: #fff;  /* White text */
+    color: #fc5000;  /* White text */
     cursor: pointer;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
-
-
-
-
-
 
 
 
@@ -2582,19 +1745,9 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 .show-chat .chat-container {
     max-height: 400px;
 }
-
-
-
-
 
 
 
@@ -2607,26 +1760,15 @@ button:hover {
 
 
 
-
-
-
-
-
 .chat-toggle-button {
     width: 45%;
     padding: 5px;
-    background: linear-gradient(135deg, #be33ff 0%, #8b00cc 100%);
-    color: #fff;
+    background: linear-gradient(135deg, #ffd0b4 0%, #f3c0a2  100%);
+    color: #ff3c00;
     border: none;
     border-radius: 5px;
     cursor: pointer;
 }
-
-
-
-
-
-
 
 
 .choose-picks-button {
@@ -2681,11 +1823,6 @@ button:hover {
 
 
 
-
-
-
-
-
 .neon-calendar {
     position: relative;
     width: 65px; /* Slightly wider */
@@ -2716,8 +1853,6 @@ button:hover {
 }
 
 
-
-
 .schedule-button:hover .neon-calendar::before,
 .schedule-button:hover .neon-calendar::after {
     background-color: #ff5100;
@@ -2725,22 +1860,10 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 .schedule-button:hover .calendar-title,
 .schedule-button:hover .calendar-date {
     color: #1c1138;
 }
-
-
-
-
-
-
 
 
 .neon-calendar::after {
@@ -2753,12 +1876,6 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 .calendar-top {
     position: absolute;
     top: 10px; /* Adjusted for smaller height */
@@ -2768,12 +1885,6 @@ button:hover {
     background: #ff5100;
     border-radius: 2px;
 }
-
-
-
-
-
-
 
 
 .calendar-body {
@@ -2788,12 +1899,6 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 .calendar-title {
     position: absolute;
     top: 0;
@@ -2804,12 +1909,6 @@ button:hover {
     text-shadow: 0 0 20px rgba(23, 32, 58, 0.8);
     text-align: center;
 }
-
-
-
-
-
-
 
 
 .calendar-date {
@@ -2824,12 +1923,6 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 .ring-binders {
     position: absolute;
     top: -7px;
@@ -2839,13 +1932,6 @@ button:hover {
     justify-content: space-around;
 }
 
-
-
-
-
-
-
-
 .ring {
     width: 5px;
     height: 13px;
@@ -2854,14 +1940,4 @@ button:hover {
     box-shadow: 0 0 10px rgba(132, 0, 255, 0.8);
     border: 1px solid #150a22;
 }
-
-
-
-
-
-
-
-
-
-
 

@@ -566,12 +566,12 @@ cron.schedule('25 16 * * 0', () => {
 
 
 
-cron.schedule('35 19 * * 0', () => {
+cron.schedule('58 19 * * 0', () => {
   console.log("It's Sunday 8:30 PM, now fetching scores");
   fetchNFLScores();
 });
 
-cron.schedule('55 23 * * 0', () => {
+cron.schedule('35 23 * * 0', () => {
     console.log("It's Sunday 11:30 PM, now fetching scores");
     fetchNFLScores();
 });
@@ -603,7 +603,7 @@ cron.schedule('0 8 * * *', () => {
 
 
 
-cron.schedule('50 23 * * 4', () => {
+cron.schedule('27 23 * * 4', () => {
   console.log("Its thursday, gettin scores");
   
 fetchNFLScores();
