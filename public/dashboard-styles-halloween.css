@@ -279,7 +279,7 @@ body {
   margin: 0; /* Remove default margin */
   font-size: 1.1em;
   font-family: 'Montserrat', sans-serif;
-  background: linear-gradient(45deg, #be33ff, #be33ff); /* Adjusted gradient background */
+  background: linear-gradient(135deg, #ff7300 0%, #d33c00 100%);/* Adjusted gradient background */
   color: #ffffff;
   border: none;
   border-radius: 10px;
@@ -290,7 +290,7 @@ body {
 
 
 .button-group button:hover {
-  background: linear-gradient(45deg, #be33ff, #be33ff);
+  background: linear-gradient(135deg,#d33c00  0%, #ff7300 100%);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
   transform: translateY(-2px);
 }
@@ -372,7 +372,7 @@ input, select {
   margin: 20px 0;
   font-family: 'Montserrat', sans-serif;
   font-size: 1.2em;
-  color: #be33ff;
+  color: #ff7300;
   padding: 10px 0; /* Added padding for spacing */
 }
 
@@ -391,7 +391,7 @@ input, select {
   border-radius: 25px;
   cursor: pointer;
   transition: background 0.3s ease;
-  border: 2px solid #be33ff; /* Added border to match theme */
+  border: 2px solid #ff7300; /* Added border to match theme */
 }
 
 
@@ -409,7 +409,7 @@ input, select {
 
 
 #immortalLockCheck:checked + label {
-  background: #be33ff; /* Adjusted checked background color */
+  background: #ff7300; /* Adjusted checked background color */
 }
 
 
@@ -764,13 +764,13 @@ h4 {
 
 
   font-family: 'Orbitron', sans-serif; /* Digital font for game feel */
-  box-shadow: 0 0 5px #be33ff;; /* Blue glow */
+  box-shadow: 0 0 5px #be33ff; /* Blue glow */
 }
 
 
 .at-symbol {
   font-size: 30px; /* Larger for emphasis */
-  color: #be33ff; /* Bright red for visibility */
+  color: #ff7b00; /* Bright red for visibility */
   margin: 0 15px;
   flex: 0 0 50px; /* Bigger and bolder */
   padding-left: 18px;
@@ -780,7 +780,7 @@ h4 {
 
 .commence-time {
   width: 100%;
-  color: #ffc933; /* Bright green for high visibility */
+  color: #ff7b00; /* Bright green for high visibility */
   font-size: 18px;
   text-align: center;
   padding: 5px 0;
@@ -1040,9 +1040,9 @@ h4 {
   padding: 8px 12px;
   margin-top: 8px;
   font-size: 14px;
-  color: #be33ff;
+  color: #ff7b00;
   background-color: #121212;
-  border: 1px solid #be33ff;
+  border: 1px solid #ff7b00;
   border-radius: 5px;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
@@ -1113,31 +1113,25 @@ h4 {
 
 
 
-
 .neon-calendar {
   position: relative;
   width: 65px; /* Slightly wider */
   height: 70px; /* Slightly shorter */
   margin: 0 auto;
   top: -10%;
-  background-color: #1c1138;
-  border: 2px solid #6f00ff;
+  background-color: #ffd0b4;
+  border: 2px solid #ff5100;
   border-radius: 2px;
 }
 
 
-
-
-
-
 .neon-calendar::before,
 .neon-calendar::after {
-    content: '';
-    position: absolute;
-    border: 2px solid #6f00ff;
-    border-radius: 2px;
+  content: '';
+  position: absolute;
+  border: 2px solid #ff5100;
+  border-radius: 2px;
 }
-
 
 
 
@@ -1149,12 +1143,10 @@ h4 {
 }
 
 
-
-
 .schedule-button:hover .neon-calendar::before,
 .schedule-button:hover .neon-calendar::after {
-    background-color: rgba(132, 0, 255, 0.8);
-    color: #1c1138;
+  background-color: #ff5100;
+  color: #1c1138;
 }
 
 
@@ -1180,7 +1172,7 @@ h4 {
   left: 6px;
   width: 55px; /* Slightly wider */
   height: 10px; /* Slightly reduced height */
-  background: #6f00ff;
+  background: #ff5100;
   border-radius: 2px;
 }
 
@@ -1191,8 +1183,8 @@ h4 {
   left: 5px;
   width: 60px; /* Slightly wider */
   height: 35px; /* Slightly shorter */
-  background: #1c1138;
-  border-top: 2px solid #6f00ff;
+  background: #ffd0b4;
+  border-top: 2px solid #ff5100;
   border-radius: 2px;
 }
 
@@ -1203,8 +1195,8 @@ h4 {
   left: 50%;
   transform: translateX(-50%);
   font-size: 10px;
-  color: #17203a;
-  text-shadow: 0 0 20px rgba(41, 23, 58, 0.8);
+  color: #ffd0b4;
+  text-shadow: 0 0 20px rgba(23, 32, 58, 0.8);
   text-align: center;
 }
 
@@ -1215,7 +1207,7 @@ h4 {
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 20px;
-  color: #6f00ff;
+  color: #ff7b00;
   text-shadow: 0 0 20px rgba(132, 0, 255, 0.8);
   text-align: center;
 }
@@ -1229,9 +1221,6 @@ h4 {
   display: flex;
   justify-content: space-around;
 }
-
-
-
 
 .ring {
   width: 5px;
@@ -1324,9 +1313,9 @@ h4 {
     margin-top: 8px;
     font-size: 14px;
     color:
-    #be33ff;
+    #ff7b00;
     background-color: #150a22;
-    border: 1px solid #be33ff;
+    border: 1px solid #ff7b00;
     border-radius: 5px;
     transition: background-color 0.3s ease, color 0.3s ease;
   }

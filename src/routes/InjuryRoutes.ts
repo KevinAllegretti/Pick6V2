@@ -58,7 +58,7 @@ const isInLastTwoWeeks = (dateString: string) => {
     const injuryDate = new Date(dateString);
     const today = new Date();
     const twoWeeksAgo = new Date();
-    twoWeeksAgo.setDate(today.getDate() - 14);
+    twoWeeksAgo.setDate(today.getDate() - 7);
 
     return injuryDate >= twoWeeksAgo && injuryDate <= today;
 };
@@ -122,5 +122,16 @@ router.get('/getInjuries', async (req, res) => {
         res.status(500).send({ error: 'Error retrieving injuries', details: error.message });
     }
 });
+export async function deleteInjuriesFromServer(): Promise<void> {
+    try {
+        const database = await connectToDatabase();
+        const injuriesCollection = database.collection('injuries');
+        await injuriesCollection.deleteMany({});
+        console.log('Injuries deleted successfully');
+    } catch (error: any) {
+        console.error('Failed to delete injuries:', error);
+        throw new Error('Failed to delete injuries');
+    }
+}
 
 export default router;
