@@ -607,7 +607,7 @@ cron.schedule('0 7 * * 1', () => {
   deleteInjuriesFromServer();
 })
 
-cron.schedule('27 23 * * 4', () => {
+cron.schedule('35 23 * * 4', () => {
   console.log("Its thursday, gettin scores");
   
 fetchNFLScores();
