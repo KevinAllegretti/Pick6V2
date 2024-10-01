@@ -2,7 +2,7 @@
 
 body {
     font-family: 'Oswald', sans-serif;
-    background-color: #0a0f22;
+    background-color: #3e004d;;
     margin: 0;
     padding: 0;
     display: flex;
@@ -10,10 +10,10 @@ body {
 }
 
 h1 {
-    text-shadow: 2px 2px 15px rgba(0, 229, 255, 0.7);
+    text-shadow: 0 0 10px rgba(248, 123, 27, 0.57);
     text-align: center;
     margin-bottom: 20px;
-    color: #00DDFF;
+    color: #ff7b00;
 }
 
 .back-button-container {
@@ -29,19 +29,19 @@ h1 {
     margin: 20px auto;
     text-align: center;
     background: #121212;
-    color: #00ccff;
+    color: #ff7b00;
     text-decoration: none;
     border-radius: 50px;
-    border: 2px solid #00ccff;
+    border: 2px solid #ff7b00;
     transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
     cursor: pointer;
-    box-shadow: 0px 4px 15px rgba(0, 204, 255, 0.4);
+    box-shadow: 0 0 10px rgba(248, 123, 27, 0.57);
 }
 
 .back-button:hover {
-    background-color: #00ccff;
+    background-color: #ff7b00;
     color: #121212;
-    box-shadow: 0px 6px 20px rgba(0, 204, 255, 0.6);
+    box-shadow: 0 0 10px rgba(248, 123, 27, 0.57);
 }
 
 .main-wrapper {
@@ -65,7 +65,7 @@ h1 {
     max-height: 632px;
     overflow-y: auto;
     margin: 0 auto;
-    box-shadow: 0 0 30px rgba(0, 229, 255, 0.7);
+    box-shadow: 0 0 10px rgba(248, 123, 27, 0.57);
     border-radius: 15px;
 
     overflow-x: hidden;
@@ -82,13 +82,13 @@ h1 {
 }
 
 .container::-webkit-scrollbar-thumb {
-    background-color: #33d9ff;
+    background-color: #ff7b00;
     border-radius: 10px;
     border: 3px solid #1e1e1e;
 }
 
 .container::-webkit-scrollbar-thumb:hover {
-    background-color: #00ccff;
+    background-color: #ff7b00;
 }
 
 @media (max-width: 768px) {
@@ -151,11 +151,11 @@ h1 {
     padding: 10px 15px;
     font-size: 0.9rem;
     border-radius: 20px;
-    border: 2px solid #00DDFF;
+    border: 2px solid #ff7b00;
     background-color: rgba(0, 0, 0, 0.5);
-    color: #00DDFF;
+    color: #ff7b00;
     appearance: none;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="%2300DDFF" d="M7 10l5 5 5-5z"/></svg>');
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="%23FF7D00" d="M7 10l5 5 5-5z"/></svg>');
     background-repeat: no-repeat;
     background-position: right 15px center;
     background-size: 20px 20px;
@@ -164,14 +164,14 @@ h1 {
 }
 
 #teamSelect:hover, #weekSelect:hover {
-    background-color: rgba(0, 221, 255, 0.1);
+    background-color: rgba(115, 0, 255, 0.1);
 }
 
 
 
 #teamSelect option, #weekSelect option {
-    background-color: #0a0f22;
-    color: #00DDFF;
+    background-color: #180a22;
+    color: #ff7b00;
     padding: 10px;
 }
 
@@ -183,11 +183,11 @@ h1 {
 .game-container {
     display: flex;
     flex-direction: column;
-    border: 1px solid #00DDFF;
+    border: 1px solid #ff7b00;
     border-radius: 15px;
     margin-bottom: 25px;
     padding: 25px;
-    background-color: rgba(23, 32, 58, 0.8);
+    background-color: rgba(41, 23, 58, 0.8);
 }
 
 .teams-container {
@@ -206,8 +206,8 @@ h1 {
     margin: 10px;
     padding: 20px;
     font-family: 'Orbitron', sans-serif;
-    border: 2px solid #00DDFF;
-    box-shadow: 0 0 10px #33d9ff;
+    border: 2px solid #ff7b00;
+    box-shadow: 0 0 10px #ff7b00;
 
 }
 
@@ -219,24 +219,24 @@ h1 {
 
 .at-symbol {
     font-size: 36px;
-    color: #00e9fa;
+    color: #ff7b00;
     margin: 0 20px;
-    text-shadow: 0 0 10px rgba(0, 233, 250, 0.5);
+    text-shadow: 0 0 10px rgba(248, 123, 27, 0.57);
 }
 
 .commence-time {
     width: 100%;
-    color: #4de4ff;
+    color: #ff7b00;
     font-size: 20px;
     text-align: center;
     padding: 10px 0;
     font-family: 'Montserrat', sans-serif;
-    text-shadow: 0 0 5px rgba(77, 228, 255, 0.5);
+    text-shadow: 0 0 10px rgba(248, 123, 27, 0.57);
     letter-spacing: 1px;
 }
 
 label {
-    color: #33d9ff;
+    color: #ff7b00;
 }
 
 /* NFL Team Colors */
@@ -307,7 +307,7 @@ label {
         margin: 10px auto;
         font-size: 16px;
         background: transparent;
-        box-shadow: 0 0 10px rgba(0, 204, 255, 0.5);
+        box-shadow: 0 0 10px rgba(248, 123, 27, 0.57);
     }
 
     h1 {

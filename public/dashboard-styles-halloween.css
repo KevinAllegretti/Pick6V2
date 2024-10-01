@@ -19,7 +19,7 @@ body {
 .legend-title {
   font-size: 24px;
   font-weight: bold;
-  color: #be33ff;  /* Light blue text */
+  color: #ff7b00;  /* Light blue text */
   text-align: center;
   text-shadow: 0 0 10px rgba(132, 0, 255, 0.8), 0 0 20px rgba(153, 0, 255, 0.6);
   margin-bottom: -5px;  /* Space between title and legend */
@@ -83,32 +83,32 @@ body {
 
 
 .legend-bet-button.heavy-favorite {
-  background-color: #fdbc09;  /* Red for heavy favorite */
+  background-color: #ff7b00;  /* Red for heavy favorite */
 }
 
 
 .legend-bet-button.favorite {
-  background-color: #fdbc09;  /* Grey for favorite */
+  background-color: #ff7b00;  /* Grey for favorite */
 }
 
 
 .legend-bet-button.spread {
-  background-color: #fdbc09;  /* Yellow for spread */
+  background-color: #ff7b00;  /* Yellow for spread */
 }
 
 
 .legend-bet-button.underdog {
-  background-color: #fdbc09;  /* Teal for underdog */
+  background-color: #ff7b00;  /* Teal for underdog */
 }
 
 
 .legend-bet-button.bigger-underdog {
-  background-color: #fdbc09;  /* Blue for bigger underdog */
+  background-color: #ff7b00;  /* Blue for bigger underdog */
 }
 
 
 .legend-bet-button.heavy-underdog {
-  background-color: #fdbc09;  /* Dark green for heavy underdog */
+  background-color: #ff7b00;  /* Dark green for heavy underdog */
 }
 
 
@@ -1287,7 +1287,7 @@ h4 {
   .popup-at-symbol {
     position: relative;
     font-size: 18px; /* Smaller font size for @ */
-    color: #be33ff; /* Neon blue for @ symbol */
+    color: #ff7b00; /* Neon blue for @ symbol */
     margin: 0 5px;
     text-shadow: 0 0 10px rgba(87, 0, 250, 0.5);
     font-family: 'Montserrat', 'sans-serif';

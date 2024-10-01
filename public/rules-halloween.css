@@ -1,0 +1,198 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #3e004d;
+    color: #ff7b00;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    font-size: 16px;
+}
+
+.container {
+    width: 90%;
+    margin: 0 auto;
+    padding: 2em 0;
+    border-radius: 10px;
+    color: #e0e0e0;
+    text-align: center;
+}
+
+h1 {
+    font-size: 2.8em;
+    text-align: center;
+    color: #ff7b00;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px rgba(248, 123, 27, 0.57);
+}
+
+.rules-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1em 0;
+}
+
+.rule-box {
+    background: linear-gradient(to bottom right, #25003d, #26163e);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    width: 80%;
+    color: #f5f5f5;
+    margin: 10px 0;
+    text-align: left;
+}
+
+h2 {
+    font-size: 1.8em;
+    color: #ff7b00;
+    margin-bottom: 10px;
+    text-shadow: 0 0 10px rgba(248, 123, 27, 0.57);
+}
+
+.timeline-container {
+    position: relative;
+    margin: 20px 0;
+    height: 100px; /* Increased height to accommodate labels */
+    width: 80%;
+    margin-left: 10%;
+}
+
+.timeline {
+    position: relative;
+    height: 10px;
+    background: linear-gradient(135deg, #ff7b00 0%, #cc6300 100%);
+    top: 50px; /* Adjusted to align with pegs */
+}
+
+.peg {
+    position: absolute;
+    bottom: 0px; /* Align peg to touch the timeline */
+    width: 10px; /* Made pegs thicker */
+    height: 50px; /* Height of the pegs */
+    background: linear-gradient(135deg, #ff7b00 0%, #cc6300 100%);
+    text-align: center;
+    font-size: 0.8em;
+    color: #f5f5f5;
+    text-shadow: 0 0 5px rgba(248, 123, 27, 0.57);
+}
+
+.time-label {
+    position: absolute;
+    bottom: -40px; /* Positioning the labels underneath the bar */
+    width: 60px;
+    transform: translateX(-50%);
+    font-size: 1em; /* Increased font size for visibility */
+    text-align: center;
+    color: #ff7b00; /* Added color for better visibility */
+    text-shadow: 0 0 10px rgba(248, 123, 27, 0.57);
+}
+
+.period-labels {
+    position: absolute;
+    top: -10px; /* Adjusted to move labels above the timeline */
+    width: 100%;
+    text-align: center;
+    color: #ff7b00;
+    font-weight: bold;
+}
+
+.period-label {
+    position: absolute;
+    font-size: 1.2em; /* Increased font size for visibility */
+    text-shadow: 0 0 10px rgba(248, 123, 27, 0.57);
+    transform: translateX(-50%); /* Center the labels horizontally */
+}
+
+/* Media query for smaller screens */
+@media (max-width: 600px) {
+
+
+    .timeline-container {
+        height: 14vw;
+    }
+
+    .timeline {
+        height: 1.4vw;
+        top: 6vw;
+    }
+
+    .peg {
+        width: 1.4vw;
+        height: 6vw;
+    }
+
+    .time-label {
+        bottom: -5vw;
+        width: 7vw;
+        font-size: 1.5vw;
+    }
+
+    .period-label {
+        font-size: 1.9vw;
+    }
+}
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+/* Updated color highlights with more sophisticated tones */
+.green-highlight {
+    color: #33ff57;
+    font-weight: bold;
+}
+
+.red-highlight {
+    color: #ff4d4d;
+    font-weight: bold;
+}
+
+.yellow-highlight {
+    color: #ffff4d;
+    font-weight: bold;
+}
+
+.blue-highlight {
+    color: #ff7b00;
+    font-weight: bold;
+}
+/* Refined back button design with silver undertones */
+.back-button-container {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.back-button {
+    display: inline-block;
+    padding: 12px 25px;
+    margin: 10px auto;
+    text-align: center;
+    background: #121212;
+    color: #ff7b00;
+    text-decoration: none;
+    border-radius: 50px;
+    border: 2px solid #ff7b00;
+    transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 4 15px rgba(248, 123, 27, 0.57);
+}
+
+.back-button:hover {
+    background-color: #ff7b00;
+    color: #121212;
+    box-shadow: 0 0 10px rgba(248, 123, 27, 0.57);
+    transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+}
+.colored-underline {
+    text-decoration: underline;
+    text-decoration-color:  #ff7b00; 
+    text-decoration-thickness: 2px;
+  }

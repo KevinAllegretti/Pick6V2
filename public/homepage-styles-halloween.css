@@ -1188,7 +1188,7 @@ button:hover {
     transform: translateY(-50%); /* Offset the line by half its height to center it */
     height: 30px; /* Adjust the height as needed */
     width: 1px;
-    background-color: #ffb833;
+    background-color: #ff7b00;
 }
 
 
@@ -1207,7 +1207,7 @@ button:hover {
     transform: translateY(-50%);
     height: 30px;
     width: 1px;
-    background-color: #ffb833;
+    background-color: #ff7b00;
 }
 
 
