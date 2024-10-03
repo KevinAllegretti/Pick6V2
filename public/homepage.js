@@ -132,7 +132,7 @@ function rebuildUIWithResults(results) {
     });
 }*/
 
-if (now > thursdayTime && now < tuesdayTime) {
+
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
         fetch('/api/getResults')
@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => console.error('Failed to fetch results:', error));
     }, 3000); // Delay for load time
-});}
+})
 
 function rebuildUIWithResults(results) {
     const allPicks = document.querySelectorAll('.player-picks .pick, .immortal-lock');
