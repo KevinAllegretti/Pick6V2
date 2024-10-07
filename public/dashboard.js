@@ -71,76 +71,6 @@ let betOptions = [
  { teamName: 'BUF Bills', type: 'Spread', value: '-2.5' },
  { teamName: 'BUF Bills', type: 'ML', value: '-148' },*/
 ];
-/*
-const teamColorClasses = {
- 'ARI Cardinals': 'cardinals-color',
- 'ATL Falcons': 'falcons-color',
- 'BAL Ravens': 'ravens-color',
- 'BUF Bills': 'bills-color',
- 'CAR Panthers': 'panthers-color',
- 'CHI Bears': 'bears-color',
- 'CIN Bengals': 'bengals-color',
- 'CLE Browns': 'browns-color',
- 'DAL Cowboys': 'cowboys-color',
- 'DEN Broncos': 'broncos-color',
- 'DET Lions': 'lions-color',
- 'GB Packers': 'packers-color',
- 'HOU Texans': 'texans-color',
- 'IND Colts': 'colts-color',
- 'JAX Jaguars': 'jaguars-color',
- 'KC Chiefs': 'chiefs-color',
- 'LV Raiders': 'raiders-color',
- 'LA Chargers': 'chargers-color',
- 'LA Rams': 'rams-color',
- 'MIA Dolphins': 'dolphins-color',
- 'MIN Vikings': 'vikings-color',
- 'NE Patriots': 'patriots-color',
- 'NO Saints': 'saints-color',
- 'NY Giants': 'giants-color',
- 'NY Jets': 'jets-color',
- 'PHI Eagles': 'eagles-color',
- 'PIT Steelers': 'steelers-color',
- 'SF 49ers': 'FortyNiners-color',
- 'SEA Seahawks': 'seahawks-color',
- 'TB Buccaneers': 'buccaneers-color',
- 'TEN Titans': 'titans-color',
- 'WAS Commanders': 'commanders-color'
-};
- 
-const teamLogos = {
- 'ARI Cardinals': '/ARILogo.png',
- 'ATL Falcons': '/ATLLogo.png',
- 'BAL Ravens': '/BALLogo.png',
- 'BUF Bills': '/BUFLogo.png',
- 'CAR Panthers': '/CARLogo.png',
- 'CHI Bears': '/CHILogo.png',
- 'CIN Bengals': '/CINLogo.png',
- 'CLE Browns': '/CLELogo.png',
- 'DAL Cowboys': '/DALLogo.png',
- 'DEN Broncos': '/DENLogo.png',
- 'DET Lions': '/DETLogo.png',
- 'GB Packers': '/GBLogo.png',
- 'HOU Texans': '/HOULogo.png',
- 'IND Colts': '/INDLogo.png',
- 'JAX Jaguars': '/JAXLogo.png',
- 'KC Chiefs': '/KCLogo.png',
- 'LV Raiders': '/LVLogo.png',
- 'LA Chargers': '/LACLogo.png',
- 'LA Rams': '/LARLogo.png',
- 'MIA Dolphins': '/MIALogo.png',
- 'MIN Vikings': '/MINLogo.png',
- 'NE Patriots': '/NELogo.png',
- 'NO Saints': '/NOLogo.png',
- 'NY Giants': '/NYGLogo.png',
- 'NY Jets': '/NYJLogo.png',
- 'PHI Eagles': '/PHILogo.png',
- 'PIT Steelers': '/PITLogo.png',
- 'SF 49ers': '/SFLogo.png',
- 'SEA Seahawks': '/SEALogo.png',
- 'TB Buccaneers': '/TBLogo.png',
- 'TEN Titans': '/TENLogo.png',
- 'WAS Commanders': '/WASLogo.png'
-};*/
 
 const teamColorClasses = {
     'Arizona Cardinals': 'cardinals-color',
@@ -625,114 +555,7 @@ function resetPicks() {
  }
 }
 
-/* OG FUNCTION
-function renderBetOptions() {
-    const container = document.getElementById('picksContainer');
-    container.innerHTML = '';
 
-    const games = betOptions.reduce((acc, bet) => {
-        const gameKey = `${bet.awayTeam} vs ${bet.homeTeam}`;
-        if (!acc[gameKey]) {
-            acc[gameKey] = {
-                awayTeam: bet.awayTeam,
-                homeTeam: bet.homeTeam,
-                bets: [],
-                commenceTime: bet.commenceTime,
-                logoAway: teamLogos[bet.awayTeam],
-                logoHome: teamLogos[bet.homeTeam],
-                colorClassAway: teamColorClasses[bet.awayTeam],
-                colorClassHome: teamColorClasses[bet.homeTeam]
-            };
-        }
-        let formattedValue = String(bet.value);
-        formattedValue = formattedValue.startsWith('+') || formattedValue.startsWith('-') ? formattedValue : (formattedValue > 0 ? `+${formattedValue}` : formattedValue);
-        acc[gameKey].bets.push({ type: bet.type, value: formattedValue, team: bet.teamName });
-        return acc;
-    }, {});
-
-    Object.values(games).forEach(game => {
-        const gameContainer = document.createElement('div');
-        gameContainer.className = 'game-container';
-        gameContainer.style.display = 'flex';
-        gameContainer.style.flexDirection = 'column';
-        gameContainer.style.alignItems = 'center';
-
-        const teamsContainer = document.createElement('div');
-        teamsContainer.style.display = 'flex';
-        teamsContainer.style.alignItems = 'center';
-
-        const awayTeamContainer = createTeamContainer(game, 'away');
-        const homeTeamContainer = createTeamContainer(game, 'home');
-
-        teamsContainer.appendChild(awayTeamContainer);
-        const atSymbol = document.createElement('div');
-        atSymbol.textContent = '@';
-        atSymbol.className = 'at-symbol';
-        teamsContainer.appendChild(atSymbol);
-        teamsContainer.appendChild(homeTeamContainer);
-
-        gameContainer.appendChild(teamsContainer);
-
-        const commenceTime = document.createElement('div');
-        commenceTime.textContent = new Date(game.commenceTime).toLocaleString('en-US', {
-            weekday: 'long',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        });
-        commenceTime.className = 'commence-time';
-        gameContainer.appendChild(commenceTime);
-
-        const matchupInjuryButton = document.createElement('button');
-        matchupInjuryButton.className = 'matchup-injury-button';
-        matchupInjuryButton.innerHTML = '<i class="fas fa-bone"></i> Matchup Injuries';
-        matchupInjuryButton.addEventListener('click', (event) => {
-            event.stopPropagation();
-            fetchAndDisplayMatchupInjuries(game, matchupInjuryButton);
-        });
-        gameContainer.appendChild(matchupInjuryButton);
-
-        container.appendChild(gameContainer);
-    });
-
-    blackOutPreviousBets();
-}*/
-/*
-const injuryTeamNameMap = {
-    'Arizona Cardinals': 'ARI Cardinals',
-    'Atlanta Falcons': 'ATL Falcons',
-    'Baltimore Ravens': 'BAL Ravens',
-    'Buffalo Bills': 'BUF Bills',
-    'Carolina Panthers': 'CAR Panthers',
-    'Chicago Bears': 'CHI Bears',
-    'Cincinnati Bengals': 'CIN Bengals',
-    'Cleveland Browns': 'CLE Browns',
-    'Dallas Cowboys': 'DAL Cowboys',
-    'Denver Broncos': 'DEN Broncos',
-    'Detroit Lions': 'DET Lions',
-    'Green Bay Packers': 'GB Packers',
-    'Houston Texans': 'HOU Texans',
-    'Indianapolis Colts': 'IND Colts',
-    'Jacksonville Jaguars': 'JAX Jaguars',
-    'Kansas City Chiefs': 'KC Chiefs',
-    'Las Vegas Raiders': 'LV Raiders',
-    'Los Angeles Chargers': 'LA Chargers',
-    'Los Angeles Rams': 'LA Rams',
-    'Miami Dolphins': 'MIA Dolphins',
-    'Minnesota Vikings': 'MIN Vikings',
-    'New England Patriots': 'NE Patriots',
-    'New Orleans Saints': 'NO Saints',
-    'New York Giants': 'NY Giants',
-    'New York Jets': 'NY Jets',
-    'Philadelphia Eagles': 'PHI Eagles',
-    'Pittsburgh Steelers': 'PIT Steelers',
-    'San Francisco 49ers': 'SF 49ers',
-    'Seattle Seahawks': 'SEA Seahawks',
-    'Tampa Bay Buccaneers': 'TB Buccaneers',
-    'Tennessee Titans': 'TEN Titans',
-    'Washington Commanders': 'WAS Commanders'
-};
-*/
 // Fetch and display injuries for the specific game
 const injuryTeamNameMap = {
     'Arizona Cardinals': 'Arizona Cardinals',
@@ -840,34 +663,7 @@ function displayInjuries(injuries, isFiltered = false) {
     console.log("Injury list updated HTML:", injuryList.innerHTML);
 }
 
-/* OG FUNCTION:
-function createTeamContainer(game, teamRole) {
-    const teamData = game[teamRole + 'Team'];
-    const teamContainer = document.createElement('div');
-    teamContainer.className = `team-container ${game['colorClass' + teamRole.charAt(0).toUpperCase() + teamRole.slice(1)]}`;
 
-
-    const teamLogo = document.createElement('img');
-    teamLogo.src = teamRole === 'away' ? game.logoAway : game.logoHome;
-    teamLogo.alt = teamData + ' logo';
-    teamLogo.className = 'team-logo';
-    teamContainer.appendChild(teamLogo);
-
-
-    game.bets.filter(bet => bet.team === teamData).forEach(bet => {
-        const betButton = document.createElement('button');
-        betButton.className = `bet-button ${teamContainer.className}`;
-        betButton.textContent = bet.value;
-        betButton.dataset.team = teamData.replace(/\s+/g, '-').toLowerCase();
-        betButton.dataset.type = bet.type.toLowerCase();
-        betButton.onclick = () => selectBet({ teamName: teamData, type: bet.type, value: bet.value });
-        teamContainer.appendChild(betButton);
-    });
-
-
-    return teamContainer;
-}
-*/
 
 function createTeamContainer(game, teamRole) {
     const teamData = game[teamRole + 'Team'];

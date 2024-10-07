@@ -547,92 +547,6 @@ const fetchMLBData = async () => {
   };
 
 
-  
-cron.schedule('0 0 * * 2', async () => { // every tuesday
-    try {
-      const betOptions = await fetchNFLDataOneWeekOut();
-      await saveWeeklyPicks(betOptions);
-    } catch (error) {
-      console.error('Scheduled job failed:', error);
-    }
-  });
-
-
-
-cron.schedule('42 16 * * 0', () => {
-    console.log("It's Sunday 4:15 PM, now fetching scores");
-    fetchNFLScores();
-});
-
-
-
-
-cron.schedule('44 19 * * 0', () => {
-  console.log("It's Sunday 8:30 PM, now fetching scores");
-  fetchNFLScores();
-});
-
-cron.schedule('50 23 * * 0', () => {
-    console.log("It's Sunday 11:30 PM, now fetching scores");
-    fetchNFLScores();
-});
-
-cron.schedule('28 23 * * 1', () => {
-    console.log("It's Monday 11:30 PM, now fetching scores");
-    fetchNFLScores();
-});
-
-cron.schedule('0 0 * * 2', () => {
-    console.log("It's Tuesday 12:00 AM, now deleting results");
-    deleteResultsFromServer();
-    deletePicksFromServer();
-    console.log("Updating Thursday deadline to the upcoming Thursday");
-    updateThursdayDeadline();
-});
-
-cron.schedule('0 19 * * 4', () => {
-    console.log("It's Thursday 7:00 PM, now saving picks to last week");
-    savePicksToLastWeek();
-    console.log("Updating Tuesday start time to the upcoming Tuesday");
-    updateTuesdayStartTime();
-});
-
-cron.schedule('0 8 * * *', () => {
-    console.log("It's 8:00am fetching and saving injuries");
-    fetchAndSaveInjuries();
-});
-
-cron.schedule('0 7 * * 1', () => {
-  console.log("monday morning injruy sweep");
-  deleteInjuriesFromServer();
-})
-
-cron.schedule('22 23 * * 4', () => {
-  console.log("Its thursday, gettin scores");
-  
-fetchNFLScores();
-});
-
-
-
-const url4 = 'http://localhost:3000/api/fetchNFLschedule';
-
-const fetchNFLschedule = async () => {
-  const response = await fetch( url4, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' }
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch MLB data');
-  }
-
-  const betOptions = await response.json();
-  const dataSize = Buffer.byteLength(JSON.stringify(betOptions));
-  console.log(`Data size: ${dataSize} bytes`);
-  // Return the betOptions to be used for saving
-  return betOptions;
-};
 
 
 
@@ -677,3 +591,95 @@ cron.schedule('54 12 * * 4', () => {
   
 fetchNFLScores();
 });*/
+
+const url4 = 'http://localhost:3000/api/fetchNFLschedule';
+
+const fetchNFLschedule = async () => {
+const response = await fetch( url4, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' }
+});
+
+if (!response.ok) {
+  throw new Error('Failed to fetch MLB data');
+}
+
+const betOptions = await response.json();
+const dataSize = Buffer.byteLength(JSON.stringify(betOptions));
+console.log(`Data size: ${dataSize} bytes`);
+// Return the betOptions to be used for saving
+return betOptions;
+};
+
+cron.schedule('0 8 * * *', () => {
+  console.log("It's 8:00am fetching and saving injuries");
+  fetchAndSaveInjuries();
+});
+
+
+
+cron.schedule('0 0 * * 2', async () => { // every tuesday
+  try {
+    const betOptions = await fetchNFLDataOneWeekOut();
+    await saveWeeklyPicks(betOptions);
+  } catch (error) {
+    console.error('Scheduled job failed:', error);
+  }
+});
+
+
+cron.schedule('0 0 * * 2', () => {
+  console.log("It's Tuesday 12:00 AM, now deleting results");
+  deleteResultsFromServer();
+  deletePicksFromServer();
+  console.log("Updating Thursday deadline to the upcoming Thursday");
+  updateThursdayDeadline();
+});
+
+
+
+cron.schedule('0 19 * * 4', () => {
+  console.log("It's Thursday 7:00 PM, now saving picks to last week");
+  savePicksToLastWeek();
+  console.log("Updating Tuesday start time to the upcoming Tuesday");
+  updateTuesdayStartTime();
+});
+
+cron.schedule('39 23 * * 4', () => {
+  console.log("Its thursday, gettin scores");
+  
+  fetchNFLScores();
+  });
+  
+  
+  cron.schedule('32 13 * * 0', () => {
+    console.log("It's Sunday 4:15 PM, now fetching scores");
+    fetchNFLScores();
+  });
+  
+cron.schedule('35 16 * * 0', () => {
+  console.log("It's Sunday 4:15 PM, now fetching scores");
+  fetchNFLScores();
+});
+
+cron.schedule('32 19 * * 0', () => {
+console.log("It's Sunday 8:30 PM, now fetching scores");
+fetchNFLScores();
+});
+
+cron.schedule('00 2 * * 0', () => {
+  console.log("It's Sunday 11:30 PM, now fetching scores");
+  fetchNFLScores();
+});
+
+
+
+cron.schedule('0 7 * * 1', () => {
+console.log("monday morning injruy sweep");
+deleteInjuriesFromServer();
+})
+
+cron.schedule('28 23 * * 1', () => {
+  console.log("It's Monday 11:30 PM, now fetching scores");
+  fetchNFLScores();
+});

@@ -30,7 +30,7 @@ require('dotenv').config();
 
 app.use(express.static('public/logos/'));
 app.use(express.static('public/infoPics/'));
-
+app.use(express.static('public/halloweenPics/'));
 // 2. Logging middleware\
 /*
 app.use((req: Request, res: Response, next: NextFunction) => {

@@ -1,138 +1,3 @@
-/*document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(() => {
-      fetch('/api/getResults')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log("Received results:", data);
-        if (data.success && data.results) {
-          rebuildUIWithResults(data.results);
-        } else {
-          console.error('No results found or unable to fetch results:', data.message);
-        }
-      })
-      .catch(error => console.error('Failed to fetch results:', error));
-    }, 3000);  // Delay can be adjusted based on typical load times or removed if found unnecessary
-  });
-  
-  function rebuildUIWithResults(results) {
-    console.log('Received results for UI rebuild:', results);
-    const allPicks = document.querySelectorAll('.player-picks .pick, .immortal-lock');
-
-    if (allPicks.length === 0) {
-      console.warn('No pick elements found, check if the DOM has fully loaded');
-      return;
-    }
-
-    console.log(`Total picks found: ${allPicks.length}`);
-
-    // Process each pick element
-    allPicks.forEach(pickElement => {
-      const teamLogo = pickElement.querySelector('.team-logo');
-      if (!teamLogo) {
-        console.error('Team logo not found in pick element', pickElement);
-        return; // Skip this iteration if no logo
-      }
-
-      const teamName = teamLogo.alt;
-      console.log(`Processing UI update for team: ${teamName}`);
-
-      // Filter results to only those for the current team
-      const teamResults = results.filter(r => r.teamName === teamName);
-
-      if (teamResults.length > 0) {
-        teamResults.forEach(resultEntry => {
-          console.log(`Found result entry for ${teamName}:`, resultEntry);
-
-          // Log the bet value and result for debugging purposes
-          console.log(`Bet Value: ${resultEntry.betValue}, Result: ${resultEntry.result}, Bet Type: ${resultEntry.betType}`);
-
-          // Strictly apply colors based on result without reset
-          let color;
-          if (resultEntry.result === "hit") {
-            color = "#39FF14";  // Green for a win
-          } else if (resultEntry.result === "miss") {
-            color = "red";  // Red for a loss
-          } else if (resultEntry.result === "push") {
-            color = "yellow";  // Yellow for a push
-          } else {
-            console.warn(`Unknown result for ${teamName}: ${resultEntry.result}`);
-            color = "gray";  // Gray for any unknown result
-          }
-
-          // Apply the color to the pick element
-          console.log(`Applying color ${color} for ${teamName} - Result: ${resultEntry.result}`);
-          pickElement.style.color = color;
-        });
-      } else {
-        console.warn(`No result found for ${teamName} or mismatch in team names`, {teamName, results});
-      }
-    });
-}*/
-
-/*
-function rebuildUIWithResults(results) {
-    console.log('Received results for UI rebuild:', results);
-    const allPicks = document.querySelectorAll('.player-picks .pick, .immortal-lock');
-
-    if (allPicks.length === 0) {
-        console.warn('No pick elements found, check if the DOM has fully loaded');
-        return;
-    }
-
-    console.log(`Total picks found: ${allPicks.length}`);
-
-    allPicks.forEach(pickElement => {
-        const teamLogo = pickElement.querySelector('.team-logo');
-        if (!teamLogo) {
-            console.error('Team logo not found in pick element', pickElement);
-            return; // Skip this iteration if no logo
-        }
-
-        const teamName = teamLogo.alt.trim(); // Trimming any extra spaces
-        console.log(`Processing UI update for team: ${teamName}`);
-
-        // Find the matching result in the results array
-        const resultEntry = results.find(r => r.teamName.trim() === teamName);
-        
-        if (resultEntry) {
-            console.log(`Found result entry for ${teamName}:`, resultEntry);
-            
-            const betValue = parseFloat(resultEntry.betValue); // Parse betValue to ensure it's a number
-            const betType = Math.abs(betValue) < 100 ? 'spread' : 'moneyline';
-            
-            console.log(`Bet Value: ${betValue}, Result: ${resultEntry.result}, Bet Type: ${betType}`);
-            
-            // Apply the correct color based on the result
-            let color = '';
-            switch (resultEntry.result) {
-                case 'hit':
-                    color = '#39FF14'; // Green
-                    break;
-                case 'miss':
-                    color = 'red'; // Red
-                    break;
-                case 'push':
-                    color = 'yellow'; // Yellow
-                    break;
-                default:
-                    color = 'gray'; // Default color
-                    break;
-            }
-
-            console.log(`Applying color ${color} for team ${teamName} with bet ${resultEntry.betValue}`);
-            pickElement.style.color = color;
-        } else {
-            console.warn(`No result found for ${teamName} or mismatch in team names`, { teamName, results });
-        }
-    });
-}*/
-
-
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
         fetch('/api/getResults')
@@ -1153,7 +1018,7 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
     fetch(url)
         .then(response => {
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+               throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
         })
@@ -1696,40 +1561,6 @@ function getUsernameForPick(pickElement) {
 
 
 
-
-/*
-
-function rebuildUIWithResults(results) {
-    console.log('Received results for UI rebuild:', results);
-    const allPicks = document.querySelectorAll('.player-picks .pick, .immortal-lock');
-
-    if (allPicks.length === 0) {
-        console.warn('No pick elements found, check if the DOM has fully loaded');
-        return;
-    }
-
-    console.log(`Total picks found: ${allPicks.length}`);
-
-    allPicks.forEach(pickElement => {
-        const teamLogo = pickElement.querySelector('.team-logo');
-        if (!teamLogo) {
-            console.error('Team logo not found in pick element', pickElement);
-            return; // Skip this iteration if no logo
-        }
-
-        const teamName = teamLogo.alt;
-        console.log(`Processing UI update for team: ${teamName}`);
-
-        const resultEntry = results.find(r => r.teamName === teamName);
-        if (resultEntry) {
-            console.log(`Applying UI result for ${teamName}:`, resultEntry);
-            pickElement.style.color = resultEntry.result === "hit" ? "#39FF14" : resultEntry.result === "miss" ? "red" : "yellow";
-        } else {
-            console.warn(`No result found for ${teamName} or mismatch in team names`, {teamName, results});
-        }
-    });
-}
-*/
 function updateUserStats(username, poolName, winIncrement = 0, lossIncrement = 0, pushIncrement = 0) {
     fetch('/pools/updateUserStatsInPoolByName', {
         method: 'POST',
