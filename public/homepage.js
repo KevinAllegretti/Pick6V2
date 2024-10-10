@@ -18,6 +18,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 3000); // Delay for load time
 })
 
+console.log("heap size: " ,performance.memory.usedJSHeapSize);
+console.log("heap limit: ",performance.memory.jsHeapSizeLimit);
+
+const logMemoryUsage = () => {
+    const used = process.memoryUsage();
+    console.log(`Memory usage: ${Math.round(used.heapUsed / 1024 / 1024 * 100) / 100} MB`);
+  };
 function rebuildUIWithResults(results) {
     const allPicks = document.querySelectorAll('.player-picks .pick, .immortal-lock');
 
