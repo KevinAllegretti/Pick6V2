@@ -611,12 +611,20 @@ console.log(`Data size: ${dataSize} bytes`);
 return betOptions;
 };
 
-cron.schedule('0 8 * * *', () => {
-  console.log("It's 8:00am fetching and saving injuries");
+cron.schedule('0 8 * * 2', () => {
+  console.log("TUESDAY It's 8:00am fetching and saving injuries");
   fetchAndSaveInjuries();
 });
 
+cron.schedule('0 8 * * 3', () => {
+  console.log(" WED It's 8:00am fetching and saving injuries");
+  fetchAndSaveInjuries();
+});
 
+cron.schedule('0 8 * * 4', () => {
+  console.log(" THURSDAY It's 8:00am fetching and saving injuries");
+  fetchAndSaveInjuries();
+});
 
 cron.schedule('0 0 * * 2', async () => { // every tuesday
   try {
