@@ -661,17 +661,17 @@ cron.schedule('39 23 * * 4', () => {
   });
   
   
-  cron.schedule('32 13 * * 0', () => {
+  cron.schedule('13 14 * * 0', () => {
     console.log("It's Sunday 4:15 PM, now fetching scores");
     fetchNFLScores();
   });
   
-cron.schedule('35 16 * * 0', () => {
+cron.schedule('34 16 * * 0', () => {
   console.log("It's Sunday 4:15 PM, now fetching scores");
   fetchNFLScores();
 });
 
-cron.schedule('32 19 * * 0', () => {
+cron.schedule('40 19 * * 0', () => {
 console.log("It's Sunday 8:30 PM, now fetching scores");
 fetchNFLScores();
 });
@@ -688,7 +688,7 @@ console.log("monday morning injruy sweep");
 deleteInjuriesFromServer();
 })
 
-cron.schedule('28 23 * * 1', () => {
+cron.schedule('33 23 * * 1', () => {
   console.log("It's Monday 11:30 PM, now fetching scores");
   fetchNFLScores();
 });
