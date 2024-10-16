@@ -259,8 +259,10 @@ function renderPick(pick, isImmortalLock) {
 }
 
 // Main function to handle bet selection
+// Main function to handle bet selection
 function selectBet(option, isRendering = false, isImmortalLock = false) {
     const immortalLockCheckbox = document.getElementById('immortalLockCheck');
+
 
     const betButton = document.querySelector(`.bet-button[data-team="${option.teamName.replace(/\s+/g, '-').toLowerCase()}"][data-type="${option.type.toLowerCase()}"]`);
     if (betButton && betButton.dataset.previousPick === 'true' && !isRendering) {
@@ -273,8 +275,10 @@ function selectBet(option, isRendering = false, isImmortalLock = false) {
         return;
     }
 
+
     // Check for existing pick
     const existingPickIndex = userPicks.findIndex(pick => pick.teamName === option.teamName && pick.type === option.type);
+
 
     // Toggle off existing pick
     if (existingPickIndex !== -1 && !isRendering) {
@@ -284,58 +288,32 @@ function selectBet(option, isRendering = false, isImmortalLock = false) {
         return;
     }
 
+
     // Validate pick
     if (!validatePick(option)) return;
 
+
     const currentPick = createPickObject(option);
 
-    // Handle Immortal Lock selection
-    if (immortalLockCheckbox.checked || isImmortalLock) {
+
+    // Handle pick selection
+    if (isImmortalLock || (immortalLockCheckbox.checked && picksCount === 6 && !userImmortalLock)) {
+        // Set Immortal Lock as 7th pick
         handleImmortalLockSelection(currentPick);
     } else if (picksCount < 6) {
         // Add regular pick
         userPicks.push(currentPick);
         picksCount++;
         updateBetCell(option, true);
+    } else if (!immortalLockCheckbox.checked) {
+        // Alert when 6 picks are selected but Immortal Lock is not toggled
+        alert('You can only select 6 picks. Toggle Immortal Lock to select your 7th pick as Immortal Lock.');
     } else {
-        alert('You can only select 6 picks. Set your Immortal Lock or deselect a pick.');
+        // Alert when all picks (including Immortal Lock) are already selected
+        alert('You already selected all your picks! Deselect one to change them.');
     }
 }
 
-// Validate a new pick
-function validatePick(option) {
-    const currentMatchup = betOptions.find(bet => bet.homeTeam === option.teamName || bet.awayTeam === option.teamName);
-    
-    // Check for opposing team bet
-    const opposingTeamBet = userPicks.find(pick => 
-        (currentMatchup.homeTeam !== option.teamName && pick.teamName === currentMatchup.homeTeam) ||
-        (currentMatchup.awayTeam !== option.teamName && pick.teamName === currentMatchup.awayTeam)
-    );
-    if (opposingTeamBet) {
-        alert("You cannot select a pick from both teams in the same matchup.");
-        return false;
-    }
-
-    // Check for multiple bets on same team
-    const existingTeamPick = userPicks.find(pick => pick.teamName === option.teamName);
-    if (existingTeamPick) {
-        alert("Only one pick per team is allowed.");
-        return false;
-    }
-
-    return true;
-}
-
-// Create a pick object
-function createPickObject(option) {
-    const currentMatchup = betOptions.find(bet => bet.homeTeam === option.teamName || bet.awayTeam === option.teamName);
-    return {
-        teamName: option.teamName,
-        type: option.type,
-        value: option.value,
-        commenceTime: currentMatchup.commenceTime
-    };
-}
 
 // Handle Immortal Lock selection
 function handleImmortalLockSelection(pick) {
@@ -347,16 +325,99 @@ function handleImmortalLockSelection(pick) {
     document.getElementById('immortalLockCheck').checked = true;
 }
 
-// Deselect Immortal Lock
+
+// Update the Immortal Lock checkbox event listener
+document.getElementById('immortalLockCheck').addEventListener('change', function() {
+    const immortalLockDiv = document.getElementById('immortalLock');
+    if (this.checked) {
+        immortalLockDiv.style.display = 'block';
+        if (picksCount === 6 && !userImmortalLock) {
+            alert('Please select your 7th pick as the Immortal Lock.');
+        } else if (picksCount < 6) {
+            alert('Please select 6 regular picks before choosing your Immortal Lock.');
+            this.checked = false;
+            immortalLockDiv.style.display = 'none';
+        }
+    } else {
+        immortalLockDiv.style.display = 'none';
+        if (userImmortalLock) {
+            deselectImmortalLock();
+        }
+    }
+});
+
+
+// Fetch user picks and render them (unchanged)
+async function fetchUserPicksAndRender(username, poolName) {
+    try {
+        const response = await fetch(`/api/getPicks/${encodeURIComponent(username)}/${encodeURIComponent(poolName)}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch user picks');
+        }
+        const userPicksData = await response.json();
+       
+        // Render regular picks
+        userPicksData.picks.forEach(pick => renderPick(pick, false));
+       
+        // Render Immortal Lock if present
+        if (userPicksData.immortalLock && userPicksData.immortalLock.length > 0) {
+            renderPick(userPicksData.immortalLock[0], true);
+        }
+    } catch (error) {
+        console.error('Error fetching user picks:', error);
+    }
+}
+
+
 function deselectImmortalLock() {
     if (userImmortalLock) {
         updateBetCell(userImmortalLock, false, true);
         userImmortalLock = null;
-        document.getElementById('immortalLockCheck').checked = false;
+        //document.getElementById('immortalLockCheck').checked = false;
     }
 }
 
-// Update bet cell styling
+
+// Validate a new pick (unchanged)
+function validatePick(option) {
+    const currentMatchup = betOptions.find(bet => bet.homeTeam === option.teamName || bet.awayTeam === option.teamName);
+   
+    // Check for opposing team bet
+    const opposingTeamBet = userPicks.find(pick =>
+        (currentMatchup.homeTeam !== option.teamName && pick.teamName === currentMatchup.homeTeam) ||
+        (currentMatchup.awayTeam !== option.teamName && pick.teamName === currentMatchup.awayTeam)
+    );
+    if (opposingTeamBet) {
+        alert("You cannot select a pick from both teams in the same matchup.");
+        return false;
+    }
+
+
+    // Check for multiple bets on same team
+    const existingTeamPick = userPicks.find(pick => pick.teamName === option.teamName);
+    if (existingTeamPick) {
+        alert("Only one pick per team is allowed.");
+        return false;
+    }
+
+
+    return true;
+}
+
+
+// Create a pick object (unchanged)
+function createPickObject(option) {
+    const currentMatchup = betOptions.find(bet => bet.homeTeam === option.teamName || bet.awayTeam === option.teamName);
+    return {
+        teamName: option.teamName,
+        type: option.type,
+        value: option.value,
+        commenceTime: currentMatchup.commenceTime
+    };
+}
+
+
+// Update bet cell styling (unchanged)
 function updateBetCell(option, isSelected, isImmortalLock = false) {
     const teamClass = option.teamName.replace(/\s+/g, '-').toLowerCase();
     const typeClass = option.type.toLowerCase();
