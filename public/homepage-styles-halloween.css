@@ -1774,7 +1774,7 @@ button:hover {
 .choose-picks-button {
     position: relative;
     background-color: rgb(15, 0, 51); /* Dark button background */
-    color: rgb(76, 0, 255); /* Neon text color */
+    color: rgb(255, 102, 0); /* Neon text color */
     border: 1px solid rgb(111, 0, 255); /* Neon border */
     padding: 10px 20px;
     font-size: 1em;

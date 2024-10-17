@@ -259,7 +259,6 @@ function renderPick(pick, isImmortalLock) {
 }
 
 // Main function to handle bet selection
-// Main function to handle bet selection
 function selectBet(option, isRendering = false, isImmortalLock = false) {
     const immortalLockCheckbox = document.getElementById('immortalLockCheck');
 
@@ -373,7 +372,6 @@ function deselectImmortalLock() {
     if (userImmortalLock) {
         updateBetCell(userImmortalLock, false, true);
         userImmortalLock = null;
-        //document.getElementById('immortalLockCheck').checked = false;
     }
 }
 

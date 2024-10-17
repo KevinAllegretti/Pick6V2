@@ -73,15 +73,6 @@ function rebuildUIWithResults(results) {
 }
 
 
-
-
-
-
-
-
-
-
-
 function getCurrentTimeInUTC4() {
     const now = new Date();
     const nowUtc4 = new Date(now);
@@ -93,30 +84,6 @@ function getCurrentTimeInUTC4() {
 const now = new Date();
 console.log(now + "now");
 console.log(getCurrentTimeInUTC4() + "now2");
-// Set Thursday deadline
-let thursdayDeadline = new Date(now);
-thursdayDeadline.setDate(now.getDate() + ((4 + 7 - now.getDay()) % 7));
-thursdayDeadline.setHours(19, 0, 0, 0); // 7 PM EST
-thursdayDeadline.setMinutes(thursdayDeadline.getMinutes() + thursdayDeadline.getTimezoneOffset());
-thursdayDeadline.setHours(thursdayDeadline.getHours() - 4); // Convert UTC to EST (UTC-4)
-
-// Set Tuesday start time
-let tuesdayStartTime = new Date(now);
-tuesdayStartTime.setDate(now.getDate() + ((2 + 7 - now.getDay()) % 7));
-tuesdayStartTime.setHours(0, 0, 0, 0); // 12 AM EST
-tuesdayStartTime.setMinutes(tuesdayStartTime.getMinutes() + tuesdayStartTime.getTimezoneOffset());
-tuesdayStartTime.setHours(tuesdayStartTime.getHours() - 4); // Convert UTC to EST (UTC-4)
-
-/*
-// Adjust if current time is past this week's Tuesday 12 AM
-if (now > tuesdayStartTime) {
-    tuesdayStartTime.setDate(tuesdayStartTime.getDate() + 7); // Move to next Tuesday
-}
-*/
-// Adjust if current time is past this week's Thursday 7 PM
-if (now > thursdayDeadline) {
-    thursdayDeadline.setDate(thursdayDeadline.getDate() + 7); // Move to next Thursday
-}
 
 
 // Save the calculated times to the database
@@ -138,70 +105,8 @@ async function saveInitialTimes() {
     }
 }
 
-//saveInitialTimes();
-
-/*(function appendLog(message) {
-    const logList = document.getElementById('poll-log-list');
-    const logEntry = document.createElement('li');
-    logEntry.textContent = `${new Date().toLocaleString()}: ${message}`;
-    logList.appendChild(logEntry);
-}
-*/
-
-/*
 
 
-function scheduleAllTasks() {
-    // Fetch the stored times from the database
-    fetch('/api/timeWindows')
-        .then(response => response.json())
-        .then(times => {
-            const { tuesdayStartTime, thursdayDeadline } = times;
-
-            const tuesdayTime = new Date(tuesdayStartTime);
-            const thursdayTime = new Date(thursdayDeadline);
-
-            console.log("Tuesday Start Time:", tuesdayStartTime);
-            console.log("Thursday Deadline Time:", thursdayDeadline);
-          //  appendLog("Fetched stored times from the database.");
-
-            const now = getCurrentTimeInUTC4();
-
-            const scheduleTask = (time, taskFunction) => {
-                const timeUntilTask = time - now;
-                const updatedTimeUntilTask = timeUntilTask <= 0 ? (time.setDate(time.getDate() + 7) - now) : timeUntilTask;
-
-                setTimeout(() => {
-                    taskFunction();
-                    scheduleTask(new Date(time), taskFunction); // Reschedule for the next week
-                }, updatedTimeUntilTask);
-            };
-
-            scheduleTask(tuesdayTime, () => {
-                console.log("Executing Tuesday update tasks");
-               // appendLog("Executing Tuesday update tasks");
-                deleteResultsFromServer();
-                updateThursdayDeadline();
-            });
-
-            scheduleTask(thursdayTime, () => {
-                console.log("Executing Thursday update tasks");
-               // appendLog("Executing Thursday update tasks");
-                //savePicksToLastWeek();
-                updateTuesdayStartTime();
-            });
-
-
-        })
-        .catch(error => {
-            console.error('Error fetching time windows:', error);
-           // appendLog(`Error fetching time windows: ${error.message}`);
-        });
-}
-
-// Call this function to start the scheduling process
-scheduleAllTasks();
-*/
 async function fetchTimeWindows() {
     try {
         const response = await fetch('/api/timewindows');
