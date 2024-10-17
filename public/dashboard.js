@@ -378,28 +378,33 @@ function deselectImmortalLock() {
 }
 
 
-// Validate a new pick (unchanged)
-function validatePick(option) {
+function validatePick(option, isImmortalLock = false) {
     const currentMatchup = betOptions.find(bet => bet.homeTeam === option.teamName || bet.awayTeam === option.teamName);
-   
+    
     // Check for opposing team bet
-    const opposingTeamBet = userPicks.find(pick =>
+    const opposingTeamBet = userPicks.find(pick => 
         (currentMatchup.homeTeam !== option.teamName && pick.teamName === currentMatchup.homeTeam) ||
         (currentMatchup.awayTeam !== option.teamName && pick.teamName === currentMatchup.awayTeam)
     );
-    if (opposingTeamBet) {
+    // Also check if the Immortal Lock is on the opposing team
+    const opposingImmortalLock = userImmortalLock && (
+        (currentMatchup.homeTeam !== option.teamName && userImmortalLock.teamName === currentMatchup.homeTeam) ||
+        (currentMatchup.awayTeam !== option.teamName && userImmortalLock.teamName === currentMatchup.awayTeam)
+    );
+
+    if (opposingTeamBet || opposingImmortalLock) {
         alert("You cannot select a pick from both teams in the same matchup.");
         return false;
     }
 
-
     // Check for multiple bets on same team
     const existingTeamPick = userPicks.find(pick => pick.teamName === option.teamName);
-    if (existingTeamPick) {
+    const existingImmortalLockOnSameTeam = userImmortalLock && userImmortalLock.teamName === option.teamName;
+
+    if (existingTeamPick || (existingImmortalLockOnSameTeam && !isImmortalLock)) {
         alert("Only one pick per team is allowed.");
         return false;
     }
-
 
     return true;
 }
