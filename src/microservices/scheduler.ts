@@ -637,8 +637,8 @@ cron.schedule('0 0 * * 2', async () => { // every tuesday
 
 
 
-cron.schedule('0 0 * * 2', () => {
-  console.log("It's Tuesday 12:00 AM, now deleting results");
+cron.schedule('0 1 * * 2', () => {
+  console.log("It's Tuesday 1:00 AM, now deleting results");
   deleteResultsFromServer();
   deletePicksFromServer();
   console.log("Updating Thursday deadline to the upcoming Thursday");
@@ -671,12 +671,12 @@ cron.schedule('34 16 * * 0', () => {
   fetchNFLScores();
 });
 
-cron.schedule('40 19 * * 0', () => {
+cron.schedule('33 19 * * 0', () => {
 console.log("It's Sunday 8:30 PM, now fetching scores");
 fetchNFLScores();
 });
 
-cron.schedule('20 23 * * 0', () => {
+cron.schedule('47 23 * * 0', () => {
   console.log("It's Sunday 11:30 PM, now fetching scores");
   fetchNFLScores();
 });
