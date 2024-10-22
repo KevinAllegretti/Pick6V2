@@ -327,7 +327,7 @@ export async function updateTuesdayStartTime(): Promise<void> {
     const now = getCurrentTimeInUTC4();
     const nextTuesday = new Date(now);
     nextTuesday.setDate(nextTuesday.getDate() + ((2 + 7 - now.getDay()) % 7));
-    nextTuesday.setHours(1, 30, 0, 0); // 12 AM EST
+    nextTuesday.setHours(0, 0, 0, 0); // 12 AM EST
     nextTuesday.setMinutes(nextTuesday.getMinutes() + nextTuesday.getTimezoneOffset());
     nextTuesday.setHours(nextTuesday.getHours() - 4 ); // Convert UTC to EST (UTC-4)
 
