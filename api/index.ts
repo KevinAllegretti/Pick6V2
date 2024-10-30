@@ -94,7 +94,6 @@ app.listen(PORT, () => {
 app.use(bodyParser.json({ limit: '500mb' })); // Adjust the limit as needed
 app.use(bodyParser.urlencoded({ limit: '500mb', extended: true }));
 
-const mongoURI = 'mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/Pick6'
 
 
 app.get('/', (req, res) => {

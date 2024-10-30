@@ -919,7 +919,7 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
     const encodedPoolName = encodeURIComponent(poolName);
     const url = `/api/getPicks/${encodedUsername}/${encodedPoolName}`;
 
-    console.log(`Fetching picks for username: ${username}, poolName: ${poolName}, URL: ${url}, isPickTime: ${isPickTime}`);
+   // console.log(`Fetching picks for username: ${username}, poolName: ${poolName}, URL: ${url}, isPickTime: ${isPickTime}`);
 
     fetch(url)
         .then(response => {
@@ -1413,36 +1413,6 @@ function changeUserPoints(username, points, poolName) {
 }
 
 
-const mlbToNflMap = {
-    "Arizona Diamondbacks": "ARI Cardinals",
-    "Atlanta Braves": "ATL Falcons",
-    "Baltimore Orioles": "BAL Ravens",
-    "Boston Red Sox": "NE Patriots",
-    "Chicago Cubs": "CHI Bears",
-    "Chicago White Sox": "CHI Bears",
-    "Cincinnati Reds": "CIN Bengals",
-    "Cleveland Guardians": "CLE Browns",
-    "Colorado Rockies": "DEN Broncos",
-    "Detroit Tigers": "DET Lions",
-    "Houston Astros": "HOU Texans",
-    "Kansas City Royals": "KC Chiefs",
-    "Los Angeles Angels": "LA Chargers",
-    "Los Angeles Dodgers": "LA Rams",
-    "Miami Marlins": "MIA Dolphins",
-    "Milwaukee Brewers": "GB Packers",
-    "Minnesota Twins": "MIN Vikings",
-    "New York Yankees": "NY Giants",
-    "New York Mets": "NY Jets",
-    "Oakland Athletics": "SF 49ers",
-    "Philadelphia Phillies": "PHI Eagles",
-    "Pittsburgh Pirates": "PIT Steelers",
-    "San Francisco Giants": "SF 49ers",
-    "Seattle Mariners": "SEA Seahawks",
-    "Tampa Bay Rays": "TB Buccaneers",
-    "Texas Rangers": "DAL Cowboys",
-    "Toronto Blue Jays": "BUF Bills",
-    "Washington Nationals": "WAS Commanders"
-  };
 
 
   //var gameScores = {};
