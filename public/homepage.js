@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Network response was not ok.');
             }
             const userData = await response.json();
-            const profilePicSrc = userData.profilePicture || 'HalloweenDefault.png';
+            const profilePicSrc = userData.profilePicture || 'Default.png';
             document.querySelector('.profile-icon').src = profilePicSrc;
             document.querySelector('.profile-icon-center').src = profilePicSrc;
 
@@ -260,8 +260,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Error fetching user data or pool data:', error);
-            document.querySelector('.profile-icon').src = 'HalloweenDefault.png';
-            document.querySelector('.profile-icon-center').src = 'HalloweenDefault.png';
+            document.querySelector('.profile-icon').src = 'Default.png';
+            document.querySelector('.profile-icon-center').src = 'Default.png';
         }
     });
 
@@ -325,7 +325,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const username = localStorage.getItem('username').toLowerCase();
         const response = await fetch(`/api/getUserProfile/${username}`);
         const userData = await response.json();
-        document.querySelector('.profile-icon-center').src = userData.profilePicture || 'HalloweenDefault.png';
+        document.querySelector('.profile-icon-center').src = userData.profilePicture || 'Default.png';
         document.getElementById('displayName').textContent = userData.username;
     }
 
@@ -395,7 +395,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.appendChild(template);
             panelContent = document.getElementById('slideOutPanelInPool');
         }
-        document.querySelector('#slideOutPanelInPool .profile-icon-center').src = userData.profilePicture ||'HalloweenDefault.png';
+        document.querySelector('#slideOutPanelInPool .profile-icon-center').src = userData.profilePicture ||'Default.png';
         document.getElementById('displayNameInPool').textContent = userData.username;
         document.getElementById('userBioInPool').textContent = userData.bio || 'No bio available';
         const userRecordContainer = document.getElementById('userRecordInPool');
@@ -423,13 +423,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Network response was not ok.');
             }
             const userData = await response.json();
-            const profilePicSrc = userData.profilePicture || 'HalloweenDefault.png';
+            const profilePicSrc = userData.profilePicture || 'Default.png';
             document.querySelector('.profile-icon').src = profilePicSrc;
             document.querySelector('.profile-icon-center').src = profilePicSrc;
         } catch (error) {
             console.error('Error fetching user data:', error);
-            document.querySelector('.profile-icon').src = 'HalloweenDefault.png';
-            document.querySelector('.profile-icon-center').src = 'HalloweenDefault.png';
+            document.querySelector('.profile-icon').src = 'Default.png';
+            document.querySelector('.profile-icon-center').src = 'Default.png';
         }
     });
 
@@ -796,8 +796,8 @@ function renderMessages(messages, chatBox) {
 
         // Create a span for the username with a specific color
         const usernameSpan = document.createElement('span');
-       usernameSpan.style.color= '#ff7b00 '; //halloween version
-       //  usernameSpan.style.color = '#33d9ff';
+       //usernameSpan.style.color= '#ff7b00 '; //halloween version
+         usernameSpan.style.color = '#33d9ff';
         usernameSpan.textContent = `${msg.username}: `;
 
         // Create a span for the message

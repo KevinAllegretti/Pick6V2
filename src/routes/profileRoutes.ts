@@ -75,7 +75,7 @@ router.get('/api/getUserProfile/:username', async (req, res) => {
 
     const userProfile = {
       username: user.username,
-      profilePicture: user.profilePicture || 'HalloweenDefault.png',
+      profilePicture: user.profilePicture || 'Default.png',
       points: user.points || 0,
       picks: user.picks || [],
       wins: user.wins || 0,
