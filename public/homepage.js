@@ -128,17 +128,19 @@ async function checkCurrentTimeWindow() {
 
         const { tuesdayStartTime, thursdayDeadline } = await response.json();
         const now = getCurrentTimeInUTC4();
-console.log("now: ", now );
+        console.log("now: ", now);
         const tuesdayTime = new Date(tuesdayStartTime);
         const thursdayTime = new Date(thursdayDeadline);
-        console.log("Tuesday Start time: ", tuesdayTime );
-        console.log("thursday deadline: ", thursdayTime );
-        // Check if it is Pick Time or Game Time
+        console.log("Tuesday Start time: ", tuesdayTime);
+        console.log("thursday deadline: ", thursdayTime);
+        
         if (now > tuesdayTime && now < thursdayTime) {
             console.log('Current time window: Pick Time');
+            enablePickTimeFeatures();
         } else if (now > thursdayTime && now < tuesdayTime) {
             console.log('Current time window: Game Time');
             enableGameTimeFeatures();
+            setupGameTimeListeners(); // Add this line
         } else {
             console.log('Error determining the current time window');
         }
@@ -151,25 +153,31 @@ console.log("now: ", now );
 
 
 // Function to enable pick time features
-
 function enableGameTimeFeatures() {
-    const choosePicksButton = document.querySelector('.choose-picks-button');
-    if (choosePicksButton) {
-        choosePicksButton.classList.add('disabled'); // Add visual indicator
-        choosePicksButton.textContent = 'Selections Unavailable';
+    // Select all choose picks buttons across all pools
+    const choosePicksButtons = document.querySelectorAll('.choose-picks-button');
+    
+    if (choosePicksButtons.length > 0) {
+        choosePicksButtons.forEach(button => {
+            button.classList.add('disabled');
+            button.textContent = 'Selections Unavailable';
+        });
     } else {
-        console.error('choosePicksButton not found');
+        console.error('No choose picks buttons found');
     }
 }
 
 function enablePickTimeFeatures() {
-    const choosePicksButton = document.querySelector('.choose-picks-button');
-    if (choosePicksButton) {
-        choosePicksButton.classList.remove('disabled');
-        choosePicksButton.textContent = 'Make Picks';
-
+    // Select all choose picks buttons across all pools
+    const choosePicksButtons = document.querySelectorAll('.choose-picks-button');
+    
+    if (choosePicksButtons.length > 0) {
+        choosePicksButtons.forEach(button => {
+            button.classList.remove('disabled');
+            button.textContent = 'Make Picks';
+        });
     } else {
-        console.error('choosePicksButton not found');
+        console.error('No choose picks buttons found');
     }
 }
 
@@ -722,15 +730,16 @@ function displayNewPoolContainer(pool) {
 
             poolContainerWrapper.appendChild(poolAndDeleteContainer);
 
-            const choosePicksButton = poolContainer.querySelector('.choose-picks-button');
-            choosePicksButton.addEventListener('click', (event) => {
-                if (choosePicksButton.classList.contains('disabled')) {
-                    event.preventDefault();
-                    showGameTimeAlert(event);
-                } else {
-                    redirectToDashboard(pool.name); // Call the redirect function
-                }
-            });
+           // In your displayNewPoolContainer function, replace the existing button setup with:
+const choosePicksButton = poolContainer.querySelector('.choose-picks-button');
+choosePicksButton.onclick = (event) => {
+    if (choosePicksButton.classList.contains('disabled')) {
+        event.preventDefault();
+        showGameTimeAlert(event);
+    } else {
+        redirectToDashboard(pool.name);
+    }
+};
 
             // Delay to ensure elements are rendered
             setTimeout(() => {

@@ -665,17 +665,17 @@ cron.schedule('39 23 * * 4', () => {
     fetchNFLScores();
   });
   
-cron.schedule('34 16 * * 0', () => {
+cron.schedule('28 16 * * 0', () => {
   console.log("It's Sunday 4:15 PM, now fetching scores");
   fetchNFLScores();
 });
 
-cron.schedule('33 19 * * 0', () => {
+cron.schedule('39 21 * * 0', () => {
 console.log("It's Sunday 8:30 PM, now fetching scores");
 fetchNFLScores();
 });
 
-cron.schedule('47 23 * * 0', () => {
+cron.schedule('29 23 * * 0', () => {
   console.log("It's Sunday 11:30 PM, now fetching scores");
   fetchNFLScores();
 });
