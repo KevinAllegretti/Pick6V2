@@ -902,7 +902,7 @@ async function fetchAndUpdatePopupContent(teamContainer, game, teamRole) {
                 </div>
             `;
         } else {
-            popupContainer.innerHTML = '<p>No upcoming matchups found for this team.</p>';
+            popupContainer.innerHTML = '<p>No upcoming matchups</p>';
         }
     } else {
         popupContainer.innerHTML = '<p>Failed to fetch matchups.</p>';
