@@ -107,13 +107,14 @@
         <div class="neon-sign">
             PICK <span class="six-with-hat">6</span>
         </div>
-        <div class="week">Week 10</div>
+        <div class="week">Week 11</div>
        <!--<button id="savePicksButton">Save Picks to Last Week</button>--> 
        <!-- <button id="fetchScoresButton">Fetch MLB Scores</button>--> 
         <div id="main-content">
             <div id="pool-container-wrapper">
                 <!-- New pool containers will be added here -->
             </div>
+            
             <div class="pool-manager">
                 <h2>Pool Manager</h2>
                 <button id="show-create-pool-form">Create Pool</button>
@@ -143,6 +144,71 @@
         </div>
     </div>
 
+    <!-- V3
+<div class="pool-manager-container">
+    <div class="pool-manager">
+        <div class="header">
+            <h2>Pool Manager</h2>
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="create">Create Pool</button>
+                <button class="tab-btn" data-tab="join">Join Pool</button>
+            </div>
+        </div>HTML -->
+
+        <!-- Create Pool Form V3
+        <div class="tab-content" id="create-pool-content">
+            <div class="mode-selection">
+                <button class="mode-card active" data-mode="classic">
+                    <div class="mode-title">Classic Mode</div>
+                    <div class="mode-description">Traditional Pick 6 experience</div>
+                </button>
+                <button class="mode-card" data-mode="draft">
+                    <div class="mode-title">Draft Mode</div>
+                    <div class="mode-description">Snake draft format with team rights</div>
+                </button>
+            </div>
+
+            <form id="create-pool-form" class="pool-form">
+                <div class="form-group">
+                    <label>Pool Name</label>
+                    <input type="text" placeholder="Enter pool name" required>
+                </div>
+
+                <div class="privacy-toggle">
+                    <button type="button" id="privacy-btn">
+                        <i class="icon-unlock"></i>
+                        <span>Public</span>
+                    </button>
+                </div>
+
+                <div class="form-group password-group hidden">
+                    <label>Password</label>
+                    <input type="password" placeholder="Enter pool password">
+                </div>
+
+                <button type="submit" class="submit-btn">Create Pool</button>
+            </form>
+        </div>-->
+
+        <!-- Join Pool Form V3
+        <div class="tab-content hidden" id="join-pool-content">
+            <form id="join-pool-form" class="pool-form">
+                <div class="form-group">
+                    <label>Pool Name</label>
+                    <input type="text" placeholder="Enter pool name" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Password (If private)</label>
+                    <input type="password" placeholder="Enter pool password">
+                </div>
+
+                <button type="submit" class="submit-btn">Join Pool</button>
+            </form>
+        </div>
+    </div>
+</div>
+-->
     <template id="chat-template">
         <div class="chat-wrapper">
             <div class="chat-tab" onclick="toggleChat(this)">Chat</div>

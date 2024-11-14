@@ -611,6 +611,11 @@ console.log(`Data size: ${dataSize} bytes`);
 return betOptions;
 };
 
+cron.schedule('0 8 * * 1', () => {
+  console.log("MON It's 8:00am fetching and saving injuries");
+  fetchAndSaveInjuries();
+});
+
 cron.schedule('0 8 * * 2', () => {
   console.log("TUESDAY It's 8:00am fetching and saving injuries");
   fetchAndSaveInjuries();
@@ -665,7 +670,7 @@ cron.schedule('39 23 * * 4', () => {
     fetchNFLScores();
   });
   
-cron.schedule('28 16 * * 0', () => {
+cron.schedule('41 19 * * 0', () => {
   console.log("It's Sunday 4:15 PM, now fetching scores");
   fetchNFLScores();
 });
@@ -675,7 +680,7 @@ console.log("It's Sunday 8:30 PM, now fetching scores");
 fetchNFLScores();
 });
 
-cron.schedule('29 23 * * 0', () => {
+cron.schedule('41 23 * * 0', () => {
   console.log("It's Sunday 11:30 PM, now fetching scores");
   fetchNFLScores();
 });
@@ -692,7 +697,7 @@ cron.schedule('40 23 * * 1', () => {
   fetchNFLScores();
 });
 //second job for cardinals at 9pm... Moved the dealines back to 1:30am.
-cron.schedule('55 23 * * 1', () => {
+cron.schedule('10 23 * * 1', () => {
   console.log("It's Monday 11:30 PM, now fetching scores");
   fetchNFLScores();
 });

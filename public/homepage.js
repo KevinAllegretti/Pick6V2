@@ -571,6 +571,80 @@ document.getElementById('create-pool-form').addEventListener('submit', function(
     });
 });
 
+
+/*
+// V3 for pool man
+document.addEventListener('DOMContentLoaded', function() {
+    // Tab Switching
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Remove active class from all buttons and contents
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.add('hidden'));
+
+            // Add active class to clicked button and show corresponding content
+            button.classList.add('active');
+            const tabId = button.dataset.tab;
+            document.getElementById(`${tabId}-pool-content`).classList.remove('hidden');
+        });
+    });
+
+    // Mode Selection
+    const modeCards = document.querySelectorAll('.mode-card');
+    modeCards.forEach(card => {
+        card.addEventListener('click', () => {
+            modeCards.forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+            const selectedMode = card.dataset.mode;
+            // You can store the selected mode or trigger other actions here
+        });
+    });
+
+    // Privacy Toggle
+    const privacyBtn = document.getElementById('privacy-btn');
+    const passwordGroup = document.querySelector('.password-group');
+    let isPrivate = false;
+
+    privacyBtn.addEventListener('click', () => {
+        isPrivate = !isPrivate;
+        privacyBtn.classList.toggle('private');
+        passwordGroup.classList.toggle('hidden');
+        
+        // Update button text and icon
+        const icon = privacyBtn.querySelector('i');
+        const text = privacyBtn.querySelector('span');
+        
+        if (isPrivate) {
+            icon.classList.replace('icon-unlock', 'icon-lock');
+            text.textContent = 'Private';
+        } else {
+            icon.classList.replace('icon-lock', 'icon-unlock');
+            text.textContent = 'Public';
+        }
+    });
+
+    // Form Submission
+    const createPoolForm = document.getElementById('create-pool-form');
+    const joinPoolForm = document.getElementById('join-pool-form');
+
+    createPoolForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        // Add your pool creation logic here
+        const formData = new FormData(createPoolForm);
+        // You can access the selected mode and other form data here
+    });
+
+    joinPoolForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        // Add your pool joining logic here
+        const formData = new FormData(joinPoolForm);
+    });
+});
+*/
+
 function sortPlayersByPoints(players) {
     // Sort players in descending order of points
     return players.sort((a, b) => b.points - a.points);

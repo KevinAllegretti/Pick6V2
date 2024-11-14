@@ -1339,12 +1339,6 @@ button:hover {
 }
 
 
-
-
-
-
-
-
 /* Styling for headers */
 .pool-header > span {
     color: #ffffff; /* Change to the color that fits your design */
@@ -1849,3 +1843,165 @@ button:hover {
 
 
 
+
+
+
+/*At line 1849 We begin to craft a new pool manager for V3!!! Bringing along the diff modes.
+
+.pool-manager-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 2rem;
+    min-height: 100vh;
+    background-color: #0A0B14;
+}
+
+.pool-manager {
+    width: 600px;
+    background-color: #001122;
+    border: 2px solid #33d9ff;
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.header h2 {
+    color: #33d9ff;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.tab-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.tab-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid #33d9ff;
+    background: transparent;
+    color: #33d9ff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+    background-color: #33d9ff;
+    color: #001122;
+}
+
+.tab-btn:hover:not(.active) {
+    background-color: rgba(51, 217, 255, 0.1);
+}
+
+.mode-selection {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.mode-card {
+    padding: 1rem;
+    border: 2px solid rgba(51, 217, 255, 0.3);
+    border-radius: 6px;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mode-card.active {
+    border-color: #33d9ff;
+    background-color: rgba(51, 217, 255, 0.1);
+}
+
+.mode-card:hover:not(.active) {
+    border-color: rgba(51, 217, 255, 0.6);
+}
+
+.mode-title {
+    color: #33d9ff;
+    font-size: 1.125rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.mode-description {
+    color: #9ca3af;
+    font-size: 0.875rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    color: #33d9ff;
+    margin-bottom: 0.5rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.5rem;
+    background-color: #002244;
+    border: 1px solid #33d9ff;
+    border-radius: 6px;
+    color: white;
+}
+
+.form-group input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(51, 217, 255, 0.3);
+}
+
+.privacy-toggle {
+    margin-bottom: 1rem;
+}
+
+.privacy-toggle button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid #6b7280;
+    border-radius: 6px;
+    background: transparent;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.privacy-toggle button.private {
+    border-color: #33d9ff;
+    color: #33d9ff;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 0.5rem;
+    background-color: #33d9ff;
+    color: #001122;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.submit-btn:hover {
+    background-color: rgba(51, 217, 255, 0.9);
+}
+
+.hidden {
+    display: none;
+}*/
