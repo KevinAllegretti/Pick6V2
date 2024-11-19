@@ -1,5 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Bungee&display=swap');
 
-
+@import url('https://fonts.googleapis.com/css2?family=Wallpoet&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Goldman:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600&display=swap');
 /* General Styling */
 body {
     font-family: 'Arial', sans-serif;
@@ -702,6 +705,7 @@ h2 {
 .neon-sign {
     font-size: 2rem; /* Adjust as needed */
     font-family: 'Russo one', sans-serif;
+   /* font-family: 'Goldman', sans-serif;*/
     color: rgb(255, 255, 255);
     text-align: center;
     text-shadow: 0 0 5px rgb(254, 237, 237), 0 0 10px rgb(246, 239, 239), 0 0 15px #00a2ff, 0 0 20px #00a2ff, 0 0 25px #00a2ff, 0 0 30px #00a2ff, 0 0 35px #00a2ff;
