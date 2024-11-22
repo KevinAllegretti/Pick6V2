@@ -792,11 +792,12 @@ function renderBetOptions() {
         gameContainer.style.flexDirection = 'column';
         gameContainer.style.alignItems = 'center';
 
+        /*
         // Create "Next Week Matchups" button (Move to the top of the game container)
         const nextWeekButton = document.createElement('button');
         nextWeekButton.className = 'next-week-matchup-button';
         nextWeekButton.textContent = 'Next Week Matchups';
-
+        
         // Add event listener for the button to toggle both popups
         nextWeekButton.addEventListener('click', function() {
             const homePopupContainer = homeTeamContainer.querySelector('.popup-container');
@@ -828,7 +829,7 @@ function renderBetOptions() {
             }
         });
 
-        gameContainer.appendChild(nextWeekButton); // Ensure the button is at the top
+        gameContainer.appendChild(nextWeekButton); // Ensure the button is at the top*/
 
         const teamsContainer = document.createElement('div');
         teamsContainer.style.display = 'flex';
