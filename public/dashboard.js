@@ -740,13 +740,13 @@ function createTeamContainer(game, teamRole) {
     teamLogo.alt = teamData + ' logo';
     teamLogo.className = 'team-logo';
     teamContainer.appendChild(teamLogo);
-   
+   /*
     // Create the popup container for displaying next week's matchups
     const popupContainer = document.createElement('div');
     popupContainer.className = 'popup-container';
     popupContainer.innerHTML = ' ';
     teamContainer.appendChild(popupContainer);
-   
+   */
     // Add bet buttons dynamically (Reintroducing this logic)
     game.bets.filter(bet => bet.team === teamData).forEach(bet => {
         const betButton = document.createElement('button');
@@ -1174,7 +1174,7 @@ function checkGameTime() {
         submitPicksButton.removeEventListener('click', showGameTimeAlert);
         resetPicksButton.removeEventListener('click', showGameTimeAlert);
     }
-
+    
     // Function to disable pick buttons
     function enableGameTimeFeatures() {
         const submitPicksButton = document.getElementById('submitPicks');
