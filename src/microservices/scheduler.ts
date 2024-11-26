@@ -665,8 +665,8 @@ cron.schedule('39 23 * * 4', () => {
   });
   
   
-  cron.schedule('13 14 * * 0', () => {
-    console.log("It's Sunday 4:15 PM, now fetching scores");
+  cron.schedule('50 16 * * 0', () => {
+    console.log("It's Sunday 4:50 PM, now fetching scores");
     fetchNFLScores();
   });
   
@@ -675,7 +675,7 @@ cron.schedule('41 19 * * 0', () => {
   fetchNFLScores();
 });
 
-cron.schedule('43 20 * * 0', () => {
+cron.schedule('49 20 * * 0', () => {
 console.log("It's Sunday 8:30 PM, now fetching scores");
 fetchNFLScores();
 });
@@ -692,19 +692,14 @@ console.log("monday morning injruy sweep");
 deleteInjuriesFromServer();
 })
 
-cron.schedule('40 23 * * 1', () => {
-  console.log("It's Monday 11:30 PM, now fetching scores");
-  fetchNFLScores();
-});
-//second job for cardinals at 9pm... Moved the dealines back to 1:30am.
-cron.schedule('10 23 * * 1', () => {
-  console.log("It's Monday 11:30 PM, now fetching scores");
-  fetchNFLScores();
-});
-
-cron.schedule('47 16 * * 1', () => {
+cron.schedule('29 23 * * 1', () => {
   console.log("It's Monday 11:30 PM, now fetching scores");
   fetchNFLScores();
 });
 
 
+
+cron.schedule('27 9 * * 1', () => {
+  console.log("It's Monday 11:30 PM, now fetching scores");
+  fetchNFLScores();
+});
