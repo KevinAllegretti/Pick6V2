@@ -650,56 +650,58 @@ cron.schedule('0 0 * * 2', () => {
 });
 
 
-
-cron.schedule('0 19 * * 4', () => {
+//changed from 0 19 * * 4 on 11/26 for thanksgiving games
+cron.schedule('30 11 * * 4', () => {
   console.log("It's Thursday 7:00 PM, now saving picks to last week");
   savePicksToLastWeek();
   console.log("Updating Tuesday start time to the upcoming Tuesday");
   updateTuesdayStartTime();
 });
 
-cron.schedule('39 23 * * 4', () => {
-  console.log("Its thursday, gettin scores");
-  
-  fetchNFLScores();
-  });
-  
-  
-  cron.schedule('50 16 * * 0', () => {
-    console.log("It's Sunday 4:50 PM, now fetching scores");
-    fetchNFLScores();
-  });
-  
-cron.schedule('41 19 * * 0', () => {
-  console.log("It's Sunday 4:15 PM, now fetching scores");
+// Thursday 4:00pm CT
+cron.schedule('0 16 * * 4', () => {
+  console.log("It's Thursday 4:00 PM");
   fetchNFLScores();
 });
 
-cron.schedule('49 20 * * 0', () => {
-console.log("It's Sunday 8:30 PM, now fetching scores");
-fetchNFLScores();
-});
-
-cron.schedule('41 23 * * 0', () => {
-  console.log("It's Sunday 11:30 PM, now fetching scores");
+// Thursday 8:15pm CT
+cron.schedule('15 20 * * 4', () => {
+  console.log("It's Thursday 8:15 PM");
   fetchNFLScores();
 });
 
-
-
-cron.schedule('0 7 * * 1', () => {
-console.log("monday morning injruy sweep");
-deleteInjuriesFromServer();
-})
-
-cron.schedule('29 23 * * 1', () => {
-  console.log("It's Monday 11:30 PM, now fetching scores");
+// Thursday 11:35pm CT
+cron.schedule('35 23 * * 4', () => {
+  console.log("It's Thursday 11:35 PM");
   fetchNFLScores();
 });
 
+// Friday 7:20pm CT
+cron.schedule('20 19 * * 5', () => {
+  console.log("It's Friday 7:20 PM");
+  fetchNFLScores();
+});
 
+// Sunday 4:15pm CT
+cron.schedule('15 16 * * 0', () => {
+  console.log("It's Sunday 4:15 PM");
+  fetchNFLScores();
+});
 
-cron.schedule('27 9 * * 1', () => {
-  console.log("It's Monday 11:30 PM, now fetching scores");
+// Sunday 8:15pm CT
+cron.schedule('15 20 * * 0', () => {
+  console.log("It's Sunday 8:15 PM");
+  fetchNFLScores();
+});
+
+// Sunday 11:40pm CT
+cron.schedule('40 23 * * 0', () => {
+  console.log("It's Sunday 11:40 PM");
+  fetchNFLScores();
+});
+
+// Monday 11:45pm CT
+cron.schedule('45 23 * * 1', () => {
+  console.log("It's Monday 11:45 PM");
   fetchNFLScores();
 });
