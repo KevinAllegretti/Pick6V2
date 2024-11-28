@@ -151,7 +151,7 @@ async function fetchMLBScores() {
       
       const url = 'https://odds.p.rapidapi.com/v4/sports/americanfootball_nfl/scores';
       const params = {
-        daysFrom: '3',
+        daysFrom: '2',
         apiKey: 'e5859daf3amsha3927ab000fb4a3p1b5686jsndea26f3d7448'
       };
       const queryParams = new URLSearchParams(params);
@@ -659,7 +659,7 @@ cron.schedule('30 11 * * 4', () => {
 });
 
 // Thursday 4:00pm CT
-cron.schedule('0 16 * * 4', () => {
+cron.schedule('25 16 * * 4', () => {
   console.log("It's Thursday 4:00 PM");
   fetchNFLScores();
 });
