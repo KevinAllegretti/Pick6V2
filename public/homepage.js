@@ -1282,6 +1282,25 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
         'upperdeckysiuuup': 10
     };
     
+       // Color pairs for playoff matchups
+       const seedColors = {
+        // 1 vs 10 - Red pairing
+        1: '#ff3333',
+        10: '#ff3333',
+        // 4 vs 5 - Green pairing
+        4: '#33cc33',
+        5: '#33cc33',
+        // 2 vs 9 - Blue pairing
+        2: '#3366ff',
+        9: '#3366ff',
+        // 3 vs 8 - Purple pairing
+        3: '#9933ff',
+        8: '#9933ff',
+        // 6 vs 7 - Orange pairing
+        6: '#ff9933',
+        7: '#ff9933'
+    };
+    
     console.log('Creating row for user:', memberData.username);
     console.log('Seed mapping for this user:', playoffSeeds[memberData.username.toLowerCase()]);
     
@@ -1305,38 +1324,37 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
     // Get the pool name from the DOM (needs a slight delay to ensure DOM is ready)
     setTimeout(() => {
         const poolWrapper = playerRow.closest('.pool-wrapper');
-        console.log('Pool wrapper found:', !!poolWrapper);
-        
         if (poolWrapper) {
             const poolName = poolWrapper.getAttribute('data-pool-name');
-            console.log('Pool name:', poolName);
             const userSection = playerRow.querySelector('.player-user');
             
-            console.log('Checking conditions:', {
-                isPlayoffPool: poolName === 'playoff',
-                hasSeed: !!playoffSeeds[memberData.username.toLowerCase()],
-                username: memberData.username.toLowerCase()
-            });
-
-           if (poolName === 'playoff' && playoffSeeds[memberData.username.toLowerCase()]) {
-    const seedBadge = document.createElement('span');
-    seedBadge.className = 'seed-badge';
-    seedBadge.textContent = `#${playoffSeeds[memberData.username.toLowerCase()]}`;
-    // Enhanced styling to match your site's theme
-    seedBadge.style.marginLeft = '4px';
-    seedBadge.style.padding = '2px 8px';
-    seedBadge.style.backgroundColor = '#0a192f';
-    seedBadge.style.color = '#33d9ff'; // Matching your site's cyan color
-    seedBadge.style.borderRadius = '4px';
-    seedBadge.style.fontSize = '0.9em';
-    seedBadge.style.fontWeight = 'bold';
-    seedBadge.style.border = '1px solid #33d9ff';
-    seedBadge.style.boxShadow = '0 0 5px rgba(51, 217, 255, 0.5)';
-    userSection.appendChild(seedBadge);
-}
+            if (poolName === 'playoff' && playoffSeeds[memberData.username.toLowerCase()]) {
+                const seedNumber = playoffSeeds[memberData.username.toLowerCase()];
+                const seedColor = seedColors[seedNumber];
+                
+                const seedBadge = document.createElement('span');
+                seedBadge.className = 'seed-badge';
+                seedBadge.textContent = `#${seedNumber}`;
+                
+                // Enhanced styling with color pairing
+                seedBadge.style.marginLeft = '2px';
+                seedBadge.style.marginRight = '2px';
+                seedBadge.style.padding = '2px 8px';
+                seedBadge.style.backgroundColor = '#0a192f';
+                seedBadge.style.color = seedColor;
+                seedBadge.style.borderRadius = '4px';
+                seedBadge.style.fontSize = '0.9em';
+                seedBadge.style.fontWeight = 'bold';
+                seedBadge.style.border = `1px solid ${seedColor}`;
+                seedBadge.style.boxShadow = `0 0 5px ${seedColor}80`; // 80 adds 50% opacity to the glow
+                
+                // Add hover effect to show matchup
+               // seedBadge.title = `Matchup: ${getMatchupText(seedNumber)}`;
+                
+                userSection.appendChild(seedBadge);
+            }
         }
     }, 100);
-
     if (isAdmin) {
         const userSection = playerRow.querySelector('.player-user');
         const adminBadge = document.createElement('i');
