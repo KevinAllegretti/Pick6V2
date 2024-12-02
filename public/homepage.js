@@ -1328,7 +1328,7 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
             const poolName = poolWrapper.getAttribute('data-pool-name');
             const userSection = playerRow.querySelector('.player-user');
             
-            if (poolName === 'playoff' && playoffSeeds[memberData.username.toLowerCase()]) {
+            if (poolName === 'Gauntlet Playoffs' && playoffSeeds[memberData.username.toLowerCase()]) {
                 const seedNumber = playoffSeeds[memberData.username.toLowerCase()];
                 const seedColor = seedColors[seedNumber];
                 
