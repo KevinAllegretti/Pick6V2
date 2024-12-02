@@ -1278,27 +1278,27 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
         'midnight professional': 6,
         'pedrissimo': 7,
         'helen hlushko': 8,
-        'chrisruiz': 9,
-        'upperdeckysiuuup': 10
+        'chrisruiz': 10,
+        'upperdeckysiuuup': 9
     };
     
        // Color pairs for playoff matchups
        const seedColors = {
-        // 1 vs 10 - Red pairing
-        1: '#ff3333',
+        // 7 vs 10 - Red pairing
+        7: '#ff3333',
         10: '#ff3333',
         // 4 vs 5 - Green pairing
-        4: '#33cc33',
-        5: '#33cc33',
-        // 2 vs 9 - Blue pairing
-        2: '#3366ff',
-        9: '#3366ff',
-        // 3 vs 8 - Purple pairing
-        3: '#9933ff',
-        8: '#9933ff',
-        // 6 vs 7 - Orange pairing
-        6: '#ff9933',
-        7: '#ff9933'
+       // 4: '#33cc33',
+      //  5: '#33cc33',
+        // 8 vs 9 - Orange pairing
+        8: '#ff9933',
+        9: '#ff9933',
+        // 3 vs 6 - Purple pairing
+      //  3: '#9933ff',
+      //  6: '#9933ff',
+        // 1 vs 2 - Blue pairing
+      //  1: '#3366ff',
+      //  2: '#ff9933'
     };
     
     console.log('Creating row for user:', memberData.username);
