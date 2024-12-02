@@ -1192,6 +1192,7 @@ button:hover {
     align-items: center;
     overflow: hidden; /* Hide overflow */
     cursor: pointer;
+    background-color: rgba(var(--seed-rgb), .5);  /* Using CSS variable for dynamic color */
 }
 
 

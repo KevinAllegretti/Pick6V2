@@ -1332,6 +1332,20 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
                 const seedNumber = playoffSeeds[memberData.username.toLowerCase()];
                 const seedColor = seedColors[seedNumber];
                 
+                const hexToRgb = (hex) => {
+                    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                    return result ? {
+                        r: parseInt(result[1], 16),
+                        g: parseInt(result[2], 16),
+                        b: parseInt(result[3], 16)
+                    } : null;
+                };
+
+                const rgbColor = hexToRgb(seedColor);
+                if (rgbColor) {
+                    // Set the RGB values as a CSS variable on the player-user element
+                    userSection.style.setProperty('--seed-rgb', `${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}`);
+                }
                 const seedBadge = document.createElement('span');
                 seedBadge.className = 'seed-badge';
                 seedBadge.textContent = `#${seedNumber}`;
