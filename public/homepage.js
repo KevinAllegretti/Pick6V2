@@ -27,7 +27,7 @@ function rebuildUIWithResults(results) {
         return;
     }
 
-    console.log(`Processing ${results.length} results to match against ${allPicks.length} picks on screen.`);
+   // console.log(`Processing ${results.length} results to match against ${allPicks.length} picks on screen.`);
 
     // Iterate over each pick element to process results
     allPicks.forEach(pickElement => {
@@ -40,7 +40,7 @@ function rebuildUIWithResults(results) {
         }
         
         const teamName = teamLogo.alt;
-        console.log(`Processing pick for team: ${teamName} with bet value ${displayedBetValue}`);
+       // console.log(`Processing pick for team: ${teamName} with bet value ${displayedBetValue}`);
 
         // Find the result for this specific team and bet value
         const matchingResult = results.find(r => 
@@ -48,7 +48,7 @@ function rebuildUIWithResults(results) {
         );
 
         if (matchingResult) {
-            console.log(`Matching result found for ${teamName}:`, matchingResult);
+          //  console.log(`Matching result found for ${teamName}:`, matchingResult);
 
             // Apply color based on the result
             let color;
@@ -65,7 +65,7 @@ function rebuildUIWithResults(results) {
 
             // Apply the color to the pick element (in this case, the span with the bet value)
             pickElement.querySelector('span').style.setProperty('color', color, 'important');
-            console.log(`Applied ${color} to ${teamName} for bet value ${displayedBetValue}`);
+           // console.log(`Applied ${color} to ${teamName} for bet value ${displayedBetValue}`);
         } else {
             console.warn(`No matching result found for ${teamName} with bet value ${displayedBetValue}`);
         }
@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Network response was not ok.');
             }
             const poolData = await poolResponse.json();
-            console.log('Fetched pool data:', poolData);
+           // console.log('Fetched pool data:', poolData);
 
             const userPoolElement = document.getElementById('userPool');
             if (userPoolElement) {
@@ -1016,17 +1016,17 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
             picksContainer.innerHTML = '';
 
               // Log commenceTime values before sorting
-                console.log('Before sorting:', picksData.picks.map(pick => pick.commenceTime));
+              //  console.log('Before sorting:', picksData.picks.map(pick => pick.commenceTime));
 
                 // Sort picks by commenceTime before rendering
                 picksData.picks.sort((a, b) => new Date(a.commenceTime) - new Date(b.commenceTime));
 
                 // Log commenceTime values after sorting
-                console.log('After sorting:', picksData.picks.map(pick => pick.commenceTime));
+               // console.log('After sorting:', picksData.picks.map(pick => pick.commenceTime));
             if (username === localStorage.getItem('username').toLowerCase() || !isPickTime) {
                 // Existing logic to fetch and display picks
                 if (picksData && picksData.picks && Array.isArray(picksData.picks) && picksData.picks.length > 0) {
-                    console.log('Rendering picks for user:', username);
+                 //   console.log('Rendering picks for user:', username);
 
                     picksData.picks.forEach(pick => {
                         const pickDiv = document.createElement('div');
@@ -1212,7 +1212,7 @@ function loadAndDisplayUserPools() {
 
       // Fetch the user profiles and user picks for each member
       const membersDataPromises = pool.members.map(member => {
-        console.log(`Fetching data for username: ${member.username}`); // This should log the actual username, not [object Object]
+       // console.log(`Fetching data for username: ${member.username}`); // This should log the actual username, not [object Object]
         // Directly use member.username since it is already a direct property of the member object
         const username = member.username;
       
@@ -1268,65 +1268,108 @@ function loadAndDisplayUserPools() {
 document.addEventListener('DOMContentLoaded', loadAndDisplayUserPools);
 
 
-
 function createPlayerRow(memberData, isAdmin, totalMembers) {
+    const playoffSeeds = {
+        'matt allegretti': 1,
+        'keys to the yard': 2,
+        'brett.niermeier': 3,
+        'kevdoer island': 4,
+        'parlay prodigy': 5,
+        'midnight professional': 6,
+        'pedrissimo': 7,
+        'helen hlushko': 8,
+        'chrisruiz': 9,
+        'upperdeckysiuuup': 10
+    };
+    
+    console.log('Creating row for user:', memberData.username);
+    console.log('Seed mapping for this user:', playoffSeeds[memberData.username.toLowerCase()]);
+    
     const playerRow = document.createElement('div');
     playerRow.className = 'player-row';
-    // Populate player row with member data
-    // You will need to adapt this to the actual structure of your member data and the required HTML
+    
     playerRow.innerHTML = `
-    <div class="player-rank">${memberData.rank}</div>
-    <div class="player-user">
-        <div class="player-profile-pic" style="background-image: url('${memberData.profilePic}')"></div>
-        <span class="player-username">${memberData.username}</span>
-    </div>
-    <div class="player-points">${memberData.points}</div>
-    <div class="player-picks"></div>
-    <div class="player-immortal-lock"></div>
-    <div class="player-win">${memberData.wins}</div>
-    <div class="player-loss">${memberData.losses}</div>
-    <div class="player-push">${memberData.pushes}</div>
-`;
-        if (isAdmin) {
+        <div class="player-rank">${memberData.rank}</div>
+        <div class="player-user">
+            <div class="player-profile-pic" style="background-image: url('${memberData.profilePic}')"></div>
+            <span class="player-username">${memberData.username}</span>
+        </div>
+        <div class="player-points">${memberData.points}</div>
+        <div class="player-picks"></div>
+        <div class="player-immortal-lock"></div>
+        <div class="player-win">${memberData.wins}</div>
+        <div class="player-loss">${memberData.losses}</div>
+        <div class="player-push">${memberData.pushes}</div>
+    `;
+
+    // Get the pool name from the DOM (needs a slight delay to ensure DOM is ready)
+    setTimeout(() => {
+        const poolWrapper = playerRow.closest('.pool-wrapper');
+        console.log('Pool wrapper found:', !!poolWrapper);
+        
+        if (poolWrapper) {
+            const poolName = poolWrapper.getAttribute('data-pool-name');
+            console.log('Pool name:', poolName);
+            const userSection = playerRow.querySelector('.player-user');
+            
+            console.log('Checking conditions:', {
+                isPlayoffPool: poolName === 'playoff',
+                hasSeed: !!playoffSeeds[memberData.username.toLowerCase()],
+                username: memberData.username.toLowerCase()
+            });
+
+           if (poolName === 'playoff' && playoffSeeds[memberData.username.toLowerCase()]) {
+    const seedBadge = document.createElement('span');
+    seedBadge.className = 'seed-badge';
+    seedBadge.textContent = `#${playoffSeeds[memberData.username.toLowerCase()]}`;
+    // Enhanced styling to match your site's theme
+    seedBadge.style.marginLeft = '4px';
+    seedBadge.style.padding = '2px 8px';
+    seedBadge.style.backgroundColor = '#0a192f';
+    seedBadge.style.color = '#33d9ff'; // Matching your site's cyan color
+    seedBadge.style.borderRadius = '4px';
+    seedBadge.style.fontSize = '0.9em';
+    seedBadge.style.fontWeight = 'bold';
+    seedBadge.style.border = '1px solid #33d9ff';
+    seedBadge.style.boxShadow = '0 0 5px rgba(51, 217, 255, 0.5)';
+    userSection.appendChild(seedBadge);
+}
+        }
+    }, 100);
+
+    if (isAdmin) {
         const userSection = playerRow.querySelector('.player-user');
         const adminBadge = document.createElement('i');
         adminBadge.classList.add('fas', 'fa-shield', 'admin-badge');
-        adminBadge.setAttribute('title', 'Admin'); // This sets the hover text
+        adminBadge.setAttribute('title', 'Admin');
         userSection.appendChild(adminBadge);
-        }
+    }
 
- // Add a crown icon to the rank 1 player card
- if (memberData.rank === 1) {
-    const userSection = playerRow.querySelector('.player-user');
-    const crownIcon = document.createElement('i');
-    crownIcon.classList.add('fas', 'fa-crown', 'crown-icon');
-    crownIcon.setAttribute('title', '1st Place'); // This sets the hover text
-    userSection.appendChild(crownIcon); // Append crown icon to the user div
-}
+    if (memberData.rank === 1) {
+        const userSection = playerRow.querySelector('.player-user');
+        const crownIcon = document.createElement('i');
+        crownIcon.classList.add('fas', 'fa-crown', 'crown-icon');
+        crownIcon.setAttribute('title', '1st Place');
+        userSection.appendChild(crownIcon);
+    }
 
+    if (memberData.rank === totalMembers) {
+        const userSection = playerRow.querySelector('.player-user');
+        const poopIcon = document.createElement('i');
+        poopIcon.classList.add('fas', 'fa-poop', 'dunce-icon');
+        poopIcon.setAttribute('title', 'Dunce');
+        userSection.appendChild(poopIcon);
+    }
 
-if (memberData.rank === totalMembers) {
-    const userSection = playerRow.querySelector('.player-user');
-    const poopIcon = document.createElement('i');
-    poopIcon.classList.add('fas', 'fa-poop', 'dunce-icon'); // Font Awesome Poop icon
-    poopIcon.setAttribute('title', 'Dunce');
-    userSection.appendChild(poopIcon);
-}
-
-        // Create and append picks to the player-picks container
-        const picksContainer = playerRow.querySelector('.player-picks');
-        if (Array.isArray(memberData.picks)) {
+    const picksContainer = playerRow.querySelector('.player-picks');
+    if (Array.isArray(memberData.picks)) {
         memberData.picks.forEach(pick => {
             const pickElement = document.createElement('div');
             pickElement.className = 'pick';
-            pickElement.textContent = pick; // Replace with actual content/formatting
+            pickElement.textContent = pick;
             picksContainer.appendChild(pickElement);
-        }); } else {
-        //console.error('picks is not an array:', memberData.picks);
-        }
-
-    // Add any additional data or elements you need
-
+        });
+    }
 
     return playerRow;
 }
