@@ -1275,9 +1275,9 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
         'brett.niermeier': 3,
         'kevdoer island': 4,
         'parlay prodigy': 5,
-        'midnight professional': 6,
-        'pedrissimo': 7,
-        'helen hlushko': 8,
+        'midnight professional': 7,
+        'pedrissimo': 8,
+        'helen hlushko': 6,
         'chrisruiz': 10,
         'upperdeckysiuuup': 9
     };
