@@ -651,7 +651,7 @@ cron.schedule('0 0 * * 2', () => {
 
 
 //changed from 0 19 * * 4 on 11/26 for thanksgiving games
-cron.schedule('30 11 * * 4', () => {
+cron.schedule('0 19 * * 4', () => {
   console.log("It's Thursday 7:00 PM, now saving picks to last week");
   savePicksToLastWeek();
   console.log("Updating Tuesday start time to the upcoming Tuesday");
