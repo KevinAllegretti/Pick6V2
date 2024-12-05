@@ -676,6 +676,11 @@ cron.schedule('35 23 * * 4', () => {
   fetchNFLScores();
 });
 
+// Thursday 11:35pm CT
+cron.schedule('55 23 * * 4', () => {
+  console.log("It's Thursday 11:35 PM");
+  fetchNFLScores();
+});
 // Friday 7:20pm CT
 cron.schedule('20 19 * * 5', () => {
   console.log("It's Friday 7:20 PM");
