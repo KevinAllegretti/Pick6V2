@@ -1286,19 +1286,17 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
        const seedColors = {
         // 7 vs 10 - Red pairing
         7: '#ff3333',
-        10: '#ff3333',
+        2: '#ff3333',
         // 4 vs 5 - Green pairing
         4: '#33cc33',
         5: '#33cc33',
-        // 8 vs 9 - Orange pairing
-        8: '#ff9933',
-        9: '#ff9933',
+ 
         // 3 vs 6 - Purple pairing
         3: '#9933ff',
         6: '#9933ff',
         // 1 vs 2 - Blue pairing
         1: '#3366ff',
-        2: '#ff9933'
+        9: '#3366ff'
     };
     
     console.log('Creating row for user:', memberData.username);
