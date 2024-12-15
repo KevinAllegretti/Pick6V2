@@ -688,7 +688,7 @@ cron.schedule('20 19 * * 5', () => {
 });
 
 // Sunday 4:15pm CT
-cron.schedule('46 16 * * 0', () => {
+cron.schedule('30 16 * * 0', () => {
   console.log("It's Sunday 4:15 PM");
   fetchNFLScores();
 });
@@ -698,6 +698,16 @@ cron.schedule('15 20 * * 0', () => {
   console.log("It's Sunday 8:15 PM");
   fetchNFLScores();
 });
+
+cron.schedule('55 19 * * 0', () => {
+  console.log("It's Sunday 8:15 PM");
+  fetchNFLScores();
+});
+cron.schedule('30 20 * * 0', () => {
+  console.log("It's Sunday 8:15 PM");
+  fetchNFLScores();
+});
+
 
 // Sunday 11:40pm CT
 cron.schedule('40 23 * * 0', () => {
