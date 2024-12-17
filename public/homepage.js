@@ -1288,9 +1288,15 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
         6: '#ff3333',
         2: '#ff3333',
         // 4 vs 5 - Green pairing
-        1: '#33cc33',
-        5: '#33cc33',
-
+       /* 1: '#33cc33',
+        5: '#33cc33',*/
+ 
+        // 3 vs 6 - Purple pairing
+        1: '#9933ff',
+        5: '#9933ff',
+        // 1 vs 2 - Blue pairing
+       /* 1: '#3366ff',
+        9: '#3366ff'*/
     };
     
     console.log('Creating row for user:', memberData.username);
