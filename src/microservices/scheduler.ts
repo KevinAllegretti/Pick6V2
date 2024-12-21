@@ -640,6 +640,8 @@ cron.schedule('0 0 * * 2', async () => { // every tuesday
   }
 });
 
+
+
 //pushed back for cardinals
 cron.schedule('0 0 * * 2', () => {
   console.log("It's Tuesday 12:00 AM, now deleting results");
@@ -689,6 +691,18 @@ cron.schedule('20 19 * * 5', () => {
 
 // Sunday 4:15pm CT
 cron.schedule('30 16 * * 0', () => {
+  console.log("It's Sunday 4:15 PM");
+  fetchNFLScores();
+});
+
+// Sunday 4:15pm CT
+cron.schedule('58 16 * * 6', () => {
+  console.log("It's Sunday 4:15 PM");
+  fetchNFLScores();
+});
+
+
+cron.schedule('25 20 * * 6', () => {
   console.log("It's Sunday 4:15 PM");
   fetchNFLScores();
 });
