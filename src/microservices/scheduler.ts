@@ -661,16 +661,15 @@ cron.schedule('0 19 * * 4', () => {
 });
 
 // Thursday 4:00pm CT
-cron.schedule('25 16 * * 4', () => {
+cron.schedule('25 16 * * 3', () => {
+  console.log("It's Thursday 4:00 PM");
+  fetchNFLScores();
+});
+cron.schedule('30 20 * * 3', () => {
   console.log("It's Thursday 4:00 PM");
   fetchNFLScores();
 });
 
-// Thursday 8:15pm CT
-cron.schedule('15 20 * * 4', () => {
-  console.log("It's Thursday 8:15 PM");
-  fetchNFLScores();
-});
 
 // Thursday 11:35pm CT
 cron.schedule('35 23 * * 4', () => {
@@ -683,14 +682,22 @@ cron.schedule('55 23 * * 4', () => {
   console.log("It's Thursday 11:35 PM");
   fetchNFLScores();
 });
-// Friday 7:20pm CT
-cron.schedule('20 19 * * 5', () => {
-  console.log("It's Friday 7:20 PM");
+
+
+cron.schedule('10 16 * * 6', () => {
+  fetchNFLScores();
+});
+
+cron.schedule('15 20 * * 6', () => {
+  fetchNFLScores();
+});
+
+cron.schedule('35 23 * * 6', () => {
   fetchNFLScores();
 });
 
 // Sunday 4:15pm CT
-cron.schedule('30 16 * * 0', () => {
+cron.schedule('8 17 * * 0', () => {
   console.log("It's Sunday 4:15 PM");
   fetchNFLScores();
 });

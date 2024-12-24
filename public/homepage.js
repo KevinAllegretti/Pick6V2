@@ -1285,15 +1285,14 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
        // Color pairs for playoff matchups
        const seedColors = {
         // 7 vs 10 - Red pairing
-        6: '#ff3333',
-        2: '#ff3333',
+
         // 4 vs 5 - Green pairing
-       /* 1: '#33cc33',
-        5: '#33cc33',*/
+        1: '#33cc33',
+        6: '#33cc33',
  
         // 3 vs 6 - Purple pairing
-        1: '#9933ff',
-        5: '#9933ff',
+       // 1: '#9933ff',
+        //5: '#9933ff',
         // 1 vs 2 - Blue pairing
        /* 1: '#3366ff',
         9: '#3366ff'*/
