@@ -157,16 +157,30 @@ router.post('/register', async (req: Request<{}, {}, RegisterRequest>, res: Resp
         const msg = {
             to: email,
             from: 'pick6noreply@gmail.com',
-            subject: 'Verify Your Email',
-            text: `Click this link to verify your email: ${verificationLink}`,
+            subject: 'Welcome to Pick 6 - Verify Your Email',
+            text: `Welcome to Pick 6! Click this link to verify your email: ${verificationLink}`,
             html: `
-                <h1>Welcome to Pick6!</h1>
-                <p>Click the button below to verify your email:</p>
-                <a href="${verificationLink}" 
-                   style="background-color: #4CAF50; color: white; padding: 14px 20px; 
-                          text-align: center; text-decoration: none; display: inline-block;">
-                    Verify Email
-                </a>
+                <div style="background-color: #040d21; color: #CCD6F6; padding: 40px; font-family: Arial, sans-serif; border-radius: 10px;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h1 style="color: #33d9ff; margin: 0;">Welcome to Pick6!</h1>
+                    </div>
+                    <div style="background-color: #112240; padding: 30px; border-radius: 8px; margin: 20px 0;">
+                        <p style="color: #CCD6F6; font-size: 16px; line-height: 1.5;">Thank you for joining Pick6. To get started, please verify your email address:</p>
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="${verificationLink}" 
+                               style="background-color: #33d9ff; 
+                                      color: #040d21; 
+                                      padding: 15px 30px; 
+                                      text-decoration: none; 
+                                      border-radius: 5px;
+                                      font-weight: bold;
+                                      display: inline-block;">
+                                Verify Email
+                            </a>
+                        </div>
+                        <p style="color: #8892B0; font-size: 14px; margin-top: 30px;">If you didn't create this account, you can safely ignore this email.</p>
+                    </div>
+                </div>
             `
         };
 
