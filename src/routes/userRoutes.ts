@@ -152,7 +152,7 @@ router.post('/register', async (req: Request<{}, {}, RegisterRequest>, res: Resp
 
         await usersCollection.insertOne(newUser);
 
-        const verificationLink = `https://pick6.club/verify?token=${verificationToken}`;
+        const verificationLink = `https://pick6.club/users/verify?token=${verificationToken}`;
         
         const msg = {
             to: email,
