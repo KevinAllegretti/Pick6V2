@@ -162,10 +162,10 @@ router.post('/register', async (req: Request<{}, {}, RegisterRequest>, res: Resp
             html: `
                 <div style="background-color: #040d21; color: #CCD6F6; padding: 40px; font-family: Arial, sans-serif; border-radius: 10px;">
                     <div style="text-align: center; margin-bottom: 30px;">
-                        <h1 style="color: #33d9ff; margin: 0;">Welcome to Pick6!</h1>
+                        <h1 style="color: #33d9ff; margin: 0;">Welcome to Pick 6!</h1>
                     </div>
                     <div style="background-color: #112240; padding: 30px; border-radius: 8px; margin: 20px 0;">
-                        <p style="color: #CCD6F6; font-size: 16px; line-height: 1.5;">Thank you for joining Pick6. To get started, please verify your email address:</p>
+                        <p style="color: #CCD6F6; font-size: 16px; line-height: 1.5;">Thank you for joining Pick 6. To get started, please verify your email address:</p>
                         <div style="text-align: center; margin: 30px 0;">
                             <a href="${verificationLink}" 
                                style="background-color: #33d9ff; 
