@@ -182,12 +182,15 @@ router.post('/register', async (req: Request<{}, {}, RegisterRequest>, res: Resp
         res.status(500).json({ message: "Internal Server Error", type: "error" });
     }
 });
-
 router.get('/verify', async (req: Request, res: Response) => {
     try {
         const token = req.query.token as string;
+        if (!token) {
+            return res.redirect('/login.html?status=failed');
+        }
+
         const db = await connectToDatabase();
-        const usersCollection = db.collection<User>("users");
+        const usersCollection = db.collection("users");
 
         const result = await usersCollection.updateOne(
             { verificationToken: token },
@@ -198,13 +201,14 @@ router.get('/verify', async (req: Request, res: Response) => {
         );
 
         if (result.modifiedCount === 0) {
-            return res.status(400).send("Invalid or expired verification link");
+            return res.redirect('/login.html?status=failed');
         }
 
-        res.redirect('/login.html?verified=true');
+        // On success, redirect to login with success status
+        res.redirect('/login.html?status=success');
     } catch (error) {
         console.error('[Verification Error]', error);
-        res.status(500).send("Verification failed");
+        res.redirect('/login.html?status=failed');
     }
 });
 

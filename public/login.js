@@ -15,6 +15,18 @@ document.getElementById('show-login').addEventListener('click', function() {
     console.log('Login form class:', document.querySelector('.form.login').className);
 });
 
+
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const status = urlParams.get('status');
+    
+    if (status === 'success') {
+        alert('Email verified successfully! You can now log in.');
+    } else if (status === 'failed') {
+        alert('Email verification failed. Please try again or contact support.');
+    }
+});
+
 // Handle login form submission
 document.getElementById('login-form').addEventListener('submit', function(event) {
     event.preventDefault();
