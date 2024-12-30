@@ -106,8 +106,11 @@ const options = {
   socketTimeoutMS: 45000, // Adjust socket timeout 
 };
 
-mongoose.connect('mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/Pick6', options);
+if (!process.env.MONGODB_URI) {
+  throw new Error('MONGODB_URI is not set in environment variables');
+}
 
-
+mongoose.connect(process.env.MONGODB_URI, options);
+//'mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/Pick6'
 
 export default app;
