@@ -160,27 +160,50 @@ router.post('/register', async (req: Request<{}, {}, RegisterRequest>, res: Resp
             subject: 'Welcome to Pick 6 - Verify Your Email',
             text: `Welcome to Pick 6! Click this link to verify your email: ${verificationLink}`,
             html: `
-                <div style="background-color: #040d21; color: #CCD6F6; padding: 40px; font-family: Arial, sans-serif; border-radius: 10px;">
-                    <div style="text-align: center; margin-bottom: 30px;">
-                        <h1 style="color: #33d9ff; margin: 0;">Welcome to Pick 6!</h1>
-                    </div>
-                    <div style="background-color: #112240; padding: 30px; border-radius: 8px; margin: 20px 0;">
-                        <p style="color: #CCD6F6; font-size: 16px; line-height: 1.5;">Thank you for joining Pick 6. To get started, please verify your email address:</p>
-                        <div style="text-align: center; margin: 30px 0;">
-                            <a href="${verificationLink}" 
-                               style="background-color: #33d9ff; 
-                                      color: #040d21; 
-                                      padding: 15px 30px; 
-                                      text-decoration: none; 
-                                      border-radius: 5px;
-                                      font-weight: bold;
-                                      display: inline-block;">
-                                Verify Email
-                            </a>
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <meta name="color-scheme" content="dark">
+                    <meta name="supported-color-schemes" content="dark">
+                </head>
+                <body style="background-color: #040d21 !important; margin: 0; padding: 0;">
+                    <div style="background-color: #040d21 !important; 
+                                color: #CCD6F6 !important; 
+                                padding: 40px; 
+                                font-family: Arial, sans-serif; 
+                                border-radius: 10px;
+                                margin: 0;
+                                max-width: 600px;
+                                margin: 0 auto;">
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <h1 style="color: #33d9ff !important; margin: 0;">Welcome to Pick 6!</h1>
                         </div>
-                        <p style="color: #8892B0; font-size: 14px; margin-top: 30px;">If you didn't create this account, you can safely ignore this email.</p>
+                        <div style="background-color: #112240 !important; 
+                                   padding: 30px; 
+                                   border-radius: 8px; 
+                                   margin: 20px 0;
+                                   border: 1px solid #33d9ff;">
+                            <p style="color: #CCD6F6 !important; font-size: 16px; line-height: 1.5;">Thank you for joining Pick 6. To get started, please verify your email address:</p>
+                            <div style="text-align: center; margin: 30px 0;">
+                                <a href="${verificationLink}" 
+                                   style="background-color: #33d9ff !important; 
+                                          color: #040d21 !important; 
+                                          padding: 15px 30px; 
+                                          text-decoration: none; 
+                                          border-radius: 5px;
+                                          font-weight: bold;
+                                          display: inline-block;
+                                          border: none;
+                                          box-shadow: 0 4px 6px rgba(51, 217, 255, 0.2);">
+                                    Verify Email
+                                </a>
+                            </div>
+                            <p style="color: #8892B0 !important; font-size: 14px; margin-top: 30px;">If you didn't create this account, you can safely ignore this email.</p>
+                        </div>
                     </div>
-                </div>
+                </body>
+                </html>
             `
         };
 
