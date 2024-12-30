@@ -1,4 +1,4 @@
-/*import express from 'express';
+import express from 'express';
 import { connectToDatabase } from '../microservices/connectDB';
 import bcrypt from 'bcrypt';
 require("dotenv").config();
@@ -77,7 +77,7 @@ router.post('/login', async (req, res) => {
 });
 
 export default router;
-*/
+/*
 import express, { Request, Response } from 'express';
 import { connectToDatabase } from '../microservices/connectDB';
 import bcrypt from 'bcrypt';
@@ -276,4 +276,4 @@ router.post('/login', async (req: Request<{}, {}, LoginRequest>, res: Response) 
     }
 });
 
-export default router;
+export default router;*/
