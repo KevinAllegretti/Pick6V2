@@ -1273,6 +1273,10 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
     const playerRow = document.createElement('div');
     playerRow.className = 'player-row';
     
+    const currentUsername = localStorage.getItem('username');
+    if (currentUsername && memberData.username.toLowerCase() === currentUsername.toLowerCase()) {
+        playerRow.classList.add('current-user-row');
+    }
     playerRow.innerHTML = `
         <div class="player-rank">${memberData.rank}</div>
         <div class="player-user">
