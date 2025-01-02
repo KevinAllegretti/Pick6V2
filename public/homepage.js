@@ -1269,38 +1269,7 @@ document.addEventListener('DOMContentLoaded', loadAndDisplayUserPools);
 
 
 function createPlayerRow(memberData, isAdmin, totalMembers) {
-    const playoffSeeds = {
-        'matt allegretti': 1,
-        'keys to the yard': 2,
-        'brett.niermeier': 3,
-        'kevdoer island': 4,
-        'parlay prodigy': 5,
-        'midnight professional': 7,
-        'pedrissimo': 8,
-        'helen hlushko': 6,
-        'chrisruiz': 10,
-        'upperdeckysiuuup': 9
-    };
-    
-       // Color pairs for playoff matchups
-       const seedColors = {
-        // 7 vs 10 - Red pairing
 
-        // 4 vs 5 - Green pairing
-        1: '#33cc33',
-        6: '#33cc33',
- 
-        // 3 vs 6 - Purple pairing
-       // 1: '#9933ff',
-        //5: '#9933ff',
-        // 1 vs 2 - Blue pairing
-       /* 1: '#3366ff',
-        9: '#3366ff'*/
-    };
-    
-    console.log('Creating row for user:', memberData.username);
-    console.log('Seed mapping for this user:', playoffSeeds[memberData.username.toLowerCase()]);
-    
     const playerRow = document.createElement('div');
     playerRow.className = 'player-row';
     
@@ -1318,54 +1287,6 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
         <div class="player-push">${memberData.pushes}</div>
     `;
 
-    // Get the pool name from the DOM (needs a slight delay to ensure DOM is ready)
-    setTimeout(() => {
-        const poolWrapper = playerRow.closest('.pool-wrapper');
-        if (poolWrapper) {
-            const poolName = poolWrapper.getAttribute('data-pool-name');
-            const userSection = playerRow.querySelector('.player-user');
-            
-            if (poolName === 'Gauntlet Playoffs' && playoffSeeds[memberData.username.toLowerCase()]) {
-                const seedNumber = playoffSeeds[memberData.username.toLowerCase()];
-                const seedColor = seedColors[seedNumber];
-                
-                const hexToRgb = (hex) => {
-                    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-                    return result ? {
-                        r: parseInt(result[1], 16),
-                        g: parseInt(result[2], 16),
-                        b: parseInt(result[3], 16)
-                    } : null;
-                };
-
-                const rgbColor = hexToRgb(seedColor);
-                if (rgbColor) {
-                    // Set the RGB values as a CSS variable on the player-user element
-                    userSection.style.setProperty('--seed-rgb', `${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}`);
-                }
-                const seedBadge = document.createElement('span');
-                seedBadge.className = 'seed-badge';
-                seedBadge.textContent = `#${seedNumber}`;
-                
-                // Enhanced styling with color pairing
-                seedBadge.style.marginLeft = '2px';
-                seedBadge.style.marginRight = '2px';
-                seedBadge.style.padding = '2px 8px';
-                seedBadge.style.backgroundColor = '#0a192f';
-                seedBadge.style.color = seedColor;
-                seedBadge.style.borderRadius = '4px';
-                seedBadge.style.fontSize = '0.9em';
-                seedBadge.style.fontWeight = 'bold';
-                seedBadge.style.border = `1px solid ${seedColor}`;
-                seedBadge.style.boxShadow = `0 0 5px ${seedColor}80`; // 80 adds 50% opacity to the glow
-                
-                // Add hover effect to show matchup
-               // seedBadge.title = `Matchup: ${getMatchupText(seedNumber)}`;
-                
-                userSection.appendChild(seedBadge);
-            }
-        }
-    }, 100);
     if (isAdmin) {
         const userSection = playerRow.querySelector('.player-user');
         const adminBadge = document.createElement('i');
