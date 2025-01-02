@@ -2016,3 +2016,26 @@ button:hover {
     transition: background 0.3s ease;
 }
 
+.pool-name-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+    margin-left: 10px;
+}
+
+.user-count {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    background-color: #17203a;
+    border: 1px solid #33d9ff;
+    border-radius: 12px;
+    font-size: 0.9em;
+    color: #33d9ff;
+}
+
+.user-count i {
+    font-size: 0.9em;
+}

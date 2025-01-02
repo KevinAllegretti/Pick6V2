@@ -710,10 +710,23 @@ function displayNewPoolContainer(pool) {
         poolWrapper.className = 'pool-wrapper';
         poolWrapper.setAttribute('data-pool-name', pool.name);
 
+
+        const poolNameContainer = document.createElement('div');
+        poolNameContainer.className = 'pool-name-container';
+        
         const poolNameDiv = document.createElement('div');
         poolNameDiv.className = 'pool-name';
         poolNameDiv.innerText = pool.name;
-
+        
+        const userCountDiv = document.createElement('div');
+        userCountDiv.className = 'user-count';
+        userCountDiv.innerHTML = `
+            <i class="fas fa-users"></i>
+            <span>${pool.members.length}</span>
+        `;
+        
+        poolNameContainer.appendChild(poolNameDiv);
+        poolNameContainer.appendChild(userCountDiv);
 
         const poolScrollableContainer = document.createElement('div');
         poolScrollableContainer.className = 'pool-scrollable-container';
@@ -760,7 +773,9 @@ function displayNewPoolContainer(pool) {
             poolAndDeleteContainer.className = 'pool-and-delete-container';
 
             poolScrollableContainer.appendChild(poolContainer);
-            poolWrapper.appendChild(poolNameDiv);
+            poolNameContainer.appendChild(poolNameDiv);
+            poolWrapper.appendChild(poolNameContainer);
+            poolNameContainer.appendChild(userCountDiv);
             poolWrapper.appendChild(poolScrollableContainer);
 
        
