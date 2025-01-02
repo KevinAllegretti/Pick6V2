@@ -2039,8 +2039,17 @@ button:hover {
     margin-left: 10px;
 }
 
+
+.user-count i {
+    font-size: 0.9em;
+}
+.view-selector-container {
+    position: relative;
+    display: inline-block;
+    margin-left: 10px;
+}
+
 .view-selector {
-    /* Remove margin-left auto and margin-right */
     padding: 2px 30px 2px 8px;
     background-color: #17203a;
     color: #33d9ff;
@@ -2050,25 +2059,21 @@ button:hover {
     font-size: 0.9em;
     cursor: pointer;
     appearance: none;
-    position: relative;
-    transition: all 0.3s ease;
+    -webkit-appearance: none;
+    -moz-appearance: none;
     box-shadow: 0 0 5px #0fa5c7, 0 0 5px #0fa5c7, 0 0 5px #0fa5c7;
-    margin-left: 10px; /* Add some space between user count and dropdown */
-}
-.user-count i {
-    font-size: 0.9em;
 }
 
 
-.view-selector::after {
-    content: '▼';
-    font-size: 0.8em;
+.dropdown-arrow {
     position: absolute;
     right: 8px;
     top: 50%;
     transform: translateY(-50%);
-    pointer-events: none;
     color: #33d9ff;
+    font-size: 0.7em;
+    pointer-events: none;
+    text-shadow: 0 0 5px #0fa5c7;
 }
 
 .view-selector:hover {

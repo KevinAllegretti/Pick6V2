@@ -724,15 +724,17 @@ function displayNewPoolContainer(pool) {
             <i class="fas fa-users"></i>
             <span>${pool.members.length}</span>
         `;
-        
-        const viewDropdown = document.createElement('select');
-        viewDropdown.className = 'view-selector';
+        const viewDropdown = document.createElement('div');
+        viewDropdown.className = 'view-selector-container';
         viewDropdown.innerHTML = `
-            <option value="aroundMe">Around Me</option>
-            <option value="all">View All</option>
+            <select class="view-selector">
+                <option value="aroundMe">Around Me</option>
+                <option value="all">View All</option>
+            </select>
+            <span class="dropdown-arrow">▼</span>
         `;
-
-        viewDropdown.addEventListener('change', (e) => {
+      
+        viewDropdown.querySelector('select').addEventListener('change', (e) => {
             if (e.target.value === 'aroundMe') {
                 // Logic for Around Me view
             } else {
