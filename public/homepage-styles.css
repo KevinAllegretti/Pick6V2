@@ -2034,8 +2034,54 @@ button:hover {
     border-radius: 12px;
     font-size: 0.9em;
     color: #33d9ff;
+    font-family: 'Montserrat', 'Sans-serif';
+    box-shadow: 0 0 5px #0fa5c7, 0 0 5px #0fa5c7, 0 0 5px #0fa5c7;
+    margin-left: 10px;
 }
 
+.view-selector {
+    /* Remove margin-left auto and margin-right */
+    padding: 2px 30px 2px 8px;
+    background-color: #17203a;
+    color: #33d9ff;
+    border: 1px solid #33d9ff;
+    border-radius: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9em;
+    cursor: pointer;
+    appearance: none;
+    position: relative;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 5px #0fa5c7, 0 0 5px #0fa5c7, 0 0 5px #0fa5c7;
+    margin-left: 10px; /* Add some space between user count and dropdown */
+}
 .user-count i {
     font-size: 0.9em;
+}
+
+
+.view-selector::after {
+    content: '▼';
+    font-size: 0.8em;
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #33d9ff;
+}
+
+.view-selector:hover {
+    box-shadow: 0 0 10px #0fa5c7, 0 0 10px #0fa5c7, 0 0 10px #0fa5c7;
+}
+
+.view-selector:focus {
+    outline: none;
+    box-shadow: 0 0 15px #0fa5c7, 0 0 15px #0fa5c7, 0 0 15px #0fa5c7;
+}
+
+.view-selector option {
+    background-color: #17203a;
+    color: #33d9ff;
+    padding: 8px;
 }

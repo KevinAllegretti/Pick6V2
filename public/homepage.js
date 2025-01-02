@@ -725,8 +725,24 @@ function displayNewPoolContainer(pool) {
             <span>${pool.members.length}</span>
         `;
         
+        const viewDropdown = document.createElement('select');
+        viewDropdown.className = 'view-selector';
+        viewDropdown.innerHTML = `
+            <option value="aroundMe">Around Me</option>
+            <option value="all">View All</option>
+        `;
+
+        viewDropdown.addEventListener('change', (e) => {
+            if (e.target.value === 'aroundMe') {
+                // Logic for Around Me view
+            } else {
+                // Logic for View All
+            }
+        });
+
         poolNameContainer.appendChild(poolNameDiv);
         poolNameContainer.appendChild(userCountDiv);
+        poolNameContainer.appendChild(viewDropdown);
 
         const poolScrollableContainer = document.createElement('div');
         poolScrollableContainer.className = 'pool-scrollable-container';
@@ -773,9 +789,9 @@ function displayNewPoolContainer(pool) {
             poolAndDeleteContainer.className = 'pool-and-delete-container';
 
             poolScrollableContainer.appendChild(poolContainer);
-            poolNameContainer.appendChild(poolNameDiv);
+           // poolNameContainer.appendChild(poolNameDiv);
             poolWrapper.appendChild(poolNameContainer);
-            poolNameContainer.appendChild(userCountDiv);
+           // poolNameContainer.appendChild(userCountDiv);
             poolWrapper.appendChild(poolScrollableContainer);
 
        
