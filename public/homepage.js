@@ -697,19 +697,16 @@ function displayNewPoolContainer(pool) {
         'Tennessee Titans': '/TENLogo.png',
         'Washington Commanders': '/WASLogo.png'
        };
-
-    let currentUsername = localStorage.getItem('username'); // Retrieve username from local storage
+   let currentUsername = localStorage.getItem('username');
 
     if (currentUsername) {
-        currentUsername = currentUsername.toLowerCase(); // Convert to lower case
-
+        currentUsername = currentUsername.toLowerCase();
         const isAdmin = currentUsername === pool.adminUsername.toLowerCase();
 
         const poolContainerWrapper = document.getElementById('pool-container-wrapper');
         const poolWrapper = document.createElement('div');
         poolWrapper.className = 'pool-wrapper';
         poolWrapper.setAttribute('data-pool-name', pool.name);
-
 
         const poolNameContainer = document.createElement('div');
         poolNameContainer.className = 'pool-name-container';
@@ -724,6 +721,7 @@ function displayNewPoolContainer(pool) {
             <i class="fas fa-users"></i>
             <span>${pool.members.length}</span>
         `;
+
         const viewDropdown = document.createElement('div');
         viewDropdown.className = 'view-selector-container';
         viewDropdown.innerHTML = `
@@ -733,12 +731,78 @@ function displayNewPoolContainer(pool) {
             </select>
             <span class="dropdown-arrow">▼</span>
         `;
-      
-        viewDropdown.querySelector('select').addEventListener('change', (e) => {
+
+        const select = viewDropdown.querySelector('select');
+        select.addEventListener('change', (e) => {
+            const container = poolContainer;
+            const allRows = [...container.querySelectorAll('.player-row')];
+            const currentUserRow = container.querySelector('.current-user-row');
+            const currentUserIndex = allRows.indexOf(currentUserRow);
+            
+            // Hide all rows initially
+            allRows.forEach(row => row.style.display = 'none');
+            
             if (e.target.value === 'aroundMe') {
-                // Logic for Around Me view
+                // Remove any existing "Show More" button
+                const existingButton = container.querySelector('.show-more-button');
+                if (existingButton) existingButton.remove();
+
+                let startIndex = 0;
+                let endIndex = Math.min(10, allRows.length);
+
+                if (currentUserIndex >= 5 && currentUserIndex < allRows.length - 5) {
+                    startIndex = currentUserIndex - 5;
+                    endIndex = currentUserIndex + 5;
+                } else if (currentUserIndex >= allRows.length - 5) {
+                    startIndex = Math.max(0, allRows.length - 10);
+                    endIndex = allRows.length;
+                }
+
+                // Show only the selected range of rows (maximum 10)
+                for (let i = startIndex; i < Math.min(startIndex + 10, endIndex); i++) {
+                    allRows[i].style.display = '';
+                }
             } else {
-                // Logic for View All
+                // View All mode
+                // Show first 10 rows
+                for (let i = 0; i < Math.min(10, allRows.length); i++) {
+                    allRows[i].style.display = '';
+                }
+
+                // Add "Show More" button if there are more than 10 members
+                if (allRows.length > 10) {
+                    const showMoreButton = document.createElement('button');
+                    showMoreButton.className = 'show-more-button';
+                    showMoreButton.innerHTML = `
+                        <i class="fas fa-chevron-down"></i>
+                        Show More (${allRows.length - 10} more)
+                    `;
+                    
+                    let expanded = false;
+                    showMoreButton.addEventListener('click', () => {
+                        if (!expanded) {
+                            allRows.forEach(row => row.style.display = '');
+                            showMoreButton.innerHTML = `
+                                <i class="fas fa-chevron-up"></i>
+                                Show Less
+                            `;
+                        } else {
+                            allRows.forEach((row, index) => {
+                                row.style.display = index < 10 ? '' : 'none';
+                            });
+                            showMoreButton.innerHTML = `
+                                <i class="fas fa-chevron-down"></i>
+                                Show More (${allRows.length - 10} more)
+                            `;
+                        }
+                        expanded = !expanded;
+                    });
+
+                    const existingButton = container.querySelector('.show-more-button');
+                    if (existingButton) existingButton.remove();
+                    
+                    container.appendChild(showMoreButton);
+                }
             }
         });
 
@@ -791,12 +855,9 @@ function displayNewPoolContainer(pool) {
             poolAndDeleteContainer.className = 'pool-and-delete-container';
 
             poolScrollableContainer.appendChild(poolContainer);
-           // poolNameContainer.appendChild(poolNameDiv);
             poolWrapper.appendChild(poolNameContainer);
-           // poolNameContainer.appendChild(userCountDiv);
             poolWrapper.appendChild(poolScrollableContainer);
 
-       
             // Append chat container from template
             const chatTemplate = document.getElementById('chat-template').content.cloneNode(true);
             poolWrapper.appendChild(chatTemplate);
@@ -813,8 +874,6 @@ function displayNewPoolContainer(pool) {
                     if (confirmation) {
                         deletePool(this.getAttribute('data-pool-name'));
                         this.remove();
-                    } else {
-                        console.log('Pool deletion cancelled by the user.');
                     }
                 });
                 poolAndDeleteContainer.appendChild(deleteButton);
@@ -828,8 +887,6 @@ function displayNewPoolContainer(pool) {
                     if (confirmation) {
                         leavePool(this.getAttribute('data-pool-name'));
                         this.remove();
-                    } else {
-                        console.log('Leaving pool cancelled by the user.');
                     }
                 });
                 poolAndDeleteContainer.appendChild(leaveButton);
@@ -837,21 +894,23 @@ function displayNewPoolContainer(pool) {
 
             poolContainerWrapper.appendChild(poolAndDeleteContainer);
 
-           // In your displayNewPoolContainer function, replace the existing button setup with:
-const choosePicksButton = poolContainer.querySelector('.choose-picks-button');
-choosePicksButton.onclick = (event) => {
-    if (choosePicksButton.classList.contains('disabled')) {
-        event.preventDefault();
-        showGameTimeAlert(event);
-    } else {
-        redirectToDashboard(pool.name);
-    }
-};
+            const choosePicksButton = poolContainer.querySelector('.choose-picks-button');
+            choosePicksButton.onclick = (event) => {
+                if (choosePicksButton.classList.contains('disabled')) {
+                    event.preventDefault();
+                    showGameTimeAlert(event);
+                } else {
+                    redirectToDashboard(pool.name);
+                }
+            };
 
-            // Delay to ensure elements are rendered
+            // Trigger "Around Me" view by default
+            select.value = 'aroundMe';
+            select.dispatchEvent(new Event('change'));
+
             setTimeout(() => {
-                checkCurrentTimeWindow(); // Check time window after the header is added
-            }, 50); // Adjust the delay as needed
+                checkCurrentTimeWindow();
+            }, 50);
         }).catch(error => {
             console.error('Error fetching member data:', error);
         });

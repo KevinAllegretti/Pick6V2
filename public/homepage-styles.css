@@ -2090,3 +2090,28 @@ button:hover {
     color: #33d9ff;
     padding: 8px;
 }
+
+.show-more-button {
+    width: 100%;
+    padding: 8px;
+    background-color: #17203a;
+    color: #33d9ff;
+    border: none;
+    border-top: 1px solid #33d9ff;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.show-more-button:hover {
+    background-color: #1c2847;
+    box-shadow: 0 0 10px #0fa5c7;
+}
+
+.show-more-button i {
+    font-size: 0.8em;
+}
