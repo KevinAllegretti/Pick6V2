@@ -2115,3 +2115,27 @@ button:hover {
 .show-more-button i {
     font-size: 0.8em;
 }
+
+/* For the Show More button positioning on mobile */
+@media screen and (max-width: 768px) {
+    .show-more-button {
+        padding-right: 40px; /* Add padding to ensure text is visible */
+        text-align: center;  /* Center the text */
+        transform: translateX(-20px); /* Shift button content left slightly */
+    }
+}
+
+/* Fix hover state persistence on mobile */
+@media (hover: none) {
+    .view-selector:hover,
+    .show-more-button:hover {
+        box-shadow: 0 0 5px #0fa5c7, 0 0 5px #0fa5c7, 0 0 5px #0fa5c7; /* Reset to default shadow */
+    }
+    
+    /* Add active state for mobile taps instead */
+    .view-selector:active,
+    .show-more-button:active {
+        box-shadow: 0 0 10px #0fa5c7, 0 0 10px #0fa5c7, 0 0 10px #0fa5c7;
+        transition: box-shadow 0.1s ease;
+    }
+}
