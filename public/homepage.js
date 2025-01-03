@@ -666,6 +666,9 @@ function displayNewPoolContainer(pool) {
         const poolNameDiv = document.createElement('div');
         poolNameDiv.className = 'pool-name';
         poolNameDiv.innerText = pool.name;
+
+        const poolControls = document.createElement('div');
+        poolControls.className = 'pool-controls';
         
         const userCountDiv = document.createElement('div');
         userCountDiv.className = 'user-count';
@@ -765,7 +768,7 @@ function displayNewPoolContainer(pool) {
         poolNameContainer.appendChild(poolNameDiv);
         poolNameContainer.appendChild(userCountDiv);
         poolNameContainer.appendChild(viewDropdown);
-
+        poolNameContainer.appendChild(poolControls);
         const poolScrollableContainer = document.createElement('div');
         poolScrollableContainer.className = 'pool-scrollable-container';
 

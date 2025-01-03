@@ -798,11 +798,12 @@ h2 {
     .5px .5px 0 #00ccff;
     text-align: left; /* Align text to the left */
     max-width:100% ;/* Takes the full width of its parent */
-    margin-bottom: 5px; /* Space between pool name and container */
+    margin-bottom: 1px; 
     margin-left: 10px;
-    overflow: hidden;
-    white-space: nowrap;
-    overflow-x: auto;
+    white-space: wrap;
+    align-items: flex-end;
+    line-height: 1; /* Adjust line height to remove extra space */
+
 }
 
 
@@ -1324,23 +1325,7 @@ button:hover {
         flex: 1; /* reset flex */
     }
    
-.pool-name {
-    font-family: 'Electrolize', sans-serif;
-    font-size: 20px;
-    color: #0a0f22;
-    text-shadow:
-    -.5px -.5px 0 #00ccff,  
-    .5px -.5px 0 #00ccff,
-    -.5px .5px 0 #00ccff,
-    .5px .5px 0 #00ccff;
-    text-align: left; /* Align text to the left */
-    max-width:150px ;/* Takes the full width of its parent */
-    margin-bottom: 5px; /* Space between pool name and container */
-    margin-left: 10px;
 
-    white-space: wrap;
-    overflow-x: auto;
-}
 }
 
 
@@ -2018,11 +2003,23 @@ button:hover {
 
 .pool-name-container {
     display: flex;
-    align-items: center;
+    align-items: flex-end; /* This will align items to the bottom */
     gap: 10px;
     margin-bottom: 5px;
     margin-left: 10px;
+    min-height: 40px; /* Give enough height for wrapped text */
 }
+
+
+/* Create a new container for the bottom elements */
+.pool-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%; /* Take full width */
+    margin-top: auto; /* Push to bottom of container */
+}
+
 
 .user-count {
     display: flex;
