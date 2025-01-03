@@ -2152,13 +2152,14 @@ button:hover {
     padding: 0 0.5rem;
   }
   .nav-left {
-    flex: 0 1 auto;
-    min-width: fit-content;
+    flex: 0 0 auto; /* Don't grow, don't shrink, auto basis */
+    width: auto;
+    max-width: 120px; /* Explicit max-width to constrain the section */
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    margin-left: 5px;
-  }
+    gap: 0.3rem; /* Reduced gap */
+}
+
   
   .nav-right {
     flex: 0 1 auto;
