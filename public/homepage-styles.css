@@ -2201,14 +2201,19 @@ button:hover {
     object-fit: cover;
   }
   
-.username {
-  color: #33d9ff;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  white-space: nowrap; /* Prevent username from wrapping */
-  margin-left: 55px;
-  margin-bottom: -8px;
+  .username {
+    color: #33d9ff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    white-space: normal; /* Allow text to wrap */
+    margin-left: 55px;
+    margin-bottom: -8px;
+    max-width: 120px; /* Control the width before wrapping */
+    line-height: 1.1; /* Tighter line spacing for wrapped text */
+    display: flex;
+    flex-direction: column;
+    text-align: left;
 }
 .nav-center {
     flex: 1 1 auto;
