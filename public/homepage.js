@@ -928,6 +928,8 @@ function displayNewPoolContainer(pool) {
         console.log("No username found in localStorage");
     }
 }
+
+/*
 let chatMode = 'local';  // Default chat mode
 
 function setChatMode(button) {
@@ -1039,8 +1041,188 @@ document.addEventListener('DOMContentLoaded', () => {
         const chatBox = poolWrapper.querySelector('.chat-box');
         fetchMessages(poolName, chatBox);
     });
+});*/
+
+let chatMode = 'global';  // Default to global mode
+
+// Initialize chat when the DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initializeChat();
+    setupChatEventListeners();
 });
 
+function initializeChat() {
+    const chatBtn = document.querySelector('.nav-button.chat-btn');
+    const chatWrapper = document.querySelector('.chat-wrapper');
+    
+    if (chatBtn && chatWrapper) {
+        // Set up click handler for chat button
+        chatBtn.addEventListener('click', function() {
+            chatWrapper.classList.toggle('show-chat');
+            if (chatWrapper.classList.contains('show-chat')) {
+                const chatBox = chatWrapper.querySelector('.chat-box');
+                fetchMessages(null, chatBox); // Fetch global messages
+            }
+        });
+
+        // Close chat when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!chatWrapper.contains(e.target) && !chatBtn.contains(e.target)) {
+                chatWrapper.classList.remove('show-chat');
+            }
+        });
+    }
+}
+
+function setupChatEventListeners() {
+    // Event listener for send button
+    document.addEventListener('click', function(event) {
+        if (event.target.matches('.send-chat-button')) {
+            handleSendMessage(event);
+        }
+    });
+
+    // Event listener for Enter key in chat input
+    document.addEventListener('keypress', function(event) {
+        if (event.target.matches('.chat-input') && event.key === 'Enter') {
+            handleSendMessage(event);
+        }
+    });
+
+    // Set up chat mode toggle buttons
+    const toggleButtons = document.querySelectorAll('.chat-toggle-button');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            setChatMode(this);
+        });
+    });
+}
+
+function handleSendMessage(event) {
+    const chatWrapper = event.target.closest('.chat-wrapper');
+    const chatBox = chatWrapper.querySelector('.chat-box');
+    const chatInput = chatWrapper.querySelector('.chat-input');
+    const message = chatInput.value.trim();
+    const username = localStorage.getItem('username');
+
+    if (message && username) {
+        sendMessage(username, null, message, chatBox); // null for global chat
+        chatInput.value = '';
+    }
+}
+
+function setChatMode(button) {
+    // Update button styles
+    const buttons = button.parentElement.querySelectorAll('.chat-toggle-button');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    button.classList.add('active');
+
+    // Set chat mode
+    chatMode = button.getAttribute('data-mode');
+    
+    // Fetch messages for new mode
+    const chatBox = button.closest('.chat-wrapper').querySelector('.chat-box');
+    fetchMessages(null, chatBox);
+}
+
+function fetchMessages(poolName, chatBox) {
+    const queryParam = chatMode === 'global' ? '' : `?poolName=${encodeURIComponent(poolName)}`;
+    fetch(`/pools/getChatMessages${queryParam}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderMessages(data.messages, chatBox);
+            }
+        })
+        .catch(error => console.error('Error fetching chat messages:', error));
+}
+
+function sendMessage(username, poolName, message, chatBox) {
+    const pool = chatMode === 'global' ? null : poolName;
+    fetch('/pools/sendChatMessage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, poolName: pool, message })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            fetchMessages(poolName, chatBox);
+        }
+    })
+    .catch(error => console.error('Error sending chat message:', error));
+}
+
+function renderMessages(messages, chatBox) {
+    chatBox.innerHTML = '';
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+    messages.forEach(msg => {
+        const prefix = msg.poolName ? '[L]' : '[G]';
+        const messageElement = document.createElement('div');
+        
+        const usernameSpan = document.createElement('span');
+        usernameSpan.style.color = '#33d9ff';
+        usernameSpan.textContent = `${msg.username}: `;
+
+        const messageSpan = document.createElement('span');
+        messageSpan.innerHTML = msg.message.replace(urlRegex, url => 
+            `<a href="${url}" target="_blank">${url}</a>`
+        );
+
+        messageElement.appendChild(document.createTextNode(`${prefix} `));
+        messageElement.appendChild(usernameSpan);
+        messageElement.appendChild(messageSpan);
+
+        chatBox.appendChild(messageElement);
+    });
+    
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// Set up automatic message refresh
+function startMessageRefresh() {
+    setInterval(() => {
+        const chatWrapper = document.querySelector('.chat-wrapper');
+        if (chatWrapper && chatWrapper.classList.contains('show-chat')) {
+            const chatBox = chatWrapper.querySelector('.chat-box');
+            fetchMessages(null, chatBox);
+        }
+    }, 5000); // Refresh every 5 seconds
+}
+
+// Start the refresh cycle when the page loads
+document.addEventListener('DOMContentLoaded', startMessageRefresh);
+
+// Optional: Add loading indicator
+function showLoadingIndicator(chatBox) {
+    const loader = document.createElement('div');
+    loader.className = 'chat-loader';
+    loader.textContent = 'Loading messages...';
+    chatBox.appendChild(loader);
+}
+
+function hideLoadingIndicator(chatBox) {
+    const loader = chatBox.querySelector('.chat-loader');
+    if (loader) {
+        loader.remove();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the template content
+    const template = document.getElementById('chat-template');
+    if (template) {
+        // Create a copy of the template content
+        const chatElement = template.content.cloneNode(true);
+        // Add it to the body
+        document.body.appendChild(chatElement);
+    }
+    
+    // Initialize chat
+    initializeChat();
+    setupChatEventListeners();
+});
 
 function leavePool(poolName) {
     const currentUsername = localStorage.getItem('username');

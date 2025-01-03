@@ -208,10 +208,10 @@
         </div>
     </div>
 </div>
--->
+
     <template id="chat-template">
         <div class="chat-wrapper">
-          <!--  <div class="chat-tab" onclick="toggleChat(this)">Chat</div>-->
+           <div class="chat-tab" onclick="toggleChat(this)">Chat</div>
             <div class="chat-container">
                 <div class="chat-toggle">
                     <button class="chat-toggle-button" data-mode="local" onclick="setChatMode(this)">Local</button>
@@ -222,8 +222,21 @@
                 <button class="send-chat-button">Send</button>
             </div>
         </div>
-    </template>
+    </template>-->
 
+    <template id="chat-template">
+        <div class="chat-wrapper">
+            <div class="chat-container">
+                <div class="chat-toggle">
+                    <button class="chat-toggle-button active" data-mode="global" onclick="setChatMode(this)">Global</button>
+                    <!-- We'll add the dropdown for pools later -->
+                </div>
+                <div class="chat-box"></div>
+                <input type="text" class="chat-input" placeholder="Type a message...">
+                <button class="send-chat-button">Send</button>
+            </div>
+        </div>
+    </template>
     <!-- Template for in-pool profiles -->
     <template id="in-pool-profile-template">
         <div id="slideOutPanelInPool" class="slide-out-panel">
