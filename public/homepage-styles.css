@@ -2090,11 +2090,10 @@ button:hover {
     color: #33d9ff;
     padding: 8px;
 }
-
 .show-more-button {
     position: absolute;
-    bottom: -5px;  /* Moved up slightly */
-    margin-left: 70px;      /* Aligned closer to pool edge */
+    bottom: -5px;  
+    margin-left: 70px;      
     padding: 10px 25px;
     background-color: transparent;
     color: #33d9ff;
@@ -2116,10 +2115,14 @@ button:hover {
 
 .show-more-button i {
     font-size: 0.8em;
+}
+
+/* Target only the chevron icon */
+.show-more-button i.fa-chevron-down,
+.show-more-button i.fa-chevron-up {
     transition: transform 0.2s ease;
 }
 
-.show-more-button.expanded i {
+.show-more-button.expanded i.fa-chevron-down {
     transform: rotate(180deg);
 }
-

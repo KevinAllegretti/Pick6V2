@@ -774,7 +774,7 @@ function displayNewPoolContainer(pool) {
                     showMoreButton.className = 'show-more-button';
                     showMoreButton.innerHTML = `
                     <i class="fas fa-chevron-down"></i>
-                    <i class="fas fa-users"></i>
+                    <i class="fas fa-users" style="font-size: 0.9em"></i>
                     <span>show ${allRows.length - 10} more</span>
                 `;
                     
@@ -783,8 +783,8 @@ function displayNewPoolContainer(pool) {
                         if (!expanded) {
                             allRows.forEach(row => row.style.display = '');
                             showMoreButton.innerHTML = `
-                                <i class="fas fa-chevron-up"></i>
-                                <i class="fas fa-users"></i>
+                                <i class="fas fa-chevron-down"></i>
+                                <i class="fas fa-users" style="font-size: 0.9em"></i>
                                 <span>show less</span>
                             `;
                             showMoreButton.classList.add('expanded');
@@ -794,7 +794,7 @@ function displayNewPoolContainer(pool) {
                             });
                             showMoreButton.innerHTML = `
                                 <i class="fas fa-chevron-down"></i>
-                                <i class="fas fa-users"></i>
+                                <i class="fas fa-users" style="font-size: 0.9em"></i>
                                 <span>show ${allRows.length - 10} more</span>
                             `;
                             showMoreButton.classList.remove('expanded');
