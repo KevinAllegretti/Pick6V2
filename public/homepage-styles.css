@@ -2093,7 +2093,7 @@ button:hover {
 
 .show-more-button {
     position: absolute;
-    bottom: -2px;  /* Moved up slightly */
+    bottom: -5px;  /* Moved up slightly */
     margin-left: 70px;      /* Aligned closer to pool edge */
     padding: 10px 25px;
     background-color: transparent;
