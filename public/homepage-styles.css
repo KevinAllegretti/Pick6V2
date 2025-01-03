@@ -1208,8 +1208,8 @@ button:hover {
 
 .player-username {
     font-size: 1rem; /* Fixed font size, adjust as needed */
-    overflow: hidden; /* Hide overflow */
-    white-space: nowrap; /* Keep content in a single line */
+   /* Hideow: hidden;  overflow */
+    white-space: wrap; /* Keep content in a single line */
     overflow-x: auto;
 }
 
@@ -1337,8 +1337,8 @@ button:hover {
     max-width:150px ;/* Takes the full width of its parent */
     margin-bottom: 5px; /* Space between pool name and container */
     margin-left: 10px;
-    overflow: hidden;
-    white-space: nowrap;
+
+    white-space: wrap;
     overflow-x: auto;
 }
 }
