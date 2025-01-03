@@ -210,14 +210,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const profileIcon = document.getElementById('profileIconTemplate');
     const slideOutPanel = document.getElementById('slideOutPanel');
     const closePanelBtn = document.getElementById('closePanelBtn');
-
-    if (profileIcon) {
-        profileIcon.addEventListener('click', () => {
+if (profileIcon) {
+        profileIcon.addEventListener('click', async () => {
             console.log('Profile icon clicked');
-            slideOutPanel.classList.add('visible');
+            if (!slideOutPanel.classList.contains('visible')) {
+                // Only load profile and bio when opening
+                await loadUserProfile();
+                await loadUserBio();
+            }
+            slideOutPanel.classList.toggle('visible');
         });
     }
-
     if (closePanelBtn) {
         closePanelBtn.addEventListener('click', () => {
             slideOutPanel.classList.remove('visible');
@@ -232,6 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
             slideOutPanel.classList.remove('visible');
         }
     });
+
 
     document.getElementById('logout-button').addEventListener('click', function() {
         localStorage.removeItem('username');
@@ -307,19 +311,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-
+/*
     const profileIconTemplate = document.getElementById('profileIconTemplate');
     const slideOutPanelTemplate = document.getElementById('slideOutPanel');
     const closePanelBtnTemplate = document.getElementById('closePanelBtn');
     const saveBioButton = document.getElementById('saveBioButton');
 
+    /*
     if (profileIconTemplate) {
         profileIconTemplate.addEventListener('click', async () => {
             slideOutPanelTemplate.classList.add('visible'); // Show the template slide-out panel
             await loadUserProfile(); // Load the user's profile when the panel is opened
             await loadUserBio(); // Load the user's bio when the panel is opened
         });
-    }
+    }*/
 
     if (closePanelBtnTemplate) {
         closePanelBtnTemplate.addEventListener('click', () => {
