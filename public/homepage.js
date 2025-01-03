@@ -430,13 +430,7 @@ function updateSlideOutPanelInPool(userData) {
     `;
     panelContent.classList.add('visible');
     
-    // Add click handler to close button
-    const closeBtn = document.getElementById('closePanelBtnInPool');
-    if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-            panelContent.classList.remove('visible');
-        });
-    }
+    
 }
 //testing purposes
 

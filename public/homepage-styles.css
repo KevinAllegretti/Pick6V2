@@ -115,7 +115,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 0 5px #33d9ff, 0 0 5px #33d9ff, 0 0 10px #33d9ff;
+
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
     margin: 20px auto;
     margin-top: 1px;
