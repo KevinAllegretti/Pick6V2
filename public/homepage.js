@@ -188,7 +188,12 @@ function showGameTimeAlert(event) {
     alert("It's Game Time! Pick selection page not available.");
 }
 
-
+function updateNavUsername() {
+    const username = localStorage.getItem('username');
+    if (username) {
+      document.getElementById('navUsername').textContent = username;
+    }
+  }
 
 //START OF HOMEPAGE
 document.addEventListener('DOMContentLoaded', function() {
@@ -201,6 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const loggedInUsername = localStorage.getItem('username');
     console.log("Logged in user:", loggedInUsername);
 
+    updateNavUsername();
     const profileIcon = document.getElementById('profileIconTemplate');
     const slideOutPanel = document.getElementById('slideOutPanel');
     const closePanelBtn = document.getElementById('closePanelBtn');

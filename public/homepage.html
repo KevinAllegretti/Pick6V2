@@ -36,78 +36,78 @@
     <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
 </head>
 <body>
-    <div class="containerbutton">
-        <div class="profile-icon-container">
-          <img src="Default.png" alt="User Profile" id="profileIconTemplate" class="profile-icon" />
-         <!--    <img src="HalloweenDefault.png" alt="User Profile" id="profileIconTemplate" class="profile-icon" /> -->
+    <nav class="navbar">
+        <div class="nav-container">
+          <!-- Left section - Profile -->
+          <div class="nav-left">
+            <div class="profile-section" id="profileIconTemplate">
+              <div class="profile-icon-container">
+                <img src="Default.png" alt="User Profile" class="profile-icon" />
+              </div>
+              <span class="username" id="navUsername">Username</span>
+            </div>
+          </div>
+      
+          <!-- Center section -->
+          <div class="nav-center">
+            <div class="nav-title">PICK 6</div>
+            <div class="nav-subtitle">Playoff Week 3</div>
+          </div>
+      
+          <!-- Right section -->
+          <div class="nav-right">
+            <a href="rules.html" class="rule-book-button nav-button">
+              <i class="fas fa-book"></i>
+              <span>Rule Book</span>
+            </a>
+            <button class="nav-button chat-btn" id="globalChatBtn">
+              <i class="fas fa-comments"></i>
+              <span>Chat</span>
+            </button>
+            <a href="info.html" class="nav-button info-btn">
+                <i class="fas fa-info-circle"></i>
+              </a>
+          </div>
         </div>
-        <div id="slideOutPanel" class="slide-out-panel">
-            <div class="panel-content">
-                <button id="closePanelBtn" class="close-panel-btn">&times;</button>
-                <div class="profile-icon-container-center">
-                    <img src="Default.png" alt="User Profile" class="profile-icon-center" />
-                    <!-- <img src="HalloweenDefault.png" alt="User Profile" class="profile-icon-center" /> -->
-                </div>
-                <form id="profileForm" action="/profile/uploadProfilePicture" method="post" enctype="multipart/form-data">
-                    <div class="account-options">
-                        <div class="welcome-message">
-                            <span id="displayName" class="neon-text"></span>
-                        </div>
-                        <label for="profilePic" class="custom-file-upload">
-                            <i class="fa fa-cloud-upload"></i> Upload Profile Picture
-                        </label>
-                        <input type="file" id="profilePic" name="profilePic" style="display: none;" />
-                    </div>
-                </form>
-                <div class="bio-container">
-                    <h3 class="bio-title">Bio</h3>
-                    <textarea id="userBio" maxlength="60" placeholder="Write a bio..."></textarea>
-                    <button id="saveBioButton">Save Bio</button>
-                </div>
-                <button id="logout-button" class="logout-button">Logout</button>
+      </nav>
+      
+      <!-- Keep the existing slide-out panel, just move it outside the containerbutton -->
+      <div id="slideOutPanel" class="slide-out-panel">
+        <div class="panel-content">
+          <button id="closePanelBtn" class="close-panel-btn">&times;</button>
+          <div class="profile-icon-container-center">
+            <img src="Default.png" alt="User Profile" class="profile-icon-center" />
+          </div>
+          <form id="profileForm" action="/profile/uploadProfilePicture" method="post" enctype="multipart/form-data">
+            <div class="account-options">
+              <div class="welcome-message">
+                <span id="displayName" class="neon-text"></span>
+              </div>
+              <label for="profilePic" class="custom-file-upload">
+                <i class="fa fa-cloud-upload"></i> Upload Profile Picture
+              </label>
+              <input type="file" id="profilePic" name="profilePic" style="display: none;" />
             </div>
+          </form>
+          <div class="bio-container">
+            <h3 class="bio-title">Bio</h3>
+            <textarea id="userBio" maxlength="60" placeholder="Write a bio..."></textarea>
+            <button id="saveBioButton">Save Bio</button>
+          </div>
+          <button id="logout-button" class="logout-button">Logout</button>
         </div>
-        <!--
-        <div id="poll-log" style="border: 1px solid black; padding: 10px; margin: 10px;">
-            <h3>Poll Execution Log</h3>
-            <ul id="poll-log-list"></ul>
-        </div>-->
-        <a href="rules.html" class="rule-book-button">
-            <div class="neon-book">
-                <div class="bookmark"></div>
-                <div class="title-line"></div>
-                <span class="rule-book-text">Rule Book</span>
-            </div>
-        </a>
-        
-      <!--  <button onclick="redirectToNFLSchedule('homepage')" class="schedule-button">View NFL Schedule</button>-->
-<!--
-    <a href="scheduler.html" class="schedule-button" onclick="redirectToNFLSchedule('homepage')">
-        <div class="neon-calendar">
-            <div class="ring-binders">
-                <div class="ring"></div>
-
-                <div class="ring"></div>
-            </div>
-            <div class="calendar-top">
-                <span class="calendar-title">Schedule</span>
-            </div>
-            <div class="calendar-body">
-                <div class="calendar-date">01</div>
-            </div>
-        </div>
-    </a>-->
-    
-    
-        <a href="info.html" class = "info-button"> i </a>
-    </div>
+      </div>
+      
 
     <div class="container">
         
         <div class="neon-sign">
-            PICK 6
+           <!-- PICK 6-->
+
+
+
         </div>
-        <div class="week">Playoff Week 3</div>
+        <!--<div class="week">Playoff Week 3</div>-->
        <!--<button id="savePicksButton">Save Picks to Last Week</button>--> 
        <!-- <button id="fetchScoresButton">Fetch MLB Scores</button>--> 
         <div id="main-content">
@@ -211,7 +211,7 @@
 -->
     <template id="chat-template">
         <div class="chat-wrapper">
-            <div class="chat-tab" onclick="toggleChat(this)">Chat</div>
+          <!--  <div class="chat-tab" onclick="toggleChat(this)">Chat</div>-->
             <div class="chat-container">
                 <div class="chat-toggle">
                     <button class="chat-toggle-button" data-mode="local" onclick="setChatMode(this)">Local</button>
