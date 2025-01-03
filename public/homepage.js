@@ -769,14 +769,14 @@ function displayNewPoolContainer(pool) {
                     allRows[i].style.display = '';
                 }
 
-                // Add "Show More" button if there are more than 10 members
                 if (allRows.length > 10) {
                     const showMoreButton = document.createElement('button');
                     showMoreButton.className = 'show-more-button';
                     showMoreButton.innerHTML = `
-                        <i class="fas fa-chevron-down"></i>
-                        Show More (${allRows.length - 10} more)
-                    `;
+                    <i class="fas fa-chevron-down"></i>
+                    <i class="fas fa-users"></i>
+                    <span>show ${allRows.length - 10} more</span>
+                `;
                     
                     let expanded = false;
                     showMoreButton.addEventListener('click', () => {
@@ -784,20 +784,24 @@ function displayNewPoolContainer(pool) {
                             allRows.forEach(row => row.style.display = '');
                             showMoreButton.innerHTML = `
                                 <i class="fas fa-chevron-up"></i>
-                                Show Less
+                                <i class="fas fa-users"></i>
+                                <span>show less</span>
                             `;
+                            showMoreButton.classList.add('expanded');
                         } else {
                             allRows.forEach((row, index) => {
                                 row.style.display = index < 10 ? '' : 'none';
                             });
                             showMoreButton.innerHTML = `
                                 <i class="fas fa-chevron-down"></i>
-                                Show More (${allRows.length - 10} more)
+                                <i class="fas fa-users"></i>
+                                <span>show ${allRows.length - 10} more</span>
                             `;
+                            showMoreButton.classList.remove('expanded');
                         }
                         expanded = !expanded;
                     });
-
+                
                     const existingButton = container.querySelector('.show-more-button');
                     if (existingButton) existingButton.remove();
                     

@@ -877,28 +877,28 @@ label {
 }
 
 
-/* Button Styling */
+/* Button Styling 
 button {
-    background-color: #033; /* Dark button background */
-    color: #0ff; /* Neon text color */
-    border: 1px solid #0af; /* Neon border */
+    background-color: #033;
+    color: #0ff; 
+    border: 1px solid #0af; 
     padding: 10px 20px;
     font-size: 1em;
     border-radius: 5px;
     cursor: pointer;
     transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
     margin-bottom: 20px;
-}
+}*/
 
 
-/* Hover effect for the button to make it pop */
+/* Hover effect for the button to make it pop 
 button:hover {
     box-shadow: 0 0 5px #0af,
     0 0 5px #0af,
     0 0 7px #0af;
     transform: scale(1.05);
 }
-
+*/
 
 /* Styling for the form container */
 .form-container {
@@ -2092,50 +2092,34 @@ button:hover {
 }
 
 .show-more-button {
-    width: 100%;
-    padding: 8px;
-    background-color: #17203a;
+    position: absolute;
+    bottom: 2px;  /* Moved up slightly */
+    margin-left: 70px;      /* Aligned closer to pool edge */
+    padding: 10px 25px;
+    background-color: transparent;
     color: #33d9ff;
-    border: none;
-    border-top: 1px solid #33d9ff;
-    cursor: pointer;
+    border: 1px solid #33d9ff;
+    border-radius: 12px;
     font-family: 'Montserrat', sans-serif;
+    font-size: 0.85em;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
+    gap: 6px;
     transition: all 0.3s ease;
 }
 
 .show-more-button:hover {
-    background-color: #1c2847;
-    box-shadow: 0 0 10px #0fa5c7;
+    background-color: rgba(51, 217, 255, 0.1);
+    box-shadow: 0 0 8px rgba(51, 217, 255, 0.4);
 }
 
 .show-more-button i {
     font-size: 0.8em;
+    transition: transform 0.2s ease;
 }
 
-/* For the Show More button positioning on mobile */
-@media screen and (max-width: 768px) {
-    .show-more-button {
-        padding-right: 40px; /* Add padding to ensure text is visible */
-        text-align: center;  /* Center the text */
-        transform: translateX(-20px); /* Shift button content left slightly */
-    }
+.show-more-button.expanded i {
+    transform: rotate(180deg);
 }
 
-/* Fix hover state persistence on mobile */
-@media (hover: none) {
-    .view-selector:hover,
-    .show-more-button:hover {
-        box-shadow: 0 0 5px #0fa5c7, 0 0 5px #0fa5c7, 0 0 5px #0fa5c7; /* Reset to default shadow */
-    }
-    
-    /* Add active state for mobile taps instead */
-    .view-selector:active,
-    .show-more-button:active {
-        box-shadow: 0 0 10px #0fa5c7, 0 0 10px #0fa5c7, 0 0 10px #0fa5c7;
-        transition: box-shadow 0.1s ease;
-    }
-}
