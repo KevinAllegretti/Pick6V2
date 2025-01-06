@@ -769,6 +769,7 @@ function displayNewPoolContainer(pool) {
         poolNameContainer.appendChild(userCountDiv);
         poolNameContainer.appendChild(viewDropdown);
         poolNameContainer.appendChild(poolControls);
+        
         const poolScrollableContainer = document.createElement('div');
         poolScrollableContainer.className = 'pool-scrollable-container';
 
@@ -989,6 +990,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const poolName = poolWrapper.getAttribute('data-pool-name');
         const chatBox = poolWrapper.querySelector('.chat-box');
         fetchMessages(poolName, chatBox);
+        
     });
 });*/
 

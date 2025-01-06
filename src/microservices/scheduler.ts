@@ -640,7 +640,10 @@ cron.schedule('0 0 * * 2', async () => { // every tuesday
   }
 });
 
-
+cron.schedule('0 7 * * 1', () => {
+  console.log("monday morning injruy sweep");
+  deleteInjuriesFromServer();
+})
 
 //pushed back for cardinals
 cron.schedule('0 0 * * 2', () => {
