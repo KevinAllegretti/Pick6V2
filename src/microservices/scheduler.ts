@@ -92,66 +92,14 @@ async function fetchMLBScores() {
       console.error('Error fetching MLB scores:', error);
     }
   }
-/*
-  async function fetchNFLScores() {
-    console.log('fetchMLBScores function started.');
-  
-    const url = 'https://odds.p.rapidapi.com/v4/sports/americanfootball_nfl/scores';
-    const params = {
-      daysFrom: '1',
-      apiKey: 'e5859daf3amsha3927ab000fb4a3p1b5686jsndea26f3d7448'
-    };
-    const queryParams = new URLSearchParams(params);
-  
-    try {
-      const response = await fetch(`${url}?${queryParams}`, {
-        method: 'GET',
-        headers: {
-          'x-rapidapi-host': 'odds.p.rapidapi.com',
-          'x-rapidapi-key': 'e5859daf3amsha3927ab000fb4a3p1b5686jsndea26f3d7448'
-        }
-      });
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-  
-      const scores = await response.json();
-      console.log("Scores data:", scores);
-  
-      gameScores = scores.map(event => {
-        if (!event.scores || !Array.isArray(event.scores)) {
-          console.log(`Skipping event due to missing or invalid scores:`, event);
-          return null;
-        }
-  
-        const homeTeam = mlbToNflMap[event.home_team] || event.home_team;
-        const awayTeam = mlbToNflMap[event.away_team] || event.away_team;
-        const homeScore = event.scores.find(s => mlbToNflMap[s.name] === homeTeam || s.name === event.home_team)?.score;
-        const awayScore = event.scores.find(s => mlbToNflMap[s.name] === awayTeam || s.name === event.away_team)?.score;
-  
-        return {
-          home_team: homeTeam,
-          away_team: awayTeam,
-          home_score: parseInt(homeScore, 10),
-          away_score: parseInt(awayScore, 10)
-        };
-      }).filter(match => match !== null);
-  
-      console.log('Scores fetched:', gameScores);
-  
-      await updateScores(gameScores);
-    } catch (error) {
-      console.error('Error fetching NFL scores:', error);
-    }
-  }*/
+
 
     async function fetchNFLScores() {
       console.log('fetchNFLScores function started.');
       
       const url = 'https://odds.p.rapidapi.com/v4/sports/americanfootball_nfl/scores';
       const params = {
-        daysFrom: '2',
+        daysFrom: '1',
         apiKey: 'e5859daf3amsha3927ab000fb4a3p1b5686jsndea26f3d7448'
       };
       const queryParams = new URLSearchParams(params);
@@ -233,164 +181,6 @@ async function updateScores(gameScores: any[]) {
       await saveResultsToServer(allResults);
   }
 
-
-
-
-
-  /*
-  async function processPick(username, poolName, pickEntry, gameScores, allResults, resultsCollection, isImmortalLock) {
-    const { teamName, value: betValue } = pickEntry;
-    const match = gameScores.find(m => m.home_team === teamName || m.away_team === teamName);
-
-    if (!match) {
-        console.log(`No game score available for ${teamName}, skipping...`);
-        return;
-    }
-
-    if (!betValue) {
-        console.error('Invalid betValue for pickEntry:', pickEntry);
-        return;
-    }
-
-    const homeTeamScore = match.home_team === teamName ? match.home_score : match.away_score;
-    const awayTeamScore = match.home_team === teamName ? match.away_score : match.home_score;
-
-    console.log(`Processing pick: ${betValue}, Home Team Score: ${homeTeamScore}, Away Team Score: ${awayTeamScore}`);
-
-    try {
-        // Check if the result is already in the database
-        const existingResult = await resultsCollection.findOne({ 
-            identifier: 'currentResults', 
-            "results.username": username, 
-            "results.poolName": poolName, 
-            "results.teamName": teamName, 
-            "results.betValue": betValue 
-        });
-
-        console.log(`Existing result for ${teamName}:`, existingResult);
-
-        if (existingResult) {
-            console.log(`Result already exists for ${teamName}, skipping...`);
-            return;
-        }
-
-        const { result, odds } = getBetResult(betValue, homeTeamScore, awayTeamScore);
-        const points = calculatePointsForResult({ result, odds, type: isImmortalLock ? 'ImmortalLock' : undefined });
-
-        // Check if the pick is already in allResults
-        const resultAlreadyProcessed = allResults.find(
-            r => r.username === username && r.poolName === poolName && r.teamName === teamName && r.betValue === betValue
-        );
-
-        if (resultAlreadyProcessed) {
-            console.log(`Result already processed for ${teamName}, skipping...`);
-            return;
-        }
-
-        allResults.push({ username, poolName, teamName, betValue, result, points, isImmortalLock });
-
-        // Update user points
-        if (points !== 0) {
-            console.log(`Updating points for ${username}: ${points} points in pool ${poolName}`);
-            await updateUserPoints(username, points, poolName);
-        }
-
-        // Determine the increments for win, loss, and push
-        let winIncrement = 0, lossIncrement = 0, pushIncrement = 0;
-        if (result === 'hit') {
-            winIncrement = 1;
-        } else if (result === 'miss') {
-            lossIncrement = 1;
-        } else if (result === 'push') {
-            pushIncrement = 1;
-        }
-
-        console.log(`Updating stats for ${username} in pool ${poolName} - Wins: ${winIncrement}, Losses: ${lossIncrement}, Pushes: ${pushIncrement}`);
-        // Update user stats
-        await updateUserStats(username, poolName, winIncrement, lossIncrement, pushIncrement);
-    } catch (error) {
-        console.error('Error processing bet result:', error);
-    }
-}
-*/
-/*
-async function processPick(username, poolName, pickEntry, gameScores, allResults, resultsCollection, isImmortalLock) {
-  const { teamName, value: betValue } = pickEntry;
-  const match = gameScores.find(m => m.home_team === teamName || m.away_team === teamName);
-
-  if (!match) {
-      console.log(`No game score available for ${teamName}, skipping...`);
-      return;
-  }
-
-  if (!betValue) {
-      console.error('Invalid betValue for pickEntry:', pickEntry);
-      return;
-  }
-
-  const homeTeamScore = match.home_score;
-  const awayTeamScore = match.away_score;
-  const homeTeam = match.home_team;
-  const awayTeam = match.away_team;
-
-  console.log(`Processing pick: ${betValue}, Home Team: ${homeTeam}, Away Team: ${awayTeam}, Home Team Score: ${homeTeamScore}, Away Team Score: ${awayTeamScore}`);
-
-  try {
-      // Check if the result is already in the database
-      const existingResult = await resultsCollection.findOne({ 
-          identifier: 'currentResults', 
-          "results.username": username, 
-          "results.poolName": poolName, 
-          "results.teamName": teamName, 
-          "results.betValue": betValue 
-      });
-
-      console.log(`Existing result for ${teamName}:`, existingResult);
-
-      if (existingResult) {
-          console.log(`Result already exists for ${teamName}, skipping...`);
-          return;
-      }
-
-      // Get the bet result using the updated function, now passing homeTeam and awayTeam
-      const { result, odds } = getBetResult(betValue, homeTeamScore, awayTeamScore, teamName, homeTeam, awayTeam);
-      const points = calculatePointsForResult({ result, odds, type: isImmortalLock ? 'ImmortalLock' : undefined });
-
-      // Check if the pick is already in allResults
-      const resultAlreadyProcessed = allResults.find(
-          r => r.username === username && r.poolName === poolName && r.teamName === teamName && r.betValue === betValue
-      );
-
-      if (resultAlreadyProcessed) {
-          console.log(`Result already processed for ${teamName}, skipping...`);
-          return;
-      }
-
-      allResults.push({ username, poolName, teamName, betValue, result, points, isImmortalLock });
-
-      // Update user points
-      if (points !== 0) {
-          console.log(`Updating points for ${username}: ${points} points in pool ${poolName}`);
-          await updateUserPoints(username, points, poolName);
-      }
-
-      // Determine the increments for win, loss, and push
-      let winIncrement = 0, lossIncrement = 0, pushIncrement = 0;
-      if (result === 'hit') {
-          winIncrement = 1;
-      } else if (result === 'miss') {
-          lossIncrement = 1;
-      } else if (result === 'push') {
-          pushIncrement = 1;
-      }
-
-      console.log(`Updating stats for ${username} in pool ${poolName} - Wins: ${winIncrement}, Losses: ${lossIncrement}, Pushes: ${pushIncrement}`);
-      // Update user stats
-      await updateUserStats(username, poolName, winIncrement, lossIncrement, pushIncrement);
-  } catch (error) {
-      console.error('Error processing bet result:', error);
-  }
-}*/
 
 async function processPick(username, poolName, pickEntry, gameScores, allResults, resultsCollection, isImmortalLock) {
   const { teamName, value: betValue } = pickEntry;
@@ -655,7 +445,7 @@ cron.schedule('0 0 * * 2', () => {
 });
 
 
-//changed from 0 19 * * 4 on 11/26 for thanksgiving games
+
 cron.schedule('0 19 * * 4', () => {
   console.log("It's Thursday 7:00 PM, now saving picks to last week");
   savePicksToLastWeek();

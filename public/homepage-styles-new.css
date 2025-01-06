@@ -1,0 +1,2416 @@
+@import url('https://fonts.googleapis.com/css2?family=Bungee&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Wallpoet&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Goldman:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600&display=swap');
+/* General Styling */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #40434d; /* Darker background for contrast */
+    /*background-image: url('P6.png');
+    background-size: 1500px; /* Resize the background image to cover the entire container */
+    background-repeat: no-repeat; /* Prevents the background image from repeating */
+    background-position: center -290px; /* Centers the background image */
+    color: #33d9ff; /* Neon light blue text */
+    margin: 0;
+    padding: 0;
+    justify-content: center;
+}
+
+
+.container {
+    width: 90%;
+    margin: 0 auto;
+    padding-top: 1em;
+}
+
+
+.containerbutton {
+    position:relative;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center; /* Center the buttons horizontally */
+    padding-top: 1em;
+}
+
+
+
+
+/* Profile icon container */
+.profile-icon-container {
+    position: absolute;
+    top: 15px;
+    left: 20px;
+    width: 50px; /* Adjust the size as needed */
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid #33d9ff;
+    box-shadow: 0 0 5px #0fa5c7, 0 0 10px #0fa5c7, 0 0 15px #0fa5c7; /* This creates the neon glow */
+    cursor: pointer;
+    z-index: 100; /* Make sure it's above other elements */
+}
+
+
+.profile-icon {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover; /* This ensures the image covers the area without being stretched */
+}
+
+
+/* Styles for the profile icon inside the slide-out panel */
+.profile-icon-container-center {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    margin-top: 20px; /* Add some space from the top of the panel */
+}
+
+
+.profile-icon-center {
+    width: 120px; /* Larger than the one on the homepage */
+    height: 120px; /* Keep the aspect ratio the same */
+    border-radius: 50%; /* Circular shape */
+    box-shadow: 0 0 5px #33d9ff, 0 0 10px #33d9ff, 0 0 15px #33d9ff; /* Neon glow */
+    object-fit: cover;
+    border: 3px solid #33d9ff; /* Light blue border, made slightly thicker */
+    cursor: pointer; /* Optional: if you want it to indicate it's clickable */
+    background-color: #17203a; /* Dark blue background, to match the slide-out panel */
+}
+
+
+.slide-out-panel {
+    position: fixed;
+    top: 0;
+    left: -100%; /* Start off-screen to the left */
+    width: 45%; /* Takes up half the screen width */
+    height: 100%; /* Full screen height */
+    background-color: #17203a; /* Dark background */
+    border-right: 2px solid #33d9ff; /* Neon blue border */
+    box-shadow: 5px 0 10px rgba(0, 0, 0, 0.5); /* Soft shadow to the right */
+    overflow-y: auto; /* In case the content overflows */
+    transition: left 0.3s ease-out; /* Smooth slide-in transition */
+    z-index: 100; /* Above everything except the profile icon */
+}
+
+
+
+
+.slide-out-panel.visible {
+    left: 0; /* Slide in from the left */
+}
+
+
+
+
+.close-panel-btn {
+    width: 40px;
+    height: 40px;
+    background-color: #17203a;
+    border: 2px solid #33d9ff;
+    border-radius: 10px;
+    color: #FFF;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
+    margin: 20px auto;
+    margin-top: 1px;
+}
+
+
+.close-panel-btn:hover {
+    box-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff, 0 0 30px #33d9ff;
+    transform: scale(1.1);
+}
+
+
+.close-panel-btn:focus {
+    outline: none;
+}
+
+
+
+
+.panel-content {
+    padding: 20px;
+}
+
+
+.account-options .option {
+    margin-bottom: 10px;
+}
+
+
+.custom-file-upload {
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #33d9ff 0%, #0099CC 100%);
+    border: 2px solid #0099CC;
+    border-radius: 10px;
+    color: #FFF;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+    text-align: center;
+    display: block; /* Makes it a block element */
+    margin: 20px auto; /* Centers it in the side panel */
+    text-decoration: none; /* Removes underline text */
+    max-width: 200px;
+
+
+}
+
+
+.custom-file-upload:hover {
+    background: linear-gradient(135deg, #0099CC 0%, #33d9ff 100%);
+    box-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff, 0 0 30px #33d9ff; /* Enhanced neon glow effect on hover */
+}
+
+
+.custom-file-upload i {
+    margin-right: 8px; /* Adds some space between the icon and the text */
+}
+.pool-info {
+    background-color: #0a0f22;
+    border: 2px solid #33d9ff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff;
+    margin: 30px auto;
+    max-width: 300px;
+    text-align: left;
+}
+
+
+.pool-title {
+    font-size: 1.8em;
+    color: #33d9ff;
+    border-bottom: 2px solid #33d9ff;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+
+.user-record {
+    font-size: 1.3em;
+    color: #fff;
+    display: flex;
+    justify-content: space-around;
+    text-shadow: 0 0 5px #0af, 0 0 10px #0af, 0 0 15px #0af;
+}
+
+
+.user-record div {
+    margin: 0 10px;
+}
+
+
+.bio-container, .bio-info {
+    background-color: #0a0f22;
+    border: 1px solid #33d9ff;
+    border-radius: 5px;
+    padding: 15px 20px;
+    box-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff;
+    margin: 20px auto;
+    max-width: 300px;
+    text-align: left;
+}
+
+
+.bio-title {
+    font-size: 1.5em;
+    color: #33d9ff;
+    border-bottom: 1px solid #33d9ff;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+
+#userBio {
+    width: 100%;
+    height: 60px;
+    border-radius: 5px;
+    padding: 10px;
+    border: 2px solid #33d9ff;
+    background-color: #0a0f22;
+    color: #fff;
+    font-size: 1em;
+    margin-bottom: 10px;
+    resize: none;
+    max-width: 300px;
+    box-sizing: border-box;
+}
+
+
+#saveBioButton {
+    margin-left: 10px;
+    background-color: #33d9ff;
+    border: none;
+    border-radius: 5px;
+    color: #0a0f22;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 1em;
+    box-shadow: 0 0 5px #33d9ff, 0 0 10px #33d9ff, 0 0 15px #33d9ff;
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
+}
+
+
+#saveBioButton:focus {
+    outline: none;
+}
+
+
+
+
+.bio-info, .season-record-info {
+    background-color: #0a0f22;
+    border: 1px solid #33d9ff;
+    border-radius: 5px;
+    padding: 15px 20px;
+    box-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff;
+    margin: 20px auto;
+    max-width: 300px;
+    text-align: left;
+}
+
+
+.bio-title, .season-record-title {
+    font-size: 1.5em;
+    color: #33d9ff;
+    border-bottom: 1px solid #33d9ff;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+
+.bio-content, .season-record-content {
+    font-size: 1.2em;
+    color: #fff;
+    text-align: center;
+    margin-top: 10px;
+}
+
+
+/* Hide the file input visually but remain accessible to screen readers. */
+input[type="file"] {
+    border: 0;
+    clip: rect(0, 0, 0, 0);
+    height: 1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+}
+
+
+.welcome-message {
+    text-transform: uppercase;
+    text-align: center; /* Center the text horizontally */
+    font-size: 24px; /* Increase font size or adjust as needed */
+    margin: 20px 0; /* Add some margin around the text for spacing */
+    font-family: 'Montserrat', sans-serif;
+}
+
+
+.welcome-message {
+    text-transform: uppercase;
+    text-align: center;
+    font-size: 3.8vw; /* Base font size using viewport width */
+    white-space: nowrap; /* Prevent wrapping */
+    overflow: hidden; /* Hide overflow */
+    width: 100%; /* Full width of container */
+    padding: 5px;
+    box-sizing: border-box;
+  }
+ 
+  /* Media query for smaller screens */
+  @media screen and (max-width: 768px) {
+    .welcome-message {
+      font-size: 3.8vw; /* Slightly larger on smaller screens */
+    }
+  }
+
+
+/* Add this CSS to your existing stylesheet */
+.hidden {
+    display: none;
+}
+
+
+#teamFilter {
+    margin-top: 10px;
+    padding: 5px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #00ffff;
+    background-color: #121212;
+    color: #33d9ff;
+    transition: all 0.3s ease;
+}
+
+
+#teamFilter:focus {
+    outline: none;
+    border-color: #33d9ff;
+}
+
+
+#displayInjuriesBtn {
+    display: block;
+    margin-bottom: 10px;
+}
+
+
+/* Add transition for smooth showing */
+.show {
+    display: block !important;
+    transition: opacity 0.5s ease;
+}
+
+
+#injuryList {
+    max-height: 400px;
+    overflow: hidden;
+    overflow-y: scroll;
+    transition: max-height 0.5s ease-out, margin-top 0.5s ease-out;
+    margin-top: 0;
+}
+
+
+#injuryList.show {
+    max-height: 1000px; /* Arbitrary large value to accommodate content */
+    margin-top: 10px;
+}
+
+
+.injury-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #2c2c2c;
+}
+
+
+.injury-item img {
+    width: 50px;
+    height: 50px;
+    margin-right: 15px;
+}
+
+
+.injury-details {
+    text-align: left;
+    font-family: 'montserrat', sans-serif;
+}
+
+
+.injury-details h4 {
+    margin: 0;
+    font-size: 18px;
+    color: #33d9ff;
+}
+
+
+.injury-details p {
+    margin: 2px 0;
+    font-size: 14px;
+    color: rgb(255, 255, 255);
+}
+
+
+.injury-container {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease, padding 0.5s ease;
+    padding: 0;
+}
+
+
+.injury-container.visible {
+    max-height: 1000px; /* Set to a high enough value to accommodate the content */
+    padding: 20px 0;
+}
+
+
+
+
+
+
+h1 {
+    font-size: 2.5em;
+    text-align: center;
+    color: #33d9ff; /* Neon light blue */
+    border-bottom: 2px solid #33d9ff;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+
+.underline {
+    height: 4px; /* Or however thick you want it */
+    background-color: #33d9ff; /* Neon light blue */
+    width: 100%; /* Or a specific width if you prefer */
+    margin-top: 5px; /* Space between the text and the line */
+}
+
+
+.players {
+    display: flex;
+    flex-wrap: wrap;
+    overflow-y: auto; /* Allow vertical scrolling */
+    justify-content: space-around;
+}
+
+
+@media (max-width: 768px) {
+    .players {
+        max-height: 50vh; /* Adjust the height on mobile to make it less than the viewport height */
+        overflow-y: scroll; /* Explicitly set scrolling for touch devices */
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS */
+    }
+    .slide-out-panel {
+        position: fixed;
+        top: 0;
+        left: -100%; /* Start off-screen to the left */
+        width: 60%; /* Takes up half the screen width */
+        height: 100%; /* Full screen height */
+        background-color: #17203a; /* Dark background */
+        border-right: 2px solid #33d9ff; /* Neon blue border */
+        box-shadow: 5px 0 10px rgba(0, 0, 0, 0.5); /* Soft shadow to the right */
+        overflow-y: auto; /* In case the content overflows */
+        transition: left 0.3s ease-out; /* Smooth slide-in transition */
+        z-index: 100; /* Above everything except the profile icon */
+    }
+}
+
+
+.total-points {
+    font-style: oblique;
+    position: absolute; /* This will position the element relative to its nearest positioned ancestor */
+    top: 2px; /* Adjust this value if you want to move it up or down */
+    right: 50px; /* Adjust this value if you want to move it left or right */
+    background-color: rgba(23, 32, 58, 0.8); /* A slightly transparent deep blue background */
+    padding: 5px 10px;
+    border-radius: 4px;
+    color: #d0e5f2; /* Neon light blue text */
+    font-weight: bold;
+    z-index: 1; /* Ensure it's above other content */
+}
+
+
+.player-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 0px 25px #33d9ff, 0px 0px 5px #33d9ff; /* Enhanced shadow on hover */
+}
+
+
+h2 {
+    font-size: 1.4em;
+    text-align: center;
+    margin-bottom: 10px;
+}
+/*
+.rules-button {
+    margin: 0 auto;
+    padding: 12px 25px;
+    text-align: center;
+    background: #121212;
+    color: #00ccff;
+    text-decoration: none;
+    border-radius: 50px;
+    border: 2px solid #00ccff;
+    transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0px 4px 15px rgba(0, 204, 255, 0.4);
+}
+
+
+.rules-button:hover {
+    background-color: #00ccff;
+    color: #121212;
+    box-shadow: 0px 6px 20px rgba(0, 204, 255, 0.6);
+    transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+}*/
+.rule-book-button {
+    position: relative;
+    display: inline-block;
+    padding: 10px 20px;
+    text-align: center;
+    color: #00ccff;
+    text-decoration: none;
+    font-size: 1.5em;
+    font-family: 'Georgia', serif;
+    background: none;
+    border: none;
+    box-shadow: none;
+    transition: color 0.3s ease;
+    cursor: pointer;
+}
+
+
+
+
+
+
+.neon-book {
+    position: relative;
+    width: 50px; /* Adjusted for better text fit */
+    height: 80px; /* Adjusted for better text fit */
+    margin: 0 auto;
+    top: -10%;
+    background-color: #17203a;
+     border: 2px solid #00ccff;
+    border-radius: 2px;
+}
+
+
+.neon-book::before,
+.neon-book::after {
+    content: '';
+    position: absolute;
+    border: 2px solid #00ccff;
+    border-radius: 2px;
+
+
+}
+
+
+.neon-book::before {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+
+.rule-book-button:hover .neon-book::before,
+.rule-book-button:hover .neon-book::after {
+    background-color: rgba(0, 204, 255, 0.8);
+    color: #17203a;
+}
+
+
+.rule-book-button:hover .rule-book-text{
+    color: #17203a;
+}
+
+
+.neon-book::after {
+    top: 0;
+    left: 5px;
+    width: 95%;
+    height: 100%;
+    border-left: none;
+    box-shadow: 0 0 25px rgba(0, 204, 255, 0.8);
+}
+.bookmark {
+    position: absolute;
+    bottom: -18px;
+    left: 80%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 15px solid #0a0f22; /* Dark blue for the main triangle */
+   
+}
+
+
+/* Creating the two light blue mini triangles */
+.bookmark::before,
+.bookmark::after {
+    content: '';
+    position: absolute;
+    top: -15px; /* Positioning above the main triangle */
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 7.5px solid rgba(0, 204, 255, 0.8); /* Light blue color */
+}
+
+
+.bookmark::before {
+    left: -10px; /* Position to the left of the main triangle */
+}
+
+
+.bookmark::after {
+    right: -10px; /* Position to the right of the main triangle */
+}
+
+
+
+
+.title-line {
+    position: absolute;
+    top: 15px;
+    left: 10px;
+    width: 30px;
+    height: 3px;
+    background: #00ccff;
+    box-shadow: 0 0 20px rgba(0, 204, 255, 0.8);
+}
+
+
+.rule-book-text {
+    position: absolute;
+    top: 40%; /* Adjusted for vertical alignment */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px; /* Adjust as needed */
+    color: #00ccff;
+    text-shadow: 0 0 20px rgba(0, 204, 255, 0.8);
+    text-align: center;
+}
+
+
+.info-button {
+    position: absolute;
+    right: 10px; /* Adjust as needed to align it to the right */
+    top: 35%;
+    transform: translateY(-50%);
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    font-size: 1.2em;
+    color: #00ccff;
+    background: #17203a;
+    border: 2px solid #00ccff;
+    border-radius: 50%;
+    box-shadow: 0px 4px 15px rgba(0, 204, 255, 0.4);
+    transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+    font-family: 'Georgia', serif;
+}
+
+
+.info-button:hover {
+    background-color: #00ccff;
+    color: #121212;
+    box-shadow: 0px 6px 20px rgba(0, 204, 255, 0.6);
+    transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+}
+.neon-sign {
+    font-size: 2rem; /* Adjust as needed */
+    font-family: 'Russo one', sans-serif;
+   /* font-family: 'Goldman', sans-serif;*/
+    color: rgb(255, 255, 255);
+    text-align: center;
+    text-shadow: 0 0 5px rgb(254, 237, 237), 0 0 10px rgb(246, 239, 239), 0 0 15px #00a2ff, 0 0 20px #00a2ff, 0 0 25px #00a2ff, 0 0 30px #00a2ff, 0 0 35px #00a2ff;
+    animation: neonFlicker 1.5s infinite alternate;
+    margin-top: 20px; /* Add space below the "teams" */
+}
+
+
+.week {
+    font-size: 1.5rem; /* Adjust as needed */
+    font-family: 'Russo one', sans-serif;
+    color: rgb(255, 255, 255);
+    text-align: center;
+    text-shadow: 0 0 5px rgb(254, 237, 237), 0 0 10px rgb(246, 239, 239), 0 0 15px #00a2ff, 0 0 20px #00a2ff, 0 0 25px #00a2ff, 0 0 30px #00a2ff, 0 0 35px #00a2ff;
+    animation: neonFlicker 1.5s infinite alternate;
+    margin-top: 20px; /* Add space below the "teams" */
+}
+@keyframes neonFlicker {
+    0% { opacity: 0.2; }
+    50% { opacity: 1; }
+    100% { opacity: 0.8; }
+}
+
+
+/* The dunce cap */
+.dunce-icon {
+    margin-left: 0.2em;
+    padding-right: 4px;
+    font-size: 1.2rem; /* Adjust as needed */
+    z-index: 10;
+    color: rgb(177, 121, 0);
+}
+
+
+.player-username {
+    text-transform: uppercase;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 5px; /* or you could specify a size like 0.9em or 14px */
+}
+
+
+
+
+
+
+.logout-button {
+    background-color: #033; /* Dark button background */
+    color: #0ff; /* Neon text color */
+    border: 1px solid #0af; /* Neon border */
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 0 5px #0af, 0 0 10px #0af, 0 0 15px #0af; /* Neon glow effect */
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
+    margin: 20px auto; /* Center horizontally */
+    display: block; /* Make it block level to center with margin auto */
+}
+
+
+.logout-button:hover {
+    box-shadow: 0 0 10px #0af, 0 0 20px #0af, 0 0 30px #0af;
+    transform: scale(1.05);
+}
+
+
+.team-logo {
+    width: 35px; /* Or your desired width */
+    height: auto;
+    margin-right: 5px;
+    margin-bottom: -5px;
+    /* Add any other styling you need */
+}
+
+
+
+
+
+
+
+
+.pool-name {
+    font-family: 'Electrolize', sans-serif;
+    font-size: 20px;
+    color: #0a0f22;
+    text-shadow:
+    -.5px -.5px 0 #00ccff,  
+    .5px -.5px 0 #00ccff,
+    -.5px .5px 0 #00ccff,
+    .5px .5px 0 #00ccff;
+    text-align: left; /* Align text to the left */
+    max-width:100% ;/* Takes the full width of its parent */
+    margin-bottom: 1px; 
+    margin-left: 10px;
+    white-space: wrap;
+    align-items: flex-end;
+    line-height: 1; /* Adjust line height to remove extra space */
+
+}
+
+
+
+
+
+
+.player-card {
+    position: relative;
+    width: 220px;
+    border: 2px solid #33d9ff; /* Neon light blue border */
+    border-radius: 8px;
+    margin: 10px;
+    padding: 10px;
+    background-color: #17203a; /* A deep blue for card background */
+    box-shadow: 0px 0px 20px #33d9ff; /* Neon light blue shadow for depth */
+    transition: transform 0.2s, box-shadow 0.2s; /* Animation for hover */
+}
+
+
+/* Input fields styling */
+input[type="text"], input[type="password"], input[type="checkbox"] {
+    background-color: #022; /* Dark background for the input */
+    border: 1px solid #0af; /* Neon border color */
+    padding: 10px;
+    margin: 0 8px 0 0;
+    color: #0ff; /* Neon text color */
+    border-radius: 5px;
+    box-shadow: 0 0 3px #0af, /* Neon glow effect */
+    0 0 3px #0af,
+    0 0 3px #0af;
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+
+/* Enhance the neon glow when the input is focused */
+input[type="text"]:focus, input[type="password"]:focus {
+    box-shadow: 0 0 6px #0af,
+    0 0 6px #0af,
+    0 0 6px #0af;
+}
+
+
+/* Styling for checkboxes to match the neon theme */
+input[type="checkbox"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background-color: #022;
+    border-radius: 5px;
+    border: 2px solid #0af;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+
+input[type="checkbox"]:checked {
+    background-color: #0af;
+    box-shadow: inset 0 0 5px #0af, /* Inner shadow for a glowing effect */
+    0 0 5px #0af, /* Outer glow */
+    0 0 10px #0af;
+}
+
+
+/* Labels for a cleaner, professional look */
+label {
+    color: #33d9ff; /* Neon text color */
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+
+/* Button Styling 
+button {
+    background-color: #033;
+    color: #0ff; 
+    border: 1px solid #0af; 
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
+    margin-bottom: 20px;
+}*/
+
+
+/* Hover effect for the button to make it pop 
+button:hover {
+    box-shadow: 0 0 5px #0af,
+    0 0 5px #0af,
+    0 0 7px #0af;
+    transform: scale(1.05);
+}
+*/
+
+/* Styling for the form container */
+.form-container {
+    background-color: #011; /* Slightly lighter form background */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 5px #0af, /* Neon glow effect */
+    0 0 5px #0af,
+    0 0 5px #0af;
+}
+
+
+/* Enhances the layout of form elements */
+.form-field {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+
+/* Give the create pool section a distinct look */
+#create-pool-section {
+    padding: 20px;
+    background: rgba(10, 15, 34, 0.85); /* Translucent background */
+    border: 2px solid #33d9ff; /* Neon border */
+    border-radius: 10px;
+    box-shadow: 0 0 5px #33d9ff, /* Outer neon glow */
+    0 0 5px #33d9ff;
+    margin: 20px 0;
+}
+
+
+/* Increase spacing between form elements */
+#pool-name, #pool-password {
+    margin-bottom: 15px; /* Adds more space below the input fields */
+}
+
+
+/* Style for the checkbox label */
+#private-pool-label {
+    display: inline-block;
+    margin-right: 10px; /* Adds space between the label and the checkbox */
+    vertical-align: middle; /* Aligns label with the checkbox */
+}
+
+
+/* Style for the checkbox */
+#is-private {
+    vertical-align: middle; /* Aligns checkbox vertically with the label */
+    margin-right: 15px; /* Adds space between the checkbox and the 'Create Pool' button */
+}
+
+
+/* Transform 'Create Pool' button into 'Go Back' button */
+#toggle-create-button.reverse {
+    background-color: #33d9ff; /* Neon blue for a 'go back' symbol */
+    transform: rotate(180deg); /* Rotate the button to indicate 'go back' */
+}
+
+
+/* Hide password field initially */
+#pool-password {
+    display: none;
+}
+
+
+/* Additional styling for the container to fix position issue */
+.create-pool-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* This centers the button in the flex container */
+    justify-content: space-between; /* This will add space between your elements */
+    width: 100%; /* Adjust width to fit content */
+    border-bottom: 1px solid #33d9ff; /* Neon-like blue border */
+    padding-bottom: 20px; /* Space above the border */
+}
+
+
+#create-pool-form input[type="submit"] {
+    background-color: #033; /* Dark background for the button */
+    color: #0ff; /* Neon text color */
+    border: 1px solid #0af; /* Neon border color */
+    padding: 10px 20px; /* Padding for the button */
+    font-size: 1em; /* Font size for the button */
+    border-radius: 5px; /* Rounded corners for the button */
+    cursor: pointer; /* Cursor changes to pointer to indicate it's clickable */
+    box-shadow: 0 0 5px #0af, /* Outer neon glow effect */
+    0 0 10px #0af, /* Middle neon glow effect */
+    0 0 15px #0af; /* Inner neon glow effect */
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out; /* Smooth transition for hover effects */
+    width: auto; /* Adjust width as necessary */
+    margin-top: 10px; /* Space above the button */
+    display: block; /* Ensure the button is a block element to take up full width */
+}
+
+
+#create-pool-form-container {
+    border-bottom: 2px solid rgb(0, 247, 255); /* Neon border color */
+}
+
+
+#show-create-pool-form,
+#show-join-pool-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Make sure to use the correct IDs */
+    width: auto; /* Or specify a width */
+    margin: 20px auto; /* Top and bottom margin with auto horizontal margins */
+}
+
+
+#main-content button {
+    margin-bottom: 0px;
+}
+
+
+#main-content form {
+    display: flex;
+    flex-wrap: wrap; /* This will allow items to wrap to the next line if needed */
+    gap: 10px; /* This adds some space between your form items */
+}
+
+
+#main-content label,
+#main-content input[type="text"],
+#main-content input[type="password"],
+#main-content input[type="checkbox"],
+#main-content input[type="submit"] {
+    margin-bottom: 10px; /* Add space below each form element */
+}
+
+
+#main-content .form-field {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+
+.form-field-row {
+    flex-basis: 50%; /* Adjust as needed */
+}
+
+
+#main-content label[for="pool-password"],
+#main-content #pool-password {
+    display: inline-block; /* This makes the label and input align horizontally */
+    width: auto; /* Adjust width as needed or use flex-grow property */
+}
+
+
+#main-content input[type="submit"][value="Create Pool"] {
+    background-color: #033; /* Dark background for the button */
+    color: #0ff; /* Neon text color */
+    border: 1px solid #0af; /* Neon border color */
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 0 5px #0af, /* Neon glow effect */
+    0 0 5px #0af,
+    0 0 5px #0af;
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
+}
+
+
+.player-row:last-child {
+    border-bottom: none; /* Removes the line from the last row */
+}
+
+
+/* Ensure the container elements are flex */
+.pool-header, .player-row {
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #33d9ff;
+}
+
+
+/* Flex items in the header and rows */
+.pool-header > span, .player-row > div {
+    flex: 1; /* Default flex grow */
+    text-align: center;
+    position: relative; /* For vertical lines */
+    padding: 10px 0; /* Consistent padding for all items */
+}
+
+
+/* Style for the profile picture */
+.player-profile-pic {
+    width: 43px; /* Fixed width */
+    height: 43px; /* Fixed height */
+    border-radius: 50%; /* Circle */
+    background-size: cover; /* Fill the container */
+    background-position: center; /* Center the image */
+    margin-right: 10px; /* Space between image and username */
+    flex-shrink: 0;
+    border: 1.5px solid #33d9ff;
+}
+
+
+.player-rank { order: 1 }
+.player-user { order: 2 }
+.player-points { order: 3 }
+.player-picks { order: 4 }
+.player-win { order: 5 }
+.player-loss { order: 6 }
+.player-push { order: 7 }
+
+
+/* Specific flex values to match the header with the rows */
+/* Vertical lines with consistent height */
+.pool-header > span:not(:last-child)::after,
+.player-row > div:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%; /* Center the line vertically */
+    transform: translateY(-50%); /* Offset the line by half its height to center it */
+    height: 30px; /* Adjust the height as needed */
+    width: 1px;
+    background-color: #33d9ff;
+}
+
+
+/* Remove the general rule that applies the line after every div */
+.player-row > div::after {
+    content: none;
+}
+
+
+/* Apply the vertical line specifically after the 'Picks' column */
+.player-row > div:nth-child(7)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 30px;
+    width: 1px;
+    background-color: #33d9ff;
+}
+
+
+/* Other cosmetic styling (background colors, hover effects, etc.) can be added as needed */
+/* Flex settings for player row items */
+.player-rank,
+.player-user,
+.player-points,
+.player-picks,
+.player-win,
+.player-loss,
+.player-push {
+    display: flex;
+    align-items: center; /* Center content vertically */
+    justify-content: center; /* Center content horizontally */
+    text-align: center;
+    position: relative;
+    padding: 10px 0; /* Consistent padding for all items */
+}
+.player-rank,
+.player-points,
+.player-win,
+.player-loss,
+.player-push {
+    font-family: 'quantico', sans-serif;
+}
+.pool-header .header-rank, .player-row .player-rank { flex: 0.5; }
+.pool-header .header-user, .player-row .player-user { flex: 2.5; }
+.pool-header .header-points, .player-row .player-points { flex: 1; }
+.pool-header .header-picks, .player-row .player-picks { flex: 5; }
+.pool-header .header-win, .player-row .player-win { flex: 1; }
+.pool-header .header-loss, .player-row .player-loss { flex: 1; }
+.pool-header .header-push, .player-row .player-push { flex: 1; }
+
+
+.admin-badge {
+    color: rgb(1, 211, 1); /* Green color for the admin badge */
+    margin-left: 0.3em; /* Space between the username and the badge */
+    margin-right: 0.2em;
+}
+
+
+.player-user {
+    flex: 2.5;
+    max-width: 240px; /* Adjust as necessary */
+    display: flex;
+    align-items: center;
+    overflow: hidden; /* Hide overflow */
+    cursor: pointer;
+    background-color: rgba(var(--seed-rgb), .5);  /* Using CSS variable for dynamic color */
+}
+
+
+.crown-icon {
+    margin-left: 0.3em;
+    padding-right: 4px;
+    margin-bottom:0.2em;
+    font-size: 1.0rem; /* Adjust as needed */
+    z-index: 10;
+    color: gold;
+}
+
+
+.player-username {
+    font-size: 1rem; /* Fixed font size, adjust as needed */
+   /* Hideow: hidden;  overflow */
+    white-space: wrap; /* Keep content in a single line */
+    overflow-x: auto;
+}
+
+
+/* Scrollbar styling */
+.player-username::-webkit-scrollbar {
+    height: 4px; /* Height of horizontal scrollbar */
+    background-color: rgba(0, 110, 255, 0.1); /* Scrollbar track color */
+}
+
+
+.player-username::-webkit-scrollbar-thumb {
+    background-color: rgba(1, 141, 255, 0.2); /* Scrollbar thumb color */
+    border-radius: 2px;
+}
+
+
+.player-username::-webkit-scrollbar-thumb {
+    background-clip: content-box; /* Avoid dragging on the padding area */
+    border: 2px solid transparent;
+}
+
+
+.player-username:hover::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 195, 255, 0.5); /* Scrollbar thumb color on hover */
+}
+
+
+.pool-manager {
+    width: 200px; /* Set the width of the box */
+    padding: 20px; /* Padding inside the box */
+    background-color: #012; /* Background color of the box */
+    border: 2px solid #33d9ff; /* Neon light blue border */
+    border-radius: 8px; /* Optional border radius for rounded corners */
+    margin: 20px 0; /* Space around the pool manager */
+    transition: margin 0.3s ease-in-out;
+}
+
+
+/* Flex settings for pool manager */
+.pool-manager.centered {
+    align-self: center;
+}
+
+
+/* Move the pool manager down when there are pools */
+.pool-manager.bottom {
+    margin-top: 20px;
+}
+
+
+.content {
+    margin-left: 20%; /* This should match the width of your .pool-manager */
+    flex: 3; /* take up the remaining space */
+    padding: 20px;
+    background-color: #012; /* Change to match your page's theme */
+}
+
+
+/* Style your forms within the pool-manager */
+#join-pool-form, #create-pool-form {
+    margin-bottom: 20px;
+}
+
+
+#join-pool-form input[type="submit"] {
+    background-color: #033; /* Dark background for the button */
+    color: #0ff; /* Neon text color */
+    border: 1px solid #0af; /* Neon border color */
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 0 5px #0af, /* Neon glow effect */
+    0 0 10px #0af,
+    0 0 15px #0af;
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
+    margin-top: 20px;
+}
+
+
+#join-pool-form input[type="submit"]:hover {
+    box-shadow: 0 0 10px #0af, /* Neon glow effect */
+    0 0 20px #0af,
+    0 0 30px #0af;
+    transform: scale(1.05);
+}
+
+
+#join-pool-form label,
+#join-pool-form input {
+    display: block; /* Stack them vertically */
+    width: 100%; /* Full width of the container */
+    margin-bottom: 10px; /* Adjust as necessary for space between form elements */
+    box-sizing: border-box; /* Include padding in width calculation */
+}
+
+
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+
+    .pool-manager {
+        max-width: 100%; /* full width on smaller screens */
+        height: auto; /* adjust height */
+    }
+
+
+    .content {
+        flex: 1; /* reset flex */
+    }
+   
+
+}
+
+
+/* Styling for headers */
+.pool-header > span {
+    color: #ffffff; /* Change to the color that fits your design */
+    font-family: 'Montserrat', sans-serif;
+    font-size-adjust: calc(50%);
+    text-transform: uppercase; /* Capitalize your headers for more impact */
+}
+
+
+.pool-header .header-rank {
+    text-align: right; /* Ensure text is aligned to right */
+}
+
+
+.header-immortal-lock .fas {
+    margin-left: 5px; /* Add a little space between the text and the icon */
+}
+
+
+.player-row .player-immortal-lock { order: 5 } /* Assign proper order and flex */
+
+
+.player-picks, .player-immortal-lock {
+    display: flex;
+    align-items: flex-end; /* Align all pick and immortal-lock elements to the bottom */
+    justify-content: space-around; /* Adjust space around the elements */
+    height: 100%; /* Ensure it takes up full height */
+}
+.player-immortal-lock {
+    margin-bottom: -11px;
+}
+.pick, .immortal-lock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end; /* Align items to the bottom of the container */
+    width: 100%;
+   font-family: 'quantico', sans-serif;
+
+
+}
+
+
+.pick img, .immortal-lock img {
+    margin-bottom: 8px; /* Add space between the icon and the text */
+    padding-left: 10px;
+}
+
+
+.pick span, .immortal-lock span {
+    line-height: 1; /* Ensure consistent line height */
+    margin-top: auto; /* Ensure the text is pushed to the bottom */
+}
+
+
+.pool-header .header-rank {
+    text-align: right; /* Keep text aligned to the right */
+    position: relative; /* Required for transform to work */
+}
+
+
+.pool-header .header-rank::before {
+    content: "RANK";
+    display: inline-block;
+    transform: translateX(-10px); /* Move the text to the left */
+}
+
+
+.leave-pool-button {
+    position: absolute;
+    right: 40px; /* Adjust as necessary to move it closer to the right edge of the pool */
+    bottom: -10px; /* Adjust this value to move closer to the bottom edge of the pool */
+    padding: 10px 20px; /* Match the padding of your Create Pool button */
+    background-color: #033; /* Background color to match the Create Pool button */
+    color: #0ff; /* Text color to match the Create Pool button */
+    border: 1px solid #0af; /* Border color to match the Create Pool button */
+    border-radius: 5px; /* Border radius to match the Create Pool button */
+    cursor: pointer;
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
+    font-weight: bold; /* If the Create Pool button has bold text */
+    font-size: .9em; /* Adjust font size as needed */
+}
+/* Main Content */
+/* Main Content */
+/* Main Content */
+/* Main Content */
+#main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 auto;
+    padding: 0;
+    width: 100%;
+}
+
+
+/* Pool Container Wrapper */
+#pool-container-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center horizontally */
+    justify-content: center; /* Center horizontally */
+    width: 111%;
+    margin: 20px 0;
+    margin-right: 48px;
+}
+
+
+/* Pool Wrapper */
+.pool-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 25px;
+    box-sizing: border-box; /* Include padding and border in width */
+
+
+}
+
+
+/* Scrollable Container */
+.pool-scrollable-container {
+    overflow-x: auto; /* Enable horizontal scrolling */
+    width: 113%;
+    overflow-y: hidden; /* Disable vertical scrolling */
+    /*padding-bottom: 10px;*/
+    /*box-sizing: border-box; /* Include padding in width */
+   /* border-right: 2px solid#33d9ff;
+    border-radius: 8px;*/
+}
+/* Ensure the right border stays visible when scrolling */
+
+
+.pool-scrollable-container::-webkit-scrollbar {
+    height: 8px; /* Height of the horizontal scrollbar */
+}
+
+
+.pool-scrollable-container::-webkit-scrollbar-track {
+    background: #0a0f22; /* Track background color */
+    border-radius: 10px;
+}
+
+
+.pool-scrollable-container::-webkit-scrollbar-thumb {
+    background-color: #33d9ff; /* Thumb (scroll handle) color */
+    border-radius: 10px;
+    border: 2px solid #0a0f22; /* Border color to give it a rounded appearance */
+}
+
+
+.pool-scrollable-container::-webkit-scrollbar-thumb:hover {
+    background-color: #1bb1d5; /* Color when hovered */
+}
+
+
+.pool-scrollable-container::-webkit-scrollbar-thumb:active {
+    background-color: #00BFFF; /* Color when active (clicked) */
+}
+
+
+/* Pool Container */
+.pool-container {
+    min-width: 1150px; /* Fixed minimum width */
+    max-width: 1150px;
+    padding-left: 20px;
+    border: 2px solid #33d9ff;
+    background-color: #202124;
+    border-radius: 8px;
+    text-align: left;
+}
+
+
+/* Pool and Delete Container */
+.pool-and-delete-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    position: relative;
+    padding: 10px;
+    width: 100%;
+    max-width: 1250px;
+}
+
+
+/* Delete Pool Button */
+.delete-pool-button {
+    position: absolute; /* Stay within the pool-and-delete-container */
+    right: 0px;
+    bottom: -10px;
+    padding: 10px 20px;
+    background-color: #033;
+    color: #0ff;
+    border: 1px solid #0af;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 0 5px #0af, 0 0 5px #0af, 0 0 5px #0af;
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
+    font-weight: bold;
+    font-size: .9em;
+    z-index: 1; /* Ensure the button stays on top */
+}
+
+
+.delete-pool-button:hover {
+    box-shadow: 0 0 10px #0af, 0 0 20px #0af, 0 0 30px #0af;
+    transform: scale(1.05);
+}
+
+
+.chat-wrapper {
+    position: absolute;
+    top: 10px;  /* Adjust for placement */
+    right: 10px;  /* Adjust for placement */
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+.chat-tab {
+    width: 100px;  /* Match existing buttons */
+    height: 40px;  /* Match existing buttons */
+    background-color: #17203a;  /* Match other buttons */
+    color: #fff;  /* White text */
+    text-align: center;
+    line-height: 40px;
+    border-radius: 5px 5px 0 0;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    font-size: 16px;  /* Adjust for readability */
+    border: solid 2px #33d9ff;
+    margin-right:-15px;
+    font-family: 'montserrat', 'sans-serif';
+    text-transform: uppercase;
+}
+
+
+.chat-tab:hover {
+    background-color: #33d9ff;  /* Darker blue on hover */
+    transform: translateY(-2px);  /* Lift effect on hover */
+    border: solid 2px #17203a;
+}
+
+
+.chat-container {
+    width: 300px;  /* Match input width */
+    max-height: 0;
+    overflow: hidden;
+    background-color: #081f42;  /* Match theme */
+    color: #ddd;  /* Light grey text */
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    transition: max-height 0.3s ease;
+    position: relative; /* Changed from absolute to relative */
+    top: 0; /* Removed the previous value */
+    right: 20px;
+}
+
+
+.chat-box {
+    height: 400px;
+    overflow-y: auto;  /* Only show scrollbar when necessary */
+    padding: 10px;
+    border-bottom: 1px solid #33d9ff;  /* Match other borders */
+    background-color: #061b3a;  /* Match dark theme */
+}
+
+
+.chat-input {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin: 10px;
+    border: 1px solid #33d9ff;  /* Match other borders */
+    background-color: #333;  /* Match input background */
+    color: #ddd;  /* Light grey text */
+    border-radius: 5px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+    font-size: 16px;
+}
+
+
+.send-chat-button {
+    width: 90%;  /* Match input width */
+    padding: 10px;
+    margin: 10px auto;
+    background: linear-gradient(135deg, #33d9ff 0%, #0099CC 100%);
+    border: none;
+    border-radius: 5px;
+    color: #fff;  /* White text */
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+
+.send-chat-button:hover {
+    background: linear-gradient(135deg, #0099CC 0%, #33d9ff 100%);
+    box-shadow: 0 0 5px #33d9ff, 0 0 5px #33d9ff, 0 0 5px #33d9ff; /* Enhanced neon glow effect on hover */
+}
+
+
+.show-chat .chat-container {
+    max-height: 400px;
+}
+
+
+.chat-toggle {
+    display: flex;
+    justify-content: space-around;
+    margin: 10px 0;
+}
+
+
+.chat-toggle-button {
+    width: 45%;
+    padding: 5px;
+    background: linear-gradient(135deg, #33d9ff 0%, #0099CC 100%);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+
+.choose-picks-button {
+    position: relative;
+    background-color: #033; /* Dark button background */
+    color: #0ff; /* Neon text color */
+    border: 1px solid #0af; /* Neon border */
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
+    margin-bottom: 20px;
+    text-align: center;
+    width: fit-content; /* Adjust to maintain original button size */
+    font-family: 'montserrat', 'sans-serif';
+}
+
+
+
+
+.choose-picks-button.disabled {
+    background: black;
+    color: rgb(214, 13, 13);
+    border: 2px solid rgb(24, 23, 23); /* Optional: add a red border */
+    font-family: 'montserrat', 'sans-serif';
+}
+
+
+
+
+.choose-picks-button.disabled::before {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgb(80, 73, 73);
+    font-size: 1em;
+    text-align: center;
+}
+.schedule-button {
+    position: relative;
+    display: inline-block;
+    padding: 10px 20px;
+    text-align: center;
+    color: #00ccff;
+    text-decoration: none;
+    font-size: 1.5em;
+    font-family: 'Georgia', serif;
+    background: none;
+    border: none;
+    box-shadow: none;
+    transition: color 0.3s ease;
+    cursor: pointer;
+    top: 6.5px;
+}
+
+
+.neon-calendar {
+    position: relative;
+    width: 65px; /* Slightly wider */
+    height: 70px; /* Slightly shorter */
+    margin: 0 auto;
+    top: -10%;
+    background-color: #17203a;
+    border: 2px solid #00ccff;
+    border-radius: 2px;
+}
+
+
+.neon-calendar::before,
+.neon-calendar::after {
+    content: '';
+    position: absolute;
+    border: 2px solid #00ccff;
+    border-radius: 2px;
+}
+
+
+.neon-calendar::before {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+
+.schedule-button:hover .neon-calendar::before,
+.schedule-button:hover .neon-calendar::after {
+    background-color: rgba(0, 204, 255, 0.8);
+    color: #17203a;
+}
+
+
+.schedule-button:hover .calendar-title,
+.schedule-button:hover .calendar-date {
+    color: #17203a;
+}
+
+
+.neon-calendar::after {
+    top: 0;
+    left: 5px;
+    width: 95%;
+    height: 100%;
+    border-left: none;
+    box-shadow: 0 0 25px rgba(0, 204, 255, 0.8);
+}
+
+
+.calendar-top {
+    position: absolute;
+    top: 10px; /* Adjusted for smaller height */
+    left: 6px;
+    width: 55px; /* Slightly wider */
+    height: 10px; /* Slightly reduced height */
+    background: #00ccff;
+    border-radius: 2px;
+}
+
+
+.calendar-body {
+    position: absolute;
+    top: 25px; /* Adjusted for smaller height */
+    left: 5px;
+    width: 60px; /* Slightly wider */
+    height: 35px; /* Slightly shorter */
+    background: #17203a;
+    border-top: 2px solid #00ccff;
+    border-radius: 2px;
+}
+
+
+.calendar-title {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: #17203a;
+    text-shadow: 0 0 20px rgba(23, 32, 58, 0.8);
+    text-align: center;
+}
+
+
+.calendar-date {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 20px;
+    color: #00ccff;
+    text-shadow: 0 0 20px rgba(0, 204, 255, 0.8);
+    text-align: center;
+}
+
+
+.ring-binders {
+    position: absolute;
+    top: -7px;
+    left: 7px; /* Adjusted for new width */
+    width: 50px;
+    display: flex;
+    justify-content: space-around;
+}
+
+
+.ring {
+    width: 5px;
+    height: 13px;
+    background: #00ccff;
+    border-radius: 0 0 0 0;
+    box-shadow: 0 0 10px rgba(0, 204, 255, 0.8);
+    border: 1px solid #0a0f22;
+}
+
+/*At line 1849 We begin to craft a new pool manager for V3!!! Bringing along the diff modes.
+
+.pool-manager-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 2rem;
+    min-height: 100vh;
+    background-color: #0A0B14;
+}
+
+.pool-manager {
+    width: 600px;
+    background-color: #001122;
+    border: 2px solid #33d9ff;
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.header h2 {
+    color: #33d9ff;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.tab-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.tab-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid #33d9ff;
+    background: transparent;
+    color: #33d9ff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+    background-color: #33d9ff;
+    color: #001122;
+}
+
+.tab-btn:hover:not(.active) {
+    background-color: rgba(51, 217, 255, 0.1);
+}
+
+.mode-selection {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.mode-card {
+    padding: 1rem;
+    border: 2px solid rgba(51, 217, 255, 0.3);
+    border-radius: 6px;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mode-card.active {
+    border-color: #33d9ff;
+    background-color: rgba(51, 217, 255, 0.1);
+}
+
+.mode-card:hover:not(.active) {
+    border-color: rgba(51, 217, 255, 0.6);
+}
+
+.mode-title {
+    color: #33d9ff;
+    font-size: 1.125rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.mode-description {
+    color: #9ca3af;
+    font-size: 0.875rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    color: #33d9ff;
+    margin-bottom: 0.5rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.5rem;
+    background-color: #002244;
+    border: 1px solid #33d9ff;
+    border-radius: 6px;
+    color: white;
+}
+
+.form-group input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(51, 217, 255, 0.3);
+}
+
+.privacy-toggle {
+    margin-bottom: 1rem;
+}
+
+.privacy-toggle button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid #6b7280;
+    border-radius: 6px;
+    background: transparent;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.privacy-toggle button.private {
+    border-color: #33d9ff;
+    color: #33d9ff;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 0.5rem;
+    background-color: #33d9ff;
+    color: #001122;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.submit-btn:hover {
+    background-color: rgba(51, 217, 255, 0.9);
+}
+
+.hidden {
+    display: none;
+}*/
+
+.current-user-row {
+    background: linear-gradient(90deg, 
+    rgba(51, 217, 255, 0.08) 0%,
+    rgba(51, 217, 255, 0.15) 50%,
+    rgba(51, 217, 255, 0.08) 100%
+    );
+    box-shadow: inset 0 0 15px rgba(51, 217, 255, 0.05);
+    transition: background 0.3s ease;
+}
+
+.pool-name-container {
+    display: flex;
+    align-items: flex-end; /* This will align items to the bottom */
+    gap: 10px;
+    margin-bottom: 5px;
+    margin-left: 10px;
+    min-height: 40px; /* Give enough height for wrapped text */
+}
+
+
+/* Create a new container for the bottom elements */
+.pool-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%; /* Take full width */
+    margin-top: auto; /* Push to bottom of container */
+}
+
+
+.user-count {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    background-color: #17203a;
+    border: 1px solid #33d9ff;
+    border-radius: 12px;
+    font-size: 0.9em;
+    color: #33d9ff;
+    font-family: 'Montserrat', 'Sans-serif';
+    box-shadow: 0 0 5px #0fa5c7, 0 0 5px #0fa5c7, 0 0 5px #0fa5c7;
+    margin-left: 10px;
+}
+
+
+.user-count i {
+    font-size: 0.9em;
+}
+.view-selector-container {
+    position: relative;
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.view-selector {
+    padding: 2px 30px 2px 8px;
+    background-color: #17203a;
+    color: #33d9ff;
+    border: 1px solid #33d9ff;
+    border-radius: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9em;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    box-shadow: 0 0 5px #0fa5c7, 0 0 5px #0fa5c7, 0 0 5px #0fa5c7;
+}
+
+
+.dropdown-arrow {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #33d9ff;
+    font-size: 0.7em;
+    pointer-events: none;
+    text-shadow: 0 0 5px #0fa5c7;
+}
+
+.view-selector:hover {
+    box-shadow: 0 0 10px #0fa5c7, 0 0 10px #0fa5c7, 0 0 10px #0fa5c7;
+}
+
+.view-selector:focus {
+    outline: none;
+    box-shadow: 0 0 15px #0fa5c7, 0 0 15px #0fa5c7, 0 0 15px #0fa5c7;
+}
+
+.view-selector option {
+    background-color: #17203a;
+    color: #33d9ff;
+    padding: 8px;
+}
+.show-more-button {
+    position: absolute;
+    bottom: -5px;  
+    margin-left: 70px;      
+    padding: 10px 25px;
+    background-color: transparent;
+    color: #33d9ff;
+    border: 1px solid #33d9ff;
+    border-radius: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+}
+
+.show-more-button:hover {
+    background-color: rgba(51, 217, 255, 0.1);
+    box-shadow: 0 0 8px rgba(51, 217, 255, 0.4);
+}
+
+.show-more-button i {
+    font-size: 0.8em;
+}
+
+/* Target only the chevron icon */
+.show-more-button i.fa-chevron-down,
+.show-more-button i.fa-chevron-up {
+    transition: transform 0.2s ease;
+}
+
+.show-more-button.expanded i.fa-chevron-down {
+    transform: rotate(180deg);
+}
+
+/*Starting changing AGAIN PT 2*/
+
+
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(23, 32, 58, 0.95);
+    border-bottom: 2px solid #33d9ff;
+    box-shadow: 0 0 20px rgba(51, 217, 255, 0.2);
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    padding: 0.4rem;
+  }
+  .nav-container {
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.3rem; /* Reduced gap */
+    padding: 0 0.5rem;
+  }
+  .nav-left {
+    flex: 0 0 auto; /* Don't grow, don't shrink, auto basis */
+    width: auto;
+    max-width: 120px; /* Explicit max-width to constrain the section */
+    display: flex;
+    align-items: center;
+    gap: 0.3rem; /* Reduced gap */
+}
+
+  
+  .nav-right {
+    flex: 0 1 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-right:0.5rem;
+  }
+
+.profile-section {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50px;
+  transition: background-color 0.3s ease;
+  min-width: fit-content; /* Prevent shrinking below content */
+}
+
+    /*
+  .profile-section:hover {
+    background: rgba(51, 217, 255, 0.1);
+  }*/
+  
+  .profile-icon-container {
+    flex: 0 0 40px; /* Don't grow or shrink, fixed width */
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #33d9ff;
+    box-shadow: 0 0 5px #0fa5c7, 0 0 10px #0fa5c7, 0 0 15px #0fa5c7;
+    overflow: hidden;
+    top: 10px;
+  }
+
+  .profile-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .username {
+    color: #33d9ff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    white-space: normal; /* Allow text to wrap */
+    margin-left: 55px;
+    margin-bottom: -8px;
+    max-width: 120px; /* Control the width before wrapping */
+    line-height: 1.1; /* Tighter line spacing for wrapped text */
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+.nav-center {
+    flex: 1 1 auto;
+    text-align: center;
+    min-width: fit-content;
+  }
+  
+  .nav-title {
+    font-family: 'Russo One', sans-serif;
+    color: #ffffff;
+    font-size: 1.5rem; /* Slightly smaller for better mobile fit */
+    text-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff;
+    white-space: nowrap;
+  }
+  
+  .nav-subtitle {
+    font-family: 'Montserrat', sans-serif;
+    color: #33d9ff;
+    font-size: 0.8rem;
+    margin-top: 0.2rem;
+    white-space: nowrap;
+  }
+  
+  .nav-button {
+    background: transparent;
+    border: 1px solid #33d9ff;
+    color: #33d9ff;
+    padding: 0.5rem;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.8rem;
+    text-decoration: none;
+    min-width: fit-content;
+  }
+  
+  .nav-button:hover {
+    background: rgba(51, 217, 255, 0.1);
+    box-shadow: 0 0 15px rgba(51, 217, 255, 0.3);
+  }
+  
+  .nav-button i {
+    font-size: 1.1rem;
+  }
+
+/* Show only icons on very small screens */
+@media (max-width: 746px) {
+    .nav-button span {
+      display: none;
+    }
+    
+    .nav-button {
+      padding: 0.5rem;
+    }
+    
+    .nav-button i {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+  }
+
+  .nav-button.info-btn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .nav-button.info-btn i {
+    font-size: 1rem;
+    margin: 0;
+  }
+  
+  @media (max-width: 746px) {
+    .nav-button.info-btn {
+      width: 37px;
+      height: 37px;
+      min-width: 28px;
+    }
+  
+    .nav-button.info-btn i {
+      font-size: 1.2rem;
+    }
+  }
+
+  /* Updated chat wrapper positioning */
+.chat-wrapper {
+    position: fixed;
+    top: -600px; /* Start above the viewport */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 999;
+    transition: top 0.3s ease;
+}
+
+.chat-wrapper.show-chat {
+    top: 75px; /* Adjust based on your navbar height */
+}
+
+.chat-container {
+    width: 350px;
+    background-color: #081f42;
+    color: #ddd;
+    border: 2px solid #33d9ff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    margin-left: 35px;
+}
+
+.chat-box {
+    height: 400px;
+    overflow-y: auto;
+    padding: 10px;
+    border-bottom: 1px solid #33d9ff;
+    background-color: #061b3a;
+}
+
+.chat-toggle {
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+    border-bottom: 1px solid #33d9ff;
+}
+
+.chat-toggle-button {
+    width: 100%;
+    padding: 8px;
+    background: transparent;
+    color: #33d9ff;
+    border: 1px solid #33d9ff;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.chat-toggle-button.active {
+    background: #33d9ff;
+    color: #081f42;
+}
+
+.chat-input {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin: 10px;
+    border: 1px solid #33d9ff;
+    background-color: #061b3a;
+    color: #ddd;
+    border-radius: 5px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+    font-size: 16px;
+}
+
+.send-chat-button {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin: 10px;
+    background: linear-gradient(135deg, #33d9ff 0%, #0099CC 100%);
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.send-chat-button:hover {
+    background: linear-gradient(135deg, #0099CC 0%, #33d9ff 100%);
+    box-shadow: 0 0 5px #33d9ff, 0 0 5px #33d9ff, 0 0 5px #33d9ff;
+}
+
+/* Updated scrollbar styling */
+.chat-box::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-box::-webkit-scrollbar-track {
+    background: #061b3a;
+}
+
+.chat-box::-webkit-scrollbar-thumb {
+    background: #33d9ff;
+    border-radius: 3px;
+}
+
+/* Animation for chat messages */
+.chat-box > div {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
