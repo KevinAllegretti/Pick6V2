@@ -448,7 +448,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 //START OF POOLS AND PLAYERROWS
-
+/*
 document.getElementById('show-create-pool-form').addEventListener('click', function() {
     // This line toggles the form's visibility.
     var formContainer = document.getElementById('create-pool-form-container');
@@ -522,9 +522,9 @@ document.getElementById('create-pool-form').addEventListener('submit', function(
         alert('An error occurred while creating the pool.');
     });
 });
+*/
 
 
-/*
 // V3 for pool man
 document.addEventListener('DOMContentLoaded', function() {
     // Tab Switching
@@ -595,7 +595,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData(joinPoolForm);
     });
 });
-*/
+
 
 function sortPlayersByPoints(players) {
     // Sort players in descending order of points

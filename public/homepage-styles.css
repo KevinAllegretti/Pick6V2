@@ -6,7 +6,7 @@
 /* General Styling */
 body {
     font-family: 'Arial', sans-serif;
-    background-color: #0a0f22; /* Darker background for contrast */
+    background-color: #0a0f22;  /*Darker background for contrast */
     /*background-image: url('P6.png');
     background-size: 1500px; /* Resize the background image to cover the entire container */
     background-repeat: no-repeat; /* Prevents the background image from repeating */
@@ -1832,7 +1832,7 @@ button:hover {
     border: 1px solid #0a0f22;
 }
 
-/*At line 1849 We begin to craft a new pool manager for V3!!! Bringing along the diff modes.
+/*At line 1849 We begin to craft a new pool manager for V3!!! Bringing along the diff modes.*/
 
 .pool-manager-container {
     display: flex;
@@ -1990,7 +1990,7 @@ button:hover {
 
 .hidden {
     display: none;
-}*/
+} /*end herefor pool manag*/
 
 .current-user-row {
     background: linear-gradient(90deg, 

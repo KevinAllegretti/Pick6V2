@@ -421,14 +421,14 @@ cron.schedule('0 8 * * 4', () => {
   fetchAndSaveInjuries();
 });
 
-cron.schedule('0 0 * * 2', async () => { // every tuesday
+/*cron.schedule('0 0 * * 2', async () => { // every tuesday
   try {
     const betOptions = await fetchNFLDataOneWeekOut();
     await saveWeeklyPicks(betOptions);
   } catch (error) {
     console.error('Scheduled job failed:', error);
   }
-});
+});*/
 
 cron.schedule('0 7 * * 1', () => {
   console.log("monday morning injruy sweep");
@@ -438,8 +438,8 @@ cron.schedule('0 7 * * 1', () => {
 //pushed back for cardinals
 cron.schedule('0 0 * * 2', () => {
   console.log("It's Tuesday 12:00 AM, now deleting results");
-  deleteResultsFromServer();
-  deletePicksFromServer();
+ // deleteResultsFromServer();
+ // deletePicksFromServer();
   console.log("Updating Thursday deadline to the upcoming Thursday");
   updateThursdayDeadline();
 });
