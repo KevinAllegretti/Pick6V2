@@ -2416,3 +2416,182 @@ button:hover {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+.global-picks-button {
+    display: block;
+    margin: 50px auto 20px auto;  /* Increased top margin to 50px */
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #33d9ff;
+    background: rgba(24, 26, 27, 0.8);
+    border: 2px solid #33d9ff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 0 10px rgba(51, 217, 255, 0.2);
+}
+
+.global-picks-button:hover {
+    background: rgba(51, 217, 255, 0.1);
+    box-shadow: 0 0 20px rgba(51, 217, 255, 0.4);
+    transform: translateY(-1px);
+}
+
+.global-picks-button:active {
+    transform: translateY(1px);
+}
+
+/* Glow animation */
+@keyframes buttonGlow {
+    0% { box-shadow: 0 0 10px rgba(51, 217, 255, 0.2); }
+    50% { box-shadow: 0 0 20px rgba(51, 217, 255, 0.4); }
+    100% { box-shadow: 0 0 10px rgba(51, 217, 255, 0.2); }
+}
+
+.global-picks-button {
+    animation: buttonGlow 2s infinite;
+}
+
+/* Disabled state */
+.global-picks-button.disabled {
+    color: #808080;
+    border-color: #808080;
+    background: rgba(24, 26, 27, 0.8);
+    cursor: not-allowed;
+    animation: none;
+}
+
+/* Survivor Pool Container */
+.survivor-pool-container {
+    min-width: 800px; /* Adjusted width since we have fewer columns */
+    max-width: 800px;
+    padding-left: 20px;
+    border: 2px solid #39FF14; /* Neon green instead of blue */
+    background-color: #202124;
+    border-radius: 8px;
+    text-align: left;
+}
+
+/* Survivor Pool Header and Row Structure */
+.survivor-pool-header, .survivor-player-row {
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #39FF14;
+}
+
+/* Header items and row items */
+.survivor-pool-header > span, .survivor-player-row > div {
+    flex: 1;
+    text-align: center;
+    position: relative;
+    padding: 10px 0;
+}
+
+/* Vertical lines between columns */
+.survivor-pool-header > span:not(:last-child)::after,
+.survivor-player-row > div:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 30px;
+    width: 1px;
+    background-color: #39FF14;
+}
+
+/* Specific column widths */
+.survivor-header-user, .survivor-player-user { flex: 2; }
+.survivor-header-picks, .survivor-player-picks { flex: 2; }
+.survivor-header-eliminated, .survivor-player-eliminated { flex: 1; }
+
+/* User section styling */
+.survivor-player-user {
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+}
+
+.survivor-profile-pic {
+    width: 43px;
+    height: 43px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    margin-right: 10px;
+    flex-shrink: 0;
+    border: 1.5px solid #39FF14;
+}
+
+/* Pick styling */
+.survivor-pick {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.survivor-pick img {
+    width: 35px;
+    height: auto;
+    margin-bottom: 8px;
+}
+
+/* Eliminated status styling */
+.eliminated-status {
+    color: #FF3131; /* Red color for eliminated status */
+    font-weight: bold;
+}
+
+.active-status {
+    color: #39FF14; /* Green color for active status */
+    font-weight: bold;
+}
+
+/* Pool name styling */
+.survivor-pool-name {
+    font-family: 'Electrolize', sans-serif;
+    font-size: 20px;
+    color: #0a0f22;
+    text-shadow:
+        -.5px -.5px 0 #39FF14,
+        .5px -.5px 0 #39FF14,
+        -.5px .5px 0 #39FF14,
+        .5px .5px 0 #39FF14;
+    text-align: left;
+    margin-bottom: 1px;
+    margin-left: 10px;
+    line-height: 1;
+}
+
+/* User count styling for survivor mode */
+.survivor-user-count {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    background-color: #202124;
+    border: 1px solid #39FF14;
+    border-radius: 12px;
+    font-size: 0.9em;
+    color: #39FF14;
+    font-family: 'Montserrat', 'Sans-serif';
+    box-shadow: 0 0 5px #39FF14, 0 0 5px #39FF14, 0 0 5px #39FF14;
+    margin-left: 10px;
+}
+
+/* Current user highlighting for survivor mode */
+.survivor-current-user-row {
+    background: linear-gradient(90deg, 
+        rgba(57, 255, 20, 0.08) 0%,
+        rgba(57, 255, 20, 0.15) 50%,
+        rgba(57, 255, 20, 0.08) 100%
+    );
+    box-shadow: inset 0 0 15px rgba(57, 255, 20, 0.05);
+    transition: background 0.3s ease;
+}

@@ -104,13 +104,14 @@
         <div class="neon-sign">
            <!-- PICK 6-->
 
-
-
         </div>
         <!--<div class="week">Playoff Week 3</div>-->
        <!--<button id="savePicksButton">Save Picks to Last Week</button>--> 
        <!-- <button id="fetchScoresButton">Fetch MLB Scores</button>--> 
         <div id="main-content">
+            <div style="width: 100%; overflow: hidden; margin-bottom: 20px;">
+                <button id="globalPicksButton" class="global-picks-button">Pick Selection Page</button>
+            </div>
             <div id="pool-container-wrapper">
                 <!-- New pool containers will be added here -->
             </div>
@@ -160,9 +161,13 @@
                     <div class="mode-title">Classic Mode</div>
                     <div class="mode-description">Traditional Pick 6 experience</div>
                 </button>
-                <button class="mode-card" data-mode="draft">
+                <button class="mode-card" data-mode="survivor">
                     <div class="mode-title">Survivor Mode</div>
-                    <div class="mode-description">Choose one team to win each week and can't use the same team twice. Eliminated if your pick loses.</div>
+                    <div class="mode-description">
+                        - Choose one team to win each week<br>
+                        - Can't use the same team twice<br>
+                        - Eliminated if your pick loses
+                    </div>
                 </button>
             </div>
 
@@ -205,7 +210,7 @@
         </div>
     </div>
 </div>
-
+<!--
     <template id="chat-template">
         <div class="chat-wrapper">
            <div class="chat-tab" onclick="toggleChat(this)">Chat</div>

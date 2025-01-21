@@ -523,21 +523,34 @@ document.getElementById('create-pool-form').addEventListener('submit', function(
     });
 });
 */
-
+document.addEventListener('DOMContentLoaded', function() {
+    const globalPicksButton = document.getElementById('globalPicksButton');
+    if (globalPicksButton) {
+        globalPicksButton.addEventListener('click', async function() {
+            // Check if it's pick time before allowing access
+            const isPickTime = await isCurrentTimePickTime();
+            if (!isPickTime) {
+                showGameTimeAlert(event);
+                return;
+            }
+            // Redirect to dashboard without specific pool parameter
+            window.location.href = 'dashboard.html';
+        });
+    }
+});
 
 // V3 for pool man
 document.addEventListener('DOMContentLoaded', function() {
     // Tab Switching
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
+    let selectedMode = 'classic'; // Default mode
 
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
-            // Remove active class from all buttons and contents
             tabButtons.forEach(btn => btn.classList.remove('active'));
             tabContents.forEach(content => content.classList.add('hidden'));
-
-            // Add active class to clicked button and show corresponding content
+            
             button.classList.add('active');
             const tabId = button.dataset.tab;
             document.getElementById(`${tabId}-pool-content`).classList.remove('hidden');
@@ -550,8 +563,7 @@ document.addEventListener('DOMContentLoaded', function() {
         card.addEventListener('click', () => {
             modeCards.forEach(c => c.classList.remove('active'));
             card.classList.add('active');
-            const selectedMode = card.dataset.mode;
-            // You can store the selected mode or trigger other actions here
+            selectedMode = card.dataset.mode;
         });
     });
 
@@ -565,7 +577,6 @@ document.addEventListener('DOMContentLoaded', function() {
         privacyBtn.classList.toggle('private');
         passwordGroup.classList.toggle('hidden');
         
-        // Update button text and icon
         const icon = privacyBtn.querySelector('i');
         const text = privacyBtn.querySelector('span');
         
@@ -578,24 +589,111 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Form Submission
-    const createPoolForm = document.getElementById('create-pool-form');
-    const joinPoolForm = document.getElementById('join-pool-form');
+    // Create Pool Form Submission
+  // Create Pool Form Submission
+const createPoolForm = document.getElementById('create-pool-form');
+createPoolForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const poolName = createPoolForm.querySelector('input[type="text"]').value.trim();
+    const poolPassword = createPoolForm.querySelector('input[type="password"]')?.value;
+    const username = localStorage.getItem('username');
 
-    createPoolForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        // Add your pool creation logic here
-        const formData = new FormData(createPoolForm);
-        // You can access the selected mode and other form data here
-    });
+    if (!username) {
+        alert('Username not found. Please log in again.');
+        return;
+    }
 
-    joinPoolForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        // Add your pool joining logic here
-        const formData = new FormData(joinPoolForm);
-    });
+    const payload = {
+        name: poolName,
+        isPrivate: isPrivate,
+        adminUsername: username.toLowerCase(),
+        mode: selectedMode,
+        ...(isPrivate && { password: poolPassword })
+    };
+
+    try {
+        const response = await fetch('/pools/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            if (response.status === 409) {
+                alert('The pool name is already taken. Please choose another name.');
+                return;
+            }
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data.message && data.pool) {
+            // Show quick success message
+            alert('Pool created successfully!');
+            // Force page reload
+            window.location.reload();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while creating the pool.');
+    }
 });
 
+    // Join Pool Form Submission
+    const joinPoolForm = document.getElementById('join-pool-form');
+    joinPoolForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const poolName = joinPoolForm.querySelector('input[type="text"]').value.trim();
+        const poolPassword = joinPoolForm.querySelector('input[type="password"]').value;
+        const username = localStorage.getItem('username');
+
+        if (!username) {
+            alert('Username not found. Please log in again.');
+            return;
+        }
+
+        try {
+            const response = await fetch('/pools/join', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    poolName: poolName,
+                    username: username.toLowerCase(),
+                    password: poolPassword
+                })
+            });
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                    alert('Pool not found.');
+                    return;
+                }
+                if (response.status === 403) {
+                    alert('Incorrect password.');
+                    return;
+                }
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (data.message) {
+                // Reset form
+                joinPoolForm.reset();
+                
+                // Show success message or redirect
+                alert('Successfully joined the pool!');
+                // Optional: redirect to the pool
+                // window.location.href = `/pool/${data.poolId}`;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while joining the pool.');
+        }
+    });
+});
+//here is end of v3
 
 function sortPlayersByPoints(players) {
     // Sort players in descending order of points
@@ -615,6 +713,10 @@ function sortPlayersByPoints(players) {
 }
 
 function displayNewPoolContainer(pool) {
+    if (pool.mode === 'survivor') {
+        displaySurvivorPool(pool);
+        return; // Exit early since we're using the survivor display
+    }
     const teamLogos = {
         'Arizona Cardinals': '/ARILogo.png',
         'Atlanta Falcons': '/ATLLogo.png',
@@ -783,7 +885,8 @@ function displayNewPoolContainer(pool) {
             <span class="header-user">User</span>
             <span class="header-points">Points</span>
             <span class="header-picks">
-                <button id="choosePicksButton" class="choose-picks-button">Make Picks</button>
+               <!-- <button id="choosePicksButton" class="choose-picks-button">Make Picks</button> -->
+             Picks
             </span>
             <span class="header-immortal-lock"> <i class="fas fa-lock"></i></span>
             <span class="header-win">Win</span>
@@ -1421,84 +1524,118 @@ function redirectToNFLSchedule(source) {
 }
 
 function loadAndDisplayUserPools() {
+    const currentUsername = localStorage.getItem('username');
+    if (!currentUsername) {
+        console.error('No logged-in user found!');
+        return;
+    }
 
-  const currentUsername = localStorage.getItem('username');
-  if (!currentUsername) {
-    console.error('No logged-in user found!');
-    return;
-  }
+    // Fetch the pools the user is a part of
+    fetch(`/pools/userPools/${encodeURIComponent(currentUsername.toLowerCase())}`)
+        .then(response => response.json())
+        .then(pools => {
+            const poolContainerWrapper = document.getElementById('pool-container-wrapper');
+            poolContainerWrapper.innerHTML = '';
 
-  // Fetch the pools the user is a part of
-  fetch(`/pools/userPools/${encodeURIComponent(currentUsername.toLowerCase())}`)
-    .then(response => response.json())
-    .then(pools => {
-        
-        const poolContainerWrapper = document.getElementById('pool-container-wrapper');
-        poolContainerWrapper.innerHTML = '';
+            pools.forEach(pool => {
+                if (pool.mode === 'survivor') {
+                    // Handle survivor pool display
+                    displaySurvivorPool(pool);
+                } else {
+                    // Handle classic pool display
+                    pool.members.sort((a, b) => b.points - a.points);
 
-       
-      pools.forEach(pool => {
-        pool.members.sort((a, b) => b.points - a.points);
+                    const poolContainer = document.createElement('div');
+                    poolContainer.className = 'pool-container';
 
+                    // Fetch the user profiles and user picks for each member
+                    const membersDataPromises = pool.members.map(member => {
+                        // Fetch user profile
+                        return fetch(`/api/getUserProfile/${member.username}`)
+                            .then(response => response.json())
+                            .then(userProfile => {
+                                // Fetch the user picks
+                                const poolName = pool.name;
+                                const encodedPoolName = encodeURIComponent(poolName);
+                                return fetch(`/api/getPicks/${member.username}/${encodedPoolName}`)
+                                    .then(response => response.json())
+                                    .then(userPicks => {
+                                        return { userProfile, userPicks };
+                                    });
+                            });
+                    });
 
-        const poolContainer = document.createElement('div');
-        poolContainer.className = 'pool-container';
+                    // When all members data has been fetched
+                    Promise.all(membersDataPromises)
+                        .then(membersData => {
+                            membersData.forEach((data, index) => {
+                                const { userProfile, userPicks } = data;
+                                // Construct the member's player row
+                                const playerRow = createPlayerRow({
+                                    rank: index + 1,
+                                    username: userProfile.username,
+                                    profilePic: userProfile.profilePicture,
+                                    points: userProfile.points,
+                                    wins: userProfile.wins,
+                                    losses: userProfile.losses,
+                                    pushes: userProfile.pushes,
+                                    picks: userPicks ? userPicks.picks : []
+                                }, userProfile.username === pool.adminUsername);
 
+                                // Fetch picks for the player row
+                                fetchPicks(userProfile.username, pool.name, playerRow, teamLogos);
+                                poolContainer.appendChild(playerRow);
+                            });
 
-      // Fetch the user profiles and user picks for each member
-      const membersDataPromises = pool.members.map(member => {
-       // console.log(`Fetching data for username: ${member.username}`); // This should log the actual username, not [object Object]
-        // Directly use member.username since it is already a direct property of the member object
-        const username = member.username;
-      
-        // Fetch user profile
-        return fetch(`/api/getUserProfile/${member.username}`)
-          .then(response => response.json())
-          .then(userProfile => {
-            // Fetch the user picks
-            const poolName = pool.name; 
-            const encodedPoolName = encodeURIComponent(poolName);
-            return fetch(`/api/getPicks/${member.username}/${encodedPoolName}`)
-              .then(response => response.json())
-              .then(userPicks => {
-                return { userProfile, userPicks };
-              });
-          });
-      });
-      
-      
-        // When all members data has been fetched
-        Promise.all(membersDataPromises).then(membersData => {
-
-          membersData.forEach((data, index) => {
-            const { userProfile, userPicks } = data;
-            // Construct the member's player row
-            const playerRow = createPlayerRow({
-              rank: index + 1, // Rank is the index in the array + 1
-              username: userProfile.username,
-              profilePic: userProfile.profilePicture,
-              points: userProfile.points,
-              wins: userProfile.wins,
-              losses: userProfile.losses,
-              pushes: userProfile.pushes,
-              picks: userPicks ? userPicks.picks : [] // Provide an empty array as fallback
-            }, userProfile.username === pool.adminUsername);
-
-            // Append the player row to the pool container
-            poolContainer.appendChild(playerRow);
-          });
-
-          // Display the new pool container
-          displayNewPoolContainer(pool);
+                            // Display the new pool container
+                            displayNewPoolContainer(pool);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching member data:', error);
+                        });
+                }
+            });
         })
-        .catch(error => {
-          console.error('Error fetching member data:', error);
-        });
-      });
-    })
-    .catch(error => console.error('Error fetching pools for user:', error));
+        .catch(error => console.error('Error fetching pools for user:', error));
+
+    // Set up automatic message refresh (if you're using chat functionality)
+    document.addEventListener('DOMContentLoaded', startMessageRefresh);
 }
 
+const teamLogos = {
+    'Arizona Cardinals': '/ARILogo.png',
+    'Atlanta Falcons': '/ATLLogo.png',
+    'Baltimore Ravens': '/BALLogo.png',
+    'Buffalo Bills': '/BUFLogo.png',
+    'Carolina Panthers': '/CARLogo.png',
+    'Chicago Bears': '/CHILogo.png',
+    'Cincinnati Bengals': '/CINLogo.png',
+    'Cleveland Browns': '/CLELogo.png',
+    'Dallas Cowboys': '/DALLogo.png',
+    'Denver Broncos': '/DENLogo.png',
+    'Detroit Lions': '/DETLogo.png',
+    'Green Bay Packers': '/GBLogo.png',
+    'Houston Texans': '/HOULogo.png',
+    'Indianapolis Colts': '/INDLogo.png',
+    'Jacksonville Jaguars': '/JAXLogo.png',
+    'Kansas City Chiefs': '/KCLogo.png',
+    'Las Vegas Raiders': '/LVLogo.png',
+    'Los Angeles Chargers': '/LACLogo.png',
+    'Los Angeles Rams': '/LARLogo.png',
+    'Miami Dolphins': '/MIALogo.png',
+    'Minnesota Vikings': '/MINLogo.png',
+    'New England Patriots': '/NELogo.png',
+    'New Orleans Saints': '/NOLogo.png',
+    'New York Giants': '/NYGLogo.png',
+    'New York Jets': '/NYJLogo.png',
+    'Philadelphia Eagles': '/PHILogo.png',
+    'Pittsburgh Steelers': '/PITLogo.png',
+    'San Francisco 49ers': '/SFLogo.png',
+    'Seattle Seahawks': '/SEALogo.png',
+    'Tampa Bay Buccaneers': '/TBLogo.png',
+    'Tennessee Titans': '/TENLogo.png',
+    'Washington Commanders': '/WASLogo.png'
+};
   
 document.addEventListener('DOMContentLoaded', loadAndDisplayUserPools);
 
@@ -1817,3 +1954,188 @@ const usernames = [
 
 //changeUserPoints('kevdoer island', 0, 'The Gauntlet'); 
 */// Replace with the actual username, new points value, and pool name
+
+function displaySurvivorPool(pool) {
+    const currentUsername = localStorage.getItem('username');
+    if (!currentUsername) {
+        console.error('No logged-in user found!');
+        return;
+    }
+
+    const teamLogos = {
+        'Arizona Cardinals': '/ARILogo.png',
+        'Atlanta Falcons': '/ATLLogo.png',
+        // ... (rest of your team logos)
+    };
+
+    const poolContainerWrapper = document.getElementById('pool-container-wrapper');
+    const poolWrapper = document.createElement('div');
+    poolWrapper.className = 'pool-wrapper survivor-mode';
+    poolWrapper.setAttribute('data-pool-name', pool.name);
+
+    // Pool name container
+    const poolNameContainer = document.createElement('div');
+    poolNameContainer.className = 'pool-name-container';
+    
+    const poolNameDiv = document.createElement('div');
+    poolNameDiv.className = 'survivor-pool-name';
+    poolNameDiv.innerText = pool.name;
+
+    // User count
+    const userCountDiv = document.createElement('div');
+    userCountDiv.className = 'survivor-user-count';
+    userCountDiv.innerHTML = `
+        <i class="fas fa-users"></i>
+        <span>${pool.members.length}</span>
+    `;
+
+    poolNameContainer.appendChild(poolNameDiv);
+    poolNameContainer.appendChild(userCountDiv);
+
+    // Create scrollable container
+    const poolScrollableContainer = document.createElement('div');
+    poolScrollableContainer.className = 'pool-scrollable-container';
+
+    // Create pool container
+    const poolContainer = document.createElement('div');
+    poolContainer.className = 'survivor-pool-container';
+
+    // Create header
+    const poolHeader = document.createElement('div');
+    poolHeader.className = 'survivor-pool-header';
+    poolHeader.innerHTML = `
+        <span class="survivor-header-user">User</span>
+        <span class="survivor-header-picks">Pick</span>
+        <span class="survivor-header-eliminated">Status</span>
+    `;
+    poolContainer.appendChild(poolHeader);
+
+    // Process members
+    const memberDataPromises = pool.members.map(member => 
+        fetchUserProfile(member.username).then(userProfile => ({
+            username: userProfile.username,
+            profilePic: userProfile.profilePicture,
+            isEliminated: member.isEliminated || false
+        }))
+    );
+
+    Promise.all(memberDataPromises).then(membersData => {
+        membersData.forEach(memberData => {
+            const playerRow = createSurvivorPlayerRow(memberData, currentUsername);
+            fetchSurvivorPick(memberData.username, pool.name, playerRow, teamLogos);
+            poolContainer.appendChild(playerRow);
+        });
+
+        poolScrollableContainer.appendChild(poolContainer);
+        poolWrapper.appendChild(poolNameContainer);
+        poolWrapper.appendChild(poolScrollableContainer);
+
+        // Add admin/leave button if necessary
+        addPoolControls(poolWrapper, pool, currentUsername);
+
+        poolContainerWrapper.appendChild(poolWrapper);
+    });
+}
+
+function createSurvivorPlayerRow(memberData, currentUsername) {
+    const playerRow = document.createElement('div');
+    playerRow.className = 'survivor-player-row';
+    
+    if (memberData.username.toLowerCase() === currentUsername.toLowerCase()) {
+        playerRow.classList.add('survivor-current-user-row');
+    }
+
+    playerRow.innerHTML = `
+        <div class="survivor-player-user">
+            <div class="survivor-profile-pic" style="background-image: url('${memberData.profilePic}')"></div>
+            <span class="player-username">${memberData.username}</span>
+        </div>
+        <div class="survivor-player-picks"></div>
+        <div class="survivor-player-eliminated">
+            <span class="${memberData.isEliminated ? 'eliminated-status' : 'active-status'}">
+                ${memberData.isEliminated ? 'ELIMINATED' : 'ACTIVE'}
+            </span>
+        </div>
+    `;
+
+    return playerRow;
+}
+
+async function fetchSurvivorPick(username, poolName, playerRow, teamLogos) {
+    const isPickTime = await isCurrentTimePickTime();
+    const encodedUsername = encodeURIComponent(username);
+    const encodedPoolName = encodeURIComponent(poolName);
+    
+    try {
+        const response = await fetch(`/api/getSurvivorPick/${encodedUsername}/${encodedPoolName}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const pickData = await response.json();
+        const picksContainer = playerRow.querySelector('.survivor-player-picks');
+        picksContainer.innerHTML = '';
+
+        if (username === localStorage.getItem('username').toLowerCase() || !isPickTime) {
+            if (pickData && pickData.pick) {
+                const pickDiv = document.createElement('div');
+                pickDiv.className = 'survivor-pick';
+
+                const teamName = pickData.pick.teamName;
+                if (teamName && teamLogos[teamName]) {
+                    const logoImg = document.createElement('img');
+                    logoImg.src = teamLogos[teamName];
+                    logoImg.alt = teamName;
+                    logoImg.className = 'team-logo';
+                    pickDiv.appendChild(logoImg);
+                }
+
+                picksContainer.appendChild(pickDiv);
+            } else {
+                const noPickMessage = document.createElement('div');
+                noPickMessage.className = 'no-picks-message';
+                noPickMessage.textContent = 'No pick made';
+                picksContainer.appendChild(noPickMessage);
+            }
+        } else {
+            const bannerImage = document.createElement('img');
+            bannerImage.src = 'PickTimeNew.png';
+            bannerImage.alt = 'Player Making Selection';
+            bannerImage.className = 'pick-banner';
+            picksContainer.appendChild(bannerImage);
+        }
+    } catch (error) {
+        console.error('Error fetching survivor pick:', error);
+    }
+}
+
+// Helper function to add pool controls (admin/leave buttons)
+function addPoolControls(poolWrapper, pool, currentUsername) {
+    const isAdmin = currentUsername.toLowerCase() === pool.adminUsername.toLowerCase();
+    
+    if (isAdmin) {
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete Pool';
+        deleteButton.className = 'delete-pool-button';
+        deleteButton.setAttribute('data-pool-name', pool.name);
+        deleteButton.addEventListener('click', function() {
+            const confirmation = confirm(`Are you sure you want to delete the pool "${pool.name}"?`);
+            if (confirmation) {
+                deletePool(pool.name);
+            }
+        });
+        poolWrapper.appendChild(deleteButton);
+    } else {
+        const leaveButton = document.createElement('button');
+        leaveButton.textContent = 'Leave Pool';
+        leaveButton.className = 'leave-pool-button';
+        leaveButton.setAttribute('data-pool-name', pool.name);
+        leaveButton.addEventListener('click', function() {
+            const confirmation = confirm(`Are you sure you want to leave the pool "${pool.name}"?`);
+            if (confirmation) {
+                leavePool(pool.name);
+            }
+        });
+        poolWrapper.appendChild(leaveButton);
+    }
+}

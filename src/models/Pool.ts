@@ -1,9 +1,7 @@
 // Pool.ts
-
 import mongoose from 'mongoose';
 import {poolMemberSchema} from './poolMember';
 
-// Define the Pool schema
 const poolSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -27,15 +25,17 @@ const poolSchema = new mongoose.Schema({
   password: {
     type: String,
   },
+  mode: {
+    type: String,
+    enum: ['classic', 'survivor'],
+    default: 'classic',
+    required: true
+  },
   createdAt: {
     type: Date,
     default: Date.now,
   },
 });
 
-
-// Create the model from the schema
 const Pool = mongoose.model('Pool', poolSchema);
-
-// Export the model
 export default Pool;
