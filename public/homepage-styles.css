@@ -2027,7 +2027,7 @@ button:hover {
     align-items: center;
     gap: 5px;
     padding: 2px 8px;
-    background-color: #17203a;
+    background-color: #202124;
     border: 1px solid #33d9ff;
     border-radius: 12px;
     font-size: 0.9em;
@@ -2049,7 +2049,7 @@ button:hover {
 
 .view-selector {
     padding: 2px 30px 2px 8px;
-    background-color: #17203a;
+    background-color: #202124;
     color: #33d9ff;
     border: 1px solid #33d9ff;
     border-radius: 12px;
