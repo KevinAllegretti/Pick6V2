@@ -1496,7 +1496,8 @@ button:hover {
     max-width: 1150px;
     padding-left: 20px;
     border: 2px solid #33d9ff;
-    background-color: #17203a;
+   /* background-color: #17203a;*/
+    background-color: #202124;
     border-radius: 8px;
     text-align: left;
 }
