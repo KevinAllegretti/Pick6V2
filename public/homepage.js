@@ -1513,21 +1513,34 @@ function loadAndDisplayUserPools() {
         return;
     }
 
-    // Fetch the pools the user is a part of
     fetch(`/pools/userPools/${encodeURIComponent(currentUsername.toLowerCase())}`)
         .then(response => response.json())
         .then(pools => {
             const poolContainerWrapper = document.getElementById('pool-container-wrapper');
             poolContainerWrapper.innerHTML = '';
 
-            // Sort pools by orderIndex before processing
+            // More robust sorting with backup criteria
             pools.sort((a, b) => {
                 const memberA = a.members.find(m => m.username.toLowerCase() === currentUsername.toLowerCase());
                 const memberB = b.members.find(m => m.username.toLowerCase() === currentUsername.toLowerCase());
-                return (memberA?.orderIndex || 0) - (memberB?.orderIndex || 0);
+                
+                // Primary sort by orderIndex
+                const orderA = memberA?.orderIndex ?? Number.MAX_SAFE_INTEGER;
+                const orderB = memberB?.orderIndex ?? Number.MAX_SAFE_INTEGER;
+                
+                if (orderA !== orderB) {
+                    return orderA - orderB;
+                }
+                
+                // Secondary sort by pool name if orderIndex is the same
+                return a.name.localeCompare(b.name);
             });
 
-            pools.forEach(pool => {
+            // Force browser to respect the order by using async rendering
+            const renderPool = (index) => {
+                if (index >= pools.length) return;
+                
+                const pool = pools[index];
                 if (pool.mode === 'survivor') {
                     displaySurvivorPool(pool);
                 } else {
@@ -1576,7 +1589,13 @@ function loadAndDisplayUserPools() {
                             console.error('Error fetching member data:', error);
                         });
                 }
-            });
+
+                // Render next pool in next tick
+                setTimeout(() => renderPool(index + 1), 0);
+            };
+
+            // Start the sequential rendering
+            renderPool(0);
         })
         .catch(error => console.error('Error fetching pools for user:', error));
 

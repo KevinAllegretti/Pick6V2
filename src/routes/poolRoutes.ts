@@ -109,28 +109,46 @@ router.post('/reorder', async (req, res) => {
       res.status(500).json({ success: false, message: error.message });
   }
 });
-
-// Modify the existing userPools route to respect the order
+// In poolRoutes.ts
 router.get('/userPools/:username', async (req, res) => {
   try {
       const username = req.params.username.toLowerCase();
       const database = await connectToDatabase();
       const poolsCollection = database.collection('pools');
 
+      // Get all pools for user
       const pools = await poolsCollection.find({
           'members.username': username
       }).toArray();
 
-      // Sort pools based on member's orderIndex
-      pools.sort((a, b) => {
+      // Sort pools in backend before sending
+      const sortedPools = pools.sort((a, b) => {
           const memberA = a.members.find(m => m.username.toLowerCase() === username);
           const memberB = b.members.find(m => m.username.toLowerCase() === username);
-          const orderA = memberA?.orderIndex || 0;
-          const orderB = memberB?.orderIndex || 0;
-          return orderA - orderB;
+          
+          // Ensure orderIndex exists, use MAX_SAFE_INTEGER if missing
+          const orderA = typeof memberA?.orderIndex === 'number' ? memberA.orderIndex : Number.MAX_SAFE_INTEGER;
+          const orderB = typeof memberB?.orderIndex === 'number' ? memberB.orderIndex : Number.MAX_SAFE_INTEGER;
+          
+          if (orderA !== orderB) {
+              return orderA - orderB;
+          }
+          
+          // Secondary sort by pool name
+          return a.name.localeCompare(b.name);
       });
 
-      res.json(pools);
+      // Send sorted pools with order validation
+      res.json(sortedPools.map((pool, index) => ({
+          ...pool,
+          displayOrder: index, // Add explicit display order
+          members: pool.members.map(member => ({
+              ...member,
+              orderIndex: member.username.toLowerCase() === username ? 
+                  (member.orderIndex ?? index) : member.orderIndex
+          }))
+      })));
+
   } catch (error) {
       console.error('Error fetching pools for user:', error);
       res.status(500).send('Internal server error');
