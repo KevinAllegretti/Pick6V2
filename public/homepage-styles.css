@@ -2604,6 +2604,7 @@ button:hover {
     background: rgba(0, 0, 0, 0.3);
     border-radius: 8px;
     border: 1px solid #33d9ff;
+    margin-bottom: 20px;
   }
   
   .pool-actions-header h3 {
