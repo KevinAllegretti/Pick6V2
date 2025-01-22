@@ -2742,11 +2742,17 @@ button:hover {
     }
 }*/
 
-#pool-container-wrapper {
-    display: flex;
-    flex-direction: column;
+.pool-wrapper {
+    width: 100%;
+    order: 0; /* Default order */
 }
 
-.pool-container {
+#ordered-pools-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.survivor-mode {
     width: 100%;
 }
