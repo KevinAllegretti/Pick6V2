@@ -2741,3 +2741,12 @@ button:hover {
         transform: rotate(360deg);
     }
 }*/
+
+#pool-container-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.pool-container {
+    width: 100%;
+}

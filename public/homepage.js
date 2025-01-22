@@ -1513,93 +1513,85 @@ function loadAndDisplayUserPools() {
         return;
     }
 
+    const poolContainerWrapper = document.getElementById('pool-container-wrapper');
+    poolContainerWrapper.innerHTML = ''; // Clear existing content
+
+    // Create a container for all pools that will maintain order
+    const orderedContainer = document.createElement('div');
+    orderedContainer.id = 'ordered-pools-container';
+    poolContainerWrapper.appendChild(orderedContainer);
+
     fetch(`/pools/userPools/${encodeURIComponent(currentUsername.toLowerCase())}`)
         .then(response => response.json())
-        .then(pools => {
-            const poolContainerWrapper = document.getElementById('pool-container-wrapper');
-            poolContainerWrapper.innerHTML = '';
-
-            // More robust sorting with backup criteria
+        .then(async pools => {
+            // Sort pools first
             pools.sort((a, b) => {
                 const memberA = a.members.find(m => m.username.toLowerCase() === currentUsername.toLowerCase());
                 const memberB = b.members.find(m => m.username.toLowerCase() === currentUsername.toLowerCase());
                 
-                // Primary sort by orderIndex
                 const orderA = memberA?.orderIndex ?? Number.MAX_SAFE_INTEGER;
                 const orderB = memberB?.orderIndex ?? Number.MAX_SAFE_INTEGER;
                 
                 if (orderA !== orderB) {
                     return orderA - orderB;
                 }
-                
-                // Secondary sort by pool name if orderIndex is the same
                 return a.name.localeCompare(b.name);
             });
 
-            // Force browser to respect the order by using async rendering
-            const renderPool = (index) => {
-                if (index >= pools.length) return;
-                
-                const pool = pools[index];
+            // Process pools sequentially using async/await
+            for (let poolIndex = 0; poolIndex < pools.length; poolIndex++) {
+                const pool = pools[poolIndex];
+                const poolContainer = document.createElement('div');
+                poolContainer.className = 'pool-container';
+                poolContainer.style.order = poolIndex; // Force order using flexbox
+
                 if (pool.mode === 'survivor') {
-                    displaySurvivorPool(pool);
-                } else {
-                    // Keep existing classic pool display logic
-                    pool.members.sort((a, b) => b.points - a.points);
-
-                    const poolContainer = document.createElement('div');
-                    poolContainer.className = 'pool-container';
-
-                    const membersDataPromises = pool.members.map(member => {
-                        return fetch(`/api/getUserProfile/${member.username}`)
-                            .then(response => response.json())
-                            .then(userProfile => {
-                                const poolName = pool.name;
-                                const encodedPoolName = encodeURIComponent(poolName);
-                                return fetch(`/api/getPicks/${member.username}/${encodedPoolName}`)
-                                    .then(response => response.json())
-                                    .then(userPicks => {
-                                        return { userProfile, userPicks };
-                                    });
-                            });
+                    await new Promise(resolve => {
+                        displaySurvivorPool(pool);
+                        resolve(null);
                     });
+                } else {
+                    pool.members.sort((a, b) => b.points - a.points);
+                    
+                    try {
+                        const membersData = await Promise.all(pool.members.map(member => 
+                            fetch(`/api/getUserProfile/${member.username}`)
+                                .then(response => response.json())
+                                .then(userProfile => 
+                                    fetch(`/api/getPicks/${member.username}/${encodeURIComponent(pool.name)}`)
+                                        .then(response => response.json())
+                                        .then(userPicks => ({ userProfile, userPicks }))
+                                )
+                        ));
 
-                    Promise.all(membersDataPromises)
-                        .then(membersData => {
-                            membersData.forEach((data, index) => {
-                                const { userProfile, userPicks } = data;
-                                const playerRow = createPlayerRow({
-                                    rank: index + 1,
-                                    username: userProfile.username,
-                                    profilePic: userProfile.profilePicture,
-                                    points: userProfile.points,
-                                    wins: userProfile.wins,
-                                    losses: userProfile.losses,
-                                    pushes: userProfile.pushes,
-                                    picks: userPicks ? userPicks.picks : []
-                                }, userProfile.username === pool.adminUsername);
+                        membersData.forEach((data, index) => {
+                            const { userProfile, userPicks } = data;
+                            const playerRow = createPlayerRow({
+                                rank: index + 1,
+                                username: userProfile.username,
+                                profilePic: userProfile.profilePicture,
+                                points: userProfile.points,
+                                wins: userProfile.wins,
+                                losses: userProfile.losses,
+                                pushes: userProfile.pushes,
+                                picks: userPicks ? userPicks.picks : []
+                            }, userProfile.username === pool.adminUsername);
 
-                                fetchPicks(userProfile.username, pool.name, playerRow, teamLogos);
-                                poolContainer.appendChild(playerRow);
-                            });
-
-                            displayNewPoolContainer(pool);
-                        })
-                        .catch(error => {
-                            console.error('Error fetching member data:', error);
+                            fetchPicks(userProfile.username, pool.name, playerRow, teamLogos);
+                            poolContainer.appendChild(playerRow);
                         });
+
+                        await new Promise(resolve => {
+                            displayNewPoolContainer(pool);
+                            resolve(null);
+                        });
+                    } catch (error) {
+                        console.error('Error processing pool:', pool.name, error);
+                    }
                 }
-
-                // Render next pool in next tick
-                setTimeout(() => renderPool(index + 1), 0);
-            };
-
-            // Start the sequential rendering
-            renderPool(0);
+            }
         })
         .catch(error => console.error('Error fetching pools for user:', error));
-
-    document.addEventListener('DOMContentLoaded', startMessageRefresh);
 }
 
 const teamLogos = {
