@@ -711,7 +711,6 @@ function sortPlayersByPoints(players) {
             return userProfile;
         });
 }
-
 function displayNewPoolContainer(pool) {
     if (pool.mode === 'survivor') {
         displaySurvivorPool(pool);
@@ -750,8 +749,8 @@ function displayNewPoolContainer(pool) {
         'Tampa Bay Buccaneers': '/TBLogo.png',
         'Tennessee Titans': '/TENLogo.png',
         'Washington Commanders': '/WASLogo.png'
-       };
-   let currentUsername = localStorage.getItem('username');
+    };
+    let currentUsername = localStorage.getItem('username');
 
     if (currentUsername) {
         currentUsername = currentUsername.toLowerCase();
@@ -791,80 +790,87 @@ function displayNewPoolContainer(pool) {
 
         const select = viewDropdown.querySelector('select');
         select.addEventListener('change', (e) => {
-            const container = poolContainer;
-            const allRows = [...container.querySelectorAll('.player-row')];
-            const currentUserRow = container.querySelector('.current-user-row');
-            const currentUserIndex = allRows.indexOf(currentUserRow);
-            
-            // Hide all rows initially
-            allRows.forEach(row => row.style.display = 'none');
-            
-            if (e.target.value === 'aroundMe') {
-                // Remove any existing "Show More" button
-                const existingButton = container.querySelector('.show-more-button');
-                if (existingButton) existingButton.remove();
-
-                let startIndex = 0;
-                let endIndex = Math.min(10, allRows.length);
-
-                if (currentUserIndex >= 5 && currentUserIndex < allRows.length - 5) {
-                    startIndex = currentUserIndex - 5;
-                    endIndex = currentUserIndex + 5;
-                } else if (currentUserIndex >= allRows.length - 5) {
-                    startIndex = Math.max(0, allRows.length - 10);
-                    endIndex = allRows.length;
-                }
-
-                // Show only the selected range of rows (maximum 10)
-                for (let i = startIndex; i < Math.min(startIndex + 10, endIndex); i++) {
-                    allRows[i].style.display = '';
-                }
-            } else {
-                // View All mode
-                // Show first 10 rows
-                for (let i = 0; i < Math.min(10, allRows.length); i++) {
-                    allRows[i].style.display = '';
-                }
-
-                if (allRows.length > 10) {
-                    const showMoreButton = document.createElement('button');
-                    showMoreButton.className = 'show-more-button';
-                    showMoreButton.innerHTML = `
-                    <i class="fas fa-chevron-down"></i>
-                    <i class="fas fa-users" style="font-size: 0.9em"></i>
-                    <span>show ${allRows.length - 10} more</span>
-                `;
-                    
-                    let expanded = false;
-                    showMoreButton.addEventListener('click', () => {
-                        if (!expanded) {
-                            allRows.forEach(row => row.style.display = '');
-                            showMoreButton.innerHTML = `
-                                <i class="fas fa-chevron-down"></i>
-                                <i class="fas fa-users" style="font-size: 0.9em"></i>
-                                <span>show less</span>
-                            `;
-                            showMoreButton.classList.add('expanded');
-                        } else {
-                            allRows.forEach((row, index) => {
-                                row.style.display = index < 10 ? '' : 'none';
-                            });
-                            showMoreButton.innerHTML = `
-                                <i class="fas fa-chevron-down"></i>
-                                <i class="fas fa-users" style="font-size: 0.9em"></i>
-                                <span>show ${allRows.length - 10} more</span>
-                            `;
-                            showMoreButton.classList.remove('expanded');
-                        }
-                        expanded = !expanded;
-                    });
+                const container = poolContainer;
+                const allRows = [...container.querySelectorAll('.player-row')];
+                const currentUserRow = container.querySelector('.current-user-row');
+                const currentUserIndex = allRows.indexOf(currentUserRow);
                 
+                console.log('Total rows:', allRows.length);
+                console.log('Current user row found:', !!currentUserRow);
+                console.log('Current user index:', currentUserIndex);
+                console.log('Selected view:', e.target.value);
+                
+                // Hide all rows initially
+                allRows.forEach(row => row.style.display = 'none');
+                
+                if (e.target.value === 'aroundMe' && currentUserRow) {
+                    console.log('Entering aroundMe mode with current user');
+                    // Remove any existing "Show More" button
                     const existingButton = container.querySelector('.show-more-button');
                     if (existingButton) existingButton.remove();
+
+                    let startIndex = 0;
+                    let endIndex = Math.min(10, allRows.length);
+
+                    if (currentUserIndex >= 5 && currentUserIndex < allRows.length - 5) {
+                        startIndex = currentUserIndex - 5;
+                        endIndex = currentUserIndex + 5;
+                    } else if (currentUserIndex >= allRows.length - 5) {
+                        startIndex = Math.max(0, allRows.length - 10);
+                        endIndex = allRows.length;
+                    }
+
+                    console.log('Showing rows from index', startIndex, 'to', endIndex);
+                    // Show only the selected range of rows (maximum 10)
+                    for (let i = startIndex; i < endIndex; i++) {
+                        allRows[i].style.display = '';
+                    }
+                } else {
+                    console.log('Entering default/view all mode');
+                    // View All mode or no current user found
+                    // Show first 10 rows only by default
+                    allRows.slice(0, 10).forEach(row => row.style.display = '');
+                    allRows.slice(10).forEach(row => row.style.display = 'none');
+
+                    if (allRows.length > 10) {
+                        const showMoreButton = document.createElement('button');
+                        showMoreButton.className = 'show-more-button';
+                        showMoreButton.innerHTML = `
+                            <i class="fas fa-chevron-down"></i>
+                            <i class="fas fa-users" style="font-size: 0.9em"></i>
+                            <span>show ${allRows.length - 10} more</span>
+                        `;
+                        
+                        let expanded = false;
+                        showMoreButton.addEventListener('click', () => {
+                            if (!expanded) {
+                                allRows.forEach(row => row.style.display = '');
+                                showMoreButton.innerHTML = `
+                                    <i class="fas fa-chevron-down"></i>
+                                    <i class="fas fa-users" style="font-size: 0.9em"></i>
+                                    <span>show less</span>
+                                `;
+                                showMoreButton.classList.add('expanded');
+                            } else {
+                                allRows.forEach((row, index) => {
+                                    row.style.display = index < 10 ? '' : 'none';
+                                });
+                                showMoreButton.innerHTML = `
+                                    <i class="fas fa-chevron-down"></i>
+                                    <i class="fas fa-users" style="font-size: 0.9em"></i>
+                                    <span>show ${allRows.length - 10} more</span>
+                                `;
+                                showMoreButton.classList.remove('expanded');
+                            }
+                            expanded = !expanded;
+                        });
                     
-                    container.appendChild(showMoreButton);
+                        const existingButton = container.querySelector('.show-more-button');
+                        if (existingButton) existingButton.remove();
+                        
+                        container.appendChild(showMoreButton);
+                    }
                 }
-            }
         });
 
         poolNameContainer.appendChild(poolNameDiv);
@@ -958,18 +964,22 @@ function displayNewPoolContainer(pool) {
             poolContainerWrapper.appendChild(poolAndDeleteContainer);
 
             const choosePicksButton = poolContainer.querySelector('.choose-picks-button');
-            choosePicksButton.onclick = (event) => {
-                if (choosePicksButton.classList.contains('disabled')) {
-                    event.preventDefault();
-                    showGameTimeAlert(event);
-                } else {
-                    redirectToDashboard(pool.name);
-                }
-            };
+            if (choosePicksButton) {
+                choosePicksButton.onclick = (event) => {
+                    if (choosePicksButton.classList.contains('disabled')) {
+                        event.preventDefault();
+                        showGameTimeAlert(event);
+                    } else {
+                        redirectToDashboard(pool.name);
+                    }
+                };
+            }
 
-            // Trigger "Around Me" view by default
-            select.value = 'aroundMe';
-            select.dispatchEvent(new Event('change'));
+            // Move this code here, after all rows are created
+            setTimeout(() => {
+                select.value = 'aroundMe';
+                select.dispatchEvent(new Event('change'));
+            }, 100);
 
             setTimeout(() => {
                 checkCurrentTimeWindow();
