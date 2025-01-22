@@ -9,6 +9,14 @@ import { isConstructorDeclaration } from 'typescript';
 
 const router = express.Router();
 
+async function getNextOrderIndex(username: string, database: any) {
+  const poolsCollection = database.collection('pools');
+  const userPools = await poolsCollection.find({
+      'members.username': username.toLowerCase()
+  }).toArray();
+  
+  return userPools.length; // New pools get added at the end
+}
 // Route to create a new pool
 router.post('/create', createPool);
 
@@ -28,28 +36,106 @@ router.get('/get-all', async (req, res) => {
     res.status(500).json({ message: 'Error fetching pools', error });
   }
 });
-
-
-// In your routes file
-router.get('/userPools/:username', async (req, res) => {
+router.post('/reorder', async (req, res) => {
+  const { username, poolName, direction } = req.body;
+  
   try {
-    const username = req.params.username.toLowerCase();
-    //console.log(`Fetching pools for user: ${username}`);
-    const database = await connectToDatabase();
-    const poolsCollection = database.collection('pools');
+      const database = await connectToDatabase();
+      const poolsCollection = database.collection('pools');
 
-    // Find pools where the members array contains the username
-    const pools = await poolsCollection.find({
-      'members.username': username
-    }).toArray();
+      // Get all user's pools
+      const pools = await poolsCollection.find({
+          'members.username': username.toLowerCase()
+      }).toArray();
 
-    res.json(pools);
-  } catch (error) {
-    console.error('Error fetching pools for user:', error);
-    res.status(500).send('Internal server error');
+      // Sort by current orderIndex
+      pools.sort((a, b) => {
+          const memberA = a.members.find(m => m.username.toLowerCase() === username.toLowerCase());
+          const memberB = b.members.find(m => m.username.toLowerCase() === username.toLowerCase());
+          return (memberA?.orderIndex || 0) - (memberB?.orderIndex || 0);
+      });
+
+      // Find current pool index
+      const currentIndex = pools.findIndex(p => p.name === poolName);
+      if (currentIndex === -1) {
+          return res.status(404).json({ success: false, message: 'Pool not found' });
+      }
+
+      // Calculate new index
+      let newIndex;
+      if (direction === 'up' && currentIndex > 0) {
+          newIndex = currentIndex - 1;
+      } else if (direction === 'down' && currentIndex < pools.length - 1) {
+          newIndex = currentIndex + 1;
+      } else {
+          return res.status(400).json({ success: false, message: 'Invalid move direction' });
+      }
+
+      // Swap orderIndexes
+      const pool1 = pools[currentIndex];
+      const pool2 = pools[newIndex];
+      const member1 = pool1.members.find(m => m.username.toLowerCase() === username.toLowerCase());
+      const member2 = pool2.members.find(m => m.username.toLowerCase() === username.toLowerCase());
+
+      if (!member1 || !member2) {
+          return res.status(404).json({ success: false, message: 'Member not found in pools' });
+      }
+
+      // Update both pools
+      await poolsCollection.updateOne(
+          { 
+              name: poolName,
+              'members.username': username.toLowerCase()
+          },
+          { $set: { 'members.$.orderIndex': member2.orderIndex } }
+      );
+
+      await poolsCollection.updateOne(
+          { 
+              name: pools[newIndex].name,
+              'members.username': username.toLowerCase()
+          },
+          { $set: { 'members.$.orderIndex': member1.orderIndex } }
+      );
+
+      res.json({ 
+          success: true, 
+          message: 'Pool order updated successfully',
+          newOrder: pools.map(p => p.name)
+      });
+
+  } catch (error: any) {
+      console.error('Error reordering pools:', error);
+      res.status(500).json({ success: false, message: error.message });
   }
 });
 
+// Modify the existing userPools route to respect the order
+router.get('/userPools/:username', async (req, res) => {
+  try {
+      const username = req.params.username.toLowerCase();
+      const database = await connectToDatabase();
+      const poolsCollection = database.collection('pools');
+
+      const pools = await poolsCollection.find({
+          'members.username': username
+      }).toArray();
+
+      // Sort pools based on member's orderIndex
+      pools.sort((a, b) => {
+          const memberA = a.members.find(m => m.username.toLowerCase() === username);
+          const memberB = b.members.find(m => m.username.toLowerCase() === username);
+          const orderA = memberA?.orderIndex || 0;
+          const orderB = memberB?.orderIndex || 0;
+          return orderA - orderB;
+      });
+
+      res.json(pools);
+  } catch (error) {
+      console.error('Error fetching pools for user:', error);
+      res.status(500).send('Internal server error');
+  }
+});
 
 router.delete('/delete/:poolName', async (req, res) => {
   const poolName = req.params.poolName//.toLowerCase();

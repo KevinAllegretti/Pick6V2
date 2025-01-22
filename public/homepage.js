@@ -788,8 +788,12 @@ function displayNewPoolContainer(pool) {
             <span class="dropdown-arrow">▼</span>
         `;
 
+        poolWrapper.setAttribute('data-admin-username', pool.adminUsername);
+
+
         const select = viewDropdown.querySelector('select');
         select.addEventListener('change', (e) => {
+            setTimeout(() => {
                 const container = poolContainer;
                 const allRows = [...container.querySelectorAll('.player-row')];
                 const currentUserRow = container.querySelector('.current-user-row');
@@ -871,6 +875,7 @@ function displayNewPoolContainer(pool) {
                         container.appendChild(showMoreButton);
                     }
                 }
+            }, 100);
         });
 
         poolNameContainer.appendChild(poolNameDiv);
@@ -933,33 +938,6 @@ function displayNewPoolContainer(pool) {
 
             poolAndDeleteContainer.appendChild(poolWrapper);
 
-            if (isAdmin) {
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete Pool';
-                deleteButton.className = 'delete-pool-button';
-                deleteButton.setAttribute('data-pool-name', pool.name);
-                deleteButton.addEventListener('click', function () {
-                    const confirmation = confirm(`Are you sure you want to delete the pool "${this.getAttribute('data-pool-name')}"?`);
-                    if (confirmation) {
-                        deletePool(this.getAttribute('data-pool-name'));
-                        this.remove();
-                    }
-                });
-                poolAndDeleteContainer.appendChild(deleteButton);
-            } else {
-                const leaveButton = document.createElement('button');
-                leaveButton.textContent = 'Leave Pool';
-                leaveButton.className = 'leave-pool-button';
-                leaveButton.setAttribute('data-pool-name', pool.name);
-                leaveButton.addEventListener('click', function () {
-                    const confirmation = confirm(`Are you sure you want to leave the pool "${this.getAttribute('data-pool-name')}"?`);
-                    if (confirmation) {
-                        leavePool(this.getAttribute('data-pool-name'));
-                        this.remove();
-                    }
-                });
-                poolAndDeleteContainer.appendChild(leaveButton);
-            }
 
             poolContainerWrapper.appendChild(poolAndDeleteContainer);
 
@@ -974,7 +952,7 @@ function displayNewPoolContainer(pool) {
                     }
                 };
             }
-
+            updatePoolActionsList();
             // Move this code here, after all rows are created
             setTimeout(() => {
                 select.value = 'aroundMe';
@@ -991,121 +969,152 @@ function displayNewPoolContainer(pool) {
         console.log("No username found in localStorage");
     }
 }
+function updatePoolActionsList() {
+    const poolActionsList = document.querySelector('.pool-actions-list');
+    if (!poolActionsList) return;
 
-/*
-let chatMode = 'local';  // Default chat mode
+    poolActionsList.innerHTML = '';
+    const pools = document.querySelectorAll('.pool-wrapper');
+    const currentUsername = localStorage.getItem('username').toLowerCase();
 
-function setChatMode(button) {
-    const mode = button.getAttribute('data-mode');
-    chatMode = mode;
-    const chatWrapper = button.closest('.chat-wrapper');
-    const poolName = chatWrapper.closest('.pool-wrapper') ? chatWrapper.closest('.pool-wrapper').getAttribute('data-pool-name') : null;
-    const chatBox = chatWrapper.querySelector('.chat-box');
-    fetchMessages(poolName, chatBox);
-}
+    // Add reorder hint
+    const hintDiv = document.createElement('div');
+    hintDiv.className = 'reorder-hint';
+    hintDiv.innerHTML = '<i class="fas fa-sort"></i> Rearrange pools using arrows';
+    poolActionsList.appendChild(hintDiv);
 
+    const poolsArray = Array.from(pools);
+    poolsArray.forEach((poolWrapper, index) => {
+        const poolName = poolWrapper.getAttribute('data-pool-name');
+        const isSurvivorPool = poolWrapper.classList.contains('survivor-mode');
+        const poolAdmin = poolWrapper.getAttribute('data-admin-username');
+        const isAdmin = poolAdmin && poolAdmin.toLowerCase() === currentUsername;
 
+        const actionItem = document.createElement('div');
+        actionItem.className = 'pool-action-item';
 
-// Update fetchMessages function
-function fetchMessages(poolName, chatBox) {
-    const queryParam = chatMode === 'global' ? '' : `?poolName=${encodeURIComponent(poolName)}`;
-    fetch(`/pools/getChatMessages${queryParam}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                renderMessages(data.messages, chatBox);
+        // Add order buttons
+        const orderButtons = document.createElement('div');
+        orderButtons.className = 'pool-order-buttons';
+        
+        const upButton = document.createElement('button');
+        upButton.className = 'order-button';
+        upButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
+        upButton.disabled = index === 0;
+        upButton.onclick = () => movePool(poolName, 'up');
+
+        const downButton = document.createElement('button');
+        downButton.className = 'order-button';
+        downButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
+        downButton.disabled = index === poolsArray.length - 1;
+        downButton.onclick = () => movePool(poolName, 'down');
+
+        orderButtons.appendChild(upButton);
+        orderButtons.appendChild(downButton);
+
+        // Existing pool name and buttons
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'pool-name-text';
+        nameSpan.textContent = poolName;
+
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'pool-action-buttons';
+
+        upButton.onclick = async () => {
+            try {
+                const response = await movePool(poolName, 'up');
+                if (response.success) {
+                    // Add visual feedback
+                    upButton.classList.add('success');
+                    setTimeout(() => upButton.classList.remove('success'), 500);
+                    loadAndDisplayUserPools();
+                } else {
+                    console.error('Failed to move pool:', response.message);
+                }
+            } catch (error) {
+                console.error('Error moving pool:', error);
             }
-        })
-        .catch(error => console.error('Error fetching chat messages:', error));
-}
-
-// Update sendMessage function
-function sendMessage(username, poolName, message, chatBox) {
-    const pool = chatMode === 'global' ? null : poolName;
-    fetch('/pools/sendChatMessage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, poolName: pool, message })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            fetchMessages(poolName, chatBox);
+        };
+        downButton.onclick = async () => {
+            try {
+                const response = await movePool(poolName, 'down');
+                if (response.success) {
+                    // Add visual feedback
+                    downButton.classList.add('success');
+                    setTimeout(() => downButton.classList.remove('success'), 500);
+                    loadAndDisplayUserPools();
+                } else {
+                    console.error('Failed to move pool:', response.message);
+                }
+            } catch (error) {
+                console.error('Error moving pool:', error);
+            }
+        };
+        if (isAdmin) {
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'pool-action-button delete';
+            deleteButton.textContent = 'Delete Pool';
+            deleteButton.onclick = () => {
+                const confirmation = confirm(`Are you sure you want to delete "${poolName}"?`);
+                if (confirmation) {
+                    deletePool(poolName);
+                    actionItem.remove();
+                }
+            };
+            buttonContainer.appendChild(deleteButton);
+        } else {
+            const leaveButton = document.createElement('button');
+            leaveButton.className = 'pool-action-button leave';
+            leaveButton.textContent = 'Leave Pool';
+            leaveButton.onclick = () => {
+                const confirmation = confirm(`Are you sure you want to leave "${poolName}"?`);
+                if (confirmation) {
+                    leavePool(poolName);
+                    actionItem.remove();
+                }
+            };
+            buttonContainer.appendChild(leaveButton);
         }
-    })
-    .catch(error => console.error('Error sending chat message:', error));
+
+        actionItem.appendChild(orderButtons);
+        actionItem.appendChild(nameSpan);
+        actionItem.appendChild(buttonContainer);
+        poolActionsList.appendChild(actionItem);
+    });
+
+   
 }
+async function movePool(poolName, direction) {
+    const username = localStorage.getItem('username');
+    if (!username) {
+        throw new Error('No username found');
+    }
 
-function renderMessages(messages, chatBox) {
-    chatBox.innerHTML = ''; // Clear the chat box before rendering new messages
-    const urlRegex = /(https?:\/\/[^\s]+)/g; // Regex to identify URLs
+    const payload = {
+        username: username,
+        poolName: poolName,
+        direction: direction
+    };
 
-    messages.forEach(msg => {
-        const prefix = msg.poolName ? '[L]' : '[G]';
-        const messageElement = document.createElement('div');
+    console.log('Sending reorder request with payload:', payload); // Add this
 
-        // Create a span for the username with a specific color
-        const usernameSpan = document.createElement('span');
-       //usernameSpan.style.color= '#ff7b00 '; //halloween version
-         usernameSpan.style.color = '#33d9ff';
-        usernameSpan.textContent = `${msg.username}: `;
-
-        // Create a span for the message
-        const messageSpan = document.createElement('span');
-        messageSpan.innerHTML = msg.message.replace(urlRegex, function(url) {
-            return `<a href="${url}" target="_blank">${url}</a>`; // Replace URLs with anchor tags
+    try {
+        const response = await fetch('/pools/reorder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
         });
 
-        // Append the username and message spans to the message element
-        messageElement.appendChild(document.createTextNode(`${prefix} `));
-        messageElement.appendChild(usernameSpan);
-        messageElement.appendChild(messageSpan);
-
-        chatBox.appendChild(messageElement);
-    });
-    chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom of the chat box
+        const data = await response.json();
+        console.log('Received response:', data); // Add this
+        return data;
+    } catch (error) {
+        console.error('Error reordering pools:', error);
+        throw error;
+    }
 }
-
-
-
-// Ensure the mode is set and messages are fetched accordingly when the chat is toggled
-function toggleChat(chatTab) {
-    const chatWrapper = chatTab.parentElement;
-    chatWrapper.classList.toggle('show-chat');
-    document.querySelectorAll('.pool-wrapper').forEach(poolWrapper => {
-        const poolName = poolWrapper.getAttribute('data-pool-name');
-        const chatBox = poolWrapper.querySelector('.chat-box');
-        fetchMessages(poolName, chatBox);
-    });
-}
-
-// Adjust event listener to fetch messages according to the current mode
-document.addEventListener('DOMContentLoaded', () => {
-    // Event listener for chat buttons
-    document.addEventListener('click', function(event) {
-        if (event.target.matches('.send-chat-button')) {
-            const chatWrapper = event.target.closest('.chat-wrapper');
-            const poolName = chatWrapper.closest('.pool-wrapper') ? chatWrapper.closest('.pool-wrapper').getAttribute('data-pool-name') : null;
-            const chatBox = chatWrapper.querySelector('.chat-box');
-            const chatInput = chatWrapper.querySelector('.chat-input');
-            const message = chatInput.value.trim();
-            const storedUsername = localStorage.getItem('username');
-
-            if (message) {
-                sendMessage(storedUsername, poolName, message, chatBox);
-                chatInput.value = '';
-            }
-        }
-    });
-
-    // Initial fetch of messages for all pools
-    document.querySelectorAll('.pool-wrapper').forEach(poolWrapper => {
-        const poolName = poolWrapper.getAttribute('data-pool-name');
-        const chatBox = poolWrapper.querySelector('.chat-box');
-        fetchMessages(poolName, chatBox);
-        
-    });
-});*/
 
 let chatMode = 'global';  // Default to global mode
 
@@ -1288,41 +1297,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setupChatEventListeners();
 });
 
-function leavePool(poolName) {
-    const currentUsername = localStorage.getItem('username');
-
-    if (!currentUsername) {
-        console.error('No logged-in user found!');
-        return;
-    }
-
-    const encodedUsername = encodeURIComponent(currentUsername).toLowerCase();
-    const encodedPoolName = encodeURIComponent(poolName);
-
-    fetch(`/pools/leave/${encodedUsername}/${encodedPoolName}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Successfully left the pool:', data);
-            // Remove the pool from the UI
-            const poolWrapper = document.querySelector(`.pool-wrapper[data-pool-name="${poolName}"]`);
-            if (poolWrapper) {
-                poolWrapper.remove();
-            }
-        })
-        .catch(error => {
-            console.error('Error leaving the pool:', error);
-        });
-}
 
 async function isCurrentTimePickTime() {
     try {
@@ -1447,7 +1421,7 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
             }
         })
         .catch(error => {
-            console.error('Error fetching picks for user:', username, 'in pool:', poolName, error);
+           // console.error('Error fetching picks for user:', username, 'in pool:', poolName, error);
             const picksContainer = playerRow.querySelector('.player-picks');
             picksContainer.innerHTML = '';
             const errorMessage = document.createElement('div');
@@ -1532,7 +1506,6 @@ function redirectToDashboard(poolName) {
 function redirectToNFLSchedule(source) {
     window.location.href = `scheduler.html?source=${encodeURIComponent(source)}`;
 }
-
 function loadAndDisplayUserPools() {
     const currentUsername = localStorage.getItem('username');
     if (!currentUsername) {
@@ -1547,24 +1520,27 @@ function loadAndDisplayUserPools() {
             const poolContainerWrapper = document.getElementById('pool-container-wrapper');
             poolContainerWrapper.innerHTML = '';
 
+            // Sort pools by orderIndex before processing
+            pools.sort((a, b) => {
+                const memberA = a.members.find(m => m.username.toLowerCase() === currentUsername.toLowerCase());
+                const memberB = b.members.find(m => m.username.toLowerCase() === currentUsername.toLowerCase());
+                return (memberA?.orderIndex || 0) - (memberB?.orderIndex || 0);
+            });
+
             pools.forEach(pool => {
                 if (pool.mode === 'survivor') {
-                    // Handle survivor pool display
                     displaySurvivorPool(pool);
                 } else {
-                    // Handle classic pool display
+                    // Keep existing classic pool display logic
                     pool.members.sort((a, b) => b.points - a.points);
 
                     const poolContainer = document.createElement('div');
                     poolContainer.className = 'pool-container';
 
-                    // Fetch the user profiles and user picks for each member
                     const membersDataPromises = pool.members.map(member => {
-                        // Fetch user profile
                         return fetch(`/api/getUserProfile/${member.username}`)
                             .then(response => response.json())
                             .then(userProfile => {
-                                // Fetch the user picks
                                 const poolName = pool.name;
                                 const encodedPoolName = encodeURIComponent(poolName);
                                 return fetch(`/api/getPicks/${member.username}/${encodedPoolName}`)
@@ -1575,12 +1551,10 @@ function loadAndDisplayUserPools() {
                             });
                     });
 
-                    // When all members data has been fetched
                     Promise.all(membersDataPromises)
                         .then(membersData => {
                             membersData.forEach((data, index) => {
                                 const { userProfile, userPicks } = data;
-                                // Construct the member's player row
                                 const playerRow = createPlayerRow({
                                     rank: index + 1,
                                     username: userProfile.username,
@@ -1592,12 +1566,10 @@ function loadAndDisplayUserPools() {
                                     picks: userPicks ? userPicks.picks : []
                                 }, userProfile.username === pool.adminUsername);
 
-                                // Fetch picks for the player row
                                 fetchPicks(userProfile.username, pool.name, playerRow, teamLogos);
                                 poolContainer.appendChild(playerRow);
                             });
 
-                            // Display the new pool container
                             displayNewPoolContainer(pool);
                         })
                         .catch(error => {
@@ -1608,7 +1580,6 @@ function loadAndDisplayUserPools() {
         })
         .catch(error => console.error('Error fetching pools for user:', error));
 
-    // Set up automatic message refresh (if you're using chat functionality)
     document.addEventListener('DOMContentLoaded', startMessageRefresh);
 }
 
@@ -1711,12 +1682,9 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
 }
 
 
-// Assume this function is called when you want to delete a pool
 function deletePool(poolName) {
-    // Since you're using the pool's name, let's ensure it's URI-encoded to handle special characters
     const encodedPoolName = encodeURIComponent(poolName);
 
-    // Proceed with the delete request if the user confirmed
     fetch(`/pools/delete/${encodedPoolName}`, {
         method: 'DELETE',
         headers: {
@@ -1734,12 +1702,55 @@ function deletePool(poolName) {
         if (data.message) {
             console.log('Pool deleted successfully:', poolName);
             // Remove the pool from the UI
-            removePoolFromUI(poolName);
+            const poolElement = document.querySelector(`[data-pool-name='${CSS.escape(poolName)}']`);
+            if (poolElement) {
+                poolElement.remove();
+            }
+            // Update the actions list
+            updatePoolActionsList();
         }
     })
     .catch(error => {
         console.error('Error:', error);
         alert('An error occurred while deleting the pool.');
+    });
+}
+
+function leavePool(poolName) {
+    const currentUsername = localStorage.getItem('username');
+
+    if (!currentUsername) {
+        console.error('No logged-in user found!');
+        return;
+    }
+
+    const encodedUsername = encodeURIComponent(currentUsername).toLowerCase();
+    const encodedPoolName = encodeURIComponent(poolName);
+
+    fetch(`/pools/leave/${encodedUsername}/${encodedPoolName}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Successfully left the pool:', data);
+        // Remove the pool from the UI
+        const poolWrapper = document.querySelector(`.pool-wrapper[data-pool-name="${poolName}"]`);
+        if (poolWrapper) {
+            poolWrapper.remove();
+        }
+        // Update the actions list
+        updatePoolActionsList();
+    })
+    .catch(error => {
+        console.error('Error leaving the pool:', error);
     });
 }
 
@@ -1982,7 +1993,7 @@ function displaySurvivorPool(pool) {
     const poolWrapper = document.createElement('div');
     poolWrapper.className = 'pool-wrapper survivor-mode';
     poolWrapper.setAttribute('data-pool-name', pool.name);
-
+    poolWrapper.setAttribute('data-admin-username', pool.adminUsername); 
     // Pool name container
     const poolNameContainer = document.createElement('div');
     poolNameContainer.className = 'pool-name-container';

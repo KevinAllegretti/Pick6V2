@@ -2595,3 +2595,116 @@ button:hover {
     box-shadow: inset 0 0 15px rgba(57, 255, 20, 0.05);
     transition: background 0.3s ease;
 }
+
+
+/* Pool Actions Section Styles */
+.pool-actions-section {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    border: 1px solid #33d9ff;
+  }
+  
+  .pool-actions-header h3 {
+    color: #33d9ff;
+    margin: 0 0 15px 0;
+    font-size: 1.2em;
+  }
+  
+  .pool-actions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .pool-action-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(51, 217, 255, 0.2);
+  }
+  
+  .pool-name-text {
+    color: white;
+    flex-grow: 1;
+  }
+  
+  .pool-action-buttons {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .pool-action-button {
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+  }
+  
+  .pool-action-button.delete {
+    background-color: #ff4444;
+    color: white;
+  }
+  
+  .pool-action-button.leave {
+    background-color: #666;
+    color: white;
+  }
+  
+  .pool-action-button:hover {
+    opacity: 0.8;
+  }
+
+  /* Add to your existing pool-action-item styles */
+.pool-action-item {
+    position: relative;
+}
+
+.pool-order-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-right: 10px;
+}
+
+.order-button {
+    background: none;
+    border: none;
+    color: #33d9ff;
+    cursor: pointer;
+    padding: 2px;
+    font-size: 12px;
+    transition: color 0.2s ease;
+}
+
+.order-button:hover {
+    color: #ffffff;
+}
+
+.order-button:disabled {
+    color: #666;
+    cursor: not-allowed;
+}
+
+/* Add a hint icon/text */
+.reorder-hint {
+    position: absolute;
+    top: -25px;
+    left: 0;
+    color: #33d9ff;
+    font-size: 12px;
+    opacity: 0.8;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.reorder-hint i {
+    font-size: 14px;
+}

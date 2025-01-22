@@ -13,6 +13,7 @@ const findUserByUsername = async (username: string) => {
 };
 
 interface Member {
+  orderIndex: number;
   username: string;
 }
 interface PoolDocument extends Document {
@@ -22,22 +23,53 @@ interface PoolDocument extends Document {
 }
 export const leavePool = async (req: Request, res: Response) => {
   const { username, poolName } = req.params;
-  console.log("leaving pool: " + username, poolName)
+  console.log("leaving pool: " + username, poolName);
+  
   try {
     const database = await connectToDatabase();
     const poolsCollection: Collection<PoolDocument> = database.collection('pools');
 
+    // First, get the leaving member's orderIndex
+    const pool = await poolsCollection.findOne({ name: poolName });
+    if (!pool) {
+      return res.status(404).json({ message: 'Pool not found' });
+    }
+
+    const leavingMember = pool.members.find(m => m.username === username);
+    if (!leavingMember) {
+      return res.status(404).json({ message: 'User not found in pool' });
+    }
+
+    const leavingOrderIndex = leavingMember.orderIndex || 0;
+    console.log(`User ${username} leaving pool ${poolName} with orderIndex ${leavingOrderIndex}`);
+
+    // Remove the member from the pool
     const updateResult = await poolsCollection.updateOne(
       { name: poolName },
       { $pull: { members: { username: username } as any } }
     );
 
     if (updateResult.modifiedCount === 0) {
-      return res.status(404).json({ message: 'User not found in pool or pool not found' });
+      return res.status(404).json({ message: 'Failed to remove user from pool' });
     }
 
-    res.json({ message: 'User removed from pool successfully' });
-  } catch (error) {
+    // Update orderIndexes for remaining pools
+    const updateOrderResult = await poolsCollection.updateMany(
+      { 
+        'members.username': username,
+        'members.orderIndex': { $gt: leavingOrderIndex }
+      },
+      { $inc: { 'members.$.orderIndex': -1 } }
+    );
+
+    console.log(`Updated ${updateOrderResult.modifiedCount} pools' order indexes after user left`);
+
+    res.json({ 
+      message: 'User removed from pool successfully',
+      orderIndexesUpdated: updateOrderResult.modifiedCount
+    });
+  } catch (error:any) {
+    console.error('Error in leavePool:', error);
     res.status(500).json({ message: 'Error leaving pool', error });
   }
 };
@@ -59,6 +91,10 @@ export const createPool = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Admin user not found' });
     }
 
+    // Get admin's current pools to determine next orderIndex
+    const adminPools = await Pool.find({ 'members.username': adminUsername.toLowerCase() });
+    const nextOrderIndex = adminPools.length;
+
     console.log(`Creating pool: ${name} by admin user: ${adminUsername}`);
     const adminMember = {
       user: adminUser._id,
@@ -68,6 +104,7 @@ export const createPool = async (req: Request, res: Response) => {
       win: 0,
       loss: 0,
       push: 0,
+      orderIndex: nextOrderIndex // Add orderIndex for admin
     };
     
     const newPool = new Pool({
@@ -96,7 +133,6 @@ export const createPool = async (req: Request, res: Response) => {
 };
 
 
-
 export const joinPoolByName = async (req: Request, res: Response) => {
   try {
     const { poolName, username, poolPassword } = req.body;
@@ -123,6 +159,10 @@ export const joinPoolByName = async (req: Request, res: Response) => {
     );
     
     if (!isMemberAlready) {
+      // Get the user's current pools to determine next orderIndex
+      const userPools = await Pool.find({ 'members.username': username.toLowerCase() });
+      const nextOrderIndex = userPools.length;
+
       const newMember = {
         user: user._id,
         username: username,
@@ -131,6 +171,7 @@ export const joinPoolByName = async (req: Request, res: Response) => {
         wins: 0,
         losses: 0,
         pushes: 0,
+        orderIndex: nextOrderIndex // Add this line
       };
       pool.members.push(newMember);
       await pool.save();

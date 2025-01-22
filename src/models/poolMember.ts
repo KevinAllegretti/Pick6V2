@@ -35,7 +35,10 @@ const poolMemberSchema = new mongoose.Schema({
     type: Number, 
     default: 0 
   },
-
+  orderIndex: {  // Add this field
+    type: Number,
+    default: 0
+  }
 });
 
 export {poolMemberSchema}
