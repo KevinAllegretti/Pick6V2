@@ -927,7 +927,6 @@ async function fetchSurvivorPick(username, poolName, playerRow, teamLogos) {
     }
 }
 
-
 function updatePoolActionsList() {
     const poolActionsList = document.querySelector('.pool-actions-list');
     if (!poolActionsList) return;
@@ -942,8 +941,12 @@ function updatePoolActionsList() {
     const pools = orderedContainer.querySelectorAll('.pool-wrapper');
     console.log('All pools found:', pools);
     const currentUsername = localStorage.getItem('username').toLowerCase();
-
-  
+    
+    // Add reorder hint
+    const hintDiv = document.createElement('div');
+    hintDiv.className = 'reorder-hint';
+    hintDiv.innerHTML = '<i class="fas fa-sort"></i> Rearrange pools using arrows';
+    poolActionsList.appendChild(hintDiv);
     
     const poolsArray = Array.from(pools);
     poolsArray.forEach((poolWrapper, index) => {
@@ -958,10 +961,10 @@ function updatePoolActionsList() {
             admin: poolAdmin,
             element: poolWrapper
         });
+
         const actionItem = document.createElement('div');
         actionItem.className = 'pool-action-item';
-        actionItem.style.gridRow = index + 1;
-    actionItem.dataset.order = index
+        
         // Add order buttons
         const orderButtons = document.createElement('div');
         orderButtons.className = 'pool-order-buttons';
@@ -976,31 +979,37 @@ function updatePoolActionsList() {
         downButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
         downButton.disabled = index === poolsArray.length - 1;
 
-        // Add event listeners for reordering
+        // Updated click handlers
         upButton.onclick = async () => {
+            upButton.disabled = true; // Prevent double-clicks
             try {
                 const response = await movePool(poolName, 'up');
                 if (response.success) {
                     upButton.classList.add('success');
                     setTimeout(() => upButton.classList.remove('success'), 500);
-                    loadAndDisplayUserPools();
                 }
             } catch (error) {
                 console.error('Error moving pool up:', error);
             }
+            setTimeout(() => {
+                upButton.disabled = index === 0;
+            }, 300);
         };
 
         downButton.onclick = async () => {
+            downButton.disabled = true; // Prevent double-clicks
             try {
                 const response = await movePool(poolName, 'down');
                 if (response.success) {
                     downButton.classList.add('success');
                     setTimeout(() => downButton.classList.remove('success'), 500);
-                    loadAndDisplayUserPools();
                 }
             } catch (error) {
                 console.error('Error moving pool down:', error);
             }
+            setTimeout(() => {
+                downButton.disabled = index === poolsArray.length - 1;
+            }, 300);
         };
 
         orderButtons.appendChild(upButton);
@@ -1055,7 +1064,24 @@ async function movePool(poolName, direction) {
     }
 
     try {
-        // Server update
+        // Get all pool items
+        const poolActionsList = document.querySelector('.pool-actions-list');
+        const items = Array.from(poolActionsList.querySelectorAll('.pool-action-item'));
+        
+        // Find current item and its index
+        const currentItem = items.find(item => 
+            item.querySelector('.pool-name-text').textContent.trim().replace(' (Survivor)', '') === poolName
+        );
+        
+        if (!currentItem) return;
+        
+        const currentIndex = items.indexOf(currentItem);
+        const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+        
+        // Validate move is possible
+        if (newIndex < 0 || newIndex >= items.length) return;
+        
+        // Server update first
         const response = await fetch('/pools/reorder', {
             method: 'POST',
             headers: {
@@ -1073,45 +1099,35 @@ async function movePool(poolName, direction) {
             throw new Error('Server reorder failed');
         }
 
-        // UI update
-        const poolActionsList = document.querySelector('.pool-actions-list');
-        const items = Array.from(poolActionsList.querySelectorAll('.pool-action-item'));
+        // Get adjacent item
+        const adjacentItem = items[newIndex];
         
-        const currentItem = items.find(item => 
-            item.querySelector('.pool-name-text').textContent.trim().includes(poolName)
-        );
-        
-        if (!currentItem) return data;
+        // Calculate exact movement distance
+        const itemHeight = currentItem.offsetHeight;
+        const moveDistance = direction === 'up' ? -itemHeight : itemHeight;
 
-        const currentIndex = items.indexOf(currentItem);
-        const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+        // Apply transitions
+        currentItem.style.transition = 'transform 0.3s ease';
+        adjacentItem.style.transition = 'transform 0.3s ease';
         
-        if (newIndex < 0 || newIndex >= items.length) return data;
-
-        const otherItem = items[newIndex];
-        
-        // Store current positions
-        const currentRect = currentItem.getBoundingClientRect();
-        const otherRect = otherItem.getBoundingClientRect();
-        const offset = direction === 'up' ? 
-            -(currentRect.top - otherRect.top) : 
-            otherRect.bottom - currentRect.bottom;
-
-        // Prepare for animation
-        currentItem.style.transform = `translateY(${offset}px)`;
-        otherItem.style.transform = `translateY(${-offset}px)`;
+        // Move items
+        currentItem.style.transform = `translateY(${moveDistance}px)`;
+        adjacentItem.style.transform = `translateY(${-moveDistance}px)`;
 
         // Wait for animation
         await new Promise(resolve => setTimeout(resolve, 300));
 
-        // Reset transforms and update DOM
+        // Reset styles before DOM manipulation
+        currentItem.style.transition = '';
+        adjacentItem.style.transition = '';
         currentItem.style.transform = '';
-        otherItem.style.transform = '';
+        adjacentItem.style.transform = '';
 
+        // Update DOM order
         if (direction === 'up') {
-            poolActionsList.insertBefore(currentItem, otherItem);
+            poolActionsList.insertBefore(currentItem, adjacentItem);
         } else {
-            poolActionsList.insertBefore(otherItem, currentItem);
+            poolActionsList.insertBefore(adjacentItem, currentItem);
         }
 
         // Update main pool display
@@ -1121,22 +1137,31 @@ async function movePool(poolName, direction) {
             const currentPool = poolElements.find(el => 
                 el.getAttribute('data-pool-name') === poolName
             );
-            const targetPool = poolElements[newIndex];
+            const adjacentPool = poolElements[newIndex];
 
-            if (currentPool && targetPool) {
-                orderedContainer.insertBefore(
-                    direction === 'up' ? currentPool : targetPool,
-                    direction === 'up' ? targetPool : currentPool.nextSibling
-                );
+            if (currentPool && adjacentPool) {
+                // Use the same logic for pool container updates
+                if (direction === 'up') {
+                    orderedContainer.insertBefore(currentPool, adjacentPool);
+                } else {
+                    orderedContainer.insertBefore(adjacentPool, currentPool);
+                }
             }
         }
 
+        // Re-enable buttons after movement is complete
+        setTimeout(() => {
+            updatePoolActionsList();
+        }, 50);
+
         return data;
+
     } catch (error) {
         console.error('Error reordering pools:', error);
         throw error;
     }
 }
+
 
 // Add this helper function to ensure clean animations
 function forceRepaint(element) {
