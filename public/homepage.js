@@ -942,7 +942,7 @@ function updatePoolActionsList() {
     const pools = orderedContainer.querySelectorAll('.pool-wrapper');
     console.log('All pools found:', pools);
     const currentUsername = localStorage.getItem('username').toLowerCase();
-    
+
   
     
     const poolsArray = Array.from(pools);
@@ -1055,7 +1055,7 @@ async function movePool(poolName, direction) {
     }
 
     try {
-        // First, update the server
+        // Server update
         const response = await fetch('/pools/reorder', {
             method: 'POST',
             headers: {
@@ -1073,58 +1073,48 @@ async function movePool(poolName, direction) {
             throw new Error('Server reorder failed');
         }
 
-        // Then, handle the UI update smoothly
+        // UI update
         const poolActionsList = document.querySelector('.pool-actions-list');
-        const items = Array.from(poolActionsList.children).filter(child => 
-            child.classList.contains('pool-action-item')
-        );
+        const items = Array.from(poolActionsList.querySelectorAll('.pool-action-item'));
         
         const currentItem = items.find(item => 
-            item.querySelector('.pool-name-text').textContent.includes(poolName)
+            item.querySelector('.pool-name-text').textContent.trim().includes(poolName)
         );
         
         if (!currentItem) return data;
 
         const currentIndex = items.indexOf(currentItem);
-        let newIndex;
-
-        if (direction === 'up' && currentIndex > 0) {
-            newIndex = currentIndex - 1;
-        } else if (direction === 'down' && currentIndex < items.length - 1) {
-            newIndex = currentIndex + 1;
-        } else {
-            return data;
-        }
-
-        // Calculate positions
-        const itemHeight = currentItem.offsetHeight + 10; // 10px for gap
-        const moveAmount = direction === 'up' ? -itemHeight : itemHeight;
-
-        // Apply smooth transitions
-        const affectedItem = items[newIndex];
+        const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
         
-        currentItem.style.transform = `translateY(${moveAmount}px)`;
-        affectedItem.style.transform = `translateY(${-moveAmount}px)`;
+        if (newIndex < 0 || newIndex >= items.length) return data;
+
+        const otherItem = items[newIndex];
+        
+        // Store current positions
+        const currentRect = currentItem.getBoundingClientRect();
+        const otherRect = otherItem.getBoundingClientRect();
+        const offset = direction === 'up' ? 
+            -(currentRect.top - otherRect.top) : 
+            otherRect.bottom - currentRect.bottom;
+
+        // Prepare for animation
+        currentItem.style.transform = `translateY(${offset}px)`;
+        otherItem.style.transform = `translateY(${-offset}px)`;
 
         // Wait for animation
         await new Promise(resolve => setTimeout(resolve, 300));
 
-        // Update DOM
+        // Reset transforms and update DOM
+        currentItem.style.transform = '';
+        otherItem.style.transform = '';
+
         if (direction === 'up') {
-            poolActionsList.insertBefore(currentItem, affectedItem);
+            poolActionsList.insertBefore(currentItem, otherItem);
         } else {
-            poolActionsList.insertBefore(affectedItem, currentItem);
+            poolActionsList.insertBefore(otherItem, currentItem);
         }
 
-        // Reset transforms
-        currentItem.style.transform = '';
-        affectedItem.style.transform = '';
-
-        // Force a repaint to ensure smooth transition
-        void currentItem.offsetHeight;
-        void affectedItem.offsetHeight;
-
-        // Update the pool display order on the main page
+        // Update main pool display
         const orderedContainer = document.getElementById('ordered-pools-container');
         if (orderedContainer) {
             const poolElements = Array.from(orderedContainer.children);
@@ -1134,11 +1124,10 @@ async function movePool(poolName, direction) {
             const targetPool = poolElements[newIndex];
 
             if (currentPool && targetPool) {
-                if (direction === 'up') {
-                    orderedContainer.insertBefore(currentPool, targetPool);
-                } else {
-                    orderedContainer.insertBefore(currentPool, targetPool.nextSibling);
-                }
+                orderedContainer.insertBefore(
+                    direction === 'up' ? currentPool : targetPool,
+                    direction === 'up' ? targetPool : currentPool.nextSibling
+                );
             }
         }
 
@@ -1147,6 +1136,11 @@ async function movePool(poolName, direction) {
         console.error('Error reordering pools:', error);
         throw error;
     }
+}
+
+// Add this helper function to ensure clean animations
+function forceRepaint(element) {
+    void element.offsetHeight;
 }
 
 

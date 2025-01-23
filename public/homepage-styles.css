@@ -2759,15 +2759,63 @@ button:hover {
 
 .pool-actions-list {
     position: relative;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
     width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 8px;
+    box-sizing: border-box;
 }
 
 .pool-action-item {
-    transition: transform 0.3s ease-out;
-    background: var(--your-background-color);
-    width: 100%;
     position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+    box-sizing: border-box;
+    margin: 0;
+}
+
+.pool-name-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 10px;
+}
+
+.pool-order-buttons {
+    display: flex;
+    gap: 4px;
+    margin-right: 10px;
+}
+
+.pool-action-buttons {
+    display: flex;
+    gap: 4px;
+}
+
+.order-button {
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.order-button:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.order-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
