@@ -981,36 +981,29 @@ function updatePoolActionsList() {
 
         // Updated click handlers
         upButton.onclick = async () => {
-            upButton.disabled = true; // Prevent double-clicks
+            if (isMoving || upButton.disabled) return;
+            isMoving = true;
             try {
-                const response = await movePool(poolName, 'up');
-                if (response.success) {
-                    upButton.classList.add('success');
-                    setTimeout(() => upButton.classList.remove('success'), 500);
-                }
+                await movePool(poolName, 'up');
             } catch (error) {
                 console.error('Error moving pool up:', error);
+            } finally {
+                isMoving = false;
             }
-            setTimeout(() => {
-                upButton.disabled = index === 0;
-            }, 300);
         };
 
         downButton.onclick = async () => {
-            downButton.disabled = true; // Prevent double-clicks
+            if (isMoving || downButton.disabled) return;
+            isMoving = true;
             try {
-                const response = await movePool(poolName, 'down');
-                if (response.success) {
-                    downButton.classList.add('success');
-                    setTimeout(() => downButton.classList.remove('success'), 500);
-                }
+                await movePool(poolName, 'down');
             } catch (error) {
                 console.error('Error moving pool down:', error);
+            } finally {
+                isMoving = false;
             }
-            setTimeout(() => {
-                downButton.disabled = index === poolsArray.length - 1;
-            }, 300);
         };
+    
 
         orderButtons.appendChild(upButton);
         orderButtons.appendChild(downButton);
@@ -1082,8 +1075,15 @@ async function movePool(poolName, direction) {
             throw new Error('Server reorder failed');
         }
 
-        // After successful server update, reload pools to match server state
+        // Wait before reloading to ensure server state is updated
+        await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay
+
+        // After waiting, reload pools to match server state
         await loadAndDisplayUserPools();
+        
+        // Additional wait before allowing next movement
+        await new Promise(resolve => setTimeout(resolve, 300));
+
         return data;
 
     } catch (error) {
@@ -1091,6 +1091,9 @@ async function movePool(poolName, direction) {
         throw error;
     }
 }
+
+// Also add a debounce to prevent rapid clicks:
+let isMoving = false;
 
 // Add this helper function to ensure clean animations
 function forceRepaint(element) {
