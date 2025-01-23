@@ -1064,23 +1064,6 @@ async function movePool(poolName, direction) {
     }
 
     try {
-        // Get all pool items
-        const poolActionsList = document.querySelector('.pool-actions-list');
-        const items = Array.from(poolActionsList.querySelectorAll('.pool-action-item'));
-        
-        // Find current item and its index
-        const currentItem = items.find(item => 
-            item.querySelector('.pool-name-text').textContent.trim().replace(' (Survivor)', '') === poolName
-        );
-        
-        if (!currentItem) return;
-        
-        const currentIndex = items.indexOf(currentItem);
-        const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-        
-        // Validate move is possible
-        if (newIndex < 0 || newIndex >= items.length) return;
-        
         // Server update first
         const response = await fetch('/pools/reorder', {
             method: 'POST',
@@ -1099,61 +1082,8 @@ async function movePool(poolName, direction) {
             throw new Error('Server reorder failed');
         }
 
-        // Get adjacent item
-        const adjacentItem = items[newIndex];
-        
-        // Calculate exact movement distance
-        const itemHeight = currentItem.offsetHeight;
-        const moveDistance = direction === 'up' ? -itemHeight : itemHeight;
-
-        // Apply transitions
-        currentItem.style.transition = 'transform 0.3s ease';
-        adjacentItem.style.transition = 'transform 0.3s ease';
-        
-        // Move items
-        currentItem.style.transform = `translateY(${moveDistance}px)`;
-        adjacentItem.style.transform = `translateY(${-moveDistance}px)`;
-
-        // Wait for animation
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        // Reset styles before DOM manipulation
-        currentItem.style.transition = '';
-        adjacentItem.style.transition = '';
-        currentItem.style.transform = '';
-        adjacentItem.style.transform = '';
-
-        // Update DOM order
-        if (direction === 'up') {
-            poolActionsList.insertBefore(currentItem, adjacentItem);
-        } else {
-            poolActionsList.insertBefore(adjacentItem, currentItem);
-        }
-
-        // Update main pool display
-        const orderedContainer = document.getElementById('ordered-pools-container');
-        if (orderedContainer) {
-            const poolElements = Array.from(orderedContainer.children);
-            const currentPool = poolElements.find(el => 
-                el.getAttribute('data-pool-name') === poolName
-            );
-            const adjacentPool = poolElements[newIndex];
-
-            if (currentPool && adjacentPool) {
-                // Use the same logic for pool container updates
-                if (direction === 'up') {
-                    orderedContainer.insertBefore(currentPool, adjacentPool);
-                } else {
-                    orderedContainer.insertBefore(adjacentPool, currentPool);
-                }
-            }
-        }
-
-        // Re-enable buttons after movement is complete
-        setTimeout(() => {
-            updatePoolActionsList();
-        }, 50);
-
+        // After successful server update, reload pools to match server state
+        await loadAndDisplayUserPools();
         return data;
 
     } catch (error) {
@@ -1161,7 +1091,6 @@ async function movePool(poolName, direction) {
         throw error;
     }
 }
-
 
 // Add this helper function to ensure clean animations
 function forceRepaint(element) {
