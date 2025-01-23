@@ -943,11 +943,7 @@ function updatePoolActionsList() {
     console.log('All pools found:', pools);
     const currentUsername = localStorage.getItem('username').toLowerCase();
     
-    // Add reorder hint
-    const hintDiv = document.createElement('div');
-    hintDiv.className = 'reorder-hint';
-    hintDiv.innerHTML = '<i class="fas fa-sort"></i> Rearrange pools using arrows';
-    poolActionsList.appendChild(hintDiv);
+  
     
     const poolsArray = Array.from(pools);
     poolsArray.forEach((poolWrapper, index) => {
@@ -964,7 +960,8 @@ function updatePoolActionsList() {
         });
         const actionItem = document.createElement('div');
         actionItem.className = 'pool-action-item';
-    
+        actionItem.style.gridRow = index + 1;
+    actionItem.dataset.order = index
         // Add order buttons
         const orderButtons = document.createElement('div');
         orderButtons.className = 'pool-order-buttons';
@@ -1057,31 +1054,101 @@ async function movePool(poolName, direction) {
         throw new Error('No username found');
     }
 
-    const payload = {
-        username: username,
-        poolName: poolName,
-        direction: direction
-    };
-
-    console.log('Sending reorder request with payload:', payload); // Add this
-
     try {
+        // First, update the server
         const response = await fetch('/pools/reorder', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                username: username,
+                poolName: poolName,
+                direction: direction
+            })
         });
 
         const data = await response.json();
-        console.log('Received response:', data); // Add this
+        if (!data.success) {
+            throw new Error('Server reorder failed');
+        }
+
+        // Then, handle the UI update smoothly
+        const poolActionsList = document.querySelector('.pool-actions-list');
+        const items = Array.from(poolActionsList.children).filter(child => 
+            child.classList.contains('pool-action-item')
+        );
+        
+        const currentItem = items.find(item => 
+            item.querySelector('.pool-name-text').textContent.includes(poolName)
+        );
+        
+        if (!currentItem) return data;
+
+        const currentIndex = items.indexOf(currentItem);
+        let newIndex;
+
+        if (direction === 'up' && currentIndex > 0) {
+            newIndex = currentIndex - 1;
+        } else if (direction === 'down' && currentIndex < items.length - 1) {
+            newIndex = currentIndex + 1;
+        } else {
+            return data;
+        }
+
+        // Calculate positions
+        const itemHeight = currentItem.offsetHeight + 10; // 10px for gap
+        const moveAmount = direction === 'up' ? -itemHeight : itemHeight;
+
+        // Apply smooth transitions
+        const affectedItem = items[newIndex];
+        
+        currentItem.style.transform = `translateY(${moveAmount}px)`;
+        affectedItem.style.transform = `translateY(${-moveAmount}px)`;
+
+        // Wait for animation
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // Update DOM
+        if (direction === 'up') {
+            poolActionsList.insertBefore(currentItem, affectedItem);
+        } else {
+            poolActionsList.insertBefore(affectedItem, currentItem);
+        }
+
+        // Reset transforms
+        currentItem.style.transform = '';
+        affectedItem.style.transform = '';
+
+        // Force a repaint to ensure smooth transition
+        void currentItem.offsetHeight;
+        void affectedItem.offsetHeight;
+
+        // Update the pool display order on the main page
+        const orderedContainer = document.getElementById('ordered-pools-container');
+        if (orderedContainer) {
+            const poolElements = Array.from(orderedContainer.children);
+            const currentPool = poolElements.find(el => 
+                el.getAttribute('data-pool-name') === poolName
+            );
+            const targetPool = poolElements[newIndex];
+
+            if (currentPool && targetPool) {
+                if (direction === 'up') {
+                    orderedContainer.insertBefore(currentPool, targetPool);
+                } else {
+                    orderedContainer.insertBefore(currentPool, targetPool.nextSibling);
+                }
+            }
+        }
+
         return data;
     } catch (error) {
         console.error('Error reordering pools:', error);
         throw error;
     }
 }
+
 
 let chatMode = 'global';  // Default to global mode
 

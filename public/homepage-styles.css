@@ -2756,3 +2756,18 @@ button:hover {
 .survivor-mode {
     width: 100%;
 }
+
+.pool-actions-list {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    width: 100%;
+}
+
+.pool-action-item {
+    transition: transform 0.3s ease-out;
+    background: var(--your-background-color);
+    width: 100%;
+    position: relative;
+}
