@@ -2857,3 +2857,16 @@ button:hover {
     transform: translateZ(0);
 }
 
+.pool-actions-list {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.pool-action-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem;
+    border-bottom: 1px solid #eee;
+}

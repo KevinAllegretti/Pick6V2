@@ -940,28 +940,27 @@ function updatePoolActionsList() {
 
     // Get all pool wrappers from the ordered container
     const pools = orderedContainer.querySelectorAll('.pool-wrapper');
-    console.log('All pools found:', pools);
     const currentUsername = localStorage.getItem('username').toLowerCase();
 
-  
+    // Convert to array and sort by order style
+    const poolsArray = Array.from(pools).sort((a, b) => {
+        const orderA = parseInt(a.style.order) || 0;
+        const orderB = parseInt(b.style.order) || 0;
+        return orderA - orderB;
+    });
     
-    const poolsArray = Array.from(pools);
     poolsArray.forEach((poolWrapper, index) => {
         const poolName = poolWrapper.getAttribute('data-pool-name');
         const isSurvivorPool = poolWrapper.classList.contains('survivor-mode');
         const poolAdmin = poolWrapper.getAttribute('data-admin-username');
         const isAdmin = poolAdmin && poolAdmin.toLowerCase() === currentUsername;
     
-        console.log('Processing pool:', {
-            name: poolName,
-            isSurvivor: isSurvivorPool,
-            admin: poolAdmin,
-            element: poolWrapper
-        });
         const actionItem = document.createElement('div');
         actionItem.className = 'pool-action-item';
-        actionItem.style.gridRow = index + 1;
-    actionItem.dataset.order = index
+        // Set explicit ordering styles
+        actionItem.style.order = parseInt(poolWrapper.style.order) || index;
+        actionItem.dataset.order = index;
+        
         // Add order buttons
         const orderButtons = document.createElement('div');
         orderButtons.className = 'pool-order-buttons';
