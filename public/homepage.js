@@ -926,7 +926,8 @@ async function fetchSurvivorPick(username, poolName, playerRow, teamLogos) {
         picksContainer.appendChild(errorMessage);
     }
 }
-/*
+
+
 function updatePoolActionsList() {
     const poolActionsList = document.querySelector('.pool-actions-list');
     if (!poolActionsList) return;
@@ -941,12 +942,8 @@ function updatePoolActionsList() {
     const pools = orderedContainer.querySelectorAll('.pool-wrapper');
     console.log('All pools found:', pools);
     const currentUsername = localStorage.getItem('username').toLowerCase();
-    
-    // Add reorder hint
-    const hintDiv = document.createElement('div');
-    hintDiv.className = 'reorder-hint';
-    hintDiv.innerHTML = '<i class="fas fa-sort"></i> Rearrange pools using arrows';
-    poolActionsList.appendChild(hintDiv);
+
+  
     
     const poolsArray = Array.from(pools);
     poolsArray.forEach((poolWrapper, index) => {
@@ -961,10 +958,10 @@ function updatePoolActionsList() {
             admin: poolAdmin,
             element: poolWrapper
         });
-
         const actionItem = document.createElement('div');
         actionItem.className = 'pool-action-item';
-        
+        actionItem.style.gridRow = index + 1;
+    actionItem.dataset.order = index
         // Add order buttons
         const orderButtons = document.createElement('div');
         orderButtons.className = 'pool-order-buttons';
@@ -979,37 +976,31 @@ function updatePoolActionsList() {
         downButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
         downButton.disabled = index === poolsArray.length - 1;
 
-        // Updated click handlers
+        // Add event listeners for reordering
         upButton.onclick = async () => {
-            upButton.disabled = true; // Prevent double-clicks
             try {
                 const response = await movePool(poolName, 'up');
                 if (response.success) {
                     upButton.classList.add('success');
                     setTimeout(() => upButton.classList.remove('success'), 500);
+                    loadAndDisplayUserPools();
                 }
             } catch (error) {
                 console.error('Error moving pool up:', error);
             }
-            setTimeout(() => {
-                upButton.disabled = index === 0;
-            }, 300);
         };
 
         downButton.onclick = async () => {
-            downButton.disabled = true; // Prevent double-clicks
             try {
                 const response = await movePool(poolName, 'down');
                 if (response.success) {
                     downButton.classList.add('success');
                     setTimeout(() => downButton.classList.remove('success'), 500);
+                    loadAndDisplayUserPools();
                 }
             } catch (error) {
                 console.error('Error moving pool down:', error);
             }
-            setTimeout(() => {
-                downButton.disabled = index === poolsArray.length - 1;
-            }, 300);
         };
 
         orderButtons.appendChild(upButton);
@@ -1145,156 +1136,6 @@ async function movePool(poolName, direction) {
         console.error('Error reordering pools:', error);
         throw error;
     }
-}*/
-async function movePool(poolName, direction) {
-    const username = localStorage.getItem('username');
-    if (!username) {
-        throw new Error('No username found');
-    }
-
-    try {
-        // Disable the button during the operation
-        const button = event.target.closest('button');
-        if (button) {
-            button.disabled = true;
-        }
-
-        // Server update
-        const response = await fetch('/pools/reorder', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                username: username,
-                poolName: poolName,
-                direction: direction
-            })
-        });
-
-        const data = await response.json();
-        if (!data.success) {
-            throw new Error('Server reorder failed');
-        }
-
-        // Add a visual feedback before reload
-        if (button) {
-            button.classList.add('success');
-            // Wait briefly to show the success state
-            await new Promise(resolve => setTimeout(resolve, 200));
-        }
-
-        // Force reload the page
-        window.location.reload();
-
-        return data;
-    } catch (error) {
-        console.error('Error reordering pools:', error);
-        if (button) {
-            button.disabled = false;
-        }
-        throw error;
-    }
-}
-
-function updatePoolActionsList() {
-    const poolActionsList = document.querySelector('.pool-actions-list');
-    if (!poolActionsList) return;
-    
-    poolActionsList.innerHTML = '';
-
-    const orderedContainer = document.getElementById('ordered-pools-container');
-    if (!orderedContainer) return;
-
-    const pools = orderedContainer.querySelectorAll('.pool-wrapper');
-    const currentUsername = localStorage.getItem('username').toLowerCase();
-    
-    // Add reorder hint
-    const hintDiv = document.createElement('div');
-    hintDiv.className = 'reorder-hint';
-    hintDiv.innerHTML = '<i class="fas fa-sort"></i> Rearrange pools using arrows';
-    poolActionsList.appendChild(hintDiv);
-    
-    Array.from(pools).forEach((poolWrapper, index) => {
-        const poolName = poolWrapper.getAttribute('data-pool-name');
-        const isSurvivorPool = poolWrapper.classList.contains('survivor-mode');
-        const poolAdmin = poolWrapper.getAttribute('data-admin-username');
-        const isAdmin = poolAdmin && poolAdmin.toLowerCase() === currentUsername;
-
-        const actionItem = document.createElement('div');
-        actionItem.className = 'pool-action-item';
-        
-        // Order buttons
-        const orderButtons = document.createElement('div');
-        orderButtons.className = 'pool-order-buttons';
-        
-        const upButton = document.createElement('button');
-        upButton.className = 'order-button';
-        upButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
-        upButton.disabled = index === 0;
-
-        const downButton = document.createElement('button');
-        downButton.className = 'order-button';
-        downButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
-        downButton.disabled = index === pools.length - 1;
-
-        upButton.onclick = async (event) => {
-            try {
-                await movePool(poolName, 'up');
-            } catch (error) {
-                console.error('Error moving pool up:', error);
-            }
-        };
-
-        downButton.onclick = async (event) => {
-            try {
-                await movePool(poolName, 'down');
-            } catch (error) {
-                console.error('Error moving pool down:', error);
-            }
-        };
-
-        orderButtons.appendChild(upButton);
-        orderButtons.appendChild(downButton);
-
-        // Pool name
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'pool-name-text';
-        nameSpan.textContent = poolName + (isSurvivorPool ? ' (Survivor)' : '');
-
-        // Action buttons
-        const buttonContainer = document.createElement('div');
-        buttonContainer.className = 'pool-action-buttons';
-
-        if (isAdmin) {
-            const deleteButton = document.createElement('button');
-            deleteButton.className = 'pool-action-button delete';
-            deleteButton.textContent = 'Delete Pool';
-            deleteButton.onclick = () => {
-                if (confirm(`Are you sure you want to delete "${poolName}"?`)) {
-                    deletePool(poolName);
-                    actionItem.remove();
-                }
-            };
-            buttonContainer.appendChild(deleteButton);
-        } else {
-            const leaveButton = document.createElement('button');
-            leaveButton.className = 'pool-action-button leave';
-            leaveButton.textContent = 'Leave Pool';
-            leaveButton.onclick = () => {
-                if (confirm(`Are you sure you want to leave "${poolName}"?`)) {
-                    leavePool(poolName);
-                    actionItem.remove();
-                }
-            };
-            buttonContainer.appendChild(leaveButton);
-        }
-
-        actionItem.appendChild(orderButtons);
-        actionItem.appendChild(nameSpan);
-        actionItem.appendChild(buttonContainer);
-        poolActionsList.appendChild(actionItem);
-    });
 }
 
 // Add this helper function to ensure clean animations
