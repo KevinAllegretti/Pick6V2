@@ -2819,3 +2819,40 @@ button:hover {
     opacity: 0.5;
     cursor: not-allowed;
 }
+.pool-actions-list {
+    min-height: 100px;
+    position: relative;
+    contain: layout;
+    transition: opacity 0.3s ease;
+}
+
+.pool-actions-list.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.pool-action-item {
+    opacity: 0;
+    animation: fadeIn 0.3s ease-in forwards;
+    transform: translateZ(0); /* Force GPU acceleration */
+    will-change: transform, opacity;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+/* Prevent button flicker on iOS */
+.order-button {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+/* Ensure smooth transitions */
+.pool-wrapper {
+    transition: transform 0.3s ease;
+    will-change: transform;
+    transform: translateZ(0);
+}

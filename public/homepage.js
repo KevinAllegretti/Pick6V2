@@ -1828,32 +1828,34 @@ async function loadAndDisplayUserPools() {
             return a.name.localeCompare(b.name);
         });
 
-        // Process pools sequentially
+        // Array to store all pool display promises
+        const poolPromises = [];
+
+        // Process pools
         for (const pool of pools) {
-            try {
-                // Wait for each pool to be processed before moving to the next
-                if (pool.mode === 'survivor') {
-                    console.log(`Processing survivor pool: ${pool.name}`);
-                    await displaySurvivorPool(pool);
-                } else {
-                    console.log(`Processing classic pool: ${pool.name}`);
-                    await displayNewPoolContainer(pool);
+            const promise = (async () => {
+                try {
+                    if (pool.mode === 'survivor') {
+                        console.log(`Processing survivor pool: ${pool.name}`);
+                        await displaySurvivorPool(pool);
+                    } else {
+                        console.log(`Processing classic pool: ${pool.name}`);
+                        await displayNewPoolContainer(pool);
+                    }
+                } catch (error) {
+                    console.error(`Error processing pool ${pool.name}:`, error);
                 }
-            } catch (error) {
-                console.error(`Error processing pool ${pool.name}:`, error);
-                // Continue with other pools even if one fails
-                continue;
-            }
+            })();
+            poolPromises.push(promise);
         }
 
-        // Update pool actions list after all pools are loaded
-        setTimeout(() => {
-            try {
-                updatePoolActionsList();
-            } catch (error) {
-                console.error('Error updating pool actions list:', error);
-            }
-        }, 300);
+        // Wait for all pools to be processed
+        await Promise.all(poolPromises);
+
+        // Use requestAnimationFrame to ensure DOM is ready before updating action list
+        requestAnimationFrame(() => {
+            updatePoolActionsList();
+        });
 
     } catch (error) {
         console.error('Error fetching or processing pools:', error);
