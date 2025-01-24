@@ -926,7 +926,7 @@ async function fetchSurvivorPick(username, poolName, playerRow, teamLogos) {
         picksContainer.appendChild(errorMessage);
     }
 }
-
+/*
 function updatePoolActionsList() {
     const poolActionsList = document.querySelector('.pool-actions-list');
     if (!poolActionsList) return;
@@ -1145,6 +1145,156 @@ async function movePool(poolName, direction) {
         console.error('Error reordering pools:', error);
         throw error;
     }
+}*/
+async function movePool(poolName, direction) {
+    const username = localStorage.getItem('username');
+    if (!username) {
+        throw new Error('No username found');
+    }
+
+    try {
+        // Disable the button during the operation
+        const button = event.target.closest('button');
+        if (button) {
+            button.disabled = true;
+        }
+
+        // Server update
+        const response = await fetch('/pools/reorder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                poolName: poolName,
+                direction: direction
+            })
+        });
+
+        const data = await response.json();
+        if (!data.success) {
+            throw new Error('Server reorder failed');
+        }
+
+        // Add a visual feedback before reload
+        if (button) {
+            button.classList.add('success');
+            // Wait briefly to show the success state
+            await new Promise(resolve => setTimeout(resolve, 200));
+        }
+
+        // Force reload the page
+        window.location.reload();
+
+        return data;
+    } catch (error) {
+        console.error('Error reordering pools:', error);
+        if (button) {
+            button.disabled = false;
+        }
+        throw error;
+    }
+}
+
+function updatePoolActionsList() {
+    const poolActionsList = document.querySelector('.pool-actions-list');
+    if (!poolActionsList) return;
+    
+    poolActionsList.innerHTML = '';
+
+    const orderedContainer = document.getElementById('ordered-pools-container');
+    if (!orderedContainer) return;
+
+    const pools = orderedContainer.querySelectorAll('.pool-wrapper');
+    const currentUsername = localStorage.getItem('username').toLowerCase();
+    
+    // Add reorder hint
+    const hintDiv = document.createElement('div');
+    hintDiv.className = 'reorder-hint';
+    hintDiv.innerHTML = '<i class="fas fa-sort"></i> Rearrange pools using arrows';
+    poolActionsList.appendChild(hintDiv);
+    
+    Array.from(pools).forEach((poolWrapper, index) => {
+        const poolName = poolWrapper.getAttribute('data-pool-name');
+        const isSurvivorPool = poolWrapper.classList.contains('survivor-mode');
+        const poolAdmin = poolWrapper.getAttribute('data-admin-username');
+        const isAdmin = poolAdmin && poolAdmin.toLowerCase() === currentUsername;
+
+        const actionItem = document.createElement('div');
+        actionItem.className = 'pool-action-item';
+        
+        // Order buttons
+        const orderButtons = document.createElement('div');
+        orderButtons.className = 'pool-order-buttons';
+        
+        const upButton = document.createElement('button');
+        upButton.className = 'order-button';
+        upButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
+        upButton.disabled = index === 0;
+
+        const downButton = document.createElement('button');
+        downButton.className = 'order-button';
+        downButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
+        downButton.disabled = index === pools.length - 1;
+
+        upButton.onclick = async (event) => {
+            try {
+                await movePool(poolName, 'up');
+            } catch (error) {
+                console.error('Error moving pool up:', error);
+            }
+        };
+
+        downButton.onclick = async (event) => {
+            try {
+                await movePool(poolName, 'down');
+            } catch (error) {
+                console.error('Error moving pool down:', error);
+            }
+        };
+
+        orderButtons.appendChild(upButton);
+        orderButtons.appendChild(downButton);
+
+        // Pool name
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'pool-name-text';
+        nameSpan.textContent = poolName + (isSurvivorPool ? ' (Survivor)' : '');
+
+        // Action buttons
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'pool-action-buttons';
+
+        if (isAdmin) {
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'pool-action-button delete';
+            deleteButton.textContent = 'Delete Pool';
+            deleteButton.onclick = () => {
+                if (confirm(`Are you sure you want to delete "${poolName}"?`)) {
+                    deletePool(poolName);
+                    actionItem.remove();
+                }
+            };
+            buttonContainer.appendChild(deleteButton);
+        } else {
+            const leaveButton = document.createElement('button');
+            leaveButton.className = 'pool-action-button leave';
+            leaveButton.textContent = 'Leave Pool';
+            leaveButton.onclick = () => {
+                if (confirm(`Are you sure you want to leave "${poolName}"?`)) {
+                    leavePool(poolName);
+                    actionItem.remove();
+                }
+            };
+            buttonContainer.appendChild(leaveButton);
+        }
+
+        actionItem.appendChild(orderButtons);
+        actionItem.appendChild(nameSpan);
+        actionItem.appendChild(buttonContainer);
+        poolActionsList.appendChild(actionItem);
+    });
 }
 
 // Add this helper function to ensure clean animations
