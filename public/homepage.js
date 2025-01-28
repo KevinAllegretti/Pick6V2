@@ -711,6 +711,7 @@ function sortPlayersByPoints(players) {
             return userProfile;
         });
 }
+/*
 async function displaySurvivorPool(pool) {
     const teamLogos = {
         'Arizona Cardinals': '/ARILogo.png',
@@ -805,9 +806,9 @@ async function displaySurvivorPool(pool) {
     const poolHeader = document.createElement('div');
     poolHeader.className = 'survivor-pool-header';
     poolHeader.innerHTML = `
-        <span class="survivor-header-user">User</span>
-        <span class="survivor-header-picks">Pick</span>
-        <span class="survivor-header-eliminated">Status</span>
+        <span class="survivor-header-user">USER</span>
+        <span class="survivor-header-picks">PICK</span>
+        <span class="survivor-header-eliminated">STATUS</span>
     `;
     poolContainer.appendChild(poolHeader);
 
@@ -846,7 +847,7 @@ async function displaySurvivorPool(pool) {
     } catch (error) {
         console.error('Error displaying survivor pool:', error);
     }
-}
+}*/
 
 function createSurvivorPlayerRow(memberData, currentUsername) {
     const playerRow = document.createElement('div');
@@ -2353,9 +2354,9 @@ async function displaySurvivorPool(pool) {
     const poolHeader = document.createElement('div');
     poolHeader.className = 'survivor-pool-header';
     poolHeader.innerHTML = `
-        <span class="survivor-header-user">User</span>
-        <span class="survivor-header-picks">Pick</span>
-        <span class="survivor-header-eliminated">Status</span>
+        <span class="survivor-header-user">USER</span>
+        <span class="survivor-header-picks">PICK</span>
+        <span class="survivor-header-eliminated">STATUS</span>
     `;
     poolContainer.appendChild(poolHeader);
 

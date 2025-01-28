@@ -2507,8 +2507,8 @@ button:hover {
 }
 
 /* Specific column widths */
-.survivor-header-user, .survivor-player-user { flex: 2; }
-.survivor-header-picks, .survivor-player-picks { flex: 2; }
+.survivor-header-user, .survivor-player-user { flex: 1; }
+.survivor-header-picks, .survivor-player-picks { flex: 1; }
 .survivor-header-eliminated, .survivor-player-eliminated { flex: 1; }
 
 /* User section styling */
@@ -2869,4 +2869,126 @@ button:hover {
     gap: 1rem;
     padding: 0.5rem;
     border-bottom: 1px solid #eee;
+}
+
+
+/* Ensure the parent container centers its content */
+#main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center horizontally */
+    justify-content: center; /* Center vertically if needed */
+    margin: 0 auto;
+    padding: 0;
+    width: 100%;
+}
+
+/* Adjust the ordered pools container */
+#ordered-pools-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center horizontally */
+    width: 100%;
+    max-width: 1200px; /* Adjust as needed */
+    margin: 0 auto; /* Center the container */
+}
+
+
+/* Survivor Pool Container - Reduced width */
+.survivor-pool-container {
+    min-width: 600px;
+    max-width: 600px;
+    padding-left: 15px;
+    padding-right: 15px;
+    border: 2px solid #39FF14;
+    background-color: #202124;
+    border-radius: 8px;
+    text-align: left;
+}
+
+/* Survivor Pool Header and Row - Reduced padding */
+.survivor-pool-header, .survivor-player-row {
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #39FF14;
+    padding: 5px 0;  /* Reduced padding */
+}
+
+/* Header items and row items - Adjusted padding */
+.survivor-pool-header > span, .survivor-player-row > div {
+    flex: 1;
+    text-align: center;
+    position: relative;
+    padding: 5px 0;  /* Reduced padding */
+}
+
+/* Vertical lines - Reduced height */
+.survivor-pool-header > span:not(:last-child)::after,
+.survivor-player-row > div:not(:last-child)::after {
+    height: 20px;  /* Reduced height */
+    width: 1px;
+    background-color: #39FF14;
+}
+
+/* Profile picture - Reduced size */
+.survivor-profile-pic {
+    width: 32px;  /* Reduced from 43px */
+    height: 32px;  /* Reduced from 43px */
+    margin-right: 8px;  /* Reduced margin */
+    border: 1px solid #39FF14;  /* Thinner border */
+}
+
+/* User section - Adjusted spacing */
+.survivor-player-user {
+    display: flex;
+    align-items: center;
+    padding-left: 8px;  /* Reduced padding */
+}
+
+/* Pick styling - More compact */
+.survivor-pick {
+    display: flex;
+    flex-direction: row;  /* Changed to row for more compact layout */
+    align-items: center;
+    justify-content: center;
+    gap: 5px;  /* Small gap between image and text */
+}
+
+.survivor-pick img {
+    width: 25px;  /* Reduced from 35px */
+    height: auto;
+    margin-bottom: 0;  /* Removed bottom margin */
+}
+
+/* Status styling - Adjusted font size */
+.eliminated-status, .active-status {
+    font-size: 0.9em;
+    font-weight: 500;  /* Slightly reduced from bold */
+}
+
+/* Pool name - Adjusted size */
+.survivor-pool-name {
+    font-size: 18px;  /* Reduced from 20px */
+    margin-bottom: 0;
+    margin-left: 8px;
+}
+
+/* User count - More compact */
+.survivor-user-count {
+    padding: 1px 6px;  /* Reduced padding */
+    font-size: 0.8em;  /* Reduced font size */
+    margin-left: 8px;
+    box-shadow: 0 0 3px #39FF14, 0 0 3px #39FF14, 0 0 3px #39FF14;  /* Reduced glow */
+}
+
+/* Current user highlighting - Subtler effect */
+.survivor-current-user-row {
+    background: linear-gradient(90deg, 
+        rgba(57, 255, 20, 0.05) 0%,
+        rgba(57, 255, 20, 0.1) 50%,
+        rgba(57, 255, 20, 0.05) 100%
+    );
+    box-shadow: inset 0 0 10px rgba(57, 255, 20, 0.03);
 }
