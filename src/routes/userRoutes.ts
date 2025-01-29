@@ -7,13 +7,24 @@ const router = express.Router();
 const saltRounds = 10;
 
 router.post('/register', async (req, res) => {
+    console.log('Register endpoint hit with data:', req.body);
     try {
         const { username, password } = req.body;
-        // ... existing validation code ...
+
+        if (!(username && password)) {
+            console.log('Missing input data');
+            return res.status(400).json({ message: "Username and password are required", type: "error" });
+        }
 
         const db = await connectToDatabase();
         const usersCollection = db.collection("users");
         const poolsCollection = db.collection("pools");
+
+        // Check if username is already taken
+        const existingUser = await usersCollection.findOne({ username: username.toLowerCase() });
+        if (existingUser) {
+            return res.status(409).json({ message: "Username is already taken", type: "error" });
+        }
 
         // Create user
         const encryptedPassword = await bcrypt.hash(password, saltRounds);
@@ -22,15 +33,10 @@ router.post('/register', async (req, res) => {
             password: encryptedPassword,
         });
 
-        // Check if Global pool exists, create it if it doesn't
+        // Check if Global pool exists
         let globalPool = await poolsCollection.findOne({ name: "Global" });
         
-        // Get the user's current pool count for orderIndex
-        const userPoolCount = await poolsCollection.countDocuments({
-            'members.username': username.toLowerCase()
-        });
-
-        // Create new member object with correct orderIndex
+        // Always set Global pool's orderIndex to the highest number
         const newMember = {
             user: userResult.insertedId,
             username: username.toLowerCase(),
@@ -39,7 +45,7 @@ router.post('/register', async (req, res) => {
             win: 0,
             loss: 0,
             push: 0,
-            orderIndex: userPoolCount  // This will be 0 for their first pool
+            orderIndex: 0  // Will be adjusted to highest number after checking other pools
         };
 
         if (!globalPool) {
@@ -53,6 +59,14 @@ router.post('/register', async (req, res) => {
                 mode: "classic"
             });
         } else {
+            // Get count of user's existing pools for proper orderIndex
+            const userPools = await poolsCollection.find({
+                'members.username': username.toLowerCase()
+            }).toArray();
+            
+            // Set Global pool's orderIndex to be the highest
+            newMember.orderIndex = userPools.length;
+
             // Add user to existing Global pool
             await poolsCollection.updateOne(
                 { name: "Global" },
@@ -61,8 +75,13 @@ router.post('/register', async (req, res) => {
         }
 
         res.status(201).json({ error: false, message: "User created successfully. You can now log in." });
-    } catch (error) {
-        // ... error handling ...
+
+    } catch (error:any) {
+        console.error('[Registration Error]', error);
+        if (error.code === 11000) {
+            return res.status(409).send("Username is already taken.");
+        }
+        res.status(500).json({ message: "Internal Server Error", type: "error" });
     }
 });
 

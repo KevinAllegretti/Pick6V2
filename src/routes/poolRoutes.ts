@@ -17,11 +17,169 @@ async function getNextOrderIndex(username: string, database: any) {
   
   return userPools.length; // New pools get added at the end
 }
-// Route to create a new pool
-router.post('/create', createPool);
+router.post('/create', async (req, res) => {
+    try {
+        const { name, isPrivate, adminUsername, mode, password } = req.body;
 
-// Route to handle join pool requests
-router.post('/joinByName', joinPoolByName);
+        const db = await connectToDatabase();
+        const usersCollection = db.collection("users");
+        const poolsCollection = db.collection("pools");
+
+        const admin = await usersCollection.findOne({ username: adminUsername.toLowerCase() });
+        if (!admin) {
+            return res.status(404).json({ message: 'Admin user not found' });
+        }
+
+        // Get current pools and their order indices
+        const userPools = await poolsCollection.find({
+            'members.username': adminUsername.toLowerCase()
+        }).toArray();
+
+        // Update Global pool's orderIndex to be the highest
+        await poolsCollection.updateOne(
+            { 
+                name: "Global",
+                'members.username': adminUsername.toLowerCase()
+            },
+            { $set: { 'members.$.orderIndex': userPools.length } }
+        );
+
+        // Shift all other non-Global pools up by 1
+        await Promise.all(userPools.map(pool => {
+            if (pool.name !== "Global") {
+                return poolsCollection.updateOne(
+                    {
+                        name: pool.name,
+                        'members.username': adminUsername.toLowerCase()
+                    },
+                    { $inc: { 'members.$.orderIndex': 1 } }
+                );
+            }
+        }));
+
+        const newPool = {
+            name,
+            isPrivate,
+            admin: admin._id,
+            adminUsername: adminUsername.toLowerCase(),
+            password: isPrivate ? password : undefined,
+            members: [{
+                user: admin._id,
+                username: adminUsername.toLowerCase(),
+                points: 0,
+                picks: [],
+                win: 0,
+                loss: 0,
+                push: 0,
+                orderIndex: 0
+            }],
+            mode: mode || 'classic'
+        };
+
+        const result = await poolsCollection.insertOne(newPool);
+        
+        res.status(201).json({ 
+            message: 'Pool created successfully',
+            pool: {
+                ...newPool,
+                _id: result.insertedId
+            }
+        });
+
+    } catch (error:any) {
+        console.error('Error creating pool:', error);
+        if (error.code === 11000) {
+            return res.status(409).json({ message: 'Pool name already exists' });
+        }
+        res.status(500).json({ message: 'Error creating pool', error });
+    }
+});
+
+router.post('/joinByName', async (req, res) => {
+    try {
+        const { poolName, username, poolPassword } = req.body;
+        console.log({ poolName, username, poolPassword });
+        
+        const db = await connectToDatabase();
+        const usersCollection = db.collection("users");
+        const poolsCollection = db.collection("pools");
+
+        const user = await usersCollection.findOne({ username: username.toLowerCase() });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const pool = await poolsCollection.findOne({ name: poolName });
+        if (!pool) {
+            return res.status(404).json({ message: 'Pool not found' });
+        }
+
+        if (pool.isPrivate && pool.password) {
+            if (poolPassword !== pool.password) {
+                return res.status(401).json({ message: 'Incorrect password' });
+            }
+        }
+
+        const isMemberAlready = pool.members.some(member => 
+            member.username.toLowerCase() === username.toLowerCase()
+        );
+        
+        if (!isMemberAlready) {
+            // Get current pools and their order indices
+            const userPools = await poolsCollection.find({
+                'members.username': username.toLowerCase()
+            }).toArray();
+
+            // Update Global pool's orderIndex to be the highest
+            await poolsCollection.updateOne(
+                { 
+                    name: "Global",
+                    'members.username': username.toLowerCase()
+                },
+                { $set: { 'members.$.orderIndex': userPools.length } }
+            );
+
+            // Shift all other non-Global pools up by 1
+            await Promise.all(userPools.map(pool => {
+                if (pool.name !== "Global") {
+                    return poolsCollection.updateOne(
+                        {
+                            name: pool.name,
+                            'members.username': username.toLowerCase()
+                        },
+                        { $inc: { 'members.$.orderIndex': 1 } }
+                    );
+                }
+            }));
+
+            // New member gets orderIndex 0
+            const newMember = {
+                user: user._id,
+                username: username.toLowerCase(),
+                points: 0,
+                picks: [],
+                win: 0,
+                loss: 0,
+                push: 0,
+                orderIndex: 0
+            };
+
+            pool.members.push(newMember);
+            await pool.save();
+        }
+
+        res.status(200).json({ 
+            message: 'Joined pool successfully', 
+            pool: {
+                ...pool.toObject(),
+                mode: pool.mode
+            }
+        });
+    } catch (error) {
+        console.error('Error joining pool:', error);
+        res.status(500).json({ message: 'Error joining pool', error });
+    }
+});
 // Route for admins to manage join requests
 
 // Route to leave a pool
