@@ -2465,25 +2465,7 @@ button:hover {
     animation: none;
 }
 
-/* Survivor Pool Container */
-.survivor-pool-container {
-    min-width: 800px; /* Adjusted width since we have fewer columns */
-    max-width: 800px;
-    padding-left: 20px;
-    border: 2px solid #39FF14; /* Neon green instead of blue */
-    background-color: #202124;
-    border-radius: 8px;
-    text-align: left;
-}
 
-/* Survivor Pool Header and Row Structure */
-.survivor-pool-header, .survivor-player-row {
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid #39FF14;
-}
 
 /* Header items and row items */
 .survivor-pool-header > span, .survivor-player-row > div {

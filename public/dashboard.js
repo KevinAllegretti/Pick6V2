@@ -214,14 +214,22 @@ async function initializeDashboard() {
         if (!document.getElementById('poolSelector')) {
             const poolSelectorContainer = document.createElement('div');
             poolSelectorContainer.className = 'pool-selector-container';
+            
+            // Add the label
+            const label = document.createElement('span');
+            label.className = 'pool-selector-label';
+            label.textContent = 'Send picks to: ';
+            
             const selector = document.createElement('select');
             selector.id = 'poolSelector';
             selector.className = 'pool-selector';
             selector.innerHTML = '<option value="loading">Loading pools...</option>';
+            
+            poolSelectorContainer.appendChild(label);
             poolSelectorContainer.appendChild(selector);
-            document.querySelector('.back-button-container').after(poolSelectorContainer);
+            
+      
         }
-
         // Set up event listeners
         setupEventListeners();
 
@@ -285,7 +293,7 @@ async function populatePoolSelector() {
             return;
         }
 
-        poolSelector.innerHTML = '<option value="all">All Classic Pools</option>';
+        poolSelector.innerHTML = '<option value="all">All Pools</option>';
         classicPools.forEach(pool => {
             if (pool && pool.name) {
                 const option = document.createElement('option');
@@ -402,14 +410,7 @@ function setupEventListeners() {
         fetchUserPicksAndRender(storedUsername, selectedPool);
     });
 
-    // Immortal lock checkbox
-    document.getElementById('immortalLockCheck').addEventListener('change', function() {
-        if (this.checked && picksCount < 6) {
-            alert('Please select 6 regular picks before choosing your Immortal Lock.');
-            this.checked = false;
-        }
-    });
-
+ 
     // Submit and reset buttons
     document.getElementById('resetPicks').addEventListener('click', resetPicks);
     document.getElementById('submitPicks').addEventListener('click', submitUserPicks);
@@ -549,42 +550,33 @@ function renderPick(pick, isImmortalLock) {
 function selectBet(option, isRendering = false, isImmortalLock = false) {
     const immortalLockCheckbox = document.getElementById('immortalLockCheck');
 
-    // For initial rendering of picks
+    // For initial rendering
     if (isRendering) {
-        console.log('Rendering pick:', { option, isImmortalLock });
         updateBetCell(option, true, isImmortalLock);
-        
-        // Create pick object without requiring commenceTime
         if (isImmortalLock) {
-            userImmortalLock = {
-                teamName: option.teamName,
-                type: option.type,
-                value: option.value
-            };
+            userImmortalLock = createPickObject(option);
             immortalLockCheckbox.checked = true;
         } else {
-            userPicks.push({
-                teamName: option.teamName,
-                type: option.type,
-                value: option.value
-            });
+            userPicks.push(createPickObject(option));
             picksCount++;
         }
         return;
     }
 
-    // Rest of the selectBet function remains the same
+    // Handle previous week's pick check
     const betButton = document.querySelector(`.bet-button[data-team="${option.teamName.replace(/\s+/g, '-').toLowerCase()}"][data-type="${option.type.toLowerCase()}"]`);
     if (betButton && betButton.dataset.previousPick === 'true' && !isRendering) {
         alert("You made this pick last week. You cannot select it again.");
         return;
     }
 
+    // Handle immortal lock deselection
     if (userImmortalLock && userImmortalLock.teamName === option.teamName && userImmortalLock.type === option.type) {
         deselectImmortalLock();
         return;
     }
 
+    // Handle regular pick deselection
     const existingPickIndex = userPicks.findIndex(pick => 
         pick.teamName === option.teamName && pick.type === option.type
     );
@@ -600,20 +592,28 @@ function selectBet(option, isRendering = false, isImmortalLock = false) {
 
     const currentPick = createPickObject(option);
 
-    if (isImmortalLock || (immortalLockCheckbox.checked && picksCount === 6 && !userImmortalLock)) {
-        handleImmortalLockSelection(currentPick);
-    } else if (picksCount < 6) {
-        userPicks.push(currentPick);
-        picksCount++;
-        updateBetCell(option, true);
-    } else if (!immortalLockCheckbox.checked) {
-        alert('You can only select 6 picks. Toggle Immortal Lock to select your 7th pick as Immortal Lock.');
+    // Modified immortal lock handling
+    if (immortalLockCheckbox.checked) {
+        if (picksCount >= 6) {
+            // Only allow immortal lock as 7th pick
+            handleImmortalLockSelection(currentPick);
+        } else {
+            // If they have immortal lock checked but haven't made 6 picks yet,
+            // just add it as a regular pick
+            userPicks.push(currentPick);
+            picksCount++;
+            updateBetCell(option, true);
+        }
     } else {
-        alert('You already selected all your picks! Deselect one to change them.');
+        if (picksCount < 6) {
+            userPicks.push(currentPick);
+            picksCount++;
+            updateBetCell(option, true);
+        } else {
+            alert('You already have 6 picks. Toggle Immortal Lock to make this your immortal lock pick.');
+        }
     }
 }
-
-
 // Pick validation and creation
 function validatePick(option) {
     const currentMatchup = betOptions.find(bet => 

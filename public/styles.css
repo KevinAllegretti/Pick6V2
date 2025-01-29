@@ -1198,12 +1198,7 @@ h4 {
     }
   }
   
-  /* Add this to your styles */
-.pool-selector-container {
-  display: flex;
-  justify-content: center;
-  margin: 20px 0;
-}
+
 
 .pool-selector {
   background-color: rgba(0, 24, 48, 0.8);
@@ -1214,22 +1209,64 @@ h4 {
   font-size: 16px;
   min-width: 200px;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+  box-shadow: 0 0 10px rgba(0, 183, 255, 0.6);
   transition: all 0.3s ease;
 }
 
 .pool-selector:hover {
-  box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+  box-shadow: 0 0 15px rgba(0, 183, 255, 0.6);
   background-color: rgba(0, 24, 48, 0.9);
 }
 
 .pool-selector:focus {
   outline: none;
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+  box-shadow: 0 0 20px rgba(0, 183, 255, 0.6);
 }
 
 .pool-selector option {
   background-color: rgb(0, 24, 48);
-  color: #00ffff;
+  color: #33d9ff;
   padding: 10px;
+}
+
+.pool-selector-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  gap: 10px;  /* Space between label and selector */
+}
+
+.pool-selector-label {
+  color: #33d9ff;
+  font-size: 16px;
+  text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+}
+
+.pool-selector {
+  background-color: rgba(0, 24, 48, 0.8);
+  color: #33d9ff;
+  border: 2px solid #33d9ff;
+  border-radius: 8px;
+  padding: 8px 15px;
+  font-size: 16px;
+  min-width: 150px;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.pool-selector-label {
+  color: #33d9ff
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'sans-serif', 'montserrat';
+  font-weight: 300;  /* Light weight to match your UI */
+}
+
+.pool-selector-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;  /* Slightly increased spacing */
 }
