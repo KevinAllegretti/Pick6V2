@@ -36,79 +36,77 @@ router.get('/get-all', async (req, res) => {
     res.status(500).json({ message: 'Error fetching pools', error });
   }
 });
-
 router.post('/reorder', async (req, res) => {
-  const { username, poolName, direction } = req.body;
-  
-  try {
-      const database = await connectToDatabase();
-      const poolsCollection = database.collection('pools');
+    const { username, poolName, direction } = req.body;
+    
+    try {
+        const database = await connectToDatabase();
+        const poolsCollection = database.collection('pools');
 
-      // Get all user's pools
-      const pools = await poolsCollection.find({
-          'members.username': username.toLowerCase()
-      }).toArray();
+        // Get all user's pools and current indices
+        const userPools = await poolsCollection.find({
+            'members.username': username.toLowerCase()
+        }).toArray();
 
-      // Sort by current orderIndex
-      pools.sort((a, b) => {
-          const memberA = a.members.find(m => m.username.toLowerCase() === username.toLowerCase());
-          const memberB = b.members.find(m => m.username.toLowerCase() === username.toLowerCase());
-          return (memberA?.orderIndex || 0) - (memberB?.orderIndex || 0);
-      });
+        // Get current pool and its index
+        const currentPool = userPools.find(p => p.name === poolName);
+        if (!currentPool) {
+            return res.status(404).json({ success: false, message: 'Pool not found' });
+        }
 
-      // Find current pool index
-      const currentIndex = pools.findIndex(p => p.name === poolName);
-      if (currentIndex === -1) {
-          return res.status(404).json({ success: false, message: 'Pool not found' });
-      }
+        const currentMember = currentPool.members.find(m => 
+            m.username.toLowerCase() === username.toLowerCase()
+        );
+        
+        const currentIndex = currentMember.orderIndex;
+        let newIndex;
 
-      // Calculate new index
-      let newIndex;
-      if (direction === 'up' && currentIndex > 0) {
-          newIndex = currentIndex - 1;
-      } else if (direction === 'down' && currentIndex < pools.length - 1) {
-          newIndex = currentIndex + 1;
-      } else {
-          return res.status(400).json({ success: false, message: 'Invalid move direction' });
-      }
+        if (direction === 'up' && currentIndex > 0) {
+            newIndex = currentIndex - 1;
+        } else if (direction === 'down' && currentIndex < userPools.length - 1) {
+            newIndex = currentIndex + 1;
+        } else {
+            return res.status(400).json({ success: false, message: 'Invalid move direction' });
+        }
 
-      // Swap orderIndexes
-      const pool1 = pools[currentIndex];
-      const pool2 = pools[newIndex];
-      const member1 = pool1.members.find(m => m.username.toLowerCase() === username.toLowerCase());
-      const member2 = pool2.members.find(m => m.username.toLowerCase() === username.toLowerCase());
+        // Find the pool to swap with
+        const otherPool = userPools.find(p => 
+            p.members.find(m => 
+                m.username.toLowerCase() === username.toLowerCase() && 
+                m.orderIndex === newIndex
+            )
+        );
 
-      if (!member1 || !member2) {
-          return res.status(404).json({ success: false, message: 'Member not found in pools' });
-      }
+        if (!otherPool) {
+            return res.status(404).json({ success: false, message: 'No pool found to swap with' });
+        }
 
-      // Update both pools
-      await poolsCollection.updateOne(
-          { 
-              name: poolName,
-              'members.username': username.toLowerCase()
-          },
-          { $set: { 'members.$.orderIndex': member2.orderIndex } }
-      );
+        // Update both pools' orderIndices
+        await poolsCollection.updateOne(
+            { 
+                name: poolName,
+                'members.username': username.toLowerCase()
+            },
+            { $set: { 'members.$.orderIndex': newIndex } }
+        );
 
-      await poolsCollection.updateOne(
-          { 
-              name: pools[newIndex].name,
-              'members.username': username.toLowerCase()
-          },
-          { $set: { 'members.$.orderIndex': member1.orderIndex } }
-      );
+        await poolsCollection.updateOne(
+            { 
+                name: otherPool.name,
+                'members.username': username.toLowerCase()
+            },
+            { $set: { 'members.$.orderIndex': currentIndex } }
+        );
 
-      res.json({ 
-          success: true, 
-          message: 'Pool order updated successfully',
-          newOrder: pools.map(p => p.name)
-      });
+        res.json({ 
+            success: true, 
+            message: 'Pool order updated successfully'
+        });
 
-  } catch (error: any) {
-      console.error('Error reordering pools:', error);
-      res.status(500).json({ success: false, message: error.message });
-  }
+    } catch (error:any) {
+        console.error('Error reordering pools:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
 });
 // In poolRoutes.ts
 router.get('/userPools/:username', async (req, res) => {

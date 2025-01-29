@@ -641,57 +641,60 @@ createPoolForm.addEventListener('submit', async (e) => {
 });
 
     // Join Pool Form Submission
-    const joinPoolForm = document.getElementById('join-pool-form');
-    joinPoolForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const poolName = joinPoolForm.querySelector('input[type="text"]').value.trim();
-        const poolPassword = joinPoolForm.querySelector('input[type="password"]').value;
-        const username = localStorage.getItem('username');
+    // Join Pool Form Submission
+// Join Pool Form Submission
+const joinPoolForm = document.getElementById('join-pool-form');
+joinPoolForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const poolName = joinPoolForm.querySelector('input[type="text"]').value.trim();
+    const poolPassword = joinPoolForm.querySelector('input[type="password"]').value;
+    const username = localStorage.getItem('username');
 
-        if (!username) {
-            alert('Username not found. Please log in again.');
-            return;
+    if (!username) {
+        alert('Username not found. Please log in again.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/pools/joinByName', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                poolName: poolName,
+                username: username.toLowerCase(),
+                poolPassword: poolPassword
+            })
+        });
+
+        if (!response.ok) {
+            if (response.status === 404) {
+                alert('Pool not found.');
+                return;
+            }
+            if (response.status === 401) {
+                alert('Incorrect password.');
+                return;
+            }
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
-        try {
-            const response = await fetch('/pools/join', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    poolName: poolName,
-                    username: username.toLowerCase(),
-                    password: poolPassword
-                })
-            });
-
-            if (!response.ok) {
-                if (response.status === 404) {
-                    alert('Pool not found.');
-                    return;
-                }
-                if (response.status === 403) {
-                    alert('Incorrect password.');
-                    return;
-                }
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            if (data.message) {
-                // Reset form
-                joinPoolForm.reset();
-                
-                // Show success message or redirect
-                alert('Successfully joined the pool!');
-                // Optional: redirect to the pool
-                // window.location.href = `/pool/${data.poolId}`;
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('An error occurred while joining the pool.');
+        const data = await response.json();
+        if (data.message) {
+            // Reset form
+            joinPoolForm.reset();
+            
+            // Show success message
+            alert('Successfully joined the pool!');
+            
+            // Reload the page
+            window.location.reload();
         }
-    });
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while joining the pool.');
+    }
+});
 });
 //here is end of v3
 

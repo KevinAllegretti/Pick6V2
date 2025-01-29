@@ -452,7 +452,7 @@ cron.schedule('0 19 * * 4', () => {
   console.log("Updating Tuesday start time to the upcoming Tuesday");
   updateTuesdayStartTime();
 });
-
+/*
 // Thursday 4:00pm CT
 cron.schedule('25 16 * * 3', () => {
   console.log("It's Thursday 4:00 PM");
@@ -539,4 +539,4 @@ cron.schedule('45 23 * * 1', () => {
 cron.schedule('58 23 * * 1', () => {
   console.log("It's Monday 11:45 PM");
   fetchNFLScores();
-});
+});*/
