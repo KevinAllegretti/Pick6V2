@@ -214,4 +214,73 @@ router.get('/api/getLastWeekPicks/:username/:poolName', async (req, res) => {
     }
    });
    
+
+
+// New route to get picks from all pools for a user
+router.get('/api/getAllUserPicks/:username', async (req, res) => {
+    try {
+        const { username } = req.params;
+        const database = await connectToDatabase();
+        const picksCollection = database.collection('userPicks');
+        const poolsCollection = database.collection('pools');
+
+        // Get all pools the user is in
+        const userPools = await poolsCollection.find({
+            'members.username': username.toLowerCase()
+        }).toArray();
+
+        // Get picks from all pools
+        const allPicks = await Promise.all(userPools.map(async pool => {
+            const userPicksData = await picksCollection.findOne({
+                username: username.toLowerCase(),
+                poolName: pool.name
+            });
+            return userPicksData || { picks: [], immortalLock: [] };
+        }));
+
+        // Combine picks from all pools
+        const combinedPicks = {
+            picks: allPicks.flatMap(p => p.picks || []),
+            immortalLocks: allPicks.flatMap(p => p.immortalLock || [])
+        };
+
+        res.json(combinedPicks);
+    } catch (error) {
+        console.error('Error fetching all user picks:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+// Modified existing routes to handle single pool operations
+router.post('/api/savePicks/:username/:poolName', async (req, res) => {
+    try {
+        const { username, poolName } = req.params;
+        const { picks, immortalLock } = req.body;
+
+        const database = await connectToDatabase();
+        const picksCollection = database.collection('userPicks');
+
+        await picksCollection.updateOne(
+            { 
+                username: username.toLowerCase(), 
+                poolName 
+            },
+            {
+                $set: {
+                    picks,
+                    immortalLock
+                }
+            },
+            { upsert: true }
+        );
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error saving picks:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+// Other existing routes remain the same...
+
 export default router;

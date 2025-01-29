@@ -82,6 +82,7 @@ app.post('/api/fetchGamesByFilter', fetchGamesByFilter);
 app.post('/api/fetchNFLSchedule', fetchNFLschedule);
 app.use('/uploads', express.static('uploads'));
 app.use('/pools', poolRoutes);
+app.use('/', poolRoutes);   
 // 6. Serve static files
 app.use(express.static(path.join(__dirname, '../public')));
 

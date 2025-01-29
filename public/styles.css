@@ -240,6 +240,7 @@ body {
 
 /* Individual Buttons */
 .button-group button {
+  max-width: 380px;
   width: 80%; /* Set a width for the buttons */
   padding: 12px 24px;
   margin: 0; /* Remove default margin */
@@ -1197,3 +1198,38 @@ h4 {
     }
   }
   
+  /* Add this to your styles */
+.pool-selector-container {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.pool-selector {
+  background-color: rgba(0, 24, 48, 0.8);
+  color: #00ffff;
+  border: 2px solid #00ffff;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 16px;
+  min-width: 200px;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.pool-selector:hover {
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+  background-color: rgba(0, 24, 48, 0.9);
+}
+
+.pool-selector:focus {
+  outline: none;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+}
+
+.pool-selector option {
+  background-color: rgb(0, 24, 48);
+  color: #00ffff;
+  padding: 10px;
+}

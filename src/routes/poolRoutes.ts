@@ -36,6 +36,7 @@ router.get('/get-all', async (req, res) => {
     res.status(500).json({ message: 'Error fetching pools', error });
   }
 });
+
 router.post('/reorder', async (req, res) => {
   const { username, poolName, direction } = req.body;
   
