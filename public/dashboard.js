@@ -743,18 +743,48 @@ async function resetPicks() {
 
     try {
         if (selectedPool === 'all') {
-            const poolsResponse = await fetch(`/api/userPools/${storedUsername}`);
-            const pools = await poolsResponse.json();
+            // Get confirmation first
+            const confirmReset = confirm('Are you sure you want to reset picks for ALL classic pools? This cannot be undone.');
             
-            for (const pool of pools) {
-                await resetPoolPicks(pool.name);
+            if (confirmReset) {
+                // Get all classic pools for the user
+                const poolsResponse = await fetch(`/pools/userPools/${encodeURIComponent(storedUsername)}`);
+                if (!poolsResponse.ok) throw new Error('Failed to fetch user pools');
+                
+                const allPools = await poolsResponse.json();
+                const classicPools = allPools.filter(pool => pool.mode === 'classic');
+
+                if (classicPools.length === 0) {
+                    alert('No classic pools found to reset.');
+                    return;
+                }
+
+                // Reset each classic pool
+                const results = await Promise.all(classicPools.map(async pool => {
+                    try {
+                        await resetPoolPicks(pool.name);
+                        return { poolName: pool.name, success: true };
+                    } catch (error) {
+                        return { poolName: pool.name, success: false, error: error.message };
+                    }
+                }));
+
+                // Check results and provide feedback
+                const failures = results.filter(result => !result.success);
+                if (failures.length === 0) {
+                    alert(`Successfully reset picks in all ${classicPools.length} pools!`);
+                } else {
+                    const failedPools = failures.map(f => f.poolName).join(', ');
+                    alert(`Successfully reset ${classicPools.length - failures.length} pools.\nFailed for pools: ${failedPools}`);
+                }
             }
-            alert('Picks reset in all pools successfully!');
         } else {
+            // Original single pool reset
             await resetPoolPicks(selectedPool);
             alert('Picks reset successfully!');
         }
         
+        // Clear UI regardless of mode
         clearAllSelections();
         await fetchUserPicksAndRender(storedUsername, selectedPool);
     } catch (error) {
@@ -774,7 +804,10 @@ async function resetPoolPicks(poolName) {
     if (!response.ok) {
         throw new Error(`Failed to reset picks in ${poolName}`);
     }
+
+    return response.json();
 }
+
 
 // Weekly Picks Management
 async function loadWeeklyPicks() {
