@@ -1497,7 +1497,7 @@ button:hover {
     padding-left: 20px;
     border: 2px solid #33d9ff;
    /* background-color: #17203a;*/
-    background-color: #202124;
+    background-color: #17203a;
     border-radius: 8px;
     text-align: left;
 }
@@ -2135,7 +2135,7 @@ button:hover {
     left: 0;
     right: 0;
    /* background: rgba(23, 32, 58, 0.95);*/
-    background: #001646;
+    background: #17203a;
     border-bottom: 2px solid #33d9ff;
     box-shadow: 0 0 20px rgba(51, 217, 255, 0.2);
     z-index: 1000;
