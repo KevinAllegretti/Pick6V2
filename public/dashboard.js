@@ -743,48 +743,67 @@ async function resetPicks() {
 
     try {
         if (selectedPool === 'all') {
-            // Get confirmation first
-            const confirmReset = confirm('Are you sure you want to reset picks for ALL classic pools? This cannot be undone.');
+            const confirmReset = confirm('Are you sure you want to reset all your picks? This cannot be undone.');
             
             if (confirmReset) {
-                // Get all classic pools for the user
+                // Get all classic pools
                 const poolsResponse = await fetch(`/pools/userPools/${encodeURIComponent(storedUsername)}`);
                 if (!poolsResponse.ok) throw new Error('Failed to fetch user pools');
                 
                 const allPools = await poolsResponse.json();
                 const classicPools = allPools.filter(pool => pool.mode === 'classic');
 
-                if (classicPools.length === 0) {
-                    alert('No classic pools found to reset.');
-                    return;
-                }
-
-                // Reset each classic pool
-                const results = await Promise.all(classicPools.map(async pool => {
+                // First, fetch which pools have picks
+                const poolsWithPicks = await Promise.all(classicPools.map(async pool => {
                     try {
-                        await resetPoolPicks(pool.name);
-                        return { poolName: pool.name, success: true };
+                        const response = await fetch(`/api/getPicks/${storedUsername}/${pool.name}`);
+                        const data = await response.json();
+                        return {
+                            poolName: pool.name,
+                            hasPicks: !!(data.picks?.length || data.immortalLock?.length)
+                        };
                     } catch (error) {
-                        return { poolName: pool.name, success: false, error: error.message };
+                        console.error(`Error checking picks for ${pool.name}:`, error);
+                        return { poolName: pool.name, hasPicks: false };
                     }
                 }));
 
-                // Check results and provide feedback
-                const failures = results.filter(result => !result.success);
-                if (failures.length === 0) {
-                    alert(`Successfully reset picks in all ${classicPools.length} pools!`);
-                } else {
-                    const failedPools = failures.map(f => f.poolName).join(', ');
-                    alert(`Successfully reset ${classicPools.length - failures.length} pools.\nFailed for pools: ${failedPools}`);
+                const poolsToReset = poolsWithPicks.filter(pool => pool.hasPicks);
+
+                if (poolsToReset.length === 0) {
+                    alert('No picks found to reset.');
+                    return;
+                }
+
+                // Reset only pools that have picks
+                const results = await Promise.all(poolsToReset.map(async pool => {
+                    try {
+                        await resetPoolPicks(pool.poolName);
+                        return { poolName: pool.poolName, success: true };
+                    } catch (error) {
+                        return { poolName: pool.poolName, success: false };
+                    }
+                }));
+
+                const successfulResets = results.filter(r => r.success).map(r => r.poolName);
+
+                if (successfulResets.length > 0) {
+                    alert(`Successfully reset picks for: ${successfulResets.join(', ')}`);
                 }
             }
         } else {
-            // Original single pool reset
-            await resetPoolPicks(selectedPool);
-            alert('Picks reset successfully!');
+            // Check if single pool has picks before resetting
+            const response = await fetch(`/api/getPicks/${storedUsername}/${selectedPool}`);
+            const data = await response.json();
+            
+            if (data.picks?.length || data.immortalLock?.length) {
+                await resetPoolPicks(selectedPool);
+                alert('Picks reset successfully!');
+            } else {
+                alert('No picks found to reset.');
+            }
         }
         
-        // Clear UI regardless of mode
         clearAllSelections();
         await fetchUserPicksAndRender(storedUsername, selectedPool);
     } catch (error) {
