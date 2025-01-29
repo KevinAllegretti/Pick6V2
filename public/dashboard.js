@@ -209,7 +209,9 @@ async function initializeDashboard() {
         return;
     }
 
+
     try {
+        
         // Add pool selector if it doesn't exist
         if (!document.getElementById('poolSelector')) {
             const poolSelectorContainer = document.createElement('div');
@@ -1178,9 +1180,17 @@ document.getElementById('teamFilter')?.addEventListener('change', async function
     }
 });
 
-// Optional: Add window resize handler if needed
-window.addEventListener('resize', () => {
-    // Add any responsive design handling here
+document.addEventListener('DOMContentLoaded', async () => {
+    if (storedUsername) {
+        // Add hidden-border class to injury container on initial load
+        const injuryContainer = document.getElementById('injuryContainer');
+        if (injuryContainer) {
+            injuryContainer.classList.add('hidden-border');
+            injuryContainer.classList.remove('visible-border');
+        }
+        
+        await initializeDashboard();
+        // Set flag to false after initial load
+        isInitialPageLoad = false;
+    }
 });
-
-// Export any functions that need to be accessed from other files
