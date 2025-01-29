@@ -1257,8 +1257,8 @@ h4 {
 }
 
 .pool-selector-label {
-  color: #33d9ff
-  font-size: 0.9rem;
+  color: #33d9ff;
+  font-size: .96rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-family: 'sans-serif', 'montserrat';

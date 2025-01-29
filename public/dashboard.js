@@ -195,7 +195,7 @@ const injuryTeamNameMap = {
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', async () => {
     if (storedUsername) {
-        document.querySelector('h1').textContent = `Welcome ${storedUsername}, to the Pick Selection page!`;
+       
         await initializeDashboard();
         // Set flag to false after initial load
         isInitialPageLoad = false;
@@ -309,15 +309,7 @@ async function populatePoolSelector() {
         poolSelector.classList.add('error');
     }
 }
-// Make sure this is included in your initialization
-document.addEventListener('DOMContentLoaded', async () => {
-    if (storedUsername) {
-        document.querySelector('h1').textContent = `Welcome ${storedUsername}, to the Pick Selection page!`;
-        await initializeDashboard();
-    } else {
-        console.error('No username found in storage');
-    }
-});
+
 // Helper function to update pool selector on error
 function updatePoolSelectorError() {
     const poolSelector = document.getElementById('poolSelector');
@@ -681,7 +673,7 @@ function deselectImmortalLock() {
     if (userImmortalLock) {
         updateBetCell(userImmortalLock, false, true);
         userImmortalLock = null;
-        document.getElementById('immortalLockCheck').checked = false;
+
     }
 }
 let isInitialPageLoad = true;
