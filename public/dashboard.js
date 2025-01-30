@@ -337,21 +337,27 @@ async function submitUserPicks() {
         alert('Please add at least one pick before submitting.');
         return;
     }
+    const validateDate = (date) => {
+        const parsedDate = Date.parse(date);
+        return !isNaN(parsedDate) ? new Date(parsedDate).toISOString() : null;
+    };
 
+    // Create the data object with picks
     const data = {
         picks: userPicks.map(pick => ({
             teamName: pick.teamName,
             type: pick.type,
             value: pick.value,
-            commenceTime: pick.commenceTime
+            commenceTime: validateDate(pick.commenceTime)
         })),
         immortalLock: userImmortalLock ? [{
             teamName: userImmortalLock.teamName,
             type: userImmortalLock.type,
             value: userImmortalLock.value,
-            commenceTime: userImmortalLock.commenceTime
-        }] : []
-    };
+            commenceTime: validateDate(userImmortalLock.commenceTime)
+        }] : [],
+    }
+    console.log("Picks Data Before Submission:", data);
 
     try {
         if (selectedPool === 'all') {
@@ -646,10 +652,13 @@ function validatePick(option) {
 
 function createPickObject(option) {
     // Add check for commenceTime, make it optional
+    const currentMatchup = betOptions.find(bet => bet.homeTeam === option.teamName || bet.awayTeam === option.teamName);
+
     const pickObject = {
         teamName: option.teamName,
         type: option.type,
-        value: option.value
+        value: option.value,
+        commenceTime: currentMatchup.commenceTime
     };
 
     // Only add commenceTime if it exists

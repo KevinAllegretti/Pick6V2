@@ -5,9 +5,22 @@ import { createPool, joinPoolByName, leavePool} from '../Controllers/poolControl
 import Pool from '../models/Pool';
 import { connectToDatabase } from '../microservices/connectDB';
 import { isConstructorDeclaration } from 'typescript';
+import { ObjectId } from 'mongodb';
 //import { ObjectId } from 'mongodb';
 
 const router = express.Router();
+
+interface PoolMember {
+    user: ObjectId;
+    username: string;
+    points: number;
+    picks: never[];
+    win: number;
+    loss: number;
+    push: number;
+    orderIndex: number;
+}
+
 
 async function getNextOrderIndex(username: string, database: any) {
   const poolsCollection = database.collection('pools');
@@ -157,24 +170,31 @@ router.post('/joinByName', async (req, res) => {
                 user: user._id,
                 username: username.toLowerCase(),
                 points: 0,
-                picks: [],
+                picks: [] as never[],
                 win: 0,
                 loss: 0,
                 push: 0,
                 orderIndex: 0
             };
 
-            pool.members.push(newMember);
-            await pool.save();
+            // Add member to pool with type assertion
+            await poolsCollection.updateOne(
+                { name: poolName },
+                { $push: { members: newMember } } as any
+            );
         }
+
+        // Fetch the updated pool to return
+        const updatedPool = await poolsCollection.findOne({ name: poolName });
 
         res.status(200).json({ 
             message: 'Joined pool successfully', 
             pool: {
-                ...pool.toObject(),
-                mode: pool.mode
+                ...updatedPool,
+                mode: updatedPool?.mode
             }
         });
+
     } catch (error) {
         console.error('Error joining pool:', error);
         res.status(500).json({ message: 'Error joining pool', error });

@@ -105,7 +105,7 @@ async function saveInitialTimes() {
     }
 }
 
-
+/*old w otu sunday and thu
 
 async function fetchTimeWindows() {
     try {
@@ -119,6 +119,7 @@ async function fetchTimeWindows() {
         console.error('Error fetching time windows:', error);
     }
 }
+
 async function checkCurrentTimeWindow() {
     try {
         const response = await fetch('/api/timewindows');
@@ -179,6 +180,124 @@ function enablePickTimeFeatures() {
     } else {
         console.error('No choose picks buttons found');
     }
+}
+*/
+
+
+async function checkCurrentTimeWindow() {
+    try {
+        const response = await fetch('/api/timewindows');
+        if (!response.ok) {
+            throw new Error('Failed to fetch time windows.');
+        }
+
+        const { tuesdayStartTime, thursdayDeadline, sundayDeadline } = await response.json();
+        const now = getCurrentTimeInUTC4();
+        
+        const tuesdayTime = new Date(tuesdayStartTime);
+        const thursdayTime = new Date(thursdayDeadline);
+        const sundayTime = new Date(sundayDeadline);
+
+        console.log("Current time: ", now);
+        console.log("Tuesday Start time: ", tuesdayTime);
+        console.log("Thursday deadline: ", thursdayTime);
+        console.log("Sunday deadline: ", sundayTime);
+
+        if (now > tuesdayTime && now < thursdayTime) {
+            console.log('Current time window: Pick Time');
+            enablePickTimeFeatures();
+        } else if (now > thursdayTime && now < sundayTime) {
+            console.log('Current time window: Thursday Game Time');
+            enableThursdayGameFeatures();
+        } else if (now > sundayTime && now < tuesdayTime) {
+            console.log('Current time window: Sunday Game Time');
+            enableSundayGameFeatures();
+        } else {
+            console.log('Error determining the current time window');
+        }
+    } catch (error) {
+        console.error('Error checking current time window:', error);
+    }
+}
+
+function enableThursdayGameFeatures() {
+
+}
+
+function enableSundayGameFeatures() {
+    const choosePicksButtons = document.querySelectorAll('.choose-picks-button');
+    if (choosePicksButtons.length > 0) {
+        choosePicksButtons.forEach(button => {
+            button.classList.add('disabled');
+            button.textContent = 'Selections Unavailable';
+        });
+    } else {
+        console.error('No choose picks buttons found');
+    }
+
+    // Set up click handlers for buttons
+    choosePicksButtons.forEach(button => {
+        button.onclick = (event) => {
+            event.preventDefault();
+            alert("Games in progress. Pick selection unavailable until next week.");
+        };
+    });
+}
+
+function enablePickTimeFeatures() {
+    const choosePicksButtons = document.querySelectorAll('.choose-picks-button');
+    if (choosePicksButtons.length > 0) {
+        choosePicksButtons.forEach(button => {
+            button.classList.remove('disabled');
+            button.textContent = 'Make Picks';
+        });
+    } else {
+        console.error('No choose picks buttons found');
+    }
+
+    // Reset click handlers to default behavior
+    choosePicksButtons.forEach(button => {
+        const poolName = button.closest('.pool-wrapper')?.getAttribute('data-pool-name');
+        if (poolName) {
+            button.onclick = () => redirectToDashboard(poolName);
+        }
+    });
+}
+
+// Helper function to determine which time window we're in
+async function getCurrentTimePhase() {
+    try {
+        const response = await fetch('/api/timewindows');
+        if (!response.ok) {
+            throw new Error('Failed to fetch time windows.');
+        }
+
+        const { tuesdayStartTime, thursdayDeadline, sundayDeadline } = await response.json();
+        const now = getCurrentTimeInUTC4();
+        
+        const tuesdayTime = new Date(tuesdayStartTime);
+        const thursdayTime = new Date(thursdayDeadline);
+        const sundayTime = new Date(sundayDeadline);
+
+        if (now > tuesdayTime && now < thursdayTime) {
+            console.log("its pcik tioeeeee")
+            return 'pick';
+        } else if (now > thursdayTime && now < sundayTime) {
+            return 'thursday';
+        } else if (now > sundayTime && now < tuesdayTime) {
+            return 'sunday';
+        }
+        return 'unknown';
+    } catch (error) {
+        console.error('Error determining time phase:', error);
+        return 'unknown';
+    }
+}
+
+// Helper function to check if it's pick time (used by other components)
+async function isCurrentTimePickTime() {
+    const phase = await getCurrentTimePhase();
+    return phase === 'pick';
 }
 
 
@@ -1348,6 +1467,7 @@ async function isCurrentTimePickTime() {
         return false; // Default to game time if there's an error
     }
 }
+/* old without new thursday
 async function fetchPicks(username, poolName, playerRow, teamLogos) {
     const isPickTime = await isCurrentTimePickTime(); // Determine if it's pick time
 
@@ -1460,8 +1580,207 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
             errorMessage.textContent = ' ';
             picksContainer.appendChild(errorMessage);
         });
+}*/
+
+function checkIfThursdayGame(commenceTime) {
+    const gameDate = new Date(commenceTime); // Parse the date
+    const localDate = new Date(gameDate.getTime() - gameDate.getTimezoneOffset() * 60000); // Adjust to local time
+    const dayLocal = localDate.getDay(); // Get the day of the week in local time
+    console.log(`Original Date (UTC): ${commenceTime}`);
+    console.log(`Adjusted Date (Local): ${localDate}`);
+    console.log(`Day (Local): ${dayLocal}`);
+    return dayLocal === 4; // Return true for Thursday in local timezone
 }
 
+
+
+async function fetchPicks(username, poolName, playerRow, teamLogos) {
+    const encodedUsername = encodeURIComponent(username);
+    const encodedPoolName = encodeURIComponent(poolName);
+    const url = `/api/getPicks/${encodedUsername}/${encodedPoolName}`;
+
+
+    try {
+        const timePhase = await getCurrentTimePhase();
+        const picksResponse = await fetch(url);
+        if (!picksResponse.ok) {
+            throw new Error(`HTTP error! status: ${picksResponse.status}`);
+        }
+        const picksData = await picksResponse.json();
+        
+        const picksContainer = playerRow.querySelector('.player-picks');
+        picksContainer.innerHTML = '';
+
+        // Get reference to the immortal lock container
+        const immortalLockContainer = playerRow.querySelector('.player-immortal-lock');
+        immortalLockContainer.innerHTML = '';
+
+        const isCurrentUser = username === localStorage.getItem('username').toLowerCase();
+
+        if (picksData && picksData.picks && Array.isArray(picksData.picks)) {
+            // Sort picks by commence time
+            picksData.picks.sort((a, b) => new Date(a.commenceTime) - new Date(b.commenceTime));
+            console.log('All picks:', picksData.picks);
+            if (isCurrentUser) {
+                // Current user always sees their own picks
+                await displayAllPicks(picksData.picks, picksContainer, teamLogos);
+            } else {
+                switch (timePhase) {
+                    case 'pick':
+                        displayPickTimeBanner(picksContainer);
+                        break;
+                        case 'thursday':
+                            console.log(
+                                'All picks:',
+                                picksData.picks.map(pick => ({
+                                  commenceTime: pick.commenceTime,
+                                  dayUTC: new Date(pick.commenceTime).getUTCDay(),
+                                  dayLocal: new Date(new Date(pick.commenceTime).getTime() - new Date(pick.commenceTime).getTimezoneOffset() * 60000).getDay(),
+                                  teamName: pick.teamName
+                                }))
+                              );
+                              
+                            // Filter for Thursday night games
+                            const thursdayPicks = picksData.picks.filter(pick => 
+                                checkIfThursdayGame(pick.commenceTime)
+                            );
+                            
+                            if (thursdayPicks.length > 0) {
+                                // Display only Thursday picks
+                                console.log('Thursday picks:', thursdayPicks);
+                                await displayAllPicks(thursdayPicks, picksContainer, teamLogos);
+                            }
+                            
+                            // If there are non-Thursday picks that need to be hidden
+                            if (picksData.picks.length > thursdayPicks.length) {
+                                const lockedBanner = document.createElement('img');
+                                lockedBanner.src = 'LockedPicks.png';
+                                lockedBanner.alt = 'Picks Locked';
+                                lockedBanner.className = 'locked-picks-banner';
+                                picksContainer.appendChild(lockedBanner);
+                            }
+                            break;
+                    
+                    case 'sunday':
+                        // Show all picks during Sunday phase
+                        console.log("sundayyyy")
+                        await displayAllPicks(picksData.picks, picksContainer, teamLogos);
+                        break;
+                }
+            }
+
+            // Handle immortal lock display
+            if (picksData.immortalLock && picksData.immortalLock.length > 0) {
+                const immortalPick = picksData.immortalLock[0];
+                
+                if (isCurrentUser) {
+                    // Always show current user's immortal lock
+                    displayImmortalLock(immortalPick, immortalLockContainer, teamLogos);
+                } else {
+                    switch (timePhase) {
+                        case 'pick':
+                            // Don't show immortal lock during pick time
+                            break;
+                        case 'thursday':
+                            // Show immortal lock only if it's a Thursday game
+                            if (await checkIfThursdayGame(immortalPick.commenceTime)) {
+                                displayImmortalLock(immortalPick, immortalLockContainer, teamLogos);
+                            }
+                            break;
+                        case 'sunday':
+                            // Show all immortal locks
+                            displayImmortalLock(immortalPick, immortalLockContainer, teamLogos);
+                            break;
+                    }
+                }
+            }
+        } else {
+            displayNoPicks(picksContainer);
+        }
+    } catch (error) {
+        console.error('Error fetching picks:', error);
+        handleFetchError(playerRow);
+    }
+}
+
+async function displayAllPicks(picks, container, teamLogos) {
+    // Clear container first
+    container.innerHTML = '';
+    
+    for (const pick of picks) {
+        const pickDiv = document.createElement('div');
+        pickDiv.className = 'pick';
+
+        if (teamLogos[pick.teamName]) {
+            const logoImg = document.createElement('img');
+            logoImg.src = teamLogos[pick.teamName];
+            logoImg.alt = pick.teamName;
+            logoImg.className = 'team-logo';
+            pickDiv.appendChild(logoImg);
+        }
+
+        if (pick.value) {
+            const valueSpan = document.createElement('span');
+            valueSpan.textContent = pick.value;
+            pickDiv.appendChild(valueSpan);
+        }
+
+        container.appendChild(pickDiv);
+    }
+}
+
+function displayPickTimeBanner(container) {
+    const bannerImage = document.createElement('img');
+    bannerImage.src = 'PickTimeNew.png';
+    bannerImage.alt = 'Player Making Selection';
+    bannerImage.className = 'pick-banner';
+    container.appendChild(bannerImage);
+}
+
+function displayLockedBanner(container) {
+    const bannerImage = document.createElement('img');
+    bannerImage.src = 'LockedPicks.png';
+    bannerImage.alt = 'Picks Locked';
+    bannerImage.className = 'locked-picks-banner';
+    container.appendChild(bannerImage);
+}
+
+function displayImmortalLock(immortalPick, container, teamLogos) {
+    const lockDiv = document.createElement('div');
+    lockDiv.className = 'immortal-lock';
+
+    if (teamLogos[immortalPick.teamName]) {
+        const logoImg = document.createElement('img');
+        logoImg.src = teamLogos[immortalPick.teamName];
+        logoImg.alt = immortalPick.teamName;
+        logoImg.className = 'team-logo';
+        lockDiv.appendChild(logoImg);
+    }
+
+    if (immortalPick.value) {
+        const valueSpan = document.createElement('span');
+        valueSpan.textContent = immortalPick.value;
+        lockDiv.appendChild(valueSpan);
+    }
+
+    container.appendChild(lockDiv);
+}
+
+function displayNoPicks(container) {
+    const noPicksMessage = document.createElement('div');
+    noPicksMessage.className = 'no-picks-message';
+    noPicksMessage.textContent = 'No picks made';
+    container.appendChild(noPicksMessage);
+}
+
+function handleFetchError(playerRow) {
+    const picksContainer = playerRow.querySelector('.player-picks');
+    picksContainer.innerHTML = '';
+    const errorMessage = document.createElement('div');
+    errorMessage.className = 'error-message';
+    errorMessage.textContent = ' ';
+    picksContainer.appendChild(errorMessage);
+}
 
 
 /*document.getElementById('savePicksButton').addEventListener('click', () => {

@@ -299,7 +299,8 @@ function getCurrentTimeInUTC4(): Date {
     return now;
 }
 
-// Function to update the Thursday deadline
+// Function to update the Thursday deadline 
+/* old function w out sunday
 export async function updateThursdayDeadline(): Promise<void> {
     const now = getCurrentTimeInUTC4();
 
@@ -321,7 +322,43 @@ export async function updateThursdayDeadline(): Promise<void> {
             console.error('Error updating Thursday deadline:', error);
             throw new Error('Failed to update Thursday deadline');
         }
-    }
+    }*/
+
+        export async function updateThursdayDeadline(): Promise<void> {
+            const now = getCurrentTimeInUTC4();
+            const nextThursday = new Date(now);
+            nextThursday.setDate(nextThursday.getDate() + ((4 + 7 - now.getDay()) % 7));
+            nextThursday.setHours(19, 0, 0, 0); // 7 PM EST
+            nextThursday.setMinutes(nextThursday.getMinutes() + nextThursday.getTimezoneOffset());
+            nextThursday.setHours(nextThursday.getHours() - 4); // Convert UTC to EST (UTC-4)
+        
+            // Calculate Sunday reveal time (next Sunday at 12 PM EST)
+            const nextSunday = new Date(nextThursday);
+            nextSunday.setDate(nextSunday.getDate() + ((0 + 7 - nextThursday.getDay()) % 7));
+            nextSunday.setHours(12, 0, 0, 0); // 12 PM EST
+            nextSunday.setMinutes(nextSunday.getMinutes() + nextSunday.getTimezoneOffset());
+            nextSunday.setHours(nextSunday.getHours() - 4);
+        
+            try {
+                const database = await connectToDatabase();
+                const timeWindowCollection = database.collection('timewindows');
+                await timeWindowCollection.updateOne(
+                    {},
+                    { 
+                        $set: { 
+                            thursdayDeadline: nextThursday,
+                            sundayDeadline: nextSunday
+                        }
+                    },
+                    { upsert: true }
+                );
+                console.log('Thursday deadline and Sunday reveal time updated successfully.');
+            } catch (error) {
+                console.error('Error updating deadlines:', error);
+                throw error;
+            }
+        }
+        
 // Function to update the Tuesday start time
 export async function updateTuesdayStartTime(): Promise<void> {
     const now = getCurrentTimeInUTC4();
