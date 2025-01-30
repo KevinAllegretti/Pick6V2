@@ -445,7 +445,7 @@ cron.schedule('0 0 * * 2', () => {
 });
 
 
-
+/*
 cron.schedule('0 19 * * 4', () => {
   console.log("It's Thursday 7:00 PM, now saving picks to last week");
   savePicksToLastWeek();
