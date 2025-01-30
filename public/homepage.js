@@ -1663,7 +1663,6 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
                     
                     case 'sunday':
                         // Show all picks during Sunday phase
-                        console.log("sundayyyy")
                         await displayAllPicks(picksData.picks, picksContainer, teamLogos);
                         break;
                 }
@@ -1769,7 +1768,7 @@ function displayImmortalLock(immortalPick, container, teamLogos) {
 function displayNoPicks(container) {
     const noPicksMessage = document.createElement('div');
     noPicksMessage.className = 'no-picks-message';
-    noPicksMessage.textContent = 'No picks made';
+    noPicksMessage.textContent = ' ';
     container.appendChild(noPicksMessage);
 }
 

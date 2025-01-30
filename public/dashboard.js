@@ -422,6 +422,11 @@ function setupEventListeners() {
 
 async function fetchUserPicksAndRender(username, poolSelection) {
     try {
+        // Ensure betOptions are loaded first
+        if (!betOptions || betOptions.length === 0) {
+            await loadWeeklyPicks();
+        }
+
         if (poolSelection === 'all') {
             // Get all classic pools first
             const poolsResponse = await fetch(`/pools/userPools/${encodeURIComponent(username)}`);
@@ -497,9 +502,43 @@ async function fetchUserPicksAndRender(username, poolSelection) {
                 // Only render if everything matches
                 clearAllSelections();
                 const firstPoolPicks = allPoolPicks[0];
-                firstPoolPicks.picks.forEach(pick => renderPick(pick, false));
+                
+                // Render regular picks
+                if (firstPoolPicks.picks) {
+                    firstPoolPicks.picks.forEach(pick => {
+                        // Ensure pick has commenceTime
+                        if (!pick.commenceTime) {
+                            const matchingBet = betOptions.find(bet => 
+                                (bet.homeTeam === pick.teamName || bet.awayTeam === pick.teamName) &&
+                                bet.type === pick.type
+                            );
+                            if (matchingBet) {
+                                pick.commenceTime = matchingBet.commenceTime;
+                            } else {
+                                console.error('No matching bet found for team:', pick.teamName);
+                            }
+                        }
+                        renderPick(pick, false);
+                    });
+                }
+
+                // Render immortal lock
                 if (firstPoolPicks.immortalLock && firstPoolPicks.immortalLock.length > 0) {
-                    firstPoolPicks.immortalLock.forEach(lock => renderPick(lock, true));
+                    firstPoolPicks.immortalLock.forEach(lock => {
+                        // Ensure lock has commenceTime
+                        if (!lock.commenceTime) {
+                            const matchingBet = betOptions.find(bet => 
+                                (bet.homeTeam === lock.teamName || bet.awayTeam === lock.teamName) &&
+                                bet.type === lock.type
+                            );
+                            if (matchingBet) {
+                                lock.commenceTime = matchingBet.commenceTime;
+                            } else {
+                                console.error('No matching bet found for immortal lock team:', lock.teamName);
+                            }
+                        }
+                        renderPick(lock, true);
+                    });
                 }
             } else {
                 // Clear selections if picks don't match
@@ -511,11 +550,43 @@ async function fetchUserPicksAndRender(username, poolSelection) {
             const data = await response.json();
             
             clearAllSelections();
+            
+            // Handle regular picks
             if (data.picks) {
-                data.picks.forEach(pick => renderPick(pick, false));
+                data.picks.forEach(pick => {
+                    // Ensure pick has commenceTime
+                    if (!pick.commenceTime) {
+                        const matchingBet = betOptions.find(bet => 
+                            (bet.homeTeam === pick.teamName || bet.awayTeam === pick.teamName) &&
+                            bet.type === pick.type
+                        );
+                        if (matchingBet) {
+                            pick.commenceTime = matchingBet.commenceTime;
+                        } else {
+                            console.error('No matching bet found for team:', pick.teamName);
+                        }
+                    }
+                    renderPick(pick, false);
+                });
             }
+
+            // Handle immortal lock
             if (data.immortalLock) {
-                data.immortalLock.forEach(lock => renderPick(lock, true));
+                data.immortalLock.forEach(lock => {
+                    // Ensure lock has commenceTime
+                    if (!lock.commenceTime) {
+                        const matchingBet = betOptions.find(bet => 
+                            (bet.homeTeam === lock.teamName || bet.awayTeam === lock.teamName) &&
+                            bet.type === lock.type
+                        );
+                        if (matchingBet) {
+                            lock.commenceTime = matchingBet.commenceTime;
+                        } else {
+                            console.error('No matching bet found for immortal lock team:', lock.teamName);
+                        }
+                    }
+                    renderPick(lock, true);
+                });
             }
         }
     } catch (error) {
@@ -982,7 +1053,46 @@ function enablePickTimeFeatures() {
     });
 }
 
-function enableGameTimeFeatures() {
+let lockedPicks = [];
+let lockedImmortalLock = null;
+
+// Modified enableThursdayGameFeatures function
+function enableThursdayGameFeatures() {
+    const now = getCurrentTimeInUTC4();
+    
+    betOptions.forEach(bet => {
+        const commenceTime = new Date(bet.commenceTime);
+        
+        if (commenceTime < now) {
+            // Black out all bet buttons for this game
+            const homeTeamClass = bet.homeTeam.replace(/\s+/g, '-').toLowerCase();
+            const awayTeamClass = bet.awayTeam.replace(/\s+/g, '-').toLowerCase();
+            
+            const betButtons = document.querySelectorAll(
+                `.bet-button[data-team="${homeTeamClass}"],
+                 .bet-button[data-team="${awayTeamClass}"]`
+            );
+            
+            betButtons.forEach(button => {
+                button.style.backgroundColor = 'black';
+                button.style.color = 'red';
+                button.dataset.thursdayGame = 'true';
+                
+                button.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    alert('Thursday game has already commenced!');
+                });
+            });
+            
+            // Lock any picks for this game
+            lockCommencedGamePicks(bet.homeTeam, bet.awayTeam);
+        }
+    });
+}
+
+
+
+function enableSundayGameFeatures() {
     const submitPicksButton = document.getElementById('submitPicks');
     const resetPicksButton = document.getElementById('resetPicks');
     
@@ -1110,7 +1220,7 @@ function blackOutPreviousBets() {
         });
     }
 }
-
+/*
 // Time Window Management
 async function checkCurrentTimeWindow() {
     try {
@@ -1126,6 +1236,43 @@ async function checkCurrentTimeWindow() {
             enablePickTimeFeatures();
         } else {
             enableGameTimeFeatures();
+        }
+    } catch (error) {
+        console.error('Error checking current time window:', error);
+    }
+}*/
+
+
+async function checkCurrentTimeWindow() {
+    try {
+        const response = await fetch('/api/timewindows');
+        if (!response.ok) {
+            throw new Error('Failed to fetch time windows.');
+        }
+
+        const { tuesdayStartTime, thursdayDeadline, sundayDeadline } = await response.json();
+        const now = getCurrentTimeInUTC4();
+        
+        const tuesdayTime = new Date(tuesdayStartTime);
+        const thursdayTime = new Date(thursdayDeadline);
+        const sundayTime = new Date(sundayDeadline);
+
+        console.log("Current time: ", now);
+        console.log("Tuesday Start time: ", tuesdayTime);
+        console.log("Thursday deadline: ", thursdayTime);
+        console.log("Sunday deadline: ", sundayTime);
+
+        if (now > tuesdayTime && now < thursdayTime) {
+            console.log('Current time window: Pick Time');
+            enablePickTimeFeatures();
+        } else if (now > thursdayTime && now < sundayTime) {
+            console.log('Current time window: Thursday Game Time');
+            enableThursdayGameFeatures();
+        } else if (now > sundayTime && now < tuesdayTime) {
+            console.log('Current time window: Sunday Game Time');
+            enableSundayGameFeatures();
+        } else {
+            console.log('Error determining the current time window');
         }
     } catch (error) {
         console.error('Error checking current time window:', error);
