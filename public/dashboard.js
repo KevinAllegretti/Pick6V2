@@ -1112,7 +1112,7 @@ function validatePickForThursday(option) {
 
     if (opposingTeamBet || opposingImmortalLock) {
         console.log("Opposing team bet or immortal lock found.");
-        alert("You cannot select a pick from both teams in the same matchup for Thursday.");
+        alert("You cannot select a pick from both teams in the same matchup.");
         return false;
     }
 
@@ -1122,7 +1122,7 @@ function validatePickForThursday(option) {
 
     if (existingTeamPick || existingImmortalLockOnSameTeam) {
         console.log("Existing pick or immortal lock on the same team found.");
-        alert("Only one pick per team is allowed for Thursday games.");
+        alert("Only one pick per team is allowed.");
         return false;
     }
 

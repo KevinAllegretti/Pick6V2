@@ -221,9 +221,24 @@ async function checkCurrentTimeWindow() {
 }
 
 function enableThursdayGameFeatures() {
+    const choosePicksButtons = document.querySelectorAll('.choose-picks-button');
+    if (choosePicksButtons.length > 0) {
+        choosePicksButtons.forEach(button => {
+            button.classList.remove('disabled');
+            button.textContent = 'Make Picks';  // Changed from 'Selections Unavailable'
+        });
+    } else {
+        console.error('No choose picks buttons found');
+    }
 
+    // Add click handlers similar to enablePickTimeFeatures
+    choosePicksButtons.forEach(button => {
+        const poolName = button.closest('.pool-wrapper')?.getAttribute('data-pool-name');
+        if (poolName) {
+            button.onclick = () => redirectToDashboard(poolName);
+        }
+    });
 }
-
 function enableSundayGameFeatures() {
     const choosePicksButtons = document.querySelectorAll('.choose-picks-button');
     if (choosePicksButtons.length > 0) {
@@ -238,8 +253,7 @@ function enableSundayGameFeatures() {
     // Set up click handlers for buttons
     choosePicksButtons.forEach(button => {
         button.onclick = (event) => {
-            event.preventDefault();
-            alert("Games in progress. Pick selection unavailable until next week.");
+            showGameTimeAlert(event); // Pass the event object
         };
     });
 }
@@ -301,9 +315,10 @@ async function isCurrentTimePickTime() {
 }
 
 
-
 function showGameTimeAlert(event) {
-    event.preventDefault(); // Prevent default action
+    if (event) {
+        event.preventDefault(); // Prevent default action
+    }
     alert("It's Game Time! Pick selection page not available.");
 }
 
@@ -646,18 +661,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const globalPicksButton = document.getElementById('globalPicksButton');
     if (globalPicksButton) {
         globalPicksButton.addEventListener('click', async function() {
-            // Check if it's pick time before allowing access
-            const isPickTime = await isCurrentTimePickTime();
-            if (!isPickTime) {
+            const phase = await getCurrentTimePhase();
+            if (phase === 'sunday') {
                 showGameTimeAlert(event);
                 return;
             }
-            // Redirect to dashboard without specific pool parameter
+            // Allow access during both pick time and Thursday games
             window.location.href = 'dashboard.html';
         });
     }
 });
-
 // V3 for pool man
 document.addEventListener('DOMContentLoaded', function() {
     // Tab Switching
@@ -2070,18 +2083,7 @@ function displayNewPoolContainer(pool) {
         // Add to ordered container
         orderedContainer.appendChild(poolWrapper);
 
-        const choosePicksButton = poolContainer.querySelector('.choose-picks-button');
-        if (choosePicksButton) {
-            choosePicksButton.onclick = (event) => {
-                if (choosePicksButton.classList.contains('disabled')) {
-                    event.preventDefault();
-                    showGameTimeAlert(event);
-                } else {
-                    redirectToDashboard(pool.name);
-                }
-            };
-        }
-
+      
         setTimeout(() => {
             select.value = 'aroundMe';
             select.dispatchEvent(new Event('change'));
