@@ -671,7 +671,7 @@ function selectBet(option, isRendering = false, isImmortalLock = false) {
 
     // Handle regular pick deselection
     const existingPickIndex = userPicks.findIndex(pick => 
-        pick.teamName === option.teamName && pick.type === option.type
+        pick.teamName === option.teamName && pick.type === pick.type
     );
 
     if (existingPickIndex !== -1 && !isRendering) {
@@ -685,13 +685,12 @@ function selectBet(option, isRendering = false, isImmortalLock = false) {
 
     const currentPick = createPickObject(option);
 
-    // Calculate total picks including locked picks
-    const totalPicks = userPicks.length + lockedPicks.length;
+    // Calculate total active and locked picks
+    const totalPickCount = picksCount;
     const effectivePicksCount = picksCount + lockedPicks.length;
 
-
     if (immortalLockCheckbox.checked) {
-        if (effectivePicksCount >= 7) {
+        if (effectivePicksCount >= 6) {
             // Only allow immortal lock as 7th pick
             handleImmortalLockSelection(currentPick);
         } else {
@@ -793,13 +792,6 @@ function updateBetCell(option, isSelected, isImmortalLock = false) {
     const updateClasses = () => {
         const betButtons = document.querySelectorAll(`.bet-button[data-team="${teamClass}"][data-type="${typeClass}"]`);
         
-        console.log('Updating bet cell:', {
-            teamClass,
-            typeClass,
-            isSelected,
-            isImmortalLock,
-            buttonCount: betButtons.length
-        });
 
         betButtons.forEach(button => {
             button.classList.remove('selected', 'immortal-lock-selected');
@@ -1085,9 +1077,9 @@ function checkIfThursdayGame(commenceTime) {
     const gameDate = new Date(commenceTime); // Parse the date
     const localDate = new Date(gameDate.getTime() - gameDate.getTimezoneOffset() * 60000); // Adjust to local time
     const dayLocal = localDate.getDay(); // Get the day of the week in local time
-    console.log(`Original Date (UTC): ${commenceTime}`);
+   /* console.log(`Original Date (UTC): ${commenceTime}`);
     console.log(`Adjusted Date (Local): ${localDate}`);
-    console.log(`Day (Local): ${dayLocal}`);
+    console.log(`Day (Local): ${dayLocal}`);*/
     return dayLocal === 4; // Return true for Thursday in local timezone
 }
 
@@ -1133,9 +1125,9 @@ function validatePickForThursday(option) {
     return true;
 }
 function enableThursdayGameFeatures() {
-    console.log("Enabling Thursday game features...");
+   // console.log("Enabling Thursday game features...");
     const now = getCurrentTimeInUTC4();
-    console.log("Current time in UTC-4:", now);
+  //  console.log("Current time in UTC-4:", now);
 
     [...userPicks, ...(userImmortalLock ? [userImmortalLock] : [])].forEach(pick => {
         if (!pick || !pick.commenceTime) return;
@@ -1178,6 +1170,11 @@ function enableThursdayGameFeatures() {
 
 // Lock specific pick function
 function lockSpecificPick(pick) {
+    console.log('=== Before Locking Pick ===');
+    console.log('Current Active Picks:', userPicks.length);
+    console.log('Current Locked Picks:', lockedPicks.length);
+    console.log('Current PicksCount:', picksCount);
+    
     // For regular picks
     const pickIndex = userPicks.findIndex(p => 
         p.teamName === pick.teamName && 
@@ -1188,17 +1185,23 @@ function lockSpecificPick(pick) {
         // Move the specific pick to lockedPicks
         lockedPicks.push(userPicks[pickIndex]);
         userPicks.splice(pickIndex, 1);
+        picksCount--; // Decrease picksCount when locking a pick
     }
 
     // For immortal lock
-    if (
-        userImmortalLock && 
+    if (userImmortalLock && 
         userImmortalLock.teamName === pick.teamName && 
         userImmortalLock.type === pick.type
     ) {
         lockedImmortalLock = userImmortalLock;
         userImmortalLock = null;
+        document.getElementById('immortalLockCheck').checked = false;
     }
+    
+    console.log('=== After Locking Pick ===');
+    console.log('Updated Active Picks:', userPicks.length);
+    console.log('Updated Locked Picks:', lockedPicks.length);
+    console.log('Updated PicksCount:', picksCount);
 }
 
 
@@ -1393,19 +1396,19 @@ async function checkCurrentTimeWindow() {
         const thursdayTime = new Date(thursdayDeadline);
         const sundayTime = new Date(sundayDeadline);
 
-        console.log("Current time: ", now);
+       /* console.log("Current time: ", now);
         console.log("Tuesday Start time: ", tuesdayTime);
         console.log("Thursday deadline: ", thursdayTime);
-        console.log("Sunday deadline: ", sundayTime);
+        console.log("Sunday deadline: ", sundayTime);*/
 
         if (now > tuesdayTime && now < thursdayTime) {
-            console.log('Current time window: Pick Time');
+           // console.log('Current time window: Pick Time');
             enablePickTimeFeatures();
         } else if (now > thursdayTime && now < sundayTime) {
-            console.log('Current time window: Thursday Game Time');
+            //console.log('Current time window: Thursday Game Time');
             enableThursdayGameFeatures();
         } else if (now > sundayTime && now < tuesdayTime) {
-            console.log('Current time window: Sunday Game Time');
+           // console.log('Current time window: Sunday Game Time');
             enableSundayGameFeatures();
         } else {
             console.log('Error determining the current time window');
