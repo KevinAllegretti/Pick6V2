@@ -1320,11 +1320,10 @@ function validatePickForThursday(option) {
 }
 function enableThursdayGameFeatures() {
     const now = getCurrentTimeInUTC4();
-
-    // Track which games need to be blacked out
     const blackedOutGames = new Set();
+    const userThursdayPicks = new Set();
 
-    // First: Lock existing Thursday picks from users
+    // Track user's Thursday picks
     [...userPicks, ...(userImmortalLock ? [userImmortalLock] : [])].forEach(pick => {
         if (!pick || !pick.commenceTime) return;
 
@@ -1332,11 +1331,12 @@ function enableThursdayGameFeatures() {
         if (checkIfThursdayGame(pick.commenceTime) && commenceTime < now) {
             if (validatePickForThursday(pick)) {
                 lockSpecificPick(pick);
+                userThursdayPicks.add(pick.teamName + '-' + pick.type);
             }
         }
     });
 
-    // Second: Identify ALL Thursday games from betOptions
+    // Identify Thursday games
     betOptions.forEach(bet => {
         const commenceTime = new Date(bet.commenceTime);
         if (checkIfThursdayGame(bet.commenceTime)) {
@@ -1344,24 +1344,38 @@ function enableThursdayGameFeatures() {
         }
     });
 
-    // Third: Black out all Thursday games
+    // Apply classes to Thursday games
     blackedOutGames.forEach(gameKey => {
         const [homeTeam, awayTeam] = gameKey.split(' vs ');
         
-        // Black out all buttons for both teams
         [homeTeam, awayTeam].forEach(team => {
             const teamClass = team.replace(/\s+/g, '-').toLowerCase();
             const betButtons = document.querySelectorAll(`.bet-button[data-team="${teamClass}"]`);
             
             betButtons.forEach(button => {
                 if (!button.dataset.thursdayGame) {
-                    button.style.backgroundColor = 'black';
-                    button.style.color = 'red';
+                    const buttonIdentifier = `${team}-${button.dataset.type}`;
+                    const isUserPick = userThursdayPicks.has(buttonIdentifier) || 
+                                     lockedPicks.some(pick => 
+                                         pick.teamName === team && 
+                                         pick.type.toLowerCase() === button.dataset.type
+                                     ) ||
+                                     (lockedImmortalLock && 
+                                      lockedImmortalLock.teamName === team && 
+                                      lockedImmortalLock.type.toLowerCase() === button.dataset.type);
+
                     button.dataset.thursdayGame = 'true';
+                    if (isUserPick) {
+                        button.classList.add('user-thursday-pick');
+                    }
 
                     button.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        
+                        if (isUserPick) {
+
+                        } else {
+                            alert('Thursday game picks are no longer available.');
+                        }
                     }, { once: true });
                 }
             });
