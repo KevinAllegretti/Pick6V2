@@ -2976,4 +2976,112 @@ button:hover {
 
 
 
+/* Reset the body to remove any default margins */
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+/* Container resets */
+.container {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* Main content adjustments */
+#main-content {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+/* Pool container wrapper fixes */
+#pool-container-wrapper {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ordered pools container */
+#ordered-pools-container {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* Pool wrapper adjustments */
+.pool-wrapper {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* Scrollable container adjustments */
+.pool-scrollable-container {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+}
+
+/* Pool container itself */
+.pool-container {
+    min-width: 1150px;
+    margin: 0;
+    padding: 0 20px; /* Keep some padding for content */
+    box-sizing: border-box;
+    border: 2px solid #33d9ff;
+    background-color: #17203a;
+    border-radius: 8px;
+}
+
+/* Pool and delete container */
+.pool-and-delete-container {
+    width: 100%;
+    margin: 0;
+    padding: 10px;
+    box-sizing: border-box;
+    position: relative;
+}
+
+/* Global margin removal for specific elements */
+#main-content > *,
+#pool-container-wrapper > *,
+#ordered-pools-container > * {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* Add specific media query for smaller screens */
+@media screen and (max-width: 1200px) {
+    .pool-scrollable-container {
+        margin-right: 0;
+        padding-right: 0;
+    }
+    
+    .pool-wrapper {
+        margin-right: 0;
+        padding-right: 0;
+    }
+}
+
+.pool-wrapper {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    margin-bottom: 30px; /* Add space between pools */
+}
+
+/* Add extra space for the last pool wrapper to prevent cutoff */
+.pool-wrapper:last-child {
+    margin-bottom: 40px;
+}
 
