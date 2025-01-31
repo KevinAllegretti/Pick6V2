@@ -610,6 +610,8 @@ async function fetchUserPicksAndRender(username, poolSelection) {
 function clearAllSelections() {
     userPicks = [];
     userImmortalLock = null;
+    lockedPicks = [];
+    lockedImmortalLock = null;
     picksCount = 0;
     document.querySelectorAll('.bet-button').forEach(button => {
         button.classList.remove('selected', 'immortal-lock-selected');
@@ -684,11 +686,12 @@ function selectBet(option, isRendering = false, isImmortalLock = false) {
     const currentPick = createPickObject(option);
 
     // Calculate total picks including locked picks
-    const totalPicks = picksCount + lockedPicks.length;
+    const totalPicks = userPicks.length + lockedPicks.length;
+    const effectivePicksCount = picksCount + lockedPicks.length;
 
-    // Modified immortal lock handling with locked picks consideration
+
     if (immortalLockCheckbox.checked) {
-        if (totalPicks >= 6) {
+        if (effectivePicksCount >= 7) {
             // Only allow immortal lock as 7th pick
             handleImmortalLockSelection(currentPick);
         } else {
@@ -699,7 +702,7 @@ function selectBet(option, isRendering = false, isImmortalLock = false) {
             updateBetCell(option, true);
         }
     } else {
-        if (totalPicks < 6) {
+        if (effectivePicksCount < 6) {
             userPicks.push(currentPick);
             picksCount++;
             updateBetCell(option, true);
