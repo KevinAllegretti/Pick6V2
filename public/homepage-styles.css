@@ -1431,7 +1431,7 @@ button:hover {
     flex-direction: column;
     align-items: center; /* Center horizontally */
     justify-content: center; /* Center horizontally */
-    width: 111%;
+    width: 106%;
     margin: 20px 0;
     margin-right: 48px;
 }
@@ -2731,7 +2731,7 @@ button:hover {
 #ordered-pools-container {
     display: flex;
     flex-direction: column;
-    width: 100%;
+    width: 105%;
 }
 
 .survivor-mode {
@@ -2864,15 +2864,15 @@ button:hover {
     width: 100%;
 }
 
-/* Adjust the ordered pools container */
+/* Adjust the ordered pools container 
 #ordered-pools-container {
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center horizontally */
+    align-items: center; 
     width: 100%;
-    max-width: 1200px; /* Adjust as needed */
-    margin: 0 auto; /* Center the container */
-}
+    max-width: 1200px; 
+    margin: 0 auto; 
+}*/
 
 
 /* Survivor Pool Container - Reduced width */
