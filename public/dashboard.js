@@ -1373,11 +1373,7 @@ function enableThursdayGameFeatures() {
 
                         button.addEventListener('click', (e) => {
                             e.stopPropagation();
-                            if (isUserPick) {
-                                alert('This is your locked Thursday pick');
-                            } else {
-                                alert('Thursday game picks are no longer available.');
-                            }
+                     
                         }, { once: true });
                     }
                 });
