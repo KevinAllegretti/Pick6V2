@@ -1307,3 +1307,22 @@ h4 {
   white-space: nowrap;
   z-index: 1000;
 }
+
+.bet-button[data-thursday-game="true"] {
+  background-color: black !important;
+  color: red !important;
+  cursor: not-allowed !important;
+}
+
+/* User's Thursday pick styles */
+.bet-button[data-thursday-game="true"].user-thursday-pick {
+  background-color: black !important;
+  color: #00FF00 !important;
+  border: 2px solid #00FF00 !important;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.5) !important;
+  text-shadow: 0 0 5px #00FF00 !important;
+}
+
+.bet-button[data-thursday-game="true"].user-thursday-pick:hover {
+  opacity: 0.9;
+}
