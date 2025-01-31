@@ -826,7 +826,6 @@ async function submitToPool(poolName, data) {
 
     return response.json();
 }
-
 async function resetPicks() {
     if (selectedPool === 'none') {
         alert('Join a pool to reset picks!');
@@ -838,7 +837,6 @@ async function resetPicks() {
             const confirmReset = confirm('Are you sure you want to reset all your picks? This cannot be undone.');
             
             if (confirmReset) {
-                // Get all classic pools
                 const poolsResponse = await fetch(`/pools/userPools/${encodeURIComponent(storedUsername)}`);
                 if (!poolsResponse.ok) throw new Error('Failed to fetch user pools');
                 
@@ -867,10 +865,24 @@ async function resetPicks() {
                     return;
                 }
 
-                // Reset only pools that have picks
+                // Reset pools while preserving locked picks
                 const results = await Promise.all(poolsToReset.map(async pool => {
                     try {
-                        await resetPoolPicks(pool.poolName);
+                        // Create data object with only locked picks
+                        const data = {
+                            picks: lockedPicks || [],
+                            immortalLock: lockedImmortalLock ? [lockedImmortalLock] : []
+                        };
+                        
+                        // Save only the locked picks
+                        await fetch(`/api/savePicks/${storedUsername}/${pool.poolName}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(data)
+                        });
+                        
                         return { poolName: pool.poolName, success: true };
                     } catch (error) {
                         return { poolName: pool.poolName, success: false };
@@ -889,20 +901,49 @@ async function resetPicks() {
             const data = await response.json();
             
             if (data.picks?.length || data.immortalLock?.length) {
-                await resetPoolPicks(selectedPool);
+                // Create data object with only locked picks
+                const resetData = {
+                    picks: lockedPicks || [],
+                    immortalLock: lockedImmortalLock ? [lockedImmortalLock] : []
+                };
+                
+                // Save only the locked picks
+                await fetch(`/api/savePicks/${storedUsername}/${selectedPool}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(resetData)
+                });
+                
                 alert('Picks reset successfully!');
             } else {
                 alert('No picks found to reset.');
             }
         }
         
-        clearAllSelections();
+        // Clear only non-locked picks
+        userPicks = [];
+        userImmortalLock = null;
+        picksCount = lockedPicks.length; // Reset picksCount to only include locked picks
+        
+        // Remove 'selected' class from all non-locked picks
+        document.querySelectorAll('.bet-button').forEach(button => {
+            if (!button.dataset.thursdayGame) {
+                button.classList.remove('selected', 'immortal-lock-selected');
+            }
+        });
+        
+        document.getElementById('immortalLockCheck').checked = false;
+        
         await fetchUserPicksAndRender(storedUsername, selectedPool);
     } catch (error) {
         console.error('Error:', error);
         alert('An error occurred while resetting picks. Please try again.');
     }
 }
+
+// Remove the resetPoolPicks function since we're no longer using it
 
 async function resetPoolPicks(poolName) {
     const response = await fetch(`/api/resetPicks/${storedUsername}/${poolName}`, {
