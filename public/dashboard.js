@@ -192,15 +192,37 @@ const injuryTeamNameMap = {
     'Washington Commanders': 'Washington Commanders'
 };
 
-// Initialize dashboard
 document.addEventListener('DOMContentLoaded', async () => {
     if (storedUsername) {
-       
-        await initializeDashboard();
-        // Set flag to false after initial load
+        try {
+            // Check time window first
+            const timeResponse = await fetch('/api/timewindows');
+            if (!timeResponse.ok) throw new Error('Failed to fetch time windows.');
+            
+            const { thursdayDeadline, sundayDeadline } = await timeResponse.json();
+            const now = getCurrentTimeInUTC4();
+            const thursdayTime = new Date(thursdayDeadline);
+            const sundayTime = new Date(sundayDeadline);
+            
+            const isThursdayGameTime = now > thursdayTime && now < sundayTime;
+
+            // Initialize dashboard first
+            await initializeDashboard();
+
+            // If it's Thursday game time, apply the features after a delay
+            if (isThursdayGameTime) {
+                setTimeout(() => {
+                    enableThursdayGameFeatures();
+                }, 1000);
+            }
+        } catch (error) {
+            console.error('Error during initialization:', error);
+        }
+        
         isInitialPageLoad = false;
     }
 });
+
 
 // Modified initializeDashboard function with better error handling
 async function initializeDashboard() {
@@ -209,65 +231,29 @@ async function initializeDashboard() {
         return;
     }
 
-
     try {
-        
-        // Add pool selector if it doesn't exist
-        if (!document.getElementById('poolSelector')) {
-            const poolSelectorContainer = document.createElement('div');
-            poolSelectorContainer.className = 'pool-selector-container';
-            
-            // Add the label
-            const label = document.createElement('span');
-            label.className = 'pool-selector-label';
-            label.textContent = 'Send picks to: ';
-            
-            const selector = document.createElement('select');
-            selector.id = 'poolSelector';
-            selector.className = 'pool-selector';
-            selector.innerHTML = '<option value="loading">Loading pools...</option>';
-            
-            poolSelectorContainer.appendChild(label);
-            poolSelectorContainer.appendChild(selector);
-            
-      
-        }
-        // Set up event listeners
+        // Load weekly picks first
+        await loadWeeklyPicks();
+
+        // Setup event listeners
         setupEventListeners();
 
-        // Initialize components with proper error handling
-        try {
-            await populatePoolSelector();
-            // Add this line to fetch picks for 'all' on initialization
-            await fetchUserPicksAndRender(storedUsername, 'all');
-        } catch (error) {
-            console.error('Error populating pool selector:', error);
-            updatePoolSelectorError();
-        }
+        // Initialize pool selector and fetch initial picks
+        await populatePoolSelector();
 
-        try {
-            await loadWeeklyPicks();
-        } catch (error) {
-            console.error('Error loading weekly picks:', error);
-            document.getElementById('picksContainer').innerHTML = 
-                '<p class="error-message">Failed to load picks. Please try again later.</p>';
-        }
+        // Don't need to explicitly call fetchUserPicksAndRender here
+        // as populatePoolSelector will handle it
 
-        try {
-            await fetchLastWeekPicks(storedUsername, 'all');
-        } catch (error) {
-            console.error('Error fetching last week picks:', error);
-        }
+        // Fetch last week's picks
+        await fetchLastWeekPicks(storedUsername, selectedPool);
 
-        try {
-            await checkCurrentTimeWindow();
-        } catch (error) {
-            console.error('Error checking time window:', error);
-        }
+        // Check time window
+        await checkCurrentTimeWindow();
     } catch (error) {
         console.error('Error initializing dashboard:', error);
     }
 }
+
 async function populatePoolSelector() {
     const poolSelector = document.getElementById('poolSelector');
     if (!poolSelector) {
@@ -275,6 +261,7 @@ async function populatePoolSelector() {
         return;
     }
 
+    const currentSelection = poolSelector.value; // Save current selection
     poolSelector.innerHTML = '<option value="loading">Loading pools...</option>';
 
     try {
@@ -352,10 +339,25 @@ async function populatePoolSelector() {
             }
         });
 
-        // If we're in Thursday game time and have Thursday picks, select first pool
-        if (isThursdayGameTime && hasThursdayPicks && classicPools.length > 0) {
+        // After populating options, set back the previous selection if it exists
+        // or set to first pool if we're in Thursday game time with Thursday picks
+        if (isThursdayGameTime && hasThursdayPicks) {
+            // Set to first pool if we can't use 'all'
             poolSelector.value = classicPools[0].name;
-            poolSelector.dispatchEvent(new Event('change'));
+            selectedPool = classicPools[0].name;
+        } else if (currentSelection && currentSelection !== 'loading') {
+            // Restore previous selection
+            poolSelector.value = currentSelection;
+            selectedPool = currentSelection;
+        }
+
+        // Always fetch and render picks for the current selection
+        await fetchUserPicksAndRender(storedUsername, poolSelector.value);
+
+        if (isThursdayGameTime) {
+            setTimeout(() => {
+                enableThursdayGameFeatures();
+            }, 1000); // Add a small delay to ensure DOM is updated
         }
 
     } catch (error) {
@@ -506,23 +508,196 @@ async function submitUserPicks() {
     }
 }
 
-// Event listener setup
 function setupEventListeners() {
     // Pool selector change
-    document.getElementById('poolSelector').addEventListener('change', function(e) {
-        selectedPool = e.target.value;
-        fetchUserPicksAndRender(storedUsername, selectedPool);
-    });
+    const poolSelector = document.getElementById('poolSelector');
+    if (poolSelector) {
+        poolSelector.addEventListener('change', async function(e) {
+            console.log('Pool changed to:', e.target.value);
+            
+            // Update selected pool
+            selectedPool = e.target.value;
+            
+            try {
+                // Clear all current picks state
+                userPicks = [];
+                userImmortalLock = null;
+                lockedPicks = [];
+                lockedImmortalLock = null;
+                picksCount = 0;
+        
+                // Clear UI selections first
+                document.querySelectorAll('.bet-button').forEach(button => {
+                    button.classList.remove('selected', 'immortal-lock-selected', 'user-thursday-pick');
+                });
+                document.getElementById('immortalLockCheck').checked = false;
+        
+                // Fetch picks for the new pool
+                const response = await fetch(`/api/getPicks/${storedUsername}/${selectedPool}`);
+                const data = await response.json();
+                console.log('Fetched picks for pool:', data);
+        
+                // Handle regular picks
+                if (data.picks) {
+                    data.picks.forEach(pick => {
+                        if (!pick.commenceTime) {
+                            const matchingBet = betOptions.find(bet => 
+                                (bet.homeTeam === pick.teamName || bet.awayTeam === pick.teamName) &&
+                                bet.type === pick.type
+                            );
+                            if (matchingBet) {
+                                pick.commenceTime = matchingBet.commenceTime;
+                            }
+                        }
+                        renderPick(pick, false);
+                    });
+                }
+        
+                // Handle immortal lock
+                if (data.immortalLock && data.immortalLock.length > 0) {
+                    const lock = data.immortalLock[0];
+                    if (!lock.commenceTime) {
+                        const matchingBet = betOptions.find(bet => 
+                            (bet.homeTeam === lock.teamName || bet.awayTeam === lock.teamName) &&
+                            bet.type === lock.type
+                        );
+                        if (matchingBet) {
+                            lock.commenceTime = matchingBet.commenceTime;
+                        }
+                    }
+                    renderPick(lock, true);
+                }
+        
+                // Check if we need to apply Thursday features
+                const timeResponse = await fetch('/api/timewindows');
+                if (timeResponse.ok) {
+                    const { thursdayDeadline, sundayDeadline } = await timeResponse.json();
+                    const now = getCurrentTimeInUTC4();
+                    const thursdayTime = new Date(thursdayDeadline);
+                    const sundayTime = new Date(sundayDeadline);
+                    
+                    if (now > thursdayTime && now < sundayTime) {
+                        setTimeout(() => {
+                            enableThursdayGameFeatures();
+                        }, 1000);
+                    }
+                }
+        
+                console.log('Final state after pool change:', {
+                    userPicks,
+                    lockedPicks,
+                    userImmortalLock,
+                    lockedImmortalLock,
+                    picksCount,
+                    selectedPool
+                });
+        
+            } catch (error) {
+                console.error('Error handling pool change:', error);
+            }
+        });
+    }
 
- 
-    // Submit and reset buttons
-    document.getElementById('resetPicks').addEventListener('click', resetPicks);
-    document.getElementById('submitPicks').addEventListener('click', submitUserPicks);
-
-    // Display injuries button
-    document.getElementById('displayInjuriesBtn').addEventListener('click', handleDisplayInjuries);
+    // Other event listeners...
+    document.getElementById('submitPicks')?.addEventListener('click', submitUserPicks);
+    document.getElementById('resetPicks')?.addEventListener('click', resetPicks);
+    document.getElementById('displayInjuriesBtn')?.addEventListener('click', handleDisplayInjuries);
 }
 
+// Separate pool change handler
+async function handlePoolChange(e) {
+    console.log('Pool changed to:', e.target.value);
+    selectedPool = e.target.value;
+    
+    try {
+        // Check if we're in Thursday game time
+        const timeResponse = await fetch('/api/timewindows');
+        if (timeResponse.ok) {
+            const { thursdayDeadline, sundayDeadline } = await timeResponse.json();
+            const now = getCurrentTimeInUTC4();
+            const thursdayTime = new Date(thursdayDeadline);
+            const sundayTime = new Date(sundayDeadline);
+            
+            const isThursdayGameTime = now > thursdayTime && now < sundayTime;
+
+            // Fetch and render picks
+            await fetchUserPicksAndRender(storedUsername, selectedPool);
+
+            // If it's Thursday game time, reapply features
+            if (isThursdayGameTime) {
+                setTimeout(() => {
+                    enableThursdayGameFeatures();
+                }, 1000);
+            }
+        }
+    } catch (error) {
+        console.error('Error handling pool change:', error);
+    }
+}
+
+async function fetchUserPicksAndRender(username, poolSelection) {
+    console.log('Fetching picks for pool:', poolSelection);
+    
+    try {
+        // Clear current state
+        clearAllSelections();
+        
+        // Ensure betOptions are loaded
+        if (!betOptions || betOptions.length === 0) {
+            await loadWeeklyPicks();
+        }
+
+        // Fetch picks for the selected pool
+        const response = await fetch(`/api/getPicks/${username}/${poolSelection}`);
+        const data = await response.json();
+        
+        console.log('Fetched picks:', data);
+
+        // Handle regular picks
+        if (data.picks) {
+            data.picks.forEach(pick => {
+                if (!pick.commenceTime) {
+                    const matchingBet = betOptions.find(bet => 
+                        (bet.homeTeam === pick.teamName || bet.awayTeam === pick.teamName) &&
+                        bet.type === pick.type
+                    );
+                    if (matchingBet) {
+                        pick.commenceTime = matchingBet.commenceTime;
+                    }
+                }
+                renderPick(pick, false);
+            });
+        }
+
+        // Handle immortal lock
+        if (data.immortalLock && data.immortalLock.length > 0) {
+            data.immortalLock.forEach(lock => {
+                if (!lock.commenceTime) {
+                    const matchingBet = betOptions.find(bet => 
+                        (bet.homeTeam === lock.teamName || bet.awayTeam === lock.teamName) &&
+                        bet.type === lock.type
+                    );
+                    if (matchingBet) {
+                        lock.commenceTime = matchingBet.commenceTime;
+                    }
+                }
+                renderPick(lock, true);
+            });
+        }
+
+        console.log('After rendering - Current state:', {
+            userPicks,
+            userImmortalLock,
+            lockedPicks,
+            lockedImmortalLock,
+            picksCount
+        });
+
+    } catch (error) {
+        console.error('Error fetching user picks:', error);
+        clearAllSelections();
+    }
+}
 
 async function fetchUserPicksAndRender(username, poolSelection) {
     try {
@@ -1319,8 +1494,8 @@ function validatePickForThursday(option) {
     return true;
 }
 function enableThursdayGameFeatures() {
-    // Add a slight delay to ensure DOM is ready
     setTimeout(() => {
+        console.log('Enabling Thursday game features...');
         const now = getCurrentTimeInUTC4();
         const blackedOutGames = new Set();
         const userThursdayPicks = new Set();
@@ -1338,6 +1513,8 @@ function enableThursdayGameFeatures() {
             }
         });
 
+        console.log('User Thursday picks:', userThursdayPicks);
+
         // Identify Thursday games
         betOptions.forEach(bet => {
             const commenceTime = new Date(bet.commenceTime);
@@ -1345,6 +1522,8 @@ function enableThursdayGameFeatures() {
                 blackedOutGames.add(`${bet.homeTeam} vs ${bet.awayTeam}`);
             }
         });
+
+        console.log('Blacked out games:', blackedOutGames);
 
         // Apply classes to Thursday games
         blackedOutGames.forEach(gameKey => {
@@ -1366,20 +1545,28 @@ function enableThursdayGameFeatures() {
                                           lockedImmortalLock.teamName === team && 
                                           lockedImmortalLock.type.toLowerCase() === button.dataset.type);
 
+                        console.log(`Button: ${buttonIdentifier}, isUserPick: ${isUserPick}`);
+
                         button.dataset.thursdayGame = 'true';
                         if (isUserPick) {
+                            console.log('Adding user-thursday-pick class to:', button);
                             button.classList.add('user-thursday-pick');
                         }
 
                         button.addEventListener('click', (e) => {
                             e.stopPropagation();
-                     
+                            if (isUserPick) {
+                                alert('This pick is locked for Thursday games.');
+                            }
                         }, { once: true });
                     }
                 });
             });
         });
-    }, 500); // Add 500ms delay
+
+        // Force reapply styles
+        forceReapplyStyles();
+    }, 100); // Add 100ms delay
 }
 // Lock specific pick function with updated pick count management
 function lockSpecificPick(pick) {
@@ -1626,7 +1813,9 @@ async function checkCurrentTimeWindow() {
             enablePickTimeFeatures();
         } else if (now > thursdayTime && now < sundayTime) {
             //console.log('Current time window: Thursday Game Time');
-            enableThursdayGameFeatures();
+            setTimeout(() => {
+                enableThursdayGameFeatures();
+            }, 1000);
         } else if (now > sundayTime && now < tuesdayTime) {
            // console.log('Current time window: Sunday Game Time');
             enableSundayGameFeatures();
@@ -1694,66 +1883,4 @@ document.getElementById('teamFilter')?.addEventListener('change', async function
         console.error('Error updating injuries:', error);
     }
 });
-document.addEventListener('DOMContentLoaded', async () => {
-    if (storedUsername) {
-        try {
-            // Check time window first
-            const timeResponse = await fetch('/api/timewindows');
-            if (!timeResponse.ok) throw new Error('Failed to fetch time windows.');
-            
-            const { thursdayDeadline, sundayDeadline } = await timeResponse.json();
-            const now = getCurrentTimeInUTC4();
-            const thursdayTime = new Date(thursdayDeadline);
-            const sundayTime = new Date(sundayDeadline);
-            
-            const isThursdayGameTime = now > thursdayTime && now < sundayTime;
 
-            // Initialize dashboard first
-            await initializeDashboard();
-
-            // Get the pool selector and its current value
-            const poolSelector = document.getElementById('poolSelector');
-            const currentPool = poolSelector ? poolSelector.value : 'all';
-
-            // Fetch and render picks for the current pool
-            await fetchUserPicksAndRender(storedUsername, currentPool);
-
-            // If it's Thursday game time, apply the features
-            if (isThursdayGameTime) {
-                enableThursdayGameFeatures();
-            }
-        } catch (error) {
-            console.error('Error during initialization:', error);
-        }
-        
-        isInitialPageLoad = false;
-    }
-});
-
-// Modify initializeDashboard to handle the pool selection properly
-async function initializeDashboard() {
-    if (!storedUsername) {
-        console.error('Username not found in storage');
-        return;
-    }
-
-    try {
-        // Set up event listeners first
-        setupEventListeners();
-
-        // Load weekly picks before pool initialization
-        await loadWeeklyPicks();
-
-        // Initialize pool selector
-        await populatePoolSelector();
-
-        // Fetch last week's picks
-        await fetchLastWeekPicks(storedUsername, selectedPool);
-
-        // Check time window
-        await checkCurrentTimeWindow();
-
-    } catch (error) {
-        console.error('Error initializing dashboard:', error);
-    }
-}

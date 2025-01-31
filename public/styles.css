@@ -1277,36 +1277,13 @@ h4 {
   background-color: black;
 }
 
-.bet-button[data-thursday-game="true"].user-thursday-pick {
-  color: #00FF00;
-  border: 2px solid #00FF00;
-  position: relative;
-}
-
-.bet-button[data-thursday-game="true"]:not(.user-thursday-pick) {
-  color: red;
-}
 
 .bet-button[data-thursday-game="true"]:hover {
   cursor: not-allowed;
   opacity: 0.8;
 }
 
-/* Optional tooltip styling */
-.bet-button[data-thursday-game="true"].user-thursday-pick:hover::after {
-  content: "Your locked Thursday pick";
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 12px;
-  white-space: nowrap;
-  z-index: 1000;
-}
+
 
 .bet-button[data-thursday-game="true"] {
   background-color: black !important;
@@ -1323,6 +1300,3 @@ h4 {
   text-shadow: 0 0 5px #00FF00 !important;
 }
 
-.bet-button[data-thursday-game="true"].user-thursday-pick:hover {
-  opacity: 0.9;
-}
