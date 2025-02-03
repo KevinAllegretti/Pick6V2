@@ -253,7 +253,6 @@ async function initializeDashboard() {
         console.error('Error initializing dashboard:', error);
     }
 }
-
 async function populatePoolSelector() {
     const poolSelector = document.getElementById('poolSelector');
     if (!poolSelector) {
@@ -261,7 +260,7 @@ async function populatePoolSelector() {
         return;
     }
 
-    const currentSelection = poolSelector.value; // Save current selection
+    const currentSelection = poolSelector.value;
     poolSelector.innerHTML = '<option value="loading">Loading pools...</option>';
 
     try {
@@ -290,43 +289,97 @@ async function populatePoolSelector() {
             return;
         }
 
-        let hasThursdayPicks = false;
+        // Clear any existing warnings
+        const existingWarnings = document.querySelectorAll('.thursday-warning');
+        existingWarnings.forEach(warning => warning.remove());
+
+        let shouldShowAllOption = true;
+        let allPoolsThursdayPicks = [];
 
         // Only check for Thursday picks if we're in Thursday game time
         if (isThursdayGameTime) {
-            for (const pool of classicPools) {
+            // Fetch picks for all pools
+            const poolPicks = await Promise.all(classicPools.map(async pool => {
                 try {
                     const picksResponse = await fetch(`/api/getPicks/${storedUsername}/${pool.name}`);
                     const data = await picksResponse.json();
-                    
-                    if (hasThursdayPicksInPool(data, now)) {
-                        hasThursdayPicks = true;
-                        break;
-                    }
+                    return {
+                        poolName: pool.name,
+                        picks: data.picks || [],
+                        immortalLock: data.immortalLock || []
+                    };
                 } catch (error) {
                     console.error(`Error checking picks for pool ${pool.name}:`, error);
+                    return null;
+                }
+            }));
+
+            // Filter out any failed requests
+            const validPoolPicks = poolPicks.filter(pick => pick !== null);
+
+            // Extract Thursday picks from each pool
+            const thursdayPicksByPool = validPoolPicks.map(poolData => {
+                const thursdayPicks = (poolData.picks || []).filter(pick => 
+                    checkIfThursdayGame(pick.commenceTime) && 
+                    new Date(pick.commenceTime) < now
+                );
+                
+                const thursdayImmortalLock = (poolData.immortalLock || []).filter(lock => 
+                    checkIfThursdayGame(lock.commenceTime) && 
+                    new Date(lock.commenceTime) < now
+                );
+
+                return {
+                    poolName: poolData.poolName,
+                    thursdayPicks,
+                    thursdayImmortalLock
+                };
+            });
+
+            // Check if all pools have the same Thursday picks
+            const hasThursdayPicks = thursdayPicksByPool.some(pool => 
+                pool.thursdayPicks.length > 0 || pool.thursdayImmortalLock.length > 0
+            );
+
+            if (hasThursdayPicks) {
+                const firstPoolWithPicks = thursdayPicksByPool.find(pool => 
+                    pool.thursdayPicks.length > 0 || pool.thursdayImmortalLock.length > 0
+                );
+
+                const allPoolsMatch = thursdayPicksByPool.every(pool => {
+                    const picksMatch = JSON.stringify(sortPicks(pool.thursdayPicks)) === 
+                                     JSON.stringify(sortPicks(firstPoolWithPicks.thursdayPicks));
+                    const locksMatch = JSON.stringify(sortPicks(pool.thursdayImmortalLock)) === 
+                                     JSON.stringify(sortPicks(firstPoolWithPicks.thursdayImmortalLock));
+                    return picksMatch && locksMatch;
+                });
+
+                shouldShowAllOption = allPoolsMatch;
+                
+                if (allPoolsMatch) {
+                    allPoolsThursdayPicks = {
+                        picks: firstPoolWithPicks.thursdayPicks,
+                        immortalLock: firstPoolWithPicks.thursdayImmortalLock
+                    };
+                } else {
+                    // Add warning message
+                    const container = poolSelector.closest('.pool-selector-container');
+                    if (container) {
+                        const warningDiv = document.createElement('div');
+                        warningDiv.className = 'thursday-warning';
+                        warningDiv.textContent = 'Different Thursday picks detected. Please manage picks in individual pools.';
+                        container.insertAdjacentElement('afterend', warningDiv);
+                    }
                 }
             }
         }
 
-        // Remove any existing warning messages
-        const existingWarnings = document.querySelectorAll('.thursday-warning');
-        existingWarnings.forEach(warning => warning.remove());
-
+        // Reset the selector's content
         poolSelector.innerHTML = '';
         
-        // Only disable "All Pools" and show warning if it's Thursday game time AND we have Thursday picks
-        if (!isThursdayGameTime || !hasThursdayPicks) {
+        // Add "All Pools" option if appropriate
+        if (shouldShowAllOption) {
             poolSelector.innerHTML = '<option value="all">All Pools</option>';
-        } else {
-            // Add warning message
-            const container = poolSelector.closest('.pool-selector-container');
-            if (container) {
-                const warningDiv = document.createElement('div');
-                warningDiv.className = 'thursday-warning';
-                warningDiv.textContent = 'Thursday picks detected. Please manage picks in individual pools.';
-                container.insertAdjacentElement('afterend', warningDiv);
-            }
         }
 
         // Add individual pool options
@@ -339,32 +392,69 @@ async function populatePoolSelector() {
             }
         });
 
-        // After populating options, set back the previous selection if it exists
-        // or set to first pool if we're in Thursday game time with Thursday picks
-        if (isThursdayGameTime && hasThursdayPicks) {
-            // Set to first pool if we can't use 'all'
+        // Set appropriate selection
+        if (isThursdayGameTime && !shouldShowAllOption) {
+            // When different Thursday picks detected, default to first pool
             poolSelector.value = classicPools[0].name;
             selectedPool = classicPools[0].name;
         } else if (currentSelection && currentSelection !== 'loading') {
-            // Restore previous selection
+            // Otherwise use current selection if valid
             poolSelector.value = currentSelection;
             selectedPool = currentSelection;
         }
 
-        // Always fetch and render picks for the current selection
+        // Store Thursday picks for "all" view if they exist
+        if (allPoolsThursdayPicks.picks?.length > 0 || allPoolsThursdayPicks.immortalLock?.length > 0) {
+            window.allPoolsThursdayPicks = allPoolsThursdayPicks;
+        }
+
+        // Fetch and render picks
         await fetchUserPicksAndRender(storedUsername, poolSelector.value);
 
         if (isThursdayGameTime) {
             setTimeout(() => {
-                console.log("tet")
                 enableThursdayGameFeatures();
-            }, 1000); // Add a small delay to ensure DOM is updated
+            }, 1000);
         }
 
     } catch (error) {
         console.error('Error fetching pools:', error);
         poolSelector.innerHTML = '<option value="error">Error loading pools</option>';
         poolSelector.classList.add('error');
+    }
+}
+
+// Helper function to sort picks for comparison
+function sortPicks(picks) {
+    return picks.sort((a, b) => {
+        if (a.teamName !== b.teamName) return a.teamName.localeCompare(b.teamName);
+        if (a.type !== b.type) return a.type.localeCompare(b.type);
+        return a.value - b.value;
+    });
+}
+
+// Update fetchUserPicksAndRender to handle the all pools view with Thursday picks
+async function fetchUserPicksAndRender(username, poolSelection) {
+    try {
+        // Reset state
+        userPicks = [];
+        userImmortalLock = null;
+        lockedPicks = [];
+        lockedImmortalLock = null;
+        picksCount = 0;
+
+        if (poolSelection === 'all' && window.allPoolsThursdayPicks) {
+            // For "all" view, preserve the common Thursday picks
+            lockedPicks = window.allPoolsThursdayPicks.picks || [];
+            lockedImmortalLock = window.allPoolsThursdayPicks.immortalLock?.[0] || null;
+            picksCount = lockedPicks.length;
+        }
+
+        // Rest of the existing fetchUserPicksAndRender logic...
+        // [Previous implementation continues here]
+    } catch (error) {
+        console.error('Error fetching user picks:', error);
+        clearAllSelections();
     }
 }
 const style = document.createElement('style');
