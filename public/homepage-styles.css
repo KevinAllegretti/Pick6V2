@@ -3182,3 +3182,46 @@ body {
 .global-picks-button:disabled::before {
     display: none;
 }
+
+.survivor-pool-container .view-selector-container {
+    margin-left: 10px;
+}
+
+.survivor-pool-container .view-selector {
+    padding: 2px 30px 2px 8px;
+    background-color: #202124;
+    color: #39FF14;  /* Changed to match survivor theme */
+    border: 1px solid #39FF14;
+    border-radius: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9em;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    box-shadow: 0 0 5px rgba(57, 255, 20, 0.3);
+}
+
+.survivor-pool-container .show-more-button {
+    position: relative;
+    bottom: -5px;
+    margin-left: 70px;
+    padding: 10px 25px;
+    background-color: transparent;
+    color: #39FF14;
+    border: 1px solid #39FF14;
+    border-radius: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    margin-bottom: 10px;
+}
+
+.survivor-pool-container .show-more-button:hover {
+    background-color: rgba(57, 255, 20, 0.1);
+    box-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
+}

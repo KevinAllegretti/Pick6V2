@@ -2662,8 +2662,21 @@ async function displaySurvivorPool(pool) {
         <span>${pool.members.length}</span>
     `;
 
+    // View selector with new "All" option
+    const viewSelector = document.createElement('div');
+    viewSelector.className = 'view-selector-container';
+    viewSelector.innerHTML = `
+        <select class="view-selector">
+            <option value="all">All Players</option>
+            <option value="active">Active Players</option>
+            <option value="eliminated">Eliminated Players</option>
+        </select>
+        <span class="dropdown-arrow">▼</span>
+    `;
+
     poolNameContainer.appendChild(poolNameDiv);
     poolNameContainer.appendChild(userCountDiv);
+    poolNameContainer.appendChild(viewSelector);
 
     // Create scrollable container
     const poolScrollableContainer = document.createElement('div');
@@ -2684,20 +2697,122 @@ async function displaySurvivorPool(pool) {
     poolContainer.appendChild(poolHeader);
 
     try {
-        // Process members sequentially
+        const currentUsername = localStorage.getItem('username').toLowerCase();
+        // Process members and sort them
         const membersData = await Promise.all(pool.members.map(member => 
             fetchUserProfile(member.username).then(userProfile => ({
                 username: userProfile.username,
                 profilePic: userProfile.profilePicture,
-                isEliminated: member.isEliminated || false
+                isEliminated: member.isEliminated || false,
+                isCurrentUser: userProfile.username.toLowerCase() === currentUsername
             }))
         ));
 
-        membersData.forEach(memberData => {
-            const playerRow = createSurvivorPlayerRow(memberData, username);
-            fetchSurvivorPick(memberData.username, pool.name, playerRow, teamLogos);
-            poolContainer.appendChild(playerRow);
+        // Function to render players based on view and status
+        const renderPlayers = (viewMode) => {
+            // Clear existing rows except header
+            const existingRows = poolContainer.querySelectorAll('.survivor-player-row');
+            existingRows.forEach(row => row.remove());
+            
+            // Remove existing show more button if present
+            const existingShowMore = poolContainer.querySelector('.show-more-button');
+            if (existingShowMore) {
+                existingShowMore.remove();
+            }
+
+            // Filter and arrange players based on view mode
+            let displayPlayers = [];
+            if (viewMode === 'all') {
+                // Find current user
+                const currentUser = membersData.find(p => p.isCurrentUser);
+                
+                // Get active and eliminated players (excluding current user)
+                const otherPlayers = membersData.filter(p => !p.isCurrentUser);
+                const activePlayers = otherPlayers.filter(p => !p.isEliminated);
+                const eliminatedPlayers = otherPlayers.filter(p => p.isEliminated);
+
+                // Combine in order: current user, active players, eliminated players
+                displayPlayers = [
+                    ...(currentUser ? [currentUser] : []),
+                    ...activePlayers,
+                    ...eliminatedPlayers
+                ];
+            } else {
+                // Filter based on view mode
+                displayPlayers = membersData.filter(member => {
+                    if (viewMode === 'active') {
+                        return !member.isEliminated;
+                    } else {
+                        return member.isEliminated;
+                    }
+                });
+
+                // If it's not "all" view and current user is in this view, move them to top
+                const currentUserIndex = displayPlayers.findIndex(p => p.isCurrentUser);
+                if (currentUserIndex !== -1) {
+                    const currentUser = displayPlayers.splice(currentUserIndex, 1)[0];
+                    displayPlayers.unshift(currentUser);
+                }
+            }
+
+            // Display first 10 players
+            const initialPlayers = displayPlayers.slice(0, 10);
+            initialPlayers.forEach(memberData => {
+                const playerRow = createSurvivorPlayerRow(memberData, currentUsername);
+                fetchSurvivorPick(memberData.username, pool.name, playerRow, teamLogos);
+                poolContainer.appendChild(playerRow);
+            });
+
+            // Add "show more" button if needed
+            if (displayPlayers.length > 10) {
+                const showMoreButton = document.createElement('button');
+                showMoreButton.className = 'show-more-button';
+                showMoreButton.innerHTML = `
+                    <i class="fas fa-chevron-down"></i>
+                    <i class="fas fa-users" style="font-size: 0.9em"></i>
+                    <span>show ${displayPlayers.length - 10} more</span>
+                `;
+
+                let expanded = false;
+                showMoreButton.addEventListener('click', () => {
+                    if (!expanded) {
+                        // Show all remaining players
+                        const remainingPlayers = displayPlayers.slice(10);
+                        remainingPlayers.forEach(memberData => {
+                            const playerRow = createSurvivorPlayerRow(memberData, currentUsername);
+                            fetchSurvivorPick(memberData.username, pool.name, playerRow, teamLogos);
+                            poolContainer.insertBefore(playerRow, showMoreButton);
+                        });
+                        showMoreButton.innerHTML = `
+                            <i class="fas fa-chevron-up"></i>
+                            <i class="fas fa-users" style="font-size: 0.9em"></i>
+                            <span>show less</span>
+                        `;
+                    } else {
+                        // Remove extra players
+                        const allRows = poolContainer.querySelectorAll('.survivor-player-row');
+                        Array.from(allRows).slice(10).forEach(row => row.remove());
+                        showMoreButton.innerHTML = `
+                            <i class="fas fa-chevron-down"></i>
+                            <i class="fas fa-users" style="font-size: 0.9em"></i>
+                            <span>show ${displayPlayers.length - 10} more</span>
+                        `;
+                    }
+                    expanded = !expanded;
+                });
+
+                poolContainer.appendChild(showMoreButton);
+            }
+        };
+
+        // Add event listener for view changes
+        const select = viewSelector.querySelector('select');
+        select.addEventListener('change', (e) => {
+            renderPlayers(e.target.value);
         });
+
+        // Initial render with 'all' view
+        renderPlayers('all');
 
         poolScrollableContainer.appendChild(poolContainer);
         poolWrapper.appendChild(poolNameContainer);
