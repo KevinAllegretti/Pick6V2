@@ -356,6 +356,7 @@ async function populatePoolSelector() {
 
         if (isThursdayGameTime) {
             setTimeout(() => {
+                console.log("tet")
                 enableThursdayGameFeatures();
             }, 1000); // Add a small delay to ensure DOM is updated
         }
@@ -620,14 +621,14 @@ async function handlePoolChange(e) {
             
             const isThursdayGameTime = now > thursdayTime && now < sundayTime;
 
-            // Fetch and render picks
+            // Clear current state and re-render
             await fetchUserPicksAndRender(storedUsername, selectedPool);
 
-            // If it's Thursday game time, reapply features
+            // If it's Thursday game time, wait for DOM update then apply features
             if (isThursdayGameTime) {
-                setTimeout(() => {
-                    enableThursdayGameFeatures();
-                }, 1000);
+                // Wait for DOM to be fully updated
+                await new Promise(resolve => setTimeout(resolve, 500));
+                enableThursdayGameFeatures();
             }
         }
     } catch (error) {
@@ -693,6 +694,19 @@ async function fetchUserPicksAndRender(username, poolSelection) {
             picksCount
         });
 
+        const timeResponse = await fetch('/api/timewindows');
+        if (timeResponse.ok) {
+            const { thursdayDeadline, sundayDeadline } = await timeResponse.json();
+            const now = getCurrentTimeInUTC4();
+            const thursdayTime = new Date(thursdayDeadline);
+            const sundayTime = new Date(sundayDeadline);
+            
+            if (now > thursdayTime && now < sundayTime) {
+                // Wait for DOM to be fully updated
+                await new Promise(resolve => setTimeout(resolve, 500));
+                enableThursdayGameFeatures();
+            }
+        }
     } catch (error) {
         console.error('Error fetching user picks:', error);
         clearAllSelections();
@@ -1493,23 +1507,32 @@ function validatePickForThursday(option) {
     console.log("Thursday pick validated successfully.");
     return true;
 }
-function enableThursdayGameFeatures() {
-    setTimeout(() => {
-        console.log('Enabling Thursday game features...');
-        const now = getCurrentTimeInUTC4();
-        const blackedOutGames = new Set();
-        const userThursdayPicks = new Set();
 
-        // Track user's Thursday picks
-        [...userPicks, ...(userImmortalLock ? [userImmortalLock] : [])].forEach(pick => {
+function enableThursdayGameFeatures() {
+    console.log('Enabling Thursday game features...');
+    const now = getCurrentTimeInUTC4();
+    const blackedOutGames = new Set();
+    const userThursdayPicks = new Set();
+
+    // Force a DOM update before proceeding
+    requestAnimationFrame(() => {
+        // Track user's Thursday picks including both regular and locked picks
+        const allPicks = [
+            ...userPicks,
+            ...lockedPicks,
+            ...(userImmortalLock ? [userImmortalLock] : []),
+            ...(lockedImmortalLock ? [lockedImmortalLock] : [])
+        ];
+
+        console.log('All picks to check:', allPicks);
+
+        allPicks.forEach(pick => {
             if (!pick || !pick.commenceTime) return;
 
             const commenceTime = new Date(pick.commenceTime);
             if (checkIfThursdayGame(pick.commenceTime) && commenceTime < now) {
-                if (validatePickForThursday(pick)) {
-                    lockSpecificPick(pick);
-                    userThursdayPicks.add(pick.teamName + '-' + pick.type);
-                }
+                // Store the pick with exact casing and format from the pick object
+                userThursdayPicks.add(`${pick.teamName}-${pick.type}`);
             }
         });
 
@@ -1517,7 +1540,6 @@ function enableThursdayGameFeatures() {
 
         // Identify Thursday games
         betOptions.forEach(bet => {
-            const commenceTime = new Date(bet.commenceTime);
             if (checkIfThursdayGame(bet.commenceTime)) {
                 blackedOutGames.add(`${bet.homeTeam} vs ${bet.awayTeam}`);
             }
@@ -1527,46 +1549,50 @@ function enableThursdayGameFeatures() {
 
         // Apply classes to Thursday games
         blackedOutGames.forEach(gameKey => {
-            const [homeTeam, awayTeam] = gameKey.split(' vs ');
+            const [awayTeam, homeTeam] = gameKey.split(' vs ');
             
             [homeTeam, awayTeam].forEach(team => {
                 const teamClass = team.replace(/\s+/g, '-').toLowerCase();
                 const betButtons = document.querySelectorAll(`.bet-button[data-team="${teamClass}"]`);
                 
                 betButtons.forEach(button => {
-                    if (!button.dataset.thursdayGame) {
-                        const buttonIdentifier = `${team}-${button.dataset.type}`;
-                        const isUserPick = userThursdayPicks.has(buttonIdentifier) || 
-                                         lockedPicks.some(pick => 
-                                             pick.teamName === team && 
-                                             pick.type.toLowerCase() === button.dataset.type
-                                         ) ||
-                                         (lockedImmortalLock && 
-                                          lockedImmortalLock.teamName === team && 
-                                          lockedImmortalLock.type.toLowerCase() === button.dataset.type);
+                    // Construct the identifier using the exact team name and type from the bet options
+                    const matchingBet = betOptions.find(bet => 
+                        (bet.homeTeam === team || bet.awayTeam === team) &&
+                        bet.type.toLowerCase() === button.dataset.type
+                    );
 
-                        console.log(`Button: ${buttonIdentifier}, isUserPick: ${isUserPick}`);
+                    if (matchingBet) {
+                        const buttonIdentifier = `${team}-${matchingBet.type}`;
+                        console.log(`Checking button: ${buttonIdentifier}`);
+                        
+                        const isUserPick = Array.from(userThursdayPicks).some(pick => 
+                            pick.toLowerCase() === buttonIdentifier.toLowerCase()
+                        );
+                        console.log(`Is user pick: ${isUserPick}`);
 
                         button.dataset.thursdayGame = 'true';
+                        
+                        // Remove existing classes first
+                        button.classList.remove('user-thursday-pick');
+                        
                         if (isUserPick) {
-                            console.log('Adding user-thursday-pick class to:', button);
+                            console.log(`Adding user-thursday-pick class to: ${buttonIdentifier}`);
                             button.classList.add('user-thursday-pick');
                         }
 
-                        button.addEventListener('click', (e) => {
+                        // Ensure click handler is properly set
+                        button.onclick = (e) => {
                             e.stopPropagation();
                             if (isUserPick) {
                                 alert('This pick is locked for Thursday games.');
                             }
-                        }, { once: true });
+                        };
                     }
                 });
             });
         });
-
-        // Force reapply styles
-        forceReapplyStyles();
-    }, 100); // Add 100ms delay
+    });
 }
 // Lock specific pick function with updated pick count management
 function lockSpecificPick(pick) {

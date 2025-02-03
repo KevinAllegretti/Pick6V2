@@ -1286,11 +1286,10 @@ h4 {
 
 
 .bet-button[data-thursday-game="true"] {
-  background-color: black !important;
-  color: red !important;
-  cursor: not-allowed !important;
+  background-color: black;
+  color: red;
+  cursor: not-allowed ;
 }
-
 /* User's Thursday pick styles */
 .bet-button[data-thursday-game="true"].user-thursday-pick {
   background-color: black !important;
@@ -1299,4 +1298,3 @@ h4 {
   box-shadow: 0 0 10px rgba(0, 255, 0, 0.5) !important;
   text-shadow: 0 0 5px #00FF00 !important;
 }
-
