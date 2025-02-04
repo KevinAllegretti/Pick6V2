@@ -1127,11 +1127,15 @@ function updatePoolActionsList() {
 
         downButton.onclick = async () => {
             try {
+                console.log(`Attempting to move pool ${poolName} down`);
                 const response = await movePool(poolName, 'down');
+                console.log('Move response:', response);
                 if (response.success) {
                     downButton.classList.add('success');
                     setTimeout(() => downButton.classList.remove('success'), 500);
                     loadAndDisplayUserPools();
+                } else {
+                    console.error('Move failed:', response.message);
                 }
             } catch (error) {
                 console.error('Error moving pool down:', error);
@@ -1190,6 +1194,8 @@ async function movePool(poolName, direction) {
     }
 
     try {
+        console.log(`Attempting to ${direction} move for pool: ${poolName}`); // Debug log
+        
         // Server update
         const response = await fetch('/pools/reorder', {
             method: 'POST',
@@ -1239,14 +1245,16 @@ async function movePool(poolName, direction) {
         // Wait for animation
         await new Promise(resolve => setTimeout(resolve, 300));
 
-        // Reset transforms and update DOM
+        // Reset transforms
         currentItem.style.transform = '';
         otherItem.style.transform = '';
 
+        // Update DOM position
         if (direction === 'up') {
             poolActionsList.insertBefore(currentItem, otherItem);
         } else {
-            poolActionsList.insertBefore(otherItem, currentItem);
+            // For downward movement, insert after the other item
+            poolActionsList.insertBefore(currentItem, otherItem.nextSibling);
         }
 
         // Update main pool display
@@ -1259,13 +1267,15 @@ async function movePool(poolName, direction) {
             const targetPool = poolElements[newIndex];
 
             if (currentPool && targetPool) {
-                orderedContainer.insertBefore(
-                    direction === 'up' ? currentPool : targetPool,
-                    direction === 'up' ? targetPool : currentPool.nextSibling
-                );
+                if (direction === 'up') {
+                    orderedContainer.insertBefore(currentPool, targetPool);
+                } else {
+                    orderedContainer.insertBefore(currentPool, targetPool.nextSibling);
+                }
             }
         }
 
+        console.log(`Successfully moved pool ${direction}`); // Debug log
         return data;
     } catch (error) {
         console.error('Error reordering pools:', error);
@@ -1643,37 +1653,36 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
                         displayPickTimeBanner(picksContainer);
                         break;
                         case 'thursday':
-                            console.log(
-                                'All picks:',
-                                picksData.picks.map(pick => ({
-                                  commenceTime: pick.commenceTime,
-                                  dayUTC: new Date(pick.commenceTime).getUTCDay(),
-                                  dayLocal: new Date(new Date(pick.commenceTime).getTime() - new Date(pick.commenceTime).getTimezoneOffset() * 60000).getDay(),
-                                  teamName: pick.teamName
-                                }))
-                              );
-                              
-                            // Filter for Thursday night games
-                            const thursdayPicks = picksData.picks.filter(pick => 
-                                checkIfThursdayGame(pick.commenceTime)
-                            );
-                            
-                            if (thursdayPicks.length > 0) {
-                                // Display only Thursday picks
-                                console.log('Thursday picks:', thursdayPicks);
-                                await displayAllPicks(thursdayPicks, picksContainer, teamLogos);
-                            }
-                            
-                            // If there are non-Thursday picks that need to be hidden
-                            if (picksData.picks.length > thursdayPicks.length) {
-                                const lockedBanner = document.createElement('img');
-                                lockedBanner.src = 'LockedPicks.png';
-                                lockedBanner.alt = 'Picks Locked';
-                                lockedBanner.className = 'locked-picks-banner';
-                                picksContainer.appendChild(lockedBanner);
-                            }
-                            break;
-                    
+    console.log('Processing Thursday game time picks');
+    
+    // Filter for Thursday night games
+    const thursdayPicks = picksData.picks.filter(pick => 
+        checkIfThursdayGame(pick.commenceTime)
+    );
+    
+    if (thursdayPicks.length > 0) {
+        // User has Thursday picks - display them and show locked banner for remaining picks
+        console.log('User has Thursday picks:', thursdayPicks);
+        await displayAllPicks(thursdayPicks, picksContainer, teamLogos);
+        
+        // If there are non-Thursday picks, show locked banner
+        if (picksData.picks.length > thursdayPicks.length) {
+            const lockedBanner = document.createElement('img');
+            lockedBanner.src = 'LockedPicks.png';
+            lockedBanner.alt = 'Picks Locked';
+            lockedBanner.className = 'locked-picks-banner';
+            picksContainer.appendChild(lockedBanner);
+        }
+    } else {
+        // User has no Thursday picks - show pick time banner
+        console.log('User has no Thursday picks - showing pick time banner');
+        const pickTimeBanner = document.createElement('img');
+        pickTimeBanner.src = 'PickTimeNew.png';
+        pickTimeBanner.alt = 'Player Making Selection';
+        pickTimeBanner.className = 'pick-banner';
+        picksContainer.appendChild(pickTimeBanner);
+    }
+    break;
                     case 'sunday':
                         // Show all picks during Sunday phase
                         await displayAllPicks(picksData.picks, picksContainer, teamLogos);
@@ -2583,6 +2592,122 @@ const usernames = [
 
 //changeUserPoints('kevdoer island', 0, 'The Gauntlet'); 
 */// Replace with the actual username, new points value, and pool name
+
+// Function to fetch survivor status
+async function fetchSurvivorStatus(username, poolName) {
+    try {
+        const encodedUsername = encodeURIComponent(username);
+        const encodedPoolName = encodeURIComponent(poolName);
+        
+        const response = await fetch(`/pools/getSurvivorStatus/${encodedUsername}/${encodedPoolName}`);
+        
+        // Check if response is ok and is JSON
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Response is not JSON');
+        }
+
+        const data = await response.json();
+        return data.status || 'active'; // Return status or default to active
+    } catch (error) {
+        console.error('Error fetching survivor status:', error);
+        return 'active'; // Default to active if there's an error
+    }
+}
+
+// Function to fetch and display survivor pick
+async function fetchSurvivorPick(username, poolName, playerRow, teamLogos) {
+    const isPickTime = await isCurrentTimePickTime();
+    const encodedUsername = encodeURIComponent(username);
+    const encodedPoolName = encodeURIComponent(poolName);
+    
+    try {
+        const response = await fetch(`/getSurvivorPick/${encodedUsername}/${encodedPoolName}`);
+        
+        // Check if response is ok and is JSON
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Response is not JSON');
+        }
+        
+        const pickData = await response.json();
+        const picksContainer = playerRow.querySelector('.survivor-player-picks');
+        picksContainer.innerHTML = '';
+
+        const showingUsername = localStorage.getItem('username').toLowerCase();
+        if (username.toLowerCase() === showingUsername || !isPickTime) {
+            if (pickData && pickData.pick) {
+                const pickDiv = document.createElement('div');
+                pickDiv.className = 'survivor-pick';
+
+                const teamName = pickData.pick.teamName;
+                if (teamName && teamLogos[teamName]) {
+                    const logoImg = document.createElement('img');
+                    logoImg.src = teamLogos[teamName];
+                    logoImg.alt = teamName;
+                    logoImg.className = 'team-logo';
+                    pickDiv.appendChild(logoImg);
+                }
+
+                picksContainer.appendChild(pickDiv);
+            } else {
+                const noPickMessage = document.createElement('div');
+                noPickMessage.className = 'no-picks-message';
+                noPickMessage.textContent = 'No pick made';
+                picksContainer.appendChild(noPickMessage);
+            }
+        } else {
+            const bannerImage = document.createElement('img');
+            bannerImage.src = 'PickTimeNew.png';
+            bannerImage.alt = 'Player Making Selection';
+            bannerImage.className = 'pick-banner';
+            picksContainer.appendChild(bannerImage);
+        }
+    } catch (error) {
+        console.error('Error fetching survivor pick:', error);
+        const picksContainer = playerRow.querySelector('.survivor-player-picks');
+        picksContainer.innerHTML = '';
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'error-message';
+        errorMessage.textContent = ' ';
+        picksContainer.appendChild(errorMessage);
+    }
+    
+    // Update status separately and only if needed
+    if (playerRow.isConnected) {
+        try {
+            const status = await fetchSurvivorStatus(username, poolName);
+            const statusContainer = playerRow.querySelector('.survivor-player-eliminated span');
+            if (statusContainer) {
+                statusContainer.className = status === 'eliminated' ? 'eliminated-status' : 'active-status';
+                statusContainer.textContent = status.toUpperCase();
+            }
+        } catch (error) {
+            console.error('Error updating status in row:', error);
+        }
+    }
+}
+// Helper function to check if response is valid JSON
+async function isJsonResponse(response) {
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+        return false;
+    }
+    try {
+        await response.json();
+        return true;
+    } catch {
+        return false;
+    }
+}
 async function displaySurvivorPool(pool) {
     const teamLogos = {
         'Arizona Cardinals': '/ARILogo.png',
@@ -2662,14 +2787,14 @@ async function displaySurvivorPool(pool) {
         <span>${pool.members.length}</span>
     `;
 
-    // View selector with new "All" option
+    // View selector
     const viewSelector = document.createElement('div');
     viewSelector.className = 'view-selector-container';
     viewSelector.innerHTML = `
         <select class="view-selector">
             <option value="all">All Players</option>
-            <option value="active">Active Players</option>
-            <option value="eliminated">Eliminated Players</option>
+            <option value="active">Active</option>
+            <option value="eliminated">Eliminated</option>
         </select>
         <span class="dropdown-arrow">▼</span>
     `;
@@ -2698,15 +2823,29 @@ async function displaySurvivorPool(pool) {
 
     try {
         const currentUsername = localStorage.getItem('username').toLowerCase();
-        // Process members and sort them
-        const membersData = await Promise.all(pool.members.map(member => 
-            fetchUserProfile(member.username).then(userProfile => ({
-                username: userProfile.username,
-                profilePic: userProfile.profilePicture,
-                isEliminated: member.isEliminated || false,
-                isCurrentUser: userProfile.username.toLowerCase() === currentUsername
-            }))
-        ));
+        // Process members and fetch their statuses
+        const membersData = await Promise.all(pool.members.map(async member => {
+            try {
+               const userProfile = await fetchUserProfile(member.username);
+               const statusResponse = await fetch(`/pools/getSurvivorStatus/${encodeURIComponent(member.username)}/${encodeURIComponent(pool.name)}`);
+                const statusData = await statusResponse.json()
+                console.log("woooooo status", statusData);
+                return {
+                    username: userProfile.username,
+                    profilePic: userProfile.profilePicture,
+                    isEliminated: statusData.status === 'eliminated',
+                    isCurrentUser: userProfile.username.toLowerCase() === currentUsername
+                };
+            } catch (error) {
+                console.error(`Error fetching data for member ${member.username}:`, error);
+                return {
+                    username: member.username,
+                    profilePic: 'Default.png',
+                    isEliminated: false,
+                    isCurrentUser: member.username.toLowerCase() === currentUsername
+                };
+            }
+        }));
 
         // Function to render players based on view and status
         const renderPlayers = (viewMode) => {
@@ -2723,22 +2862,17 @@ async function displaySurvivorPool(pool) {
             // Filter and arrange players based on view mode
             let displayPlayers = [];
             if (viewMode === 'all') {
-                // Find current user
                 const currentUser = membersData.find(p => p.isCurrentUser);
-                
-                // Get active and eliminated players (excluding current user)
                 const otherPlayers = membersData.filter(p => !p.isCurrentUser);
                 const activePlayers = otherPlayers.filter(p => !p.isEliminated);
                 const eliminatedPlayers = otherPlayers.filter(p => p.isEliminated);
 
-                // Combine in order: current user, active players, eliminated players
                 displayPlayers = [
                     ...(currentUser ? [currentUser] : []),
                     ...activePlayers,
                     ...eliminatedPlayers
                 ];
             } else {
-                // Filter based on view mode
                 displayPlayers = membersData.filter(member => {
                     if (viewMode === 'active') {
                         return !member.isEliminated;
@@ -2747,7 +2881,6 @@ async function displaySurvivorPool(pool) {
                     }
                 });
 
-                // If it's not "all" view and current user is in this view, move them to top
                 const currentUserIndex = displayPlayers.findIndex(p => p.isCurrentUser);
                 if (currentUserIndex !== -1) {
                     const currentUser = displayPlayers.splice(currentUserIndex, 1)[0];
@@ -2776,7 +2909,6 @@ async function displaySurvivorPool(pool) {
                 let expanded = false;
                 showMoreButton.addEventListener('click', () => {
                     if (!expanded) {
-                        // Show all remaining players
                         const remainingPlayers = displayPlayers.slice(10);
                         remainingPlayers.forEach(memberData => {
                             const playerRow = createSurvivorPlayerRow(memberData, currentUsername);
@@ -2789,7 +2921,6 @@ async function displaySurvivorPool(pool) {
                             <span>show less</span>
                         `;
                     } else {
-                        // Remove extra players
                         const allRows = poolContainer.querySelectorAll('.survivor-player-row');
                         Array.from(allRows).slice(10).forEach(row => row.remove());
                         showMoreButton.innerHTML = `
@@ -2859,60 +2990,30 @@ function createSurvivorPlayerRow(memberData, currentUsername) {
     return playerRow;
 }
 
-async function fetchSurvivorPick(username, poolName, playerRow, teamLogos) {
-    const isPickTime = await isCurrentTimePickTime();
-    const encodedUsername = encodeURIComponent(username);
-    const encodedPoolName = encodeURIComponent(poolName);
+function createSurvivorPlayerRow(memberData, currentUsername) {
+    const playerRow = document.createElement('div');
+    playerRow.className = 'survivor-player-row';
     
-    try {
-        const response = await fetch(`/api/getSurvivorPick/${encodedUsername}/${encodedPoolName}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const pickData = await response.json();
-        const picksContainer = playerRow.querySelector('.survivor-player-picks');
-        picksContainer.innerHTML = '';
-
-        const showingUsername = localStorage.getItem('username').toLowerCase();
-        if (username.toLowerCase() === showingUsername || !isPickTime) {
-            if (pickData && pickData.pick) {
-                const pickDiv = document.createElement('div');
-                pickDiv.className = 'survivor-pick';
-
-                const teamName = pickData.pick.teamName;
-                if (teamName && teamLogos[teamName]) {
-                    const logoImg = document.createElement('img');
-                    logoImg.src = teamLogos[teamName];
-                    logoImg.alt = teamName;
-                    logoImg.className = 'team-logo';
-                    pickDiv.appendChild(logoImg);
-                }
-
-                picksContainer.appendChild(pickDiv);
-            } else {
-                const noPickMessage = document.createElement('div');
-                noPickMessage.className = 'no-picks-message';
-                noPickMessage.textContent = 'No pick made';
-                picksContainer.appendChild(noPickMessage);
-            }
-        } else {
-            const bannerImage = document.createElement('img');
-            bannerImage.src = 'PickTimeNew.png';
-            bannerImage.alt = 'Player Making Selection';
-            bannerImage.className = 'pick-banner';
-            picksContainer.appendChild(bannerImage);
-        }
-    } catch (error) {
-        console.error('Error fetching survivor pick:', error);
-        const picksContainer = playerRow.querySelector('.survivor-player-picks');
-        picksContainer.innerHTML = '';
-        const errorMessage = document.createElement('div');
-        errorMessage.className = 'error-message';
-        errorMessage.textContent = ' ';
-        picksContainer.appendChild(errorMessage);
+    if (memberData.username.toLowerCase() === currentUsername.toLowerCase()) {
+        playerRow.classList.add('survivor-current-user-row');
     }
+
+    playerRow.innerHTML = `
+        <div class="survivor-player-user">
+            <div class="survivor-profile-pic" style="background-image: url('${memberData.profilePic || 'Default.png'}')"></div>
+            <span class="player-username">${memberData.username}</span>
+        </div>
+        <div class="survivor-player-picks"></div>
+        <div class="survivor-player-eliminated">
+            <span class="${memberData.isEliminated ? 'eliminated-status' : 'active-status'}">
+                ${memberData.isEliminated ? 'ELIMINATED' : 'ACTIVE'}
+            </span>
+        </div>
+    `;
+
+    return playerRow;
 }
+
 
 
 

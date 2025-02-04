@@ -1,6 +1,18 @@
 // Pool.ts
 import mongoose from 'mongoose';
-import {poolMemberSchema} from './poolMember';
+import { poolMemberSchema, survivorPoolMemberSchema } from './poolMember';
+
+interface IMember {
+  user: mongoose.Types.ObjectId;
+  username: string;
+  orderIndex: number;
+  points?: number;
+  picks?: any[];
+  win?: number;
+  loss?: number;
+  push?: number;
+  isEliminated?: boolean;
+}
 
 const poolSchema = new mongoose.Schema({
   name: {
@@ -17,7 +29,24 @@ const poolSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  members: [poolMemberSchema],
+  members: {
+    type: [mongoose.Schema.Types.Mixed],
+    required: true,
+    validate: {
+      validator: function(this: { mode: string }, members: IMember[]) {
+        const mode = this.mode;
+        return members.every(member => {
+          if (mode === 'classic') {
+            return member.points !== undefined;
+          } else if (mode === 'survivor') {
+            return member.isEliminated !== undefined;
+          }
+          return false;
+        });
+      },
+      message: 'Members schema must match pool mode (classic/survivor)'
+    }
+  },
   isPrivate: {
     type: Boolean,
     default: false,
@@ -35,6 +64,19 @@ const poolSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+});
+// Middleware to use correct member schema based on pool mode
+poolSchema.pre('save', function(next) {
+  if (this.isModified('mode') || this.isModified('members')) {
+    this.members = this.members.map(member => {
+      if (this.mode === 'survivor') {
+        const { points, picks, win, loss, push, ...survivorMember } = member;
+        return survivorMember;
+      }
+      return member;
+    });
+  }
+  next();
 });
 
 const Pool = mongoose.model('Pool', poolSchema);

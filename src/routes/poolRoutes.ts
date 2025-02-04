@@ -1,12 +1,11 @@
 // src/routes/poolRoutes.ts
 
 import express from 'express';
-import { createPool, joinPoolByName, leavePool} from '../Controllers/poolController';
+import {leavePool} from '../Controllers/poolController';
 import Pool from '../models/Pool';
 import { connectToDatabase } from '../microservices/connectDB';
-import { isConstructorDeclaration } from 'typescript';
 import { ObjectId } from 'mongodb';
-//import { ObjectId } from 'mongodb';
+
 
 const router = express.Router();
 
@@ -30,6 +29,260 @@ async function getNextOrderIndex(username: string, database: any) {
   
   return userPools.length; // New pools get added at the end
 }
+
+
+interface BaseMember {
+    user: ObjectId;
+    username: string;
+    orderIndex: number;
+}
+
+interface ClassicMember extends BaseMember {
+    points: number;
+    picks: never[];
+    win: number;
+    loss: number;
+    push: number;
+}
+
+interface SurvivorMember extends BaseMember {
+    isEliminated: boolean;
+}
+
+const createMemberByMode = (user: any, username: string, orderIndex: number, mode: string): ClassicMember | SurvivorMember => {
+    if (mode === 'survivor') {
+        return {
+            user: user._id,
+            username: username.toLowerCase(),
+            orderIndex,
+            isEliminated: false
+        };
+    }
+
+    return {
+        user: user._id,
+        username: username.toLowerCase(),
+        orderIndex,
+        points: 0,
+        picks: [],
+        win: 0,
+        loss: 0,
+        push: 0
+    };
+};
+
+router.post('/create', async (req, res) => {
+    try {
+        const { name, isPrivate, adminUsername, mode, password } = req.body;
+
+        const db = await connectToDatabase();
+        const usersCollection = db.collection("users");
+        const poolsCollection = db.collection("pools");
+
+        const admin = await usersCollection.findOne({ username: adminUsername.toLowerCase() });
+        if (!admin) {
+            return res.status(404).json({ message: 'Admin user not found' });
+        }
+
+        // Get current pools and their order indices
+        const userPools = await poolsCollection.find({
+            'members.username': adminUsername.toLowerCase()
+        }).toArray();
+
+        // Update Global pool's orderIndex to be the highest
+        await poolsCollection.updateOne(
+            { 
+                name: "Global",
+                'members.username': adminUsername.toLowerCase()
+            },
+            { $set: { 'members.$.orderIndex': userPools.length } }
+        );
+
+        // Shift all other non-Global pools up by 1
+        await Promise.all(userPools.map(pool => {
+            if (pool.name !== "Global") {
+                return poolsCollection.updateOne(
+                    {
+                        name: pool.name,
+                        'members.username': adminUsername.toLowerCase()
+                    },
+                    { $inc: { 'members.$.orderIndex': 1 } }
+                );
+            }
+        }));
+
+        // Create admin member with appropriate schema based on mode
+        const adminMember = createMemberByMode(admin, adminUsername, 0, mode || 'classic');
+
+        const newPool = {
+            name,
+            isPrivate,
+            admin: admin._id,
+            adminUsername: adminUsername.toLowerCase(),
+            password: isPrivate ? password : undefined,
+            members: [adminMember],
+            mode: mode || 'classic'
+        };
+
+        const result = await poolsCollection.insertOne(newPool);
+        
+        res.status(201).json({ 
+            message: 'Pool created successfully',
+            pool: {
+                ...newPool,
+                _id: result.insertedId
+            }
+        });
+
+    } catch (error:any) {
+        console.error('Error creating pool:', error);
+        if (error.code === 11000) {
+            return res.status(409).json({ message: 'Pool name already exists' });
+        }
+        res.status(500).json({ message: 'Error creating pool', error });
+    }
+});
+
+router.post('/joinByName', async (req, res) => {
+    try {
+        const { poolName, username, poolPassword } = req.body;
+        
+        const db = await connectToDatabase();
+        const usersCollection = db.collection("users");
+        const poolsCollection = db.collection("pools");
+
+        const user = await usersCollection.findOne({ username: username.toLowerCase() });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const pool = await poolsCollection.findOne({ name: poolName });
+        if (!pool) {
+            return res.status(404).json({ message: 'Pool not found' });
+        }
+
+        if (pool.isPrivate && pool.password) {
+            if (poolPassword !== pool.password) {
+                return res.status(401).json({ message: 'Incorrect password' });
+            }
+        }
+
+        const isMemberAlready = pool.members.some(member => 
+            member.username.toLowerCase() === username.toLowerCase()
+        );
+        
+        if (!isMemberAlready) {
+            // Get current pools and their order indices
+            const userPools = await poolsCollection.find({
+                'members.username': username.toLowerCase()
+            }).toArray();
+
+            // Update Global pool's orderIndex to be the highest
+            await poolsCollection.updateOne(
+                { 
+                    name: "Global",
+                    'members.username': username.toLowerCase()
+                },
+                { $set: { 'members.$.orderIndex': userPools.length } }
+            );
+
+            // Shift all other non-Global pools up by 1
+            await Promise.all(userPools.map(pool => {
+                if (pool.name !== "Global") {
+                    return poolsCollection.updateOne(
+                        {
+                            name: pool.name,
+                            'members.username': username.toLowerCase()
+                        },
+                        { $inc: { 'members.$.orderIndex': 1 } }
+                    );
+                }
+            }));
+
+            // Create new member with appropriate schema based on pool mode
+            const newMember = createMemberByMode(user, username, 0, pool.mode);
+
+            await poolsCollection.updateOne(
+                { name: poolName },
+                { $push: { members: newMember } as any}
+            );
+        }
+
+        const updatedPool = await poolsCollection.findOne({ name: poolName });
+        res.status(200).json({ 
+            message: 'Joined pool successfully', 
+            pool: updatedPool
+        });
+
+    } catch (error) {
+        console.error('Error joining pool:', error);
+        res.status(500).json({ message: 'Error joining pool', error });
+    }
+});
+
+router.get('/getSurvivorStatus/:username/:poolName', async (req, res) => {
+    try {
+        const { username, poolName } = req.params;
+        const database = await connectToDatabase();
+        const poolsCollection = database.collection('pools');
+
+        const pool = await poolsCollection.findOne({
+            name: poolName,
+            mode: 'survivor',
+            'members.username': username.toLowerCase()
+        });
+
+        if (!pool) {
+            return res.status(404).json({ message: 'Pool or user not found' });
+        }
+
+        const member = pool.members.find(m => m.username.toLowerCase() === username.toLowerCase());
+        if (!member) {
+            return res.status(404).json({ message: 'Member not found in pool' });
+        }
+
+        const status = member.isEliminated ? 'eliminated' : 'active';
+        res.json({ status });
+    } catch (error) {
+        console.error('Error fetching survivor status:', error);
+        res.status(500).json({ message: 'Error fetching survivor status' });
+    }
+});
+
+// Update a user's survivor status
+router.post('/updateSurvivorStatus', async (req, res) => {
+    try {
+        const { username, poolName, isEliminated } = req.body;
+        const database = await connectToDatabase();
+        const poolsCollection = database.collection('pools');
+
+        const result = await poolsCollection.updateOne(
+            {
+                name: poolName,
+                mode: 'survivor',
+                'members.username': username.toLowerCase()
+            },
+            {
+                $set: {
+                    'members.$.isEliminated': isEliminated
+                }
+            }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: 'Pool or user not found' });
+        }
+
+        res.json({ 
+            success: true, 
+            message: `User ${isEliminated ? 'eliminated' : 'reactivated'} successfully` 
+        });
+    } catch (error) {
+        console.error('Error updating survivor status:', error);
+        res.status(500).json({ message: 'Error updating survivor status' });
+    }
+});
+/*
 router.post('/create', async (req, res) => {
     try {
         const { name, isPrivate, adminUsername, mode, password } = req.body;
@@ -199,7 +452,7 @@ router.post('/joinByName', async (req, res) => {
         console.error('Error joining pool:', error);
         res.status(500).json({ message: 'Error joining pool', error });
     }
-});
+});*/
 // Route for admins to manage join requests
 
 // Route to leave a pool
@@ -216,6 +469,7 @@ router.get('/get-all', async (req, res) => {
 });
 router.post('/reorder', async (req, res) => {
     const { username, poolName, direction } = req.body;
+    console.log('Reorder request:', { username, poolName, direction });
     
     try {
         const database = await connectToDatabase();
@@ -226,54 +480,59 @@ router.post('/reorder', async (req, res) => {
             'members.username': username.toLowerCase()
         }).toArray();
 
-        // Get current pool and its index
-        const currentPool = userPools.find(p => p.name === poolName);
-        if (!currentPool) {
+        // Sort pools by current order index
+        userPools.sort((a, b) => {
+            const indexA = a.members.find(m => m.username.toLowerCase() === username.toLowerCase())?.orderIndex || 0;
+            const indexB = b.members.find(m => m.username.toLowerCase() === username.toLowerCase())?.orderIndex || 0;
+            return indexA - indexB;
+        });
+
+        // Find current pool's position in sorted array
+        const currentPoolIndex = userPools.findIndex(p => p.name === poolName);
+        if (currentPoolIndex === -1) {
             return res.status(404).json({ success: false, message: 'Pool not found' });
         }
 
-        const currentMember = currentPool.members.find(m => 
-            m.username.toLowerCase() === username.toLowerCase()
-        );
-        
-        const currentIndex = currentMember.orderIndex;
-        let newIndex;
+        // Determine target array index
+        const targetArrayIndex = direction === 'up' ? currentPoolIndex - 1 : currentPoolIndex + 1;
 
-        if (direction === 'up' && currentIndex > 0) {
-            newIndex = currentIndex - 1;
-        } else if (direction === 'down' && currentIndex < userPools.length - 1) {
-            newIndex = currentIndex + 1;
-        } else {
-            return res.status(400).json({ success: false, message: 'Invalid move direction' });
+        // Check if move is possible
+        if (targetArrayIndex < 0 || targetArrayIndex >= userPools.length) {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot move ${direction}, pool is at the ${direction === 'up' ? 'top' : 'bottom'}`
+            });
         }
 
-        // Find the pool to swap with
-        const otherPool = userPools.find(p => 
-            p.members.find(m => 
-                m.username.toLowerCase() === username.toLowerCase() && 
-                m.orderIndex === newIndex
-            )
+        // Get the pool to swap with
+        const targetPool = userPools[targetArrayIndex];
+
+        // Get current order indices
+        const currentMember = userPools[currentPoolIndex].members.find(
+            m => m.username.toLowerCase() === username.toLowerCase()
+        );
+        const targetMember = targetPool.members.find(
+            m => m.username.toLowerCase() === username.toLowerCase()
         );
 
-        if (!otherPool) {
-            return res.status(404).json({ success: false, message: 'No pool found to swap with' });
-        }
+        const currentOrderIndex = currentMember.orderIndex;
+        const targetOrderIndex = targetMember.orderIndex;
 
-        // Update both pools' orderIndices
+        // Swap indices
         await poolsCollection.updateOne(
             { 
                 name: poolName,
                 'members.username': username.toLowerCase()
             },
-            { $set: { 'members.$.orderIndex': newIndex } }
+            { $set: { 'members.$.orderIndex': targetOrderIndex } }
         );
 
         await poolsCollection.updateOne(
             { 
-                name: otherPool.name,
+                name: targetPool.name,
                 'members.username': username.toLowerCase()
             },
-            { $set: { 'members.$.orderIndex': currentIndex } }
+            { $set: { 'members.$.orderIndex': currentOrderIndex } }
         );
 
         res.json({ 
@@ -283,7 +542,10 @@ router.post('/reorder', async (req, res) => {
 
     } catch (error:any) {
         console.error('Error reordering pools:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ 
+            success: false, 
+            message: error.message || 'Internal server error during reorder'
+        });
     }
 });
 // In poolRoutes.ts
@@ -502,6 +764,7 @@ router.post('/resetUserStatsInPoolByName', async (req, res) => {
   }
 });
 
+
 router.get('/getChatMessages', async (req, res) => {
   const { poolName } = req.query;
   //console.log("Fetching chat messages for pool:", poolName);
@@ -570,5 +833,6 @@ router.get('/userPoolInfo/:username', async (req, res) => {
       res.status(500).send('Internal server error');
   }
 });
+
 
 export default router;

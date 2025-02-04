@@ -4,6 +4,7 @@ import { connectToDatabase } from '../microservices/connectDB';
 import Pool from '../models/Pool'; 
 import { Collection } from 'mongodb';
 
+
 // Helper function to find user by username and return the user object
 const findUserByUsername = async (username: string) => {
   const db = await connectToDatabase();

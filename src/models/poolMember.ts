@@ -1,12 +1,8 @@
-//poolMember.ts
+// poolMember.ts
 import mongoose from 'mongoose';
 
-const poolMemberSchema = new mongoose.Schema({
-  pool: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Pool', 
-    required: false 
-  },
+// Base schema for shared fields between classic and survivor members
+const basePoolMemberSchema = new mongoose.Schema({
   user: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User', 
@@ -16,6 +12,15 @@ const poolMemberSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  orderIndex: {
+    type: Number,
+    default: 0
+  }
+});
+
+// Classic pool member schema (existing functionality)
+const poolMemberSchema = basePoolMemberSchema.clone();
+poolMemberSchema.add({
   points: { 
     type: Number, 
     default: 0 
@@ -34,11 +39,16 @@ const poolMemberSchema = new mongoose.Schema({
   push: { 
     type: Number, 
     default: 0 
-  },
-  orderIndex: {  // Add this field
-    type: Number,
-    default: 0
   }
 });
 
-export {poolMemberSchema}
+// New survivor pool member schema
+const survivorPoolMemberSchema = basePoolMemberSchema.clone();
+survivorPoolMemberSchema.add({
+  isEliminated: {
+    type: Boolean,
+    default: false
+  }
+});
+
+export { poolMemberSchema, survivorPoolMemberSchema }

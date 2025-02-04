@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (isThursdayGameTime) {
                 setTimeout(() => {
                     enableThursdayGameFeatures();
-                }, 1000);
+                }, 100);
             }
         } catch (error) {
             console.error('Error during initialization:', error);
@@ -414,7 +414,7 @@ async function populatePoolSelector() {
         if (isThursdayGameTime) {
             setTimeout(() => {
                 enableThursdayGameFeatures();
-            }, 1000);
+            }, 100);
         }
 
     } catch (error) {
@@ -670,7 +670,7 @@ function setupEventListeners() {
                     if (now > thursdayTime && now < sundayTime) {
                         setTimeout(() => {
                             enableThursdayGameFeatures();
-                        }, 1000);
+                        }, 300);
                     }
                 }
         
@@ -1931,7 +1931,7 @@ async function checkCurrentTimeWindow() {
             //console.log('Current time window: Thursday Game Time');
             setTimeout(() => {
                 enableThursdayGameFeatures();
-            }, 1000);
+            }, 100);
         } else if (now > sundayTime && now < tuesdayTime) {
            // console.log('Current time window: Sunday Game Time');
             enableSundayGameFeatures();
