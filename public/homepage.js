@@ -1958,7 +1958,7 @@ function displayNewPoolContainer(pool) {
     viewDropdown.innerHTML = `
         <select class="view-selector">
             <option value="aroundMe">Around Me</option>
-            <option value="all">View All</option>
+            <option value="all">All Players</option>
         </select>
         <span class="dropdown-arrow">▼</span>
     `;
