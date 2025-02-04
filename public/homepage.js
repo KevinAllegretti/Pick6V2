@@ -992,6 +992,10 @@ function createSurvivorPlayerRow(memberData, currentUsername) {
         playerRow.classList.add('survivor-current-user-row');
     }
 
+    if (memberData.isEliminated) {
+        playerRow.classList.add('eliminated-player'); // Add class to apply red styling
+    }
+
     playerRow.innerHTML = `
         <div class="survivor-player-user">
             <div class="survivor-profile-pic" style="background-image: url('${memberData.profilePic || 'Default.png'}')"></div>
@@ -1007,6 +1011,7 @@ function createSurvivorPlayerRow(memberData, currentUsername) {
 
     return playerRow;
 }
+
 
 async function fetchSurvivorPick(username, poolName, playerRow, teamLogos) {
     const isPickTime = await isCurrentTimePickTime();
@@ -2743,7 +2748,6 @@ async function displaySurvivorPool(pool) {
         'Tennessee Titans': '/TENLogo.png',
         'Washington Commanders': '/WASLogo.png'
     };
-
     let username = localStorage.getItem('username');
     if (!username) {
         console.error('No logged-in user found!');
@@ -2899,6 +2903,9 @@ async function displaySurvivorPool(pool) {
                 const initialPlayers = displayPlayers.slice(0, 10);
                 initialPlayers.forEach(memberData => {
                     const playerRow = createSurvivorPlayerRow(memberData, currentUsername);
+                    if (memberData.isEliminated) {
+                        playerRow.classList.add('eliminated');
+                    }
                     fetchSurvivorPick(memberData.username, pool.name, playerRow, teamLogos);
                     poolContainer.appendChild(playerRow);
                 });
@@ -2918,6 +2925,9 @@ async function displaySurvivorPool(pool) {
                             const remainingPlayers = displayPlayers.slice(10);
                             remainingPlayers.forEach(memberData => {
                                 const playerRow = createSurvivorPlayerRow(memberData, currentUsername);
+                                if (memberData.isEliminated) {
+                                    playerRow.classList.add('eliminated');
+                                }
                                 fetchSurvivorPick(memberData.username, pool.name, playerRow, teamLogos);
                                 poolContainer.appendChild(playerRow);
                             });
@@ -2962,6 +2972,9 @@ async function displaySurvivorPool(pool) {
                 // Show all players without show more button
                 displayPlayers.forEach(memberData => {
                     const playerRow = createSurvivorPlayerRow(memberData, currentUsername);
+                    if (memberData.isEliminated) {
+                        playerRow.classList.add('eliminated');
+                    }
                     fetchSurvivorPick(memberData.username, pool.name, playerRow, teamLogos);
                     poolContainer.appendChild(playerRow);
                 });
@@ -2997,7 +3010,6 @@ async function displaySurvivorPool(pool) {
         console.error('Error displaying survivor pool:', error);
     }
 }
-
 function createSurvivorPlayerRow(memberData, currentUsername) {
     const playerRow = document.createElement('div');
     playerRow.className = 'survivor-player-row';

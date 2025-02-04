@@ -3323,3 +3323,87 @@ body {
     color: #39FF14;
     padding: 8px;
 }
+
+.eliminated-player {
+    background-color: red !important;
+    color: white !important;
+}
+
+.eliminated-player .player-username,
+.eliminated-player .survivor-player-picks,
+.eliminated-player .survivor-player-eliminated {
+    color: white !important;
+}
+
+.survivor-stats-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.survivor-view-selector {
+    padding: 2px 30px 2px 8px;
+    background-color: #202124;
+    color: #39FF14;
+    border: 1px solid #39FF14;
+    border-radius: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9em;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    box-shadow: 0 0 5px #39FF14, 0 0 5px #39FF14, 0 0 5px #39FF14;
+}
+
+.survivor-view-selector:hover {
+    box-shadow: 0 0 10px #39FF14, 0 0 10px #39FF14, 0 0 10px #39FF14;
+}
+
+.survivor-view-selector:focus {
+    outline: none;
+    box-shadow: 0 0 15px #39FF14, 0 0 15px #39FF14, 0 0 15px #39FF14;
+}
+
+.survivor-view-selector option {
+    background-color: #17203a;
+    color: #39FF14;
+    padding: 8px;
+}
+
+.survivor-pool-container .dropdown-arrow {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #39FF14;
+    font-size: 0.7em;
+    pointer-events: none;
+    text-shadow: 0 0 5px #39FF14;
+}
+
+/* Eliminated player styling */
+.survivor-player-row.eliminated {
+   
+    border-color: #FF3131;
+}
+
+.survivor-player-row.eliminated .survivor-profile-pic {
+    border-color: #FF3131;
+    box-shadow: 0 0 5px rgba(255, 49, 49, 0.5);
+}
+
+.survivor-player-row.eliminated::after {
+    background-color: #FF3131;
+}
+
+.survivor-player-row.eliminated > div::after {
+    background-color: #FF3131;
+}
+
+.eliminated-status {
+    color: #FF3131;
+    text-shadow: 0 0 5px rgba(255, 49, 49, 0.5);
+    font-weight: bold;
+}
+
