@@ -2765,7 +2765,6 @@ async function displaySurvivorPool(pool) {
     poolWrapper.setAttribute('data-pool-name', pool.name);
     poolWrapper.setAttribute('data-admin-username', pool.adminUsername);
     
-    // Get member's order index
     const memberOrder = pool.members.find(m => 
         m.username.toLowerCase() === username
     )?.orderIndex ?? 0;
@@ -2779,7 +2778,13 @@ async function displaySurvivorPool(pool) {
     poolNameDiv.className = 'survivor-pool-name';
     poolNameDiv.innerText = pool.name;
 
-    // User count
+    // Stats container for counts
+    const statsContainer = document.createElement('div');
+    statsContainer.className = 'survivor-stats-container';
+    statsContainer.style.display = 'flex';
+    statsContainer.style.gap = '10px';
+
+    // Total user count
     const userCountDiv = document.createElement('div');
     userCountDiv.className = 'survivor-user-count';
     userCountDiv.innerHTML = `
@@ -2787,11 +2792,22 @@ async function displaySurvivorPool(pool) {
         <span>${pool.members.length}</span>
     `;
 
+    // Active players count - will be updated after fetching member data
+    const activeCountDiv = document.createElement('div');
+    activeCountDiv.className = 'survivor-user-count';
+    activeCountDiv.innerHTML = `
+        <i class="fas fa-user-check"></i>
+        <span>Players Remaining: Loading...</span>
+    `;
+
+    statsContainer.appendChild(userCountDiv);
+    statsContainer.appendChild(activeCountDiv);
+
     // View selector
     const viewSelector = document.createElement('div');
     viewSelector.className = 'view-selector-container';
     viewSelector.innerHTML = `
-        <select class="view-selector">
+        <select class="survivor-view-selector">
             <option value="all">All Players</option>
             <option value="active">Active</option>
             <option value="eliminated">Eliminated</option>
@@ -2800,7 +2816,7 @@ async function displaySurvivorPool(pool) {
     `;
 
     poolNameContainer.appendChild(poolNameDiv);
-    poolNameContainer.appendChild(userCountDiv);
+    poolNameContainer.appendChild(statsContainer);
     poolNameContainer.appendChild(viewSelector);
 
     // Create scrollable container
@@ -2829,7 +2845,6 @@ async function displaySurvivorPool(pool) {
                const userProfile = await fetchUserProfile(member.username);
                const statusResponse = await fetch(`/pools/getSurvivorStatus/${encodeURIComponent(member.username)}/${encodeURIComponent(pool.name)}`);
                 const statusData = await statusResponse.json()
-                console.log("woooooo status", statusData);
                 return {
                     username: userProfile.username,
                     profilePic: userProfile.profilePicture,
@@ -2847,14 +2862,21 @@ async function displaySurvivorPool(pool) {
             }
         }));
 
+        // Update active players count
+        const activePlayers = membersData.filter(member => !member.isEliminated).length;
+        activeCountDiv.innerHTML = `
+            <i class="fas fa-user-check"></i>
+            <span>Players Remaining: ${activePlayers}</span>
+        `;
+
         // Function to render players based on view and status
         const renderPlayers = (viewMode) => {
             // Clear existing rows except header
             const existingRows = poolContainer.querySelectorAll('.survivor-player-row');
             existingRows.forEach(row => row.remove());
-            
+
             // Remove existing show more button if present
-            const existingShowMore = poolContainer.querySelector('.show-more-button');
+            const existingShowMore = poolScrollableContainer.querySelector('.survivor-show-more-button');
             if (existingShowMore) {
                 existingShowMore.remove();
             }
@@ -2872,7 +2894,57 @@ async function displaySurvivorPool(pool) {
                     ...activePlayers,
                     ...eliminatedPlayers
                 ];
+
+                // Only show first 10 players and add show more button for 'all' view
+                const initialPlayers = displayPlayers.slice(0, 10);
+                initialPlayers.forEach(memberData => {
+                    const playerRow = createSurvivorPlayerRow(memberData, currentUsername);
+                    fetchSurvivorPick(memberData.username, pool.name, playerRow, teamLogos);
+                    poolContainer.appendChild(playerRow);
+                });
+
+                if (displayPlayers.length > 10) {
+                    const showMoreButton = document.createElement('button');
+                    showMoreButton.className = 'survivor-show-more-button';
+                    showMoreButton.innerHTML = `
+                        <i class="fas fa-chevron-down"></i>
+                        <i class="fas fa-users" style="font-size: 0.9em"></i>
+                        <span>show ${displayPlayers.length - 10} more</span>
+                    `;
+
+                    let expanded = false;
+                    showMoreButton.addEventListener('click', () => {
+                        if (!expanded) {
+                            const remainingPlayers = displayPlayers.slice(10);
+                            remainingPlayers.forEach(memberData => {
+                                const playerRow = createSurvivorPlayerRow(memberData, currentUsername);
+                                fetchSurvivorPick(memberData.username, pool.name, playerRow, teamLogos);
+                                poolContainer.appendChild(playerRow);
+                            });
+                            showMoreButton.innerHTML = `
+                                <i class="fas fa-chevron-up"></i>
+                                <i class="fas fa-users" style="font-size: 0.9em"></i>
+                                <span>show less</span>
+                            `;
+                        } else {
+                            const allRows = poolContainer.querySelectorAll('.survivor-player-row');
+                            Array.from(allRows).slice(10).forEach(row => row.remove());
+                            showMoreButton.innerHTML = `
+                                <i class="fas fa-chevron-down"></i>
+                                <i class="fas fa-users" style="font-size: 0.9em"></i>
+                                <span>show ${displayPlayers.length - 10} more</span>
+                            `;
+                        }
+                        expanded = !expanded;
+                    });
+
+                    poolScrollableContainer.appendChild(poolContainer);
+                    poolScrollableContainer.appendChild(showMoreButton);
+                } else {
+                    poolScrollableContainer.appendChild(poolContainer);
+                }
             } else {
+                // For active/eliminated views, show all players in that category
                 displayPlayers = membersData.filter(member => {
                     if (viewMode === 'active') {
                         return !member.isEliminated;
@@ -2886,53 +2958,15 @@ async function displaySurvivorPool(pool) {
                     const currentUser = displayPlayers.splice(currentUserIndex, 1)[0];
                     displayPlayers.unshift(currentUser);
                 }
-            }
 
-            // Display first 10 players
-            const initialPlayers = displayPlayers.slice(0, 10);
-            initialPlayers.forEach(memberData => {
-                const playerRow = createSurvivorPlayerRow(memberData, currentUsername);
-                fetchSurvivorPick(memberData.username, pool.name, playerRow, teamLogos);
-                poolContainer.appendChild(playerRow);
-            });
-
-            // Add "show more" button if needed
-            if (displayPlayers.length > 10) {
-                const showMoreButton = document.createElement('button');
-                showMoreButton.className = 'show-more-button';
-                showMoreButton.innerHTML = `
-                    <i class="fas fa-chevron-down"></i>
-                    <i class="fas fa-users" style="font-size: 0.9em"></i>
-                    <span>show ${displayPlayers.length - 10} more</span>
-                `;
-
-                let expanded = false;
-                showMoreButton.addEventListener('click', () => {
-                    if (!expanded) {
-                        const remainingPlayers = displayPlayers.slice(10);
-                        remainingPlayers.forEach(memberData => {
-                            const playerRow = createSurvivorPlayerRow(memberData, currentUsername);
-                            fetchSurvivorPick(memberData.username, pool.name, playerRow, teamLogos);
-                            poolContainer.insertBefore(playerRow, showMoreButton);
-                        });
-                        showMoreButton.innerHTML = `
-                            <i class="fas fa-chevron-up"></i>
-                            <i class="fas fa-users" style="font-size: 0.9em"></i>
-                            <span>show less</span>
-                        `;
-                    } else {
-                        const allRows = poolContainer.querySelectorAll('.survivor-player-row');
-                        Array.from(allRows).slice(10).forEach(row => row.remove());
-                        showMoreButton.innerHTML = `
-                            <i class="fas fa-chevron-down"></i>
-                            <i class="fas fa-users" style="font-size: 0.9em"></i>
-                            <span>show ${displayPlayers.length - 10} more</span>
-                        `;
-                    }
-                    expanded = !expanded;
+                // Show all players without show more button
+                displayPlayers.forEach(memberData => {
+                    const playerRow = createSurvivorPlayerRow(memberData, currentUsername);
+                    fetchSurvivorPick(memberData.username, pool.name, playerRow, teamLogos);
+                    poolContainer.appendChild(playerRow);
                 });
 
-                poolContainer.appendChild(showMoreButton);
+                poolScrollableContainer.appendChild(poolContainer);
             }
         };
 
@@ -2945,7 +2979,6 @@ async function displaySurvivorPool(pool) {
         // Initial render with 'all' view
         renderPlayers('all');
 
-        poolScrollableContainer.appendChild(poolContainer);
         poolWrapper.appendChild(poolNameContainer);
         poolWrapper.appendChild(poolScrollableContainer);
 
@@ -2953,7 +2986,6 @@ async function displaySurvivorPool(pool) {
         const chatTemplate = document.getElementById('chat-template').content.cloneNode(true);
         poolWrapper.appendChild(chatTemplate);
 
-        // Add to ordered container
         orderedContainer.appendChild(poolWrapper);
 
         // Update pool actions list after adding pool
@@ -2964,30 +2996,6 @@ async function displaySurvivorPool(pool) {
     } catch (error) {
         console.error('Error displaying survivor pool:', error);
     }
-}
-
-function createSurvivorPlayerRow(memberData, currentUsername) {
-    const playerRow = document.createElement('div');
-    playerRow.className = 'survivor-player-row';
-    
-    if (memberData.username.toLowerCase() === currentUsername.toLowerCase()) {
-        playerRow.classList.add('survivor-current-user-row');
-    }
-
-    playerRow.innerHTML = `
-        <div class="survivor-player-user">
-            <div class="survivor-profile-pic" style="background-image: url('${memberData.profilePic || 'Default.png'}')"></div>
-            <span class="player-username">${memberData.username}</span>
-        </div>
-        <div class="survivor-player-picks"></div>
-        <div class="survivor-player-eliminated">
-            <span class="${memberData.isEliminated ? 'eliminated-status' : 'active-status'}">
-                ${memberData.isEliminated ? 'ELIMINATED' : 'ACTIVE'}
-            </span>
-        </div>
-    `;
-
-    return playerRow;
 }
 
 function createSurvivorPlayerRow(memberData, currentUsername) {

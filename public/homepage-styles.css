@@ -2090,7 +2090,7 @@ button:hover {
 }
 .show-more-button {
     position: absolute;
-    bottom: -5px;  
+    bottom: -25px;  
     margin-left: 70px;      
     padding: 10px 25px;
     background-color: transparent;
@@ -2126,7 +2126,33 @@ button:hover {
 }
 
 /*Starting changing AGAIN PT 2*/
+.survivor-show-more-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    left: 135px;
+    padding: 10px 25px;
+    background-color: transparent;
+    color: #39FF14;
+    border: 1px solid #39FF14;
+    border-radius: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
 
+.survivor-show-more-button:hover {
+    background-color: rgba(57, 255, 20, 0.1);
+}
+
+/* Ensure the scrollable container can accommodate the button */
+.pool-scrollable-container {
+    position: relative;
+    padding-bottom: 60px; /* Give space for the button */
+}
 
 .navbar {
     position: fixed;
@@ -3218,10 +3244,82 @@ body {
     align-items: center;
     gap: 6px;
     transition: all 0.3s ease;
-    margin-bottom: 10px;
+    margin-bottom: 50px;
 }
 
 .survivor-pool-container .show-more-button:hover {
     background-color: rgba(57, 255, 20, 0.1);
     box-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
+}
+
+.survivor-stats-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.survivor-view-selector {
+    padding: 2px 30px 2px 8px;
+    background-color: #202124;
+    color: #39FF14;
+    border: 1px solid #39FF14;
+    border-radius: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9em;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    box-shadow: 0 0 5px #39FF14, 0 0 5px #39FF14, 0 0 5px #39FF14;
+}
+
+.survivor-view-selector:hover {
+    box-shadow: 0 0 10px #39FF14, 0 0 10px #39FF14, 0 0 10px #39FF14;
+}
+
+.survivor-view-selector:focus {
+    outline: none;
+    box-shadow: 0 0 15px #39FF14, 0 0 15px #39FF14, 0 0 15px #39FF14;
+}
+
+.survivor-view-selector option {
+    background-color: #17203a;
+    color: #39FF14;
+    padding: 8px;
+}
+
+.survivor-stats-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.survivor-view-selector {
+    padding: 2px 30px 2px 8px;
+    background-color: #202124;
+    color: #39FF14;
+    border: 1px solid #39FF14;
+    border-radius: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9em;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    box-shadow: 0 0 5px #39FF14, 0 0 5px #39FF14, 0 0 5px #39FF14;
+}
+
+.survivor-view-selector:hover {
+    box-shadow: 0 0 10px #39FF14, 0 0 10px #39FF14, 0 0 10px #39FF14;
+}
+
+.survivor-view-selector:focus {
+    outline: none;
+    box-shadow: 0 0 15px #39FF14, 0 0 15px #39FF14, 0 0 15px #39FF14;
+}
+
+.survivor-view-selector option {
+    background-color: #17203a;
+    color: #39FF14;
+    padding: 8px;
 }
