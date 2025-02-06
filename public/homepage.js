@@ -67,7 +67,7 @@ function rebuildUIWithResults(results) {
             pickElement.querySelector('span').style.setProperty('color', color, 'important');
            // console.log(`Applied ${color} to ${teamName} for bet value ${displayedBetValue}`);
         } else {
-            console.warn(`No matching result found for ${teamName} with bet value ${displayedBetValue}`);
+            //console.warn(`No matching result found for ${teamName} with bet value ${displayedBetValue}`);
         }
     });
 }
@@ -221,11 +221,11 @@ async function checkCurrentTimeWindow() {
 }
 
 function enableThursdayGameFeatures() {
-    const choosePicksButtons = document.querySelectorAll('.choose-picks-button');
+    const choosePicksButtons = document.querySelectorAll('.global-picks-button');
     if (choosePicksButtons.length > 0) {
         choosePicksButtons.forEach(button => {
             button.classList.remove('disabled');
-            button.textContent = 'Make Picks';  // Changed from 'Selections Unavailable'
+            
         });
     } else {
         console.error('No choose picks buttons found');
@@ -240,7 +240,7 @@ function enableThursdayGameFeatures() {
     });
 }
 function enableSundayGameFeatures() {
-    const choosePicksButtons = document.querySelectorAll('.choose-picks-button');
+    const choosePicksButtons = document.querySelectorAll('.global-picks-button');
     if (choosePicksButtons.length > 0) {
         choosePicksButtons.forEach(button => {
             button.classList.add('disabled');
@@ -1736,9 +1736,9 @@ async function fetchPicks(username, poolName, playerRow, teamLogos, isSurvivorPo
     try {
         const timePhase = await getCurrentTimePhase();
         const picksResponse = await fetch(url);
-        if (!picksResponse.ok) {
+        /*if (!picksResponse.ok) {
             throw new Error(`HTTP error! status: ${picksResponse.status}`);
-        }
+        }*/
         const picksData = await picksResponse.json();
         
         const picksContainer = playerRow.querySelector(isSurvivorPool ? '.survivor-player-picks' : '.player-picks');
@@ -1994,13 +1994,13 @@ async function fetchPicksData(username, poolName) {
 
     try {
         const response = await fetch(url);
-        if (!response.ok) {
+       /* if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        }*/
         const data = await response.json();
         return data;
     } catch (error) {
-        console.error('Error fetching picks for user:', username, 'in pool:', poolName, error);
+        //console.error('Error fetching picks for user:', username, 'in pool:', poolName, error);
         return { picks: [], immortalLock: [] };
     }
 }
@@ -2766,9 +2766,9 @@ async function fetchSurvivorPick(username, poolName, playerRow, teamLogos) {
     
     try {
         const response = await fetch(`/api/getSurvivorPick/${encodedUsername}/${encodedPoolName}`);
-        if (!response.ok) {
+       /* if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        }*/
         
         const pickData = await response.json();
         const picksContainer = playerRow.querySelector('.survivor-player-picks');
@@ -2804,7 +2804,7 @@ async function fetchSurvivorPick(username, poolName, playerRow, teamLogos) {
             picksContainer.appendChild(bannerImage);
         }
     } catch (error) {
-        console.error('Error fetching survivor pick:', error);
+       // console.error('Error fetching survivor pick:', error);
         const picksContainer = playerRow.querySelector('.survivor-player-picks');
         picksContainer.innerHTML = '';
         const errorMessage = document.createElement('div');

@@ -206,7 +206,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const sundayTime = new Date(sundayDeadline);
             
             const isThursdayGameTime = now > thursdayTime && now < sundayTime;
-
+            const injuryContainer = document.getElementById('injuryContainer');
+            if (injuryContainer) {
+                injuryContainer.classList.add('hidden-border');
+                injuryContainer.classList.remove('visible-border');
+            }
             // Initialize dashboard first
             await initializeDashboard();
 
