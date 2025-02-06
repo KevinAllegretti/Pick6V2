@@ -1300,61 +1300,91 @@ h4 {
 }
 
 
-.survivor-team-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 15px;
-  margin: 5px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 2px solid #33d9ff;
-  box-shadow: 0 0 5px #00e9fa;
-  min-width: 120px;
+
+.team-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    border-radius: 8px;
+    position: relative;
+    color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 5px;
+    padding: 20px;
+    font-family: 'Orbitron', sans-serif;
+    box-shadow: 0 0 5px #00e9fa;
+}
+.odds-info {
+    display: flex;
+    margin: 8px 0;
+    font-family: 'Montserrat', sans-serif;
 }
 
-.survivor-team-container:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 15px #00e9fa;
+.odds-value {
+    font-size: 14px;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    min-width: 50px;
+    text-align: center;
 }
 
-.survivor-team-container.selected {
-  background-color: #00ff00;
-  border-color: #00ff00;
-  box-shadow: 0 0 15px #00ff00;
+.ml-value {
+    background: rgba(0, 0, 0, 0.3);
+    font-size: 16px;
+    font-weight: bold;
 }
 
-.survivor-team-logo {
-  width: 65px;
-  height: 65px;
-  margin: 5px 0;
+.spread-value {
+    background: rgba(0, 0, 0, 0.2);
+    font-weight: normal;
 }
 
-.survivor-team-name {
-  color: #fff;
-  text-align: center;
-  margin-top: 8px;
-  font-family: 'Orbitron', sans-serif;
-  font-size: 14px;
+.bet-button {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    cursor: pointer;
+    background: transparent;
+    transition: all 0.3s ease;
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.survivor-game-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 20px;
-  padding: 15px;
-  border-radius: 8px;
-  background: #17203a;
-  border: 2px solid #33d9ff;
-  box-shadow: 0 0 10px #33d9ff;
-  min-width: 300px;
+.bet-button:hover {
+    background: rgba(255, 255, 255, 0.1);
 }
 
-.survivor-at-symbol {
-  font-size: 30px;
-  color: #00e9fa;
-  margin: 0 20px;
-  font-family: 'Montserrat', sans-serif;
+.bet-button.selected {
+    background-color: #00ff00 !important;
+    color: black !important;
+    border-color: #00ff00 !important;
+}
+
+.bet-button.immortal-lock-selected {
+    background-color: #fffb00 !important;
+    color: black !important;
+    border-color: #fffb00 !important;
+}
+
+.bet-button[data-thursday-game="true"] {
+    background-color: black !important;
+    color: red !important;
+    cursor: not-allowed !important;
+}
+
+.bet-button[data-thursday-game="true"].user-thursday-pick {
+    background-color: black !important;
+    color: #00FF00 !important;
+    border: 2px solid #00FF00 !important;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5) !important;
+    text-shadow: 0 0 5px #00FF00 !important;
 }

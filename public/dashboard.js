@@ -6,8 +6,9 @@ let userPicks = [];
 let userImmortalLock = null;
 let betOptions = [];
 let isDeadline = false;
-let lastWeekPicks = {}; // Add this line to fix the ReferenceError
+let lastWeekPicks = {}; 
 
+/*
 // Modified loadWeeklyPicks function to handle the case where no picks exist
 async function loadWeeklyPicks() {
     try {
@@ -27,7 +28,7 @@ async function loadWeeklyPicks() {
         console.error('Failed to fetch weekly picks:', error);
         document.getElementById('picksContainer').innerHTML = '<p class="error-message">Failed to load picks. Please try again later.</p>';
     }
-}
+}*/
 
 // Modified fetchLastWeekPicks to handle errors better
 async function fetchLastWeekPicks(username, poolName) {

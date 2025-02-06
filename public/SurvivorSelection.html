@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pick-6 Dashboard</title>
+    <link rel="stylesheet" href="SurvivorStyles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Exo:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Quantico:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Electrolize&display=swap" rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nosifer&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Butcherman&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Finger+Paint&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=New+Rocker&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&display=swap" rel="stylesheet">
+
+    <link rel="icon" href="favicon.png" type="image/png">
+
+    <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
+</head>
+<body>
+    <div class="back-button-container">
+        <a href="/homepage.html" class="back-button">Back to Homepage</a>
+
+    </div>
+   <!--<button onclick="redirectToNFLScheduleWithPoolName('dashboard')" class="schedule-button">View NFL Schedule</button>
+-->
+    <!--<div class="schedule-button" onclick="redirectToNFLScheduleWithPoolName('dashboard')">
+        <div class="neon-calendar">
+            <div class="ring-binders">
+                <div class="ring"></div>
+
+                <div class="ring"></div>
+            </div>
+            <div class="calendar-top">
+                <span class="calendar-title">Schedule</span>
+            </div>
+            <div class="calendar-body">
+                <div class="calendar-date">01</div>
+            </div>
+        </div>
+    </div>-->
+    <h1></h1>
+
+        <!-- Button Group -->
+        <div class="button-group">
+            <button id="resetPicks">Reset Picks</button>
+            <button id="submitPicks">Submit Picks</button>
+        </div>
+
+        <div class="pool-selector-container">
+            <label for="poolSelector" class="pool-selector-label">Send picks to:</label>
+            <select id="poolSelector" class="pool-selector">
+                <option value="all">All Pools</option>
+                <!-- Other pools will be populated dynamically -->
+            </select>
+        </div>
+    <div class="main-wrapper">
+
+        <div class="container">
+
+        
+            <div id="picksContainer" class="picks-container">
+                <!-- Bet cells will be appended here -->
+
+
+            </div>
+
+            <div id="matchupInjuryContainer" class="matchup-injury-container">
+                <div id="matchupInjuryList"></div>
+            </div>
+            <div id="statusMessage"></div>
+        </div>
+    </div>
+    <div class="injury-section">
+        <button id="displayInjuriesBtn">Current Injuries</button>
+        <select id="teamFilter" class="hidden">
+            <option value="">All Teams</option>
+            <!-- Add options dynamically -->
+        </select>
+        <div id="injuryContainer" class="injury-container">
+            <div id="injuryList"></div>
+        </div>
+    </div>
+    
+    <!--<button id="fetchOddsButton">Load in NFL Odds</button>
+    <button id="savePicksButton">Load into Database Odds</button>
+    <button id="fetchAndSaveInjuriesBtn">Fetch and Save Injuries</button>
+    <div class="info-box">
+        <h2>Pick 6 Selection Page</h2>
+        <p>Selected picks will turn <span class="green-highlight">bright green </span> and immortal lock pick (if chosen) will turn <span class="gold-highlight">golden</span> as your 7th pick</p>
+        <p>Once they are all selected, you can click submit picks which will successfully display your picks on the homepage</p>
+        <p>If you would like to change a selection, you have until the <span class="red-highlight">Thursday 7PM EST</span> deadline to do so with "Reset Picks"</p>
+        <p>Carefully select your picks all at once before submitting and good luck!</p>
+    </div>-->
+    <script src="SurvivorSelection.js"></script>
+</body>
+</html>

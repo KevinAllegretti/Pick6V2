@@ -1673,7 +1673,7 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
         // If there are non-Thursday picks, show locked banner
         if (picksData.picks.length > thursdayPicks.length) {
             const lockedBanner = document.createElement('img');
-            lockedBanner.src = 'LockedPicks.png';
+            lockedBanner.src = 'ThursdayLocked.png';
             lockedBanner.alt = 'Picks Locked';
             lockedBanner.className = 'locked-picks-banner';
             picksContainer.appendChild(lockedBanner);
