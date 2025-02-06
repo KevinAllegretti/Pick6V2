@@ -659,6 +659,58 @@ document.getElementById('create-pool-form').addEventListener('submit', function(
 */
 document.addEventListener('DOMContentLoaded', function() {
     const globalPicksButton = document.getElementById('globalPicksButton');
+    const survivorPicksButton = document.getElementById('survivorPicksButton');
+
+    // Function to check if user is in any survivor pools
+    async function checkForSurvivorPools() {
+        try {
+            const username = localStorage.getItem('username');
+            if (!username) return false;
+
+            const response = await fetch(`/pools/userPools/${encodeURIComponent(username.toLowerCase())}`);
+            if (!response.ok) return false;
+
+            const pools = await response.json();
+            return pools.some(pool => pool.mode === 'survivor');
+        } catch (error) {
+            console.error('Error checking for survivor pools:', error);
+            return false;
+        }
+    }
+
+    // Initial check for survivor pools and button display
+    checkForSurvivorPools().then(hasSurvivorPool => {
+        if (hasSurvivorPool && survivorPicksButton) {
+            survivorPicksButton.style.display = 'block';
+        }
+    });
+
+    if (globalPicksButton) {
+        globalPicksButton.addEventListener('click', async function() {
+            const phase = await getCurrentTimePhase();
+            if (phase === 'sunday') {
+                showGameTimeAlert(event);
+                return;
+            }
+            // Allow access during both pick time and Thursday games
+            window.location.href = 'dashboard.html';
+        });
+    }
+
+    if (survivorPicksButton) {
+        survivorPicksButton.addEventListener('click', async function() {
+            const phase = await getCurrentTimePhase();
+            if (phase === 'sunday') {
+                showGameTimeAlert(event);
+                return;
+            }
+            // Allow access during both pick time and Thursday games
+            window.location.href = 'SurvivorSelection.html';
+        });
+    }
+});
+document.addEventListener('DOMContentLoaded', function() {
+    const globalPicksButton = document.getElementById('globalPicksButton');
     if (globalPicksButton) {
         globalPicksButton.addEventListener('click', async function() {
             const phase = await getCurrentTimePhase();

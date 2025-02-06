@@ -3429,3 +3429,87 @@ body {
     justify-content: center;
     padding: 5px;
 }
+
+.global-picks-button:disabled::before {
+    display: none;
+}
+
+/* Survivor Picks Button Styling */
+.survivor-picks-button {
+    display: block;
+    width: auto;
+    margin: 20px auto;
+    padding: 10px 30px;
+    font-family: 'Russo One', sans-serif;
+    font-size: 1.2em;
+    font-weight: 500;
+    color: #ffffff;
+    background: rgba(57, 255, 20, 0.2);
+    border: 2px solid #39FF14;
+    border-radius: 4px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.5),
+                inset 0 0 20px rgba(57, 255, 20, 0.3);
+}
+
+.survivor-picks-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(57, 255, 20, 0.2),
+        transparent
+    );
+    transition: 0.5s ease;
+}
+
+.survivor-picks-button:hover {
+    color: #ffffff;
+    background: rgba(57, 255, 20, 0.3);
+    box-shadow: 0 0 30px rgba(57, 255, 20, 0.7),
+                inset 0 0 30px rgba(57, 255, 20, 0.5);
+    transform: translateY(-2px) scale(1.02);
+    border-color: #ffffff;
+    text-shadow: 0 0 10px rgba(57, 255, 20, 0.8);
+}
+
+.survivor-picks-button:hover::before {
+    left: 100%;
+}
+
+.survivor-picks-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 0 10px rgba(57, 255, 20, 0.4),
+                inset 0 0 10px rgba(57, 255, 20, 0.2);
+}
+
+.survivor-picks-button:disabled {
+    background: rgba(23, 32, 58, 0.5);
+    color: rgba(57, 255, 20, 0.5);
+    border-color: rgba(57, 255, 20, 0.5);
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.survivor-picks-button:disabled::before {
+    display: none;
+}
+
+/* Container for both buttons */
+.picks-buttons-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
