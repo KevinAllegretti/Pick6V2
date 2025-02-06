@@ -1574,9 +1574,6 @@ function createTeamContainer(game, teamRole) {
     // Create odds info container with vertical layout
     const oddsContainer = document.createElement('div');
     oddsContainer.className = 'odds-info';
-    oddsContainer.style.flexDirection = 'column';
-    oddsContainer.style.alignItems = 'center';
-    oddsContainer.style.gap = '4px';
 
     // Find matching bets for this team from betOptions
     const teamBets = betOptions.filter(bet => bet.teamName === teamData);

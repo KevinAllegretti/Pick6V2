@@ -1621,7 +1621,7 @@ function checkIfThursdayGame(commenceTime) {
 }
 
 
-
+/*
 async function fetchPicks(username, poolName, playerRow, teamLogos) {
     const encodedUsername = encodeURIComponent(username);
     const encodedPoolName = encodeURIComponent(poolName);
@@ -1726,6 +1726,112 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
     } catch (error) {
         console.error('Error fetching picks:', error);
         handleFetchError(playerRow);
+    }
+}*/
+async function fetchPicks(username, poolName, playerRow, teamLogos, isSurvivorPool = false) {
+    const isPickTime = await isCurrentTimePickTime();
+    const encodedUsername = encodeURIComponent(username);
+    const encodedPoolName = encodeURIComponent(poolName);
+    const url = `/api/getPicks/${encodedUsername}/${encodedPoolName}`;
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const picksData = await response.json();
+        const picksContainer = playerRow.querySelector(isSurvivorPool ? '.survivor-player-picks' : '.player-picks');
+        picksContainer.innerHTML = '';
+
+        const showingUsername = localStorage.getItem('username').toLowerCase();
+        if (username.toLowerCase() === showingUsername || !isPickTime) {
+            if (picksData && picksData.picks && Array.isArray(picksData.picks) && picksData.picks.length > 0) {
+                if (isSurvivorPool) {
+                    // For survivor pools, only show the first pick and only show the logo
+                    const pick = picksData.picks[0];
+                    const pickDiv = document.createElement('div');
+                    pickDiv.className = 'survivor-pick';
+
+                    if (pick.teamName && teamLogos[pick.teamName]) {
+                        const logoImg = document.createElement('img');
+                        logoImg.src = teamLogos[pick.teamName];
+                        logoImg.alt = pick.teamName;
+                        logoImg.className = 'team-logo';
+                        pickDiv.appendChild(logoImg);
+                    }
+
+                    picksContainer.appendChild(pickDiv);
+                } else {
+                    // Regular pool display logic
+                    picksData.picks.forEach(pick => {
+                        const pickDiv = document.createElement('div');
+                        pickDiv.className = 'pick';
+
+                        if (pick.teamName && teamLogos[pick.teamName]) {
+                            const logoImg = document.createElement('img');
+                            logoImg.src = teamLogos[pick.teamName];
+                            logoImg.alt = pick.teamName;
+                            logoImg.className = 'team-logo';
+                            pickDiv.appendChild(logoImg);
+                        }
+
+                        if (pick.value) {
+                            const valueSpan = document.createElement('span');
+                            valueSpan.textContent = pick.value;
+                            pickDiv.appendChild(valueSpan);
+                        }
+
+                        picksContainer.appendChild(pickDiv);
+                    });
+                }
+            } else {
+                const noPickMessage = document.createElement('div');
+                noPickMessage.className = 'no-picks-message';
+                noPickMessage.textContent = 'No picks made';
+                picksContainer.appendChild(noPickMessage);
+            }
+
+            // Handle immortal lock display if not a survivor pool
+            if (!isSurvivorPool) {
+                const immortalLockContainer = playerRow.querySelector('.player-immortal-lock');
+                if (picksData.immortalLock && picksData.immortalLock.length > 0) {
+                    const immortalPick = picksData.immortalLock[0];
+                    const lockDiv = document.createElement('div');
+                    lockDiv.className = 'immortal-lock';
+
+                    if (immortalPick.teamName && teamLogos[immortalPick.teamName]) {
+                        const logoImg = document.createElement('img');
+                        logoImg.src = teamLogos[immortalPick.teamName];
+                        logoImg.alt = immortalPick.teamName;
+                        logoImg.className = 'team-logo';
+                        lockDiv.appendChild(logoImg);
+                    }
+
+                    if (immortalPick.value) {
+                        const valueSpan = document.createElement('span');
+                        valueSpan.textContent = immortalPick.value;
+                        lockDiv.appendChild(valueSpan);
+                    }
+
+                    immortalLockContainer.appendChild(lockDiv);
+                }
+            }
+        } else {
+            const bannerImage = document.createElement('img');
+            bannerImage.src = 'PickTimeNew.png';
+            bannerImage.alt = 'Player Making Selection';
+            bannerImage.className = 'pick-banner';
+            picksContainer.appendChild(bannerImage);
+        }
+    } catch (error) {
+        console.error('Error fetching picks:', error);
+        const picksContainer = playerRow.querySelector(isSurvivorPool ? '.survivor-player-picks' : '.player-picks');
+        picksContainer.innerHTML = '';
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'error-message';
+        errorMessage.textContent = ' ';
+        picksContainer.appendChild(errorMessage);
     }
 }
 
@@ -2631,16 +2737,9 @@ async function fetchSurvivorPick(username, poolName, playerRow, teamLogos) {
     const encodedPoolName = encodeURIComponent(poolName);
     
     try {
-        const response = await fetch(`/getSurvivorPick/${encodedUsername}/${encodedPoolName}`);
-        
-        // Check if response is ok and is JSON
+        const response = await fetch(`/api/getSurvivorPick/${encodedUsername}/${encodedPoolName}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Response is not JSON');
         }
         
         const pickData = await response.json();
@@ -2684,20 +2783,6 @@ async function fetchSurvivorPick(username, poolName, playerRow, teamLogos) {
         errorMessage.className = 'error-message';
         errorMessage.textContent = ' ';
         picksContainer.appendChild(errorMessage);
-    }
-    
-    // Update status separately and only if needed
-    if (playerRow.isConnected) {
-        try {
-            const status = await fetchSurvivorStatus(username, poolName);
-            const statusContainer = playerRow.querySelector('.survivor-player-eliminated span');
-            if (statusContainer) {
-                statusContainer.className = status === 'eliminated' ? 'eliminated-status' : 'active-status';
-                statusContainer.textContent = status.toUpperCase();
-            }
-        } catch (error) {
-            console.error('Error updating status in row:', error);
-        }
     }
 }
 // Helper function to check if response is valid JSON
@@ -2748,6 +2833,7 @@ async function displaySurvivorPool(pool) {
         'Tennessee Titans': '/TENLogo.png',
         'Washington Commanders': '/WASLogo.png'
     };
+
     let username = localStorage.getItem('username');
     if (!username) {
         console.error('No logged-in user found!');
@@ -2846,19 +2932,20 @@ async function displaySurvivorPool(pool) {
         // Process members and fetch their statuses
         const membersData = await Promise.all(pool.members.map(async member => {
             try {
-               const userProfile = await fetchUserProfile(member.username);
-               const statusResponse = await fetch(`/pools/getSurvivorStatus/${encodeURIComponent(member.username)}/${encodeURIComponent(pool.name)}`);
-                const statusData = await statusResponse.json()
+                const lowercaseUsername = member.username.toLowerCase();
+                const userProfile = await fetchUserProfile(lowercaseUsername);
+                const statusResponse = await fetch(`/pools/getSurvivorStatus/${encodeURIComponent(lowercaseUsername)}/${encodeURIComponent(pool.name)}`);
+                const statusData = await statusResponse.json();
                 return {
-                    username: userProfile.username,
+                    username: lowercaseUsername,
                     profilePic: userProfile.profilePicture,
                     isEliminated: statusData.status === 'eliminated',
-                    isCurrentUser: userProfile.username.toLowerCase() === currentUsername
+                    isCurrentUser: lowercaseUsername === currentUsername
                 };
             } catch (error) {
                 console.error(`Error fetching data for member ${member.username}:`, error);
                 return {
-                    username: member.username,
+                    username: member.username.toLowerCase(),
                     profilePic: 'Default.png',
                     isEliminated: false,
                     isCurrentUser: member.username.toLowerCase() === currentUsername
@@ -2906,7 +2993,7 @@ async function displaySurvivorPool(pool) {
                     if (memberData.isEliminated) {
                         playerRow.classList.add('eliminated');
                     }
-                    fetchSurvivorPick(memberData.username, pool.name, playerRow, teamLogos);
+                    fetchPicks(memberData.username, pool.name, playerRow, teamLogos, true);
                     poolContainer.appendChild(playerRow);
                 });
 
@@ -2928,7 +3015,7 @@ async function displaySurvivorPool(pool) {
                                 if (memberData.isEliminated) {
                                     playerRow.classList.add('eliminated');
                                 }
-                                fetchSurvivorPick(memberData.username, pool.name, playerRow, teamLogos);
+                                fetchPicks(memberData.username, pool.name, playerRow, teamLogos, true);
                                 poolContainer.appendChild(playerRow);
                             });
                             showMoreButton.innerHTML = `
@@ -2975,7 +3062,7 @@ async function displaySurvivorPool(pool) {
                     if (memberData.isEliminated) {
                         playerRow.classList.add('eliminated');
                     }
-                    fetchSurvivorPick(memberData.username, pool.name, playerRow, teamLogos);
+                    fetchPicks(memberData.username, pool.name, playerRow, teamLogos, true);
                     poolContainer.appendChild(playerRow);
                 });
 
