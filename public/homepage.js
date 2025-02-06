@@ -1729,112 +1729,140 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
     }
 }*/
 async function fetchPicks(username, poolName, playerRow, teamLogos, isSurvivorPool = false) {
-    const isPickTime = await isCurrentTimePickTime();
     const encodedUsername = encodeURIComponent(username);
     const encodedPoolName = encodeURIComponent(poolName);
     const url = `/api/getPicks/${encodedUsername}/${encodedPoolName}`;
 
     try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        const timePhase = await getCurrentTimePhase();
+        const picksResponse = await fetch(url);
+        if (!picksResponse.ok) {
+            throw new Error(`HTTP error! status: ${picksResponse.status}`);
         }
+        const picksData = await picksResponse.json();
         
-        const picksData = await response.json();
         const picksContainer = playerRow.querySelector(isSurvivorPool ? '.survivor-player-picks' : '.player-picks');
         picksContainer.innerHTML = '';
 
-        const showingUsername = localStorage.getItem('username').toLowerCase();
-        if (username.toLowerCase() === showingUsername || !isPickTime) {
-            if (picksData && picksData.picks && Array.isArray(picksData.picks) && picksData.picks.length > 0) {
+        // Get reference to the immortal lock container (only for non-survivor pools)
+        const immortalLockContainer = !isSurvivorPool ? playerRow.querySelector('.player-immortal-lock') : null;
+        if (immortalLockContainer) immortalLockContainer.innerHTML = '';
+
+        const isCurrentUser = username === localStorage.getItem('username').toLowerCase();
+
+        if (picksData && picksData.picks && Array.isArray(picksData.picks)) {
+            // Sort picks by commence time
+            picksData.picks.sort((a, b) => new Date(a.commenceTime) - new Date(b.commenceTime));
+            
+            if (isCurrentUser) {
+                // Current user always sees their own picks
                 if (isSurvivorPool) {
-                    // For survivor pools, only show the first pick and only show the logo
-                    const pick = picksData.picks[0];
-                    const pickDiv = document.createElement('div');
-                    pickDiv.className = 'survivor-pick';
-
-                    if (pick.teamName && teamLogos[pick.teamName]) {
-                        const logoImg = document.createElement('img');
-                        logoImg.src = teamLogos[pick.teamName];
-                        logoImg.alt = pick.teamName;
-                        logoImg.className = 'team-logo';
-                        pickDiv.appendChild(logoImg);
+                    // For survivor pools, only show the first pick
+                    if (picksData.picks.length > 0) {
+                        await displaySurvivorPick(picksData.picks[0], picksContainer, teamLogos);
                     }
-
-                    picksContainer.appendChild(pickDiv);
                 } else {
-                    // Regular pool display logic
-                    picksData.picks.forEach(pick => {
-                        const pickDiv = document.createElement('div');
-                        pickDiv.className = 'pick';
-
-                        if (pick.teamName && teamLogos[pick.teamName]) {
-                            const logoImg = document.createElement('img');
-                            logoImg.src = teamLogos[pick.teamName];
-                            logoImg.alt = pick.teamName;
-                            logoImg.className = 'team-logo';
-                            pickDiv.appendChild(logoImg);
-                        }
-
-                        if (pick.value) {
-                            const valueSpan = document.createElement('span');
-                            valueSpan.textContent = pick.value;
-                            pickDiv.appendChild(valueSpan);
-                        }
-
-                        picksContainer.appendChild(pickDiv);
-                    });
+                    await displayAllPicks(picksData.picks, picksContainer, teamLogos);
                 }
             } else {
-                const noPickMessage = document.createElement('div');
-                noPickMessage.className = 'no-picks-message';
-                noPickMessage.textContent = 'No picks made';
-                picksContainer.appendChild(noPickMessage);
+                switch (timePhase) {
+                    case 'pick':
+                        displayPickTimeBanner(picksContainer);
+                        break;
+                    case 'thursday':
+                        console.log('Processing Thursday game time picks');
+                        
+                        // Filter for Thursday night games
+                        const thursdayPicks = picksData.picks.filter(pick => 
+                            checkIfThursdayGame(pick.commenceTime)
+                        );
+                        
+                        if (thursdayPicks.length > 0) {
+                            // User has Thursday picks - display them
+                            if (isSurvivorPool) {
+                                await displaySurvivorPick(thursdayPicks[0], picksContainer, teamLogos);
+                            } else {
+                                await displayAllPicks(thursdayPicks, picksContainer, teamLogos);
+                                
+                                // Show locked banner for remaining picks in regular pools
+                                if (picksData.picks.length > thursdayPicks.length) {
+                                    const lockedBanner = document.createElement('img');
+                                    lockedBanner.src = 'ThursdayLocked.png';
+                                    lockedBanner.alt = 'Picks Locked';
+                                    lockedBanner.className = 'locked-picks-banner';
+                                    picksContainer.appendChild(lockedBanner);
+                                }
+                            }
+                        } else {
+                            // User has no Thursday picks - show pick time banner
+                            const pickTimeBanner = document.createElement('img');
+                            pickTimeBanner.src = 'PickTimeNew.png';
+                            pickTimeBanner.alt = 'Player Making Selection';
+                            pickTimeBanner.className = 'pick-banner';
+                            picksContainer.appendChild(pickTimeBanner);
+                        }
+                        break;
+                    case 'sunday':
+                        // Show all picks during Sunday phase
+                        if (isSurvivorPool) {
+                            if (picksData.picks.length > 0) {
+                                await displaySurvivorPick(picksData.picks[0], picksContainer, teamLogos);
+                            }
+                        } else {
+                            await displayAllPicks(picksData.picks, picksContainer, teamLogos);
+                        }
+                        break;
+                }
             }
 
-            // Handle immortal lock display if not a survivor pool
-            if (!isSurvivorPool) {
-                const immortalLockContainer = playerRow.querySelector('.player-immortal-lock');
-                if (picksData.immortalLock && picksData.immortalLock.length > 0) {
-                    const immortalPick = picksData.immortalLock[0];
-                    const lockDiv = document.createElement('div');
-                    lockDiv.className = 'immortal-lock';
-
-                    if (immortalPick.teamName && teamLogos[immortalPick.teamName]) {
-                        const logoImg = document.createElement('img');
-                        logoImg.src = teamLogos[immortalPick.teamName];
-                        logoImg.alt = immortalPick.teamName;
-                        logoImg.className = 'team-logo';
-                        lockDiv.appendChild(logoImg);
+            // Handle immortal lock display (only for non-survivor pools)
+            if (!isSurvivorPool && immortalLockContainer && picksData.immortalLock && picksData.immortalLock.length > 0) {
+                const immortalPick = picksData.immortalLock[0];
+                
+                if (isCurrentUser) {
+                    // Always show current user's immortal lock
+                    displayImmortalLock(immortalPick, immortalLockContainer, teamLogos);
+                } else {
+                    switch (timePhase) {
+                        case 'pick':
+                            // Don't show immortal lock during pick time
+                            break;
+                        case 'thursday':
+                            // Show immortal lock only if it's a Thursday game
+                            if (await checkIfThursdayGame(immortalPick.commenceTime)) {
+                                displayImmortalLock(immortalPick, immortalLockContainer, teamLogos);
+                            }
+                            break;
+                        case 'sunday':
+                            // Show all immortal locks
+                            displayImmortalLock(immortalPick, immortalLockContainer, teamLogos);
+                            break;
                     }
-
-                    if (immortalPick.value) {
-                        const valueSpan = document.createElement('span');
-                        valueSpan.textContent = immortalPick.value;
-                        lockDiv.appendChild(valueSpan);
-                    }
-
-                    immortalLockContainer.appendChild(lockDiv);
                 }
             }
         } else {
-            const bannerImage = document.createElement('img');
-            bannerImage.src = 'PickTimeNew.png';
-            bannerImage.alt = 'Player Making Selection';
-            bannerImage.className = 'pick-banner';
-            picksContainer.appendChild(bannerImage);
+            displayNoPicks(picksContainer);
         }
     } catch (error) {
         console.error('Error fetching picks:', error);
-        const picksContainer = playerRow.querySelector(isSurvivorPool ? '.survivor-player-picks' : '.player-picks');
-        picksContainer.innerHTML = '';
-        const errorMessage = document.createElement('div');
-        errorMessage.className = 'error-message';
-        errorMessage.textContent = ' ';
-        picksContainer.appendChild(errorMessage);
+        handleFetchError(playerRow);
     }
 }
 
+async function displaySurvivorPick(pick, container, teamLogos) {
+    const pickDiv = document.createElement('div');
+    pickDiv.className = 'survivor-pick';
+
+    if (pick.teamName && teamLogos[pick.teamName]) {
+        const logoImg = document.createElement('img');
+        logoImg.src = teamLogos[pick.teamName];
+        logoImg.alt = pick.teamName;
+        logoImg.className = 'team-logo';
+        pickDiv.appendChild(logoImg);
+    }
+
+    container.appendChild(pickDiv);
+}
 async function displayAllPicks(picks, container, teamLogos) {
     // Clear container first
     container.innerHTML = '';
