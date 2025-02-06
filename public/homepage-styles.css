@@ -3407,3 +3407,25 @@ body {
     font-weight: bold;
 }
 
+/* Add this to your CSS */
+.survivor-mode .team-logo {
+    width: 35px;  /* Increased from default size */
+    height: 35px; /* Increased from default size */
+    object-fit: contain;
+}
+
+/* Adjust the container to accommodate larger logos */
+.survivor-mode .survivor-player-picks {
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Adjust the survivor pick container if needed */
+.survivor-mode .survivor-pick {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+}
