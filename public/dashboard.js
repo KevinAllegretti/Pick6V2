@@ -2071,33 +2071,6 @@ function enableThursdayGameFeatures() {
     });
 }
 
-// Add required CSS
-const thursdayStyles = document.createElement('style');
-thursdayStyles.textContent = `
-    .thursday-immortal-lock {
-        border: 2px solid gold !important;
-        box-shadow: 0 0 10px gold !important;
-        position: relative;
-    }
-
-    .thursday-immortal-lock::after {
-        content: '🔒';
-        position: absolute;
-        top: -10px;
-        right: -10px;
-        font-size: 16px;
-    }
-
-    .thursday-locked {
-        opacity: 0.8;
-        pointer-events: none;
-    }
-
-    .user-thursday-pick {
-        border: 2px solid #63d1ed !important;
-    }
-`;
-document.head.appendChild(thursdayStyles);
 
 
 // Lock specific pick function with updated pick count management
