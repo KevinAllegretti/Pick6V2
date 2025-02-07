@@ -444,6 +444,124 @@ cron.schedule('0 0 * * 2', () => {
   updateThursdayDeadline();
 });
 
+// Mock NFL game data
+const mockNFLGames = [
+  {
+    completed: true,
+    home_team: "Philadelphia Eagles",
+    away_team: "Washington Commanders",
+    scores: [
+      { name: "Philadelphia Eagles", score: "31" },
+      { name: "Washington Commanders", score: "24" }
+    ]
+  },
+  {
+    completed: true,
+    home_team: "Kansas City Chiefs",
+    away_team: "Buffalo Bills",
+    scores: [
+      { name: "Kansas City Chiefs", score: "34" },
+      { name: "Buffalo Bills", score: "27" }
+    ]
+  },
+  {
+    completed: true,
+    home_team: "Miami Dolphins",
+    away_team: "Tampa Bay Buccaneers",
+    scores: [
+      { name: "Miami Dolphins", score: "28" },
+      { name: "Tampa Bay Buccaneers", score: "17" }
+    ]
+  },
+  {
+    completed: true,
+    home_team: "Cincinnati Bengals",
+    away_team: "Baltimore Ravens",
+    scores: [
+      { name: "Cincinnati Bengals", score: "21" },
+      { name: "Baltimore Ravens", score: "24" }
+    ]
+  },
+  {
+    completed: true,
+    home_team: "San Francisco 49ers",
+    away_team: "Dallas Cowboys",
+    scores: [
+      { name: "San Francisco 49ers", score: "27" },
+      { name: "Dallas Cowboys", score: "20" }
+    ]
+  },
+  {
+    completed: true,
+    home_team: "Green Bay Packers",
+    away_team: "Detroit Lions",
+    scores: [
+      { name: "Green Bay Packers", score: "23" },
+      { name: "Detroit Lions", score: "31" }
+    ]
+  },
+  {
+    completed: true,
+    home_team: "Seattle Seahawks",
+    away_team: "Los Angeles Rams",
+    scores: [
+      { name: "Seattle Seahawks", score: "24" },
+      { name: "Los Angeles Rams", score: "21" }
+    ]
+  },
+  {
+    completed: true,
+    home_team: "Jacksonville Jaguars",
+    away_team: "Los Angeles Chargers",
+    scores: [
+      { name: "Jacksonville Jaguars", score: "30" },
+      { name: "Los Angeles Chargers", score: "27" }
+    ]
+  }
+];
+
+async function mockFetchNFLScores() {
+  console.log('mockFetchNFLScores function started.');
+  
+  try {
+    // Simulate API response delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    console.log("Mock Scores data:", mockNFLGames);
+    
+    // Filter completed games (already all completed in our mock data)
+    const completedGames = mockNFLGames.filter(event => event.completed === true);
+    
+    gameScores = completedGames.map(event => {
+      if (!event.scores || !Array.isArray(event.scores)) {
+        console.log(`Skipping event due to missing or invalid scores:`, event);
+        return null;
+      }
+      
+      const homeTeam = event.home_team;
+      const awayTeam = event.away_team;
+      const homeScore:any = event.scores.find(s => s.name === event.home_team)?.score;
+      const awayScore:any = event.scores.find(s => s.name === event.away_team)?.score;
+      
+      return {
+        home_team: homeTeam,
+        away_team: awayTeam,
+        home_score: parseInt(homeScore, 10),
+        away_score: parseInt(awayScore, 10)
+      };
+    }).filter(match => match !== null);
+    
+    console.log('Completed scores fetched:', gameScores);
+    
+    await updateScores(gameScores);
+  } catch (error) {
+    console.error('Error in mock NFL scores:', error);
+  }
+}
+cron.schedule('32 13 * * 5', () => {
+  console.log("It's Thursday 4:00 PM");
+  mockFetchNFLScores();
+});
 
 /*
 cron.schedule('0 19 * * 4', () => {

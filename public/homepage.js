@@ -105,83 +105,6 @@ async function saveInitialTimes() {
     }
 }
 
-/*old w otu sunday and thu
-
-async function fetchTimeWindows() {
-    try {
-        const response = await fetch('/api/timewindows');
-        if (!response.ok) {
-            throw new Error('Network response was not ok.');
-        }
-        const times = await response.json();
-        return times;
-    } catch (error) {
-        console.error('Error fetching time windows:', error);
-    }
-}
-
-async function checkCurrentTimeWindow() {
-    try {
-        const response = await fetch('/api/timewindows');
-        if (!response.ok) {
-            throw new Error('Failed to fetch time windows.');
-        }
-
-        const { tuesdayStartTime, thursdayDeadline } = await response.json();
-        const now = getCurrentTimeInUTC4();
-        console.log("now: ", now);
-        const tuesdayTime = new Date(tuesdayStartTime);
-        const thursdayTime = new Date(thursdayDeadline);
-        console.log("Tuesday Start time: ", tuesdayTime);
-        console.log("thursday deadline: ", thursdayTime);
-        
-        if (now > tuesdayTime && now < thursdayTime) {
-            console.log('Current time window: Pick Time');
-            enablePickTimeFeatures();
-        } else if (now > thursdayTime && now < tuesdayTime) {
-            console.log('Current time window: Game Time');
-            enableGameTimeFeatures();
-            setupGameTimeListeners(); // Add this line
-        } else {
-            console.log('Error determining the current time window');
-        }
-    } catch (error) {
-        console.error('Error checking current time window:', error);
-    }
-}
-
-
-
-
-// Function to enable pick time features
-function enableGameTimeFeatures() {
-    // Select all choose picks buttons across all pools
-    const choosePicksButtons = document.querySelectorAll('.choose-picks-button');
-    
-    if (choosePicksButtons.length > 0) {
-        choosePicksButtons.forEach(button => {
-            button.classList.add('disabled');
-            button.textContent = 'Selections Unavailable';
-        });
-    } else {
-        console.error('No choose picks buttons found');
-    }
-}
-
-function enablePickTimeFeatures() {
-    // Select all choose picks buttons across all pools
-    const choosePicksButtons = document.querySelectorAll('.choose-picks-button');
-    
-    if (choosePicksButtons.length > 0) {
-        choosePicksButtons.forEach(button => {
-            button.classList.remove('disabled');
-            button.textContent = 'Make Picks';
-        });
-    } else {
-        console.error('No choose picks buttons found');
-    }
-}
-*/
 
 
 async function checkCurrentTimeWindow() {
@@ -221,22 +144,150 @@ async function checkCurrentTimeWindow() {
 }
 
 function enableThursdayGameFeatures() {
-    const choosePicksButtons = document.querySelectorAll('.global-picks-button');
-    if (choosePicksButtons.length > 0) {
-        choosePicksButtons.forEach(button => {
-            button.classList.remove('disabled');
-            
+    console.log('Enabling Thursday game features...');
+    const now = getCurrentTimeInUTC4();
+    const blackedOutGames = new Set();
+    const userThursdayPicks = new Set();
+
+    // Track all picks
+    const allPicks = [
+        ...userPicks,
+        ...lockedPicks,
+        ...(userImmortalLock ? [userImmortalLock] : []),
+        ...(lockedImmortalLock ? [lockedImmortalLock] : [])
+    ];
+
+    // Check for Thursday immortal lock first
+    const thursdayImmortalLock = allPicks.find(pick => {
+        if (!pick || !pick.commenceTime) return false;
+        
+        const isThursdayGame = checkIfThursdayGame(pick.commenceTime);
+        const matchingBet = betOptions.find(bet => 
+            (bet.homeTeam === pick.teamName || bet.awayTeam === pick.teamName)
+        );
+        
+        const isImmortalLock = (pick === userImmortalLock || pick === lockedImmortalLock);
+        
+        return isThursdayGame && matchingBet && isImmortalLock;
+    });
+
+    // If we found a Thursday immortal lock, set up the lock state
+    if (thursdayImmortalLock) {
+        // Set global state
+        isThursdayImmortalLockSet = true;
+        thursdayImmortalLockTeam = thursdayImmortalLock.teamName;
+
+        // Lock the UI
+        const immortalLockCheckbox = document.getElementById('immortalLockCheck');
+        if (immortalLockCheckbox) {
+            immortalLockCheckbox.checked = true;
+            immortalLockCheckbox.disabled = true;
+            immortalLockCheckbox.style.cursor = 'not-allowed';
+            immortalLockCheckbox.parentElement?.classList.add('thursday-locked');
+        }
+
+        // Add visual indicator ONLY to the specific immortal lock pick
+        const teamClass = thursdayImmortalLock.teamName.replace(/\s+/g, '-').toLowerCase();
+        const typeClass = thursdayImmortalLock.type.toLowerCase();
+        const betButtons = document.querySelectorAll(
+            `.bet-button[data-team="${teamClass}"][data-type="${typeClass}"]`
+        );
+        
+        betButtons.forEach(button => {
+            button.classList.add('thursday-immortal-lock');
+            button.setAttribute('title', 'Thursday Immortal Lock - Cannot be changed');
         });
-    } else {
-        console.error('No choose picks buttons found');
     }
 
-    // Add click handlers similar to enablePickTimeFeatures
-    choosePicksButtons.forEach(button => {
-        const poolName = button.closest('.pool-wrapper')?.getAttribute('data-pool-name');
-        if (poolName) {
-            button.onclick = () => redirectToDashboard(poolName);
-        }
+    // Process Thursday games
+    requestAnimationFrame(() => {
+        // Track user's Thursday picks
+        allPicks.forEach(pick => {
+            if (!pick || !pick.commenceTime) return;
+
+            if (checkIfThursdayGame(pick.commenceTime)) {
+                userThursdayPicks.add(`${pick.teamName}-${pick.type}`);
+            }
+        });
+
+        // Identify Thursday games
+        betOptions.forEach(bet => {
+            if (checkIfThursdayGame(bet.commenceTime)) {
+                blackedOutGames.add(`${bet.homeTeam} vs ${bet.awayTeam}`);
+            }
+        });
+
+        // Apply handlers to Thursday games
+        blackedOutGames.forEach(gameKey => {
+            const [awayTeam, homeTeam] = gameKey.split(' vs ');
+            
+            // Check if this matchup has any picks
+            const matchupHasPicks = allPicks.some(pick => 
+                pick.teamName === homeTeam || pick.teamName === awayTeam
+            );
+            
+            [homeTeam, awayTeam].forEach(team => {
+                const teamClass = team.replace(/\s+/g, '-').toLowerCase();
+                const betButtons = document.querySelectorAll(`.bet-button[data-team="${teamClass}"]`);
+                
+                betButtons.forEach(button => {
+                    const matchingBet = betOptions.find(bet => 
+                        (bet.homeTeam === team || bet.awayTeam === team) &&
+                        bet.type.toLowerCase() === button.dataset.type
+                    );
+
+                    if (matchingBet) {
+                        // Mark as Thursday game
+                        button.dataset.thursdayGame = 'true';
+
+                        // Store original click handler
+                        const originalOnClick = button.onclick;
+                        
+                        // Replace with new handler
+                        button.onclick = (e) => {
+                            e.stopPropagation();
+                            
+                            // Check if this specific button represents a current pick
+                            const isExistingPick = allPicks.some(pick => 
+                                pick.teamName === team && 
+                                pick.type === matchingBet.type
+                            );
+
+                            // If trying to pick in a fresh matchup, show commenced alert
+                            if (!isExistingPick && !matchupHasPicks) {
+                                alert('Thursday game has already commenced');
+                                return;
+                            }
+
+                            // If it's a Thursday immortal lock pick
+                            if (thursdayImmortalLock && 
+                                thursdayImmortalLock.teamName === team && 
+                                thursdayImmortalLock.type === matchingBet.type) {
+                                alert('Cannot change immortal lock - Thursday game is locked as your immortal lock!');
+                                return;
+                            }
+
+                            // If it's an existing pick, allow normal selection logic
+                            const option = {
+                                teamName: team,
+                                type: matchingBet.type,
+                                value: matchingBet.value
+                            };
+                            selectBet(option);
+                        };
+
+                        // Apply user pick styling if it's a current pick
+                        const isUserPick = Array.from(userThursdayPicks).some(pick => 
+                            pick.toLowerCase() === `${team}-${matchingBet.type}`.toLowerCase()
+                        );
+                        
+                        if (isUserPick) {
+                            button.classList.add('user-thursday-pick');
+                        }
+                    }
+                });
+            });
+        });
     });
 }
 function enableSundayGameFeatures() {
@@ -580,83 +631,6 @@ document.addEventListener('DOMContentLoaded', function() {
     window.history.replaceState({}, document.title, url.pathname);
 });
 
-
-//START OF POOLS AND PLAYERROWS
-/*
-document.getElementById('show-create-pool-form').addEventListener('click', function() {
-    // This line toggles the form's visibility.
-    var formContainer = document.getElementById('create-pool-form-container');
-    formContainer.style.display = formContainer.style.display === 'none' ? 'block' : 'none';
-    
-    // These lines change the button text depending on the form's visibility.
-    if (formContainer.style.display === 'block') {
-        this.textContent = 'Go Back';
-    } else {
-        this.textContent = 'Create Pool';
-    }
-});
-
-
-document.getElementById('is-private').addEventListener('change', function() {
-    const passwordInput = document.getElementById('pool-password');
-    const passwordLabel = document.querySelector('label[for="pool-password"]');
-    const displayStyle = this.checked ? 'block' : 'none';
-
-    passwordInput.style.display = displayStyle;
-    passwordLabel.style.display = displayStyle;
-});
-
-document.getElementById('create-pool-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const poolName = document.getElementById('pool-name').value.trim();
-    const isPrivate = document.getElementById('is-private').checked;
-    const poolPassword = document.getElementById('pool-password').value;
-    let username = localStorage.getItem('username'); // Retrieve username from local storage
-
-    if (!username) {
-        alert('Username not found. Please log in again.');
-        return;
-    }
-
-    username = username.toLowerCase(); // Ensure username is in lowercase
-
-    const payload = {
-      name: poolName,
-      isPrivate: isPrivate,
-      adminUsername: username.toLowerCase(),
-      ...(isPrivate && { password: poolPassword })
-    };
-    
-    fetch('/pools/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    })
-    .then(response => {
-        if (!response.ok) {
-            if (response.status === 409){
-                alert('The pool name is already taken. Please choose another name.')
-            } else {
-            throw new Error(`HTTP error! Status: ${response.status}`);}
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.message && data.pool) {
-            document.getElementById('create-pool-form-container').style.display = 'none';
-            displayNewPoolContainer(data.pool);
-            document.getElementById('pool-name').value = '';
-            document.getElementById('is-private').checked = false;
-            document.getElementById('pool-password').value = '';
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while creating the pool.');
-    });
-});
-*/
 document.addEventListener('DOMContentLoaded', function() {
     const globalPicksButton = document.getElementById('globalPicksButton');
     const survivorPicksButton = document.getElementById('survivorPicksButton');
@@ -898,143 +872,7 @@ function sortPlayersByPoints(players) {
             return userProfile;
         });
 }
-/*
-async function displaySurvivorPool(pool) {
-    const teamLogos = {
-        'Arizona Cardinals': '/ARILogo.png',
-        'Atlanta Falcons': '/ATLLogo.png',
-        'Baltimore Ravens': '/BALLogo.png',
-        'Buffalo Bills': '/BUFLogo.png',
-        'Carolina Panthers': '/CARLogo.png',
-        'Chicago Bears': '/CHILogo.png',
-        'Cincinnati Bengals': '/CINLogo.png',
-        'Cleveland Browns': '/CLELogo.png',
-        'Dallas Cowboys': '/DALLogo.png',
-        'Denver Broncos': '/DENLogo.png',
-        'Detroit Lions': '/DETLogo.png',
-        'Green Bay Packers': '/GBLogo.png',
-        'Houston Texans': '/HOULogo.png',
-        'Indianapolis Colts': '/INDLogo.png',
-        'Jacksonville Jaguars': '/JAXLogo.png',
-        'Kansas City Chiefs': '/KCLogo.png',
-        'Las Vegas Raiders': '/LVLogo.png',
-        'Los Angeles Chargers': '/LACLogo.png',
-        'Los Angeles Rams': '/LARLogo.png',
-        'Miami Dolphins': '/MIALogo.png',
-        'Minnesota Vikings': '/MINLogo.png',
-        'New England Patriots': '/NELogo.png',
-        'New Orleans Saints': '/NOLogo.png',
-        'New York Giants': '/NYGLogo.png',
-        'New York Jets': '/NYJLogo.png',
-        'Philadelphia Eagles': '/PHILogo.png',
-        'Pittsburgh Steelers': '/PITLogo.png',
-        'San Francisco 49ers': '/SFLogo.png',
-        'Seattle Seahawks': '/SEALogo.png',
-        'Tampa Bay Buccaneers': '/TBLogo.png',
-        'Tennessee Titans': '/TENLogo.png',
-        'Washington Commanders': '/WASLogo.png'
-    };
 
-    let username = localStorage.getItem('username');
-    if (!username) {
-        console.error('No logged-in user found!');
-        return;
-    }
-
-    username = username.toLowerCase();
-
-    // Find or create ordered container
-    let orderedContainer = document.getElementById('ordered-pools-container');
-    if (!orderedContainer) {
-        orderedContainer = document.createElement('div');
-        orderedContainer.id = 'ordered-pools-container';
-        document.getElementById('pool-container-wrapper').appendChild(orderedContainer);
-    }
-
-    const poolWrapper = document.createElement('div');
-    poolWrapper.className = 'pool-wrapper survivor-mode';
-    poolWrapper.setAttribute('data-pool-name', pool.name);
-    poolWrapper.setAttribute('data-admin-username', pool.adminUsername);
-    
-    // Get member's order index
-    const memberOrder = pool.members.find(m => 
-        m.username.toLowerCase() === username
-    )?.orderIndex ?? 0;
-    poolWrapper.style.order = memberOrder;
-
-    // Pool name container
-    const poolNameContainer = document.createElement('div');
-    poolNameContainer.className = 'pool-name-container';
-    
-    const poolNameDiv = document.createElement('div');
-    poolNameDiv.className = 'survivor-pool-name';
-    poolNameDiv.innerText = pool.name;
-
-    // User count
-    const userCountDiv = document.createElement('div');
-    userCountDiv.className = 'survivor-user-count';
-    userCountDiv.innerHTML = `
-        <i class="fas fa-users"></i>
-        <span>${pool.members.length}</span>
-    `;
-
-    poolNameContainer.appendChild(poolNameDiv);
-    poolNameContainer.appendChild(userCountDiv);
-
-    // Create scrollable container
-    const poolScrollableContainer = document.createElement('div');
-    poolScrollableContainer.className = 'pool-scrollable-container';
-
-    // Create pool container
-    const poolContainer = document.createElement('div');
-    poolContainer.className = 'survivor-pool-container';
-
-    // Create header
-    const poolHeader = document.createElement('div');
-    poolHeader.className = 'survivor-pool-header';
-    poolHeader.innerHTML = `
-        <span class="survivor-header-user">USER</span>
-        <span class="survivor-header-picks">PICK</span>
-        <span class="survivor-header-eliminated">STATUS</span>
-    `;
-    poolContainer.appendChild(poolHeader);
-
-    try {
-        // Process members sequentially
-        const membersData = await Promise.all(pool.members.map(member => 
-            fetchUserProfile(member.username).then(userProfile => ({
-                username: userProfile.username,
-                profilePic: userProfile.profilePicture,
-                isEliminated: member.isEliminated || false
-            }))
-        ));
-
-        membersData.forEach(memberData => {
-            const playerRow = createSurvivorPlayerRow(memberData, username);
-            fetchSurvivorPick(memberData.username, pool.name, playerRow, teamLogos);
-            poolContainer.appendChild(playerRow);
-        });
-
-        poolScrollableContainer.appendChild(poolContainer);
-        poolWrapper.appendChild(poolNameContainer);
-        poolWrapper.appendChild(poolScrollableContainer);
-
-        // Add chat container from template
-        const chatTemplate = document.getElementById('chat-template').content.cloneNode(true);
-        poolWrapper.appendChild(chatTemplate);
-
-        // Add to ordered container
-        orderedContainer.appendChild(poolWrapper);
-
-        // Update pool actions list after adding pool
-        setTimeout(() => {
-            updatePoolActionsList();
-        }, 100);
-
-    } catch (error) {
-        console.error('Error displaying survivor pool:', error);
-    }
-}*/
 
 function createSurvivorPlayerRow(memberData, currentUsername) {
     const playerRow = document.createElement('div');
@@ -1673,113 +1511,6 @@ function checkIfThursdayGame(commenceTime) {
 }
 
 
-/*
-async function fetchPicks(username, poolName, playerRow, teamLogos) {
-    const encodedUsername = encodeURIComponent(username);
-    const encodedPoolName = encodeURIComponent(poolName);
-    const url = `/api/getPicks/${encodedUsername}/${encodedPoolName}`;
-
-
-    try {
-        const timePhase = await getCurrentTimePhase();
-        const picksResponse = await fetch(url);
-        if (!picksResponse.ok) {
-            throw new Error(`HTTP error! status: ${picksResponse.status}`);
-        }
-        const picksData = await picksResponse.json();
-        
-        const picksContainer = playerRow.querySelector('.player-picks');
-        picksContainer.innerHTML = '';
-
-        // Get reference to the immortal lock container
-        const immortalLockContainer = playerRow.querySelector('.player-immortal-lock');
-        immortalLockContainer.innerHTML = '';
-
-        const isCurrentUser = username === localStorage.getItem('username').toLowerCase();
-
-        if (picksData && picksData.picks && Array.isArray(picksData.picks)) {
-            // Sort picks by commence time
-            picksData.picks.sort((a, b) => new Date(a.commenceTime) - new Date(b.commenceTime));
-            console.log('All picks:', picksData.picks);
-            if (isCurrentUser) {
-                // Current user always sees their own picks
-                await displayAllPicks(picksData.picks, picksContainer, teamLogos);
-            } else {
-                switch (timePhase) {
-                    case 'pick':
-                        displayPickTimeBanner(picksContainer);
-                        break;
-                        case 'thursday':
-    console.log('Processing Thursday game time picks');
-    
-    // Filter for Thursday night games
-    const thursdayPicks = picksData.picks.filter(pick => 
-        checkIfThursdayGame(pick.commenceTime)
-    );
-    
-    if (thursdayPicks.length > 0) {
-        // User has Thursday picks - display them and show locked banner for remaining picks
-        console.log('User has Thursday picks:', thursdayPicks);
-        await displayAllPicks(thursdayPicks, picksContainer, teamLogos);
-        
-        // If there are non-Thursday picks, show locked banner
-        if (picksData.picks.length > thursdayPicks.length) {
-            const lockedBanner = document.createElement('img');
-            lockedBanner.src = 'ThursdayLocked.png';
-            lockedBanner.alt = 'Picks Locked';
-            lockedBanner.className = 'locked-picks-banner';
-            picksContainer.appendChild(lockedBanner);
-        }
-    } else {
-        // User has no Thursday picks - show pick time banner
-        console.log('User has no Thursday picks - showing pick time banner');
-        const pickTimeBanner = document.createElement('img');
-        pickTimeBanner.src = 'PickTimeNew.png';
-        pickTimeBanner.alt = 'Player Making Selection';
-        pickTimeBanner.className = 'pick-banner';
-        picksContainer.appendChild(pickTimeBanner);
-    }
-    break;
-                    case 'sunday':
-                        // Show all picks during Sunday phase
-                        await displayAllPicks(picksData.picks, picksContainer, teamLogos);
-                        break;
-                }
-            }
-
-            // Handle immortal lock display
-            if (picksData.immortalLock && picksData.immortalLock.length > 0) {
-                const immortalPick = picksData.immortalLock[0];
-                
-                if (isCurrentUser) {
-                    // Always show current user's immortal lock
-                    displayImmortalLock(immortalPick, immortalLockContainer, teamLogos);
-                } else {
-                    switch (timePhase) {
-                        case 'pick':
-                            // Don't show immortal lock during pick time
-                            break;
-                        case 'thursday':
-                            // Show immortal lock only if it's a Thursday game
-                            if (await checkIfThursdayGame(immortalPick.commenceTime)) {
-                                displayImmortalLock(immortalPick, immortalLockContainer, teamLogos);
-                            }
-                            break;
-                        case 'sunday':
-                            // Show all immortal locks
-                            displayImmortalLock(immortalPick, immortalLockContainer, teamLogos);
-                            break;
-                    }
-                }
-            }
-        } else {
-            displayNoPicks(picksContainer);
-        }
-    } catch (error) {
-        console.error('Error fetching picks:', error);
-        handleFetchError(playerRow);
-    }
-}*/
 async function fetchPicks(username, poolName, playerRow, teamLogos, isSurvivorPool = false) {
     const encodedUsername = encodeURIComponent(username);
     const encodedPoolName = encodeURIComponent(poolName);

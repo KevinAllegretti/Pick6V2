@@ -1358,3 +1358,16 @@ h4 {
   margin: 0 20px;
   font-family: 'Montserrat', sans-serif;
 }
+
+
+
+
+
+/* User's Thursday pick styles */
+.bet-button[data-thursday-game="true"].thursday-immortal-lock {
+  background-color: black !important;
+  color: rgb(255, 215, 0) !important;
+  border: 2px solid rgb(255, 215, 0) !important;
+  box-shadow: 0 0 10px rgba(229, 255, 0, 0.856)!important;
+  text-shadow: 0 0 5px rgb(255, 215, 0) !important;
+}
