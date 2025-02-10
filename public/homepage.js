@@ -417,9 +417,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Event listener for in-pool profile clicks
     document.addEventListener('click', function(event) {
-        if (event.target.closest('.player-username') || event.target.closest('.player-profile-pic')) {
-            const username = event.target.closest('.player-user').querySelector('.player-username').textContent.trim()
-            showInPoolUserProfile(username);
+        // Check for both classic and survivor pool profile clicks
+        if (event.target.closest('.player-username') || event.target.closest('.player-profile-pic') ||
+            event.target.closest('.survivor-player-user')) {
+            // Find the username element in either classic or survivor layout
+            const playerElement = event.target.closest('.player-user') || event.target.closest('.survivor-player-user');
+            if (playerElement) {
+                const username = playerElement.querySelector('.player-username').textContent.trim();
+                showInPoolUserProfile(username);
+            }
         }
     });
 
@@ -873,7 +879,6 @@ function sortPlayersByPoints(players) {
         });
 }
 
-
 function createSurvivorPlayerRow(memberData, currentUsername) {
     const playerRow = document.createElement('div');
     playerRow.className = 'survivor-player-row';
@@ -885,6 +890,14 @@ function createSurvivorPlayerRow(memberData, currentUsername) {
     if (memberData.isEliminated) {
         playerRow.classList.add('eliminated-player'); // Add class to apply red styling
     }
+
+    // Add click event handler for profile interaction
+    playerRow.addEventListener('click', (event) => {
+        const clickedElement = event.target;
+        if (clickedElement.closest('.survivor-player-user')) {
+            showInPoolUserProfile(memberData.username);
+        }
+    });
 
     playerRow.innerHTML = `
         <div class="survivor-player-user">
