@@ -788,14 +788,10 @@ h2 {
 
 
 .pool-name {
-    font-family: 'Electrolize', sans-serif;
     font-size: 20px;
-    color: #0a0f22;
-    text-shadow:
-    -.5px -.5px 0 #00ccff,  
-    .5px -.5px 0 #00ccff,
-    -.5px .5px 0 #00ccff,
-    .5px .5px 0 #00ccff;
+    font-family: 'Russo One', sans-serif;
+    color: #ffffff;
+    text-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff;
     text-align: left; /* Align text to the left */
     max-width:100% ;/* Takes the full width of its parent */
     margin-bottom: 1px; 
@@ -2564,15 +2560,10 @@ button:hover {
 
 /* Pool name styling */
 .survivor-pool-name {
-    font-family: 'Electrolize', sans-serif;
     font-size: 20px;
-    color: #0a0f22;
-    text-shadow:
-        -.5px -.5px 0 #39FF14,
-        .5px -.5px 0 #39FF14,
-        -.5px .5px 0 #39FF14,
-        .5px .5px 0 #39FF14;
-    text-align: left;
+    font-family: 'Russo One', sans-serif;
+    color: #ffffff;
+    text-shadow: 0 0 10px #39FF14, 0 0 20px #39FF14;
     margin-bottom: 1px;
     margin-left: 10px;
     line-height: 1;
