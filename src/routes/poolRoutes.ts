@@ -37,6 +37,7 @@ interface BaseMember {
     orderIndex: number;
 }
 
+// Classic pool member type
 interface ClassicMember extends BaseMember {
     points: number;
     picks: never[];
@@ -45,24 +46,28 @@ interface ClassicMember extends BaseMember {
     push: number;
 }
 
+// Survivor pool member type
 interface SurvivorMember extends BaseMember {
     isEliminated: boolean;
 }
 
-const createMemberByMode = (user: any, username: string, orderIndex: number, mode: string): ClassicMember | SurvivorMember => {
+// Function to create appropriate member based on pool mode
+const createMemberByMode = (user: any, username: string, orderIndex: number, mode: 'classic' | 'survivor'): ClassicMember | SurvivorMember => {
+    const baseMember = {
+        user: user._id,
+        username: username.toLowerCase(),
+        orderIndex,
+    };
+
     if (mode === 'survivor') {
         return {
-            user: user._id,
-            username: username.toLowerCase(),
-            orderIndex,
+            ...baseMember,
             isEliminated: false
         };
     }
 
     return {
-        user: user._id,
-        username: username.toLowerCase(),
-        orderIndex,
+        ...baseMember,
         points: 0,
         picks: [],
         win: 0,
@@ -70,6 +75,7 @@ const createMemberByMode = (user: any, username: string, orderIndex: number, mod
         push: 0
     };
 };
+
 
 router.post('/create', async (req, res) => {
     try {
@@ -142,7 +148,14 @@ router.post('/create', async (req, res) => {
         res.status(500).json({ message: 'Error creating pool', error });
     }
 });
-
+async function checkEliminationStatus(poolsCollection: any, poolName: string, username: string): Promise<boolean> {
+    const pool = await poolsCollection.findOne({
+        name: poolName,
+        mode: 'survivor',
+        'eliminatedMembers.username': username.toLowerCase()
+    });
+    return pool !== null;
+}
 router.post('/joinByName', async (req, res) => {
     try {
         const { poolName, username, poolPassword } = req.body;
@@ -199,8 +212,16 @@ router.post('/joinByName', async (req, res) => {
                 }
             }));
 
-            // Create new member with appropriate schema based on pool mode
+            // Create member based on pool mode
             const newMember = createMemberByMode(user, username, 0, pool.mode);
+
+            // If survivor pool, check for previous elimination
+            if (pool.mode === 'survivor') {
+                const isEliminated = await checkEliminationStatus(poolsCollection, poolName, username);
+                if (isEliminated) {
+                    (newMember as SurvivorMember).isEliminated = true;
+                }
+            }
 
             await poolsCollection.updateOne(
                 { name: poolName },
@@ -219,6 +240,8 @@ router.post('/joinByName', async (req, res) => {
         res.status(500).json({ message: 'Error joining pool', error });
     }
 });
+
+
 
 router.get('/getSurvivorStatus/:username/:poolName', async (req, res) => {
     try {
@@ -256,18 +279,42 @@ router.post('/updateSurvivorStatus', async (req, res) => {
         const database = await connectToDatabase();
         const poolsCollection = database.collection('pools');
 
-        const result = await poolsCollection.updateOne(
+        // Define update operations with proper typing
+        const updateOperations = [
             {
-                name: poolName,
-                mode: 'survivor',
-                'members.username': username.toLowerCase()
-            },
-            {
-                $set: {
-                    'members.$.isEliminated': isEliminated
+                updateOne: {
+                    filter: {
+                        name: poolName,
+                        mode: 'survivor',
+                        'members.username': username.toLowerCase()
+                    },
+                    update: {
+                        $set: {
+                            'members.$.isEliminated': isEliminated
+                        }
+                    }
                 }
             }
-        );
+        ] as any[]; // Type assertion for the array
+
+        // If eliminating, add to eliminatedMembers array
+        if (isEliminated) {
+            updateOperations.push({
+                updateOne: {
+                    filter: { name: poolName },
+                    update: {
+                        $addToSet: {
+                            eliminatedMembers: {
+                                username: username.toLowerCase(),
+                                eliminatedAt: new Date()
+                            }
+                        }
+                    } as any // Type assertion for the $addToSet operation
+                }
+            });
+        }
+
+        const result = await poolsCollection.bulkWrite(updateOperations);
 
         if (result.matchedCount === 0) {
             return res.status(404).json({ message: 'Pool or user not found' });

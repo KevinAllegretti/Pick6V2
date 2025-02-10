@@ -47,6 +47,13 @@ const poolSchema = new mongoose.Schema({
       message: 'Members schema must match pool mode (classic/survivor)'
     }
   },
+  eliminatedMembers: {  // New field to track eliminated members
+    type: [{
+      username: String,
+      eliminatedAt: Date
+    }],
+    default: [],
+  },
   isPrivate: {
     type: Boolean,
     default: false,

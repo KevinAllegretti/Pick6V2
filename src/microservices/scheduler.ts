@@ -181,7 +181,7 @@ async function updateScores(gameScores: any[]) {
       await saveResultsToServer(allResults);
   }
 
-
+/* old one w out surivor picks
 async function processPick(username, poolName, pickEntry, gameScores, allResults, resultsCollection, isImmortalLock) {
   const { teamName, value: betValue } = pickEntry;
   
@@ -270,6 +270,134 @@ async function processPick(username, poolName, pickEntry, gameScores, allResults
       console.log(`Updating stats for ${username} in pool ${poolName} - Wins: ${winIncrement}, Losses: ${lossIncrement}, Pushes: ${pushIncrement}`);
       // Update user stats
       await updateUserStats(username, poolName, winIncrement, lossIncrement, pushIncrement);
+  } catch (error) {
+      console.error('Error processing bet result:', error);
+  }
+}*/
+
+async function processPick(username, poolName, pickEntry, gameScores, allResults, resultsCollection, isImmortalLock) {
+  const { teamName, value: betValue } = pickEntry;
+  
+  // Find the match in the gameScores
+  const match = gameScores.find(m => m.home_team === teamName || m.away_team === teamName);
+
+  if (!match) {
+      console.log(`No game score available for ${teamName}, skipping...`);
+      return;
+  }
+
+  if (typeof match.completed !== 'undefined' && !match.completed) {
+      console.log(`Game for ${teamName} is still ongoing, skipping...`);
+      return;
+  }
+
+  if (!betValue) {
+      console.error('Invalid betValue for pickEntry:', pickEntry);
+      return;
+  }
+
+  const homeTeamScore = parseInt(match.home_score, 10);
+  const awayTeamScore = parseInt(match.away_score, 10);
+  const homeTeam = match.home_team;
+  const awayTeam = match.away_team;
+
+  if (isNaN(homeTeamScore) || isNaN(awayTeamScore)) {
+      console.error(`Invalid scores for match between ${homeTeam} and ${awayTeam}. Skipping...`);
+      return;
+  }
+
+  try {
+      // Check if the result is already in the database
+      const existingResult = await resultsCollection.findOne({ 
+          identifier: 'currentResults', 
+          "results.username": username, 
+          "results.poolName": poolName, 
+          "results.teamName": teamName, 
+          "results.betValue": betValue 
+      });
+
+      if (existingResult) {
+          console.log(`Result already exists for ${teamName}, skipping...`);
+          return;
+      }
+
+      // Get the bet result
+      const { result, odds } = getBetResult(betValue, homeTeamScore, awayTeamScore, teamName, homeTeam, awayTeam);
+      const points = calculatePointsForResult({ result, odds, type: isImmortalLock ? 'ImmortalLock' : undefined });
+
+      // Check if we need to eliminate the user (for survivor pools)
+      const database = await connectToDatabase();
+      const poolsCollection = database.collection('pools');
+      
+      // Get the pool to check if it's a survivor pool
+      const pool = await poolsCollection.findOne({ name: poolName });
+      
+      if (pool && pool.mode === 'survivor') {
+          const numericValue = parseFloat(betValue.replace(/[^-+\d.]/g, ''));
+          const isMoneylineBet = Math.abs(numericValue) >= 100;
+          
+          if (isMoneylineBet && result === 'miss') {
+              console.log(`Eliminating user ${username} from survivor pool ${poolName} due to moneyline loss`);
+              
+              // Update survivor status
+              await poolsCollection.updateOne(
+                  {
+                      name: poolName,
+                      'members.username': username.toLowerCase()
+                  },
+                  {
+                      $set: {
+                          'members.$.isEliminated': true
+                      }
+                  }
+              );
+
+              // Add to eliminatedMembers array
+              await poolsCollection.updateOne(
+                  { name: poolName },
+                  {
+                      $addToSet: {
+                          eliminatedMembers: {
+                              username: username.toLowerCase(),
+                              eliminatedAt: new Date()
+                          }
+                      }
+                  }
+              );
+          }
+      }
+
+      // Check if the pick is already in allResults
+      const resultAlreadyProcessed = allResults.find(
+          r => r.username === username && r.poolName === poolName && r.teamName === teamName && r.betValue === betValue
+      );
+
+      if (resultAlreadyProcessed) {
+          console.log(`Result already processed for ${teamName}, skipping...`);
+          return;
+      }
+
+      allResults.push({ username, poolName, teamName, betValue, result, points, isImmortalLock });
+
+      // Update user stats (if not eliminated)
+      let winIncrement = 0, lossIncrement = 0, pushIncrement = 0;
+      if (result === 'hit') {
+          winIncrement = 1;
+      } else if (result === 'miss') {
+          lossIncrement = 1;
+      } else if (result === 'push') {
+          pushIncrement = 1;
+      }
+
+      await updateUserStats(username, poolName, winIncrement, lossIncrement, pushIncrement);
+      
+      // Only update points if not in survivor mode or if the user isn't eliminated
+      if (!pool?.mode || pool.mode !== 'survivor') {
+          if (points !== 0) {
+              await updateUserPoints(username, points, poolName);
+          }
+      }
+
   } catch (error) {
       console.error('Error processing bet result:', error);
   }
@@ -496,8 +624,8 @@ const mockNFLGames = [
     home_team: "Green Bay Packers",
     away_team: "Detroit Lions",
     scores: [
-      { name: "Green Bay Packers", score: "23" },
-      { name: "Detroit Lions", score: "31" }
+      { name: "Green Bay Packers", score: "31" },
+      { name: "Detroit Lions", score: "24" }
     ]
   },
   {
@@ -558,7 +686,7 @@ async function mockFetchNFLScores() {
     console.error('Error in mock NFL scores:', error);
   }
 }
-cron.schedule('32 13 * * 5', () => {
+cron.schedule('51 12 * * 1', () => {
   console.log("It's Thursday 4:00 PM");
   mockFetchNFLScores();
 });
