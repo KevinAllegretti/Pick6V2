@@ -393,9 +393,9 @@ function updateNavUsername() {
             if (now > tuesdayTime && now < sundayTime) {
                 // Pick Time (continues until Sunday deadline)
                 const timeLeft = sundayTime - now;
-                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60)) + 1;
 
                 container.innerHTML = `
                 <div class="countdown-title">Pick Time</div>
@@ -437,7 +437,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const loggedInUsername = localStorage.getItem('username');
     console.log("Logged in user:", loggedInUsername);
     updateCountdown();
-    setInterval(updateCountdown, 60000);
+    setInterval(updateCountdown, 1000);
     updateNavUsername();
     const profileIcon = document.getElementById('profileIconTemplate');
     const slideOutPanel = document.getElementById('slideOutPanel');
