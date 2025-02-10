@@ -379,7 +379,53 @@ function updateNavUsername() {
       document.getElementById('navUsername').textContent = username;
     }
   }
+  function updateCountdown() {
+    const container = document.getElementById('countdown-container');
+    if (!container) return;
 
+    fetch('/api/timewindows')
+        .then(response => response.json())
+        .then(data => {
+            const now = new Date();
+            const tuesdayTime = new Date(data.tuesdayStartTime);
+            const sundayTime = new Date(data.sundayDeadline);
+
+            if (now > tuesdayTime && now < sundayTime) {
+                // Pick Time (continues until Sunday deadline)
+                const timeLeft = sundayTime - now;
+                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+
+                container.innerHTML = `
+                <div class="countdown-title">Pick Time</div>
+                <div class="countdown-timer">
+                    <div class="time-unit">
+                        <div class="time-value">${String(days).padStart(2, '0')}</div>
+                        <div class="time-label">Days</div>
+                    </div>
+                    <div class="time-unit">
+                        <div class="time-value">${String(hours).padStart(2, '0')}</div>
+                        <div class="time-label">Hours</div>
+                    </div>
+                    <div class="time-unit">
+                        <div class="time-value">${String(minutes).padStart(2, '0')}</div>
+                        <div class="time-label">Minutes</div>
+                    </div>
+                </div>
+                <div class="deadline-text">until deadline</div>
+            `;
+            } else if (now > sundayTime && now < tuesdayTime) {
+                // Game Time
+                container.innerHTML = `
+                    <div class="game-time">
+                        IT'S GAME TIME!
+                    </div>
+                `;
+            }
+        })
+        .catch(error => console.error('Error fetching time windows:', error));
+}
 //START OF HOMEPAGE
 document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -390,7 +436,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const loggedInUsername = localStorage.getItem('username');
     console.log("Logged in user:", loggedInUsername);
-
+    updateCountdown();
+    setInterval(updateCountdown, 60000);
     updateNavUsername();
     const profileIcon = document.getElementById('profileIconTemplate');
     const slideOutPanel = document.getElementById('slideOutPanel');
