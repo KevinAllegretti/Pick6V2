@@ -1124,23 +1124,9 @@ button:hover {
 }
 
 
-/* Remove the general rule that applies the line after every div */
-.player-row > div::after {
-    content: none;
-}
 
 
-/* Apply the vertical line specifically after the 'Picks' column */
-.player-row > div:nth-child(7)::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 30px;
-    width: 1px;
-    background-color: #33d9ff;
-}
+
 
 
 /* Other cosmetic styling (background colors, hover effects, etc.) can be added as needed */
@@ -3430,10 +3416,12 @@ body {
 .survivor-picks-button {
     display: block;
     width: auto;
+    max-width: 320px;
     margin: 20px auto;
     padding: 10px 30px;
+    max-height: 55px;
     font-family: 'Russo One', sans-serif;
-    font-size: 1.2em;
+    font-size: 1.0em;
     font-weight: 500;
     color: #ffffff;
     background: rgba(57, 255, 20, 0.2);
@@ -3591,4 +3579,30 @@ body {
     opacity: 0.7;
     letter-spacing: 0.1em;
     text-transform: uppercase;
+}
+
+.pool-header > span:not(:last-child)::after,
+.player-row > div:not(:last-child)::after {
+    content: '' !important;
+    position: absolute !important;
+    right: 0 !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    height: 30px !important;
+    width: 1.5px !important;
+    background-color: #33d9ff !important;
+}
+
+
+/* Ensure the picks submitted background doesn't interfere */
+.picks-submitted-background {
+    z-index: 1 !important;
+    position: relative !important;
+}
+
+/* Container positioning */
+.player-picks, 
+.player-immortal-lock {
+    position: relative !important;
+    z-index: 1 !important;
 }
