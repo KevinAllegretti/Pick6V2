@@ -3414,14 +3414,16 @@ body {
 
 /* Survivor Picks Button Styling */
 .survivor-picks-button {
-    display: block;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     width: auto;
     max-width: 320px;
     margin: 20px auto;
-    padding: 10px 30px;
-    max-height: 55px;
+    padding: 0 30px;
+    height: 55px;  /* Changed from max-height to fixed height */
     font-family: 'Russo One', sans-serif;
-    font-size: 1.0em;
+    font-size: 1.2em;
     font-weight: 500;
     color: #ffffff;
     background: rgba(57, 255, 20, 0.2);
