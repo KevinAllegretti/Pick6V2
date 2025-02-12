@@ -459,6 +459,7 @@ function sortPicks(picks) {
 
 
 // Update fetchUserPicksAndRender to handle the all pools view with Thursday picks
+/*
 async function fetchUserPicksAndRender(username, poolSelection) {
     try {
         // Reset state
@@ -483,7 +484,9 @@ async function fetchUserPicksAndRender(username, poolSelection) {
         console.error('Error fetching user picks:', error);
         clearAllSelections();
     }
-}
+}*/
+
+
 
 
 // Helper function to sort picks for comparison
@@ -495,29 +498,74 @@ function sortPicks(picks) {
     });
 }
 
-// Update fetchUserPicksAndRender to handle the all pools view with Thursday picks
-async function fetchUserPicksAndRender(username, poolSelection) {
-    try {
-        // Reset state
-        userPicks = [];
-        userImmortalLock = null;
-        lockedPicks = [];
-        lockedImmortalLock = null;
-        picksCount = 0;
 
-        if (poolSelection === 'all' && window.allPoolsThursdayPicks) {
-            // For "all" view, preserve the common Thursday picks
-            lockedPicks = window.allPoolsThursdayPicks.picks || [];
-            lockedImmortalLock = window.allPoolsThursdayPicks.immortalLock?.[0] || null;
-            picksCount = lockedPicks.length;
+async function fetchUserPicksAndRender(username, poolSelection) {
+    console.log('\n=== Fetching User Picks ===');
+    console.log('Username:', username);
+    console.log('Pool Selection:', poolSelection);
+
+    try {
+        // First verify the pool mode
+        const poolsResponse = await fetch(`/pools/userPools/${encodeURIComponent(username)}`);
+        const pools = await poolsResponse.json();
+        
+        const selectedPoolData = pools.find(p => p.name === poolSelection);
+        console.log('Selected pool data:', selectedPoolData);
+
+        if (!selectedPoolData) {
+            console.error('Pool not found');
+            return;
         }
 
-        // Rest of the existing fetchUserPicksAndRender logic...
-        // [Previous implementation continues here]
-    } catch (error) {
-        console.error('Error fetching user picks:', error);
+        if (selectedPoolData.mode !== 'survivor') {
+            console.error('Not a survivor pool:', selectedPoolData);
+            return;
+        }
+
+        // Fetch picks for the survivor pool
+        const response = await fetch(`/api/getPicks/${username}/${poolSelection}`);
+        const data = await response.json();
+        
+        console.log('Fetched picks data:', data);
+
+        // Clear existing picks
         clearAllSelections();
+
+        // Render picks if they exist
+        if (data.picks && Array.isArray(data.picks)) {
+            console.log('Rendering regular picks:', data.picks);
+            data.picks.forEach(pick => {
+                console.log('Rendering pick:', pick);
+                renderPick(pick, false);
+            });
+        }
+
+        // Render immortal lock if it exists
+        if (data.immortalLock && Array.isArray(data.immortalLock) && data.immortalLock.length > 0) {
+            console.log('Rendering immortal lock:', data.immortalLock[0]);
+            renderPick(data.immortalLock[0], true);
+        }
+
+    } catch (error) {
+        console.error('Error in fetchUserPicksAndRender:', error);
     }
+}
+
+// Add logging to renderPick function
+function renderPick(pick, isImmortalLock) {
+    console.log('\n=== Rendering Pick ===');
+    console.log('Pick:', pick);
+    console.log('Is Immortal Lock:', isImmortalLock);
+    
+    const option = {
+        teamName: pick.teamName,
+        type: pick.type,
+        value: pick.value,
+        commenceTime: pick.commenceTime
+    };
+    
+    console.log('Created option:', option);
+    selectBet(option, true);
 }
 const style = document.createElement('style');
 style.textContent = `
@@ -659,7 +707,12 @@ function setupEventListeners() {
                 document.querySelectorAll('.bet-button').forEach(button => {
                     button.classList.remove('selected', 'immortal-lock-selected', 'user-thursday-pick');
                 });
-                document.getElementById('immortalLockCheck').checked = false;
+
+                // Safely handle checkbox state
+                const immortalLockCheck = document.getElementById('immortalLockCheck');
+                if (immortalLockCheck) {
+                    immortalLockCheck.checked = false;
+                }
         
                 // Fetch picks for the new pool
                 const response = await fetch(`/api/getPicks/${storedUsername}/${selectedPool}`);
@@ -667,7 +720,7 @@ function setupEventListeners() {
                 console.log('Fetched picks for pool:', data);
         
                 // Handle regular picks
-                if (data.picks) {
+                if (data.picks && Array.isArray(data.picks)) {
                     data.picks.forEach(pick => {
                         if (!pick.commenceTime) {
                             const matchingBet = betOptions.find(bet => 
@@ -683,7 +736,7 @@ function setupEventListeners() {
                 }
         
                 // Handle immortal lock
-                if (data.immortalLock && data.immortalLock.length > 0) {
+                if (data.immortalLock && Array.isArray(data.immortalLock) && data.immortalLock.length > 0) {
                     const lock = data.immortalLock[0];
                     if (!lock.commenceTime) {
                         const matchingBet = betOptions.find(bet => 
@@ -727,18 +780,51 @@ function setupEventListeners() {
         });
     }
 
-    // Other event listeners...
-    document.getElementById('submitPicks')?.addEventListener('click', submitUserPicks);
-    document.getElementById('resetPicks')?.addEventListener('click', resetPicks);
-    document.getElementById('displayInjuriesBtn')?.addEventListener('click', handleDisplayInjuries);
+    // Other event listeners
+    const submitButton = document.getElementById('submitPicks');
+    if (submitButton) {
+        submitButton.addEventListener('click', submitUserPicks);
+    }
+
+    const resetButton = document.getElementById('resetPicks');
+    if (resetButton) {
+        resetButton.addEventListener('click', resetPicks);
+    }
+
+    const displayInjuriesBtn = document.getElementById('displayInjuriesBtn');
+    if (displayInjuriesBtn) {
+        displayInjuriesBtn.addEventListener('click', handleDisplayInjuries);
+    }
 }
 
-// Separate pool change handler
 async function handlePoolChange(e) {
     console.log('Pool changed to:', e.target.value);
     selectedPool = e.target.value;
     
     try {
+        // Clear all current state before fetching new data
+        userPicks = [];
+        userImmortalLock = null;
+        lockedPicks = [];
+        lockedImmortalLock = null;
+        picksCount = 0;
+
+        // Clear UI selections
+        const betButtons = document.querySelectorAll('.bet-button');
+        betButtons.forEach(button => {
+            button.classList.remove('selected', 'immortal-lock-selected', 'user-thursday-pick');
+        });
+
+        // Safely handle the checkbox - check if it exists first
+        const immortalLockCheck = document.getElementById('immortalLockCheck');
+        if (immortalLockCheck) {
+            try {
+                immortalLockCheck.checked = false;
+            } catch (checkboxError) {
+                console.warn('Could not reset checkbox:', checkboxError);
+            }
+        }
+
         // Check if we're in Thursday game time
         const timeResponse = await fetch('/api/timewindows');
         if (timeResponse.ok) {
@@ -759,88 +845,43 @@ async function handlePoolChange(e) {
                 enableThursdayGameFeatures();
             }
         }
+
+        console.log('Pool change completed successfully');
     } catch (error) {
         console.error('Error handling pool change:', error);
+        // Attempt to gracefully recover
+        clearAllSelections();
     }
 }
 
-async function fetchUserPicksAndRender(username, poolSelection) {
-    console.log('Fetching picks for pool:', poolSelection);
-    
+// Helper function to safely clear all selections
+function clearAllSelections() {
+    userPicks = [];
+    userImmortalLock = null;
+    lockedPicks = [];
+    lockedImmortalLock = null;
+    picksCount = 0;
+
+    // Clear UI elements safely
     try {
-        // Clear current state
-        clearAllSelections();
-        
-        // Ensure betOptions are loaded
-        if (!betOptions || betOptions.length === 0) {
-            await loadWeeklyPicks();
-        }
-
-        // Fetch picks for the selected pool
-        const response = await fetch(`/api/getPicks/${username}/${poolSelection}`);
-        const data = await response.json();
-        
-        console.log('Fetched picks:', data);
-
-        // Handle regular picks
-        if (data.picks) {
-            data.picks.forEach(pick => {
-                if (!pick.commenceTime) {
-                    const matchingBet = betOptions.find(bet => 
-                        (bet.homeTeam === pick.teamName || bet.awayTeam === pick.teamName) &&
-                        bet.type === pick.type
-                    );
-                    if (matchingBet) {
-                        pick.commenceTime = matchingBet.commenceTime;
-                    }
-                }
-                renderPick(pick, false);
-            });
-        }
-
-        // Handle immortal lock
-        if (data.immortalLock && data.immortalLock.length > 0) {
-            data.immortalLock.forEach(lock => {
-                if (!lock.commenceTime) {
-                    const matchingBet = betOptions.find(bet => 
-                        (bet.homeTeam === lock.teamName || bet.awayTeam === lock.teamName) &&
-                        bet.type === lock.type
-                    );
-                    if (matchingBet) {
-                        lock.commenceTime = matchingBet.commenceTime;
-                    }
-                }
-                renderPick(lock, true);
-            });
-        }
-
-        console.log('After rendering - Current state:', {
-            userPicks,
-            userImmortalLock,
-            lockedPicks,
-            lockedImmortalLock,
-            picksCount
+        // Clear bet buttons
+        document.querySelectorAll('.bet-button').forEach(button => {
+            button.classList.remove('selected', 'immortal-lock-selected', 'user-thursday-pick');
         });
 
-        const timeResponse = await fetch('/api/timewindows');
-        if (timeResponse.ok) {
-            const { thursdayDeadline, sundayDeadline } = await timeResponse.json();
-            const now = getCurrentTimeInUTC4();
-            const thursdayTime = new Date(thursdayDeadline);
-            const sundayTime = new Date(sundayDeadline);
-            
-            if (now > thursdayTime && now < sundayTime) {
-                // Wait for DOM to be fully updated
-                await new Promise(resolve => setTimeout(resolve, 500));
-                enableThursdayGameFeatures();
-            }
+        // Clear immortal lock checkbox if it exists
+        const immortalLockCheck = document.getElementById('immortalLockCheck');
+        if (immortalLockCheck) {
+            immortalLockCheck.checked = false;
         }
     } catch (error) {
-        console.error('Error fetching user picks:', error);
-        clearAllSelections();
+        console.warn('Error clearing UI elements:', error);
     }
 }
 
+
+
+// Update fetchUserPicksAndRender to handle the all pools view with Thursday picks
 async function fetchUserPicksAndRender(username, poolSelection) {
     try {
         // Reset lockedPicks before fetching new picks
@@ -857,13 +898,47 @@ async function fetchUserPicksAndRender(username, poolSelection) {
             // Get all classic pools first
             const poolsResponse = await fetch(`/pools/userPools/${encodeURIComponent(username)}`);
             const allPools = await poolsResponse.json();
-            const classicPools = allPools.filter(pool => pool.mode === 'classic');
+            const classicPools = allPools.filter(pool => pool.mode === 'survivor');
             console.log('Classic pools found:', classicPools);
+
+            // Check if we're in Thursday game time
+            const timeResponse = await fetch('/api/timewindows');
+            const { thursdayDeadline, sundayDeadline } = await timeResponse.json();
+            const now = getCurrentTimeInUTC4();
+            const thursdayTime = new Date(thursdayDeadline);
+            const sundayTime = new Date(sundayDeadline);
+            const isThursdayGameTime = now > thursdayTime && now < sundayTime;
 
             // Fetch picks for each classic pool
             const allPoolPicks = await Promise.all(classicPools.map(async pool => {
                 const response = await fetch(`/api/getPicks/${username}/${pool.name}`);
                 const data = await response.json();
+                
+                // If in Thursday game time, filter out only Thursday picks
+                if (isThursdayGameTime) {
+                    const thursdayPicks = (data.picks || []).filter(pick => {
+                        const matchingBet = betOptions.find(bet => 
+                            (bet.homeTeam === pick.teamName || bet.awayTeam === pick.teamName) &&
+                            bet.type === pick.type
+                        );
+                        return matchingBet && checkIfThursdayGame(matchingBet.commenceTime);
+                    });
+
+                    const thursdayImmortalLock = (data.immortalLock || []).filter(lock => {
+                        const matchingBet = betOptions.find(bet => 
+                            (bet.homeTeam === lock.teamName || bet.awayTeam === lock.teamName) &&
+                            bet.type === lock.type
+                        );
+                        return matchingBet && checkIfThursdayGame(matchingBet.commenceTime);
+                    });
+
+                    return {
+                        poolName: pool.name,
+                        picks: thursdayPicks,
+                        immortalLock: thursdayImmortalLock
+                    };
+                }
+
                 return {
                     poolName: pool.name,
                     picks: data.picks || [],
@@ -881,18 +956,16 @@ async function fetchUserPicksAndRender(username, poolSelection) {
 
             // More strict comparison of picks across pools
             const areSamePicksAcrossPools = allPoolPicks.every((poolPick, index) => {
-                if (index === 0) return true; // Skip comparing first pool with itself
+                if (index === 0) return true;
                 
                 const firstPoolPicks = allPoolPicks[0].picks;
                 const currentPoolPicks = poolPick.picks;
 
-                // First check if they have the same number of picks
                 if (firstPoolPicks.length !== currentPoolPicks.length) {
                     console.log('Different number of picks between pools');
                     return false;
                 }
 
-                // Check each pick matches exactly
                 return firstPoolPicks.every(firstPick => 
                     currentPoolPicks.some(currentPick => 
                         firstPick.teamName === currentPick.teamName &&
@@ -902,7 +975,6 @@ async function fetchUserPicksAndRender(username, poolSelection) {
                 );
             });
 
-            // Similar strict comparison for immortal locks
             const areSameImmortalLocks = allPoolPicks.every((poolPick, index) => {
                 if (index === 0) return true;
 
@@ -921,6 +993,75 @@ async function fetchUserPicksAndRender(username, poolSelection) {
                 );
             });
 
+            // First check for common Thursday picks regardless of other picks
+            if (isThursdayGameTime) {
+                // Extract only Thursday picks from first pool
+                const firstPoolThursdayPicks = allPoolPicks[0].picks.filter(pick => {
+                    const matchingBet = betOptions.find(bet => 
+                        (bet.homeTeam === pick.teamName || bet.awayTeam === pick.teamName) &&
+                        bet.type === pick.type
+                    );
+                    return matchingBet && checkIfThursdayGame(matchingBet.commenceTime);
+                });
+
+                const firstPoolThursdayLock = allPoolPicks[0].immortalLock?.filter(lock => {
+                    const matchingBet = betOptions.find(bet => 
+                        (bet.homeTeam === lock.teamName || bet.awayTeam === lock.teamName) &&
+                        bet.type === lock.type
+                    );
+                    return matchingBet && checkIfThursdayGame(matchingBet.commenceTime);
+                });
+
+                // Check if Thursday picks match across all pools
+                const thursdayPicksMatch = allPoolPicks.every((poolPick, index) => {
+                    if (index === 0) return true;
+                    
+                    const currentThursdayPicks = poolPick.picks.filter(pick => {
+                        const matchingBet = betOptions.find(bet => 
+                            (bet.homeTeam === pick.teamName || bet.awayTeam === pick.teamName) &&
+                            bet.type === pick.type
+                        );
+                        return matchingBet && checkIfThursdayGame(matchingBet.commenceTime);
+                    });
+
+                    return JSON.stringify(sortPicks(firstPoolThursdayPicks)) === 
+                           JSON.stringify(sortPicks(currentThursdayPicks));
+                });
+
+                const thursdayLockMatches = allPoolPicks.every((poolPick, index) => {
+                    if (index === 0) return true;
+                    
+                    const currentThursdayLock = poolPick.immortalLock?.filter(lock => {
+                        const matchingBet = betOptions.find(bet => 
+                            (bet.homeTeam === lock.teamName || bet.awayTeam === lock.teamName) &&
+                            bet.type === lock.type
+                        );
+                        return matchingBet && checkIfThursdayGame(matchingBet.commenceTime);
+                    });
+
+                    return JSON.stringify(sortPicks(firstPoolThursdayLock)) === 
+                           JSON.stringify(sortPicks(currentThursdayLock));
+                });
+
+                console.log('Thursday Picks Match:', thursdayPicksMatch);
+                console.log('Thursday Lock Matches:', thursdayLockMatches);
+
+                if (thursdayPicksMatch && thursdayLockMatches && 
+                    (firstPoolThursdayPicks.length > 0 || firstPoolThursdayLock?.length > 0)) {
+                    // Store Thursday picks globally
+                    window.allPoolsThursdayPicks = {
+                        picks: firstPoolThursdayPicks,
+                        immortalLock: firstPoolThursdayLock
+                    };
+                    
+                    // Set the locked picks and immortal lock
+                    lockedPicks = [...firstPoolThursdayPicks];
+                    lockedImmortalLock = firstPoolThursdayLock?.[0] || null;
+                    picksCount = lockedPicks.length;
+                }
+            }
+
+            // Then handle regular picks if they match across pools
             if (areSamePicksAcrossPools && areSameImmortalLocks) {
                 clearAllSelections();
                 const firstPoolPicks = allPoolPicks[0];
@@ -958,45 +1099,10 @@ async function fetchUserPicksAndRender(username, poolSelection) {
                 }
             } else {
                 clearAllSelections();
+                console.log('Non-Thursday picks are different across pools');
             }
         } else {
-            // Original single pool logic
-            const response = await fetch(`/api/getPicks/${username}/${poolSelection}`);
-            const data = await response.json();
-            
-            clearAllSelections();
-            
-            // Handle regular picks
-            if (data.picks) {
-                data.picks.forEach(pick => {
-                    if (!pick.commenceTime) {
-                        const matchingBet = betOptions.find(bet => 
-                            (bet.homeTeam === pick.teamName || bet.awayTeam === pick.teamName) &&
-                            bet.type === pick.type
-                        );
-                        if (matchingBet) {
-                            pick.commenceTime = matchingBet.commenceTime;
-                        }
-                    }
-                    renderPick(pick, false);
-                });
-            }
-
-            // Handle immortal lock
-            if (data.immortalLock) {
-                data.immortalLock.forEach(lock => {
-                    if (!lock.commenceTime) {
-                        const matchingBet = betOptions.find(bet => 
-                            (bet.homeTeam === lock.teamName || bet.awayTeam === lock.teamName) &&
-                            bet.type === lock.type
-                        );
-                        if (matchingBet) {
-                            lock.commenceTime = matchingBet.commenceTime;
-                        }
-                    }
-                    renderPick(lock, true);
-                });
-            }
+            // Original single pool logic remains the same...
         }
     } catch (error) {
         console.error('Error fetching user picks:', error);
@@ -1083,14 +1189,6 @@ function updateBetCell(option, isSelected) {
     }
 }
 
-// Simplified clear selections function
-function clearAllSelections() {
-    userPicks = [];
-    picksCount = 0;
-    document.querySelectorAll('.bet-button').forEach(button => {
-        button.classList.remove('selected');
-    });
-}
 
 // Render a single pick
 function renderPick(pick, isImmortalLock) {
@@ -1298,7 +1396,7 @@ async function resetPicks() {
                 if (!poolsResponse.ok) throw new Error('Failed to fetch user pools');
                 
                 const allPools = await poolsResponse.json();
-                const classicPools = allPools.filter(pool => pool.mode === 'classic');
+                const classicPools = allPools.filter(pool => pool.mode === 'survivor');
 
                 // Check which pools have picks
                 const poolsWithPicks = await Promise.all(classicPools.map(async pool => {
@@ -1441,7 +1539,6 @@ async function resetPicks() {
             }
         });
         
-        document.getElementById('immortalLockCheck').checked = false;
         
         await fetchUserPicksAndRender(storedUsername, selectedPool);
     } catch (error) {

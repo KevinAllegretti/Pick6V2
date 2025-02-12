@@ -290,6 +290,7 @@ function enableThursdayGameFeatures() {
         });
     });
 }
+
 function enableSundayGameFeatures() {
     const choosePicksButtons = document.querySelectorAll('.global-picks-button');
     if (choosePicksButtons.length > 0) {
@@ -310,11 +311,10 @@ function enableSundayGameFeatures() {
 }
 
 function enablePickTimeFeatures() {
-    const choosePicksButtons = document.querySelectorAll('.choose-picks-button');
+    const choosePicksButtons = document.querySelectorAll('.global-picks-button');
     if (choosePicksButtons.length > 0) {
         choosePicksButtons.forEach(button => {
             button.classList.remove('disabled');
-            button.textContent = 'Make Picks';
         });
     } else {
         console.error('No choose picks buttons found');

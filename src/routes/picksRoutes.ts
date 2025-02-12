@@ -83,6 +83,8 @@ router.get('/api/getPicks/:username/:poolName', async (req, res) => {
 });
 
 
+
+
 // picksRoutes.js
 router.post('/api/saveWeeklyPicks', async (req, res) => {
     const { picks } = req.body; // Your NFL transformed data
