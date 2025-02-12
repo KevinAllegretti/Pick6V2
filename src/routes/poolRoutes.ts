@@ -76,7 +76,7 @@ const createMemberByMode = (user: any, username: string, orderIndex: number, mod
     };
 };
 
-
+/*
 router.post('/create', async (req, res) => {
     try {
         const { name, isPrivate, adminUsername, mode, password } = req.body;
@@ -147,7 +147,65 @@ router.post('/create', async (req, res) => {
         }
         res.status(500).json({ message: 'Error creating pool', error });
     }
+});*/
+
+router.post('/create', async (req, res) => {
+    try {
+        const { name, isPrivate, adminUsername, mode, password } = req.body;
+
+        const db = await connectToDatabase();
+        const usersCollection = db.collection("users");
+        const poolsCollection = db.collection("pools");
+
+        const admin = await usersCollection.findOne({ username: adminUsername.toLowerCase() });
+        if (!admin) {
+            return res.status(404).json({ message: 'Admin user not found' });
+        }
+
+        // Create admin member with appropriate schema based on mode
+        const adminMember = {
+            user: admin._id,
+            username: adminUsername.toLowerCase(),
+            points: 0,
+            picks: [],
+            win: 0,
+            loss: 0,
+            push: 0,
+            orderIndex: 0
+        };
+
+        const newPool = {
+            name,
+            isPrivate,
+            admin: admin._id,
+            adminUsername: adminUsername.toLowerCase(),
+            password: isPrivate ? password : undefined,
+            members: [adminMember],
+            mode: mode || 'classic'
+        };
+
+        const result = await poolsCollection.insertOne(newPool);
+        
+        // After creating the pool, normalize all indices
+        await normalizePoolOrder(poolsCollection, adminUsername);
+
+        res.status(201).json({ 
+            message: 'Pool created successfully',
+            pool: {
+                ...newPool,
+                _id: result.insertedId
+            }
+        });
+
+    } catch (error: any) {
+        console.error('Error creating pool:', error);
+        if (error.code === 11000) {
+            return res.status(409).json({ message: 'Pool name already exists' });
+        }
+        res.status(500).json({ message: 'Error creating pool', error });
+    }
 });
+
 async function checkEliminationStatus(poolsCollection: any, poolName: string, username: string): Promise<boolean> {
     const pool = await poolsCollection.findOne({
         name: poolName,
@@ -156,6 +214,7 @@ async function checkEliminationStatus(poolsCollection: any, poolName: string, us
     });
     return pool !== null;
 }
+/*
 router.post('/joinByName', async (req, res) => {
     try {
         const { poolName, username, poolPassword } = req.body;
@@ -239,7 +298,69 @@ router.post('/joinByName', async (req, res) => {
         console.error('Error joining pool:', error);
         res.status(500).json({ message: 'Error joining pool', error });
     }
+});*/
+
+router.post('/joinByName', async (req, res) => {
+    try {
+        const { poolName, username, poolPassword } = req.body;
+        
+        const db = await connectToDatabase();
+        const usersCollection = db.collection("users");
+        const poolsCollection = db.collection("pools");
+
+        const user = await usersCollection.findOne({ username: username.toLowerCase() });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const pool = await poolsCollection.findOne({ name: poolName });
+        if (!pool) {
+            return res.status(404).json({ message: 'Pool not found' });
+        }
+
+        if (pool.isPrivate && pool.password) {
+            if (poolPassword !== pool.password) {
+                return res.status(401).json({ message: 'Incorrect password' });
+            }
+        }
+
+        const isMemberAlready = pool.members.some(member => 
+            member.username.toLowerCase() === username.toLowerCase()
+        );
+        
+        if (!isMemberAlready) {
+            const newMember = {
+                user: user._id,
+                username: username.toLowerCase(),
+                points: 0,
+                picks: [],
+                win: 0,
+                loss: 0,
+                push: 0,
+                orderIndex: 0
+            };
+
+            await poolsCollection.updateOne(
+                { name: poolName },
+                { $push: { members: newMember } as any}
+            );
+
+            // After joining, normalize all indices
+            await normalizePoolOrder(poolsCollection, username);
+        }
+
+        const updatedPool = await poolsCollection.findOne({ name: poolName });
+        res.status(200).json({ 
+            message: 'Joined pool successfully', 
+            pool: updatedPool
+        });
+
+    } catch (error) {
+        console.error('Error joining pool:', error);
+        res.status(500).json({ message: 'Error joining pool', error });
+    }
 });
+
 
 
 
@@ -503,8 +624,27 @@ router.post('/joinByName', async (req, res) => {
 // Route for admins to manage join requests
 
 // Route to leave a pool
-router.post('/leave/:username/:poolName', leavePool); // Add the leave pool route
+router.post('/leave/:username/:poolName', async (req, res) => {
+    try {
+        const { username, poolName } = req.params;
+        const db = await connectToDatabase();
+        const poolsCollection = db.collection('pools');
 
+        // Remove member from pool
+        await poolsCollection.updateOne(
+            { name: poolName },
+            { $pull: { members: { username: username.toLowerCase() } as any } }
+        );
+
+        // After leaving, normalize all indices
+        await normalizePoolOrder(poolsCollection, username);
+
+        res.json({ message: 'Successfully left the pool' });
+    } catch (error) {
+        console.error('Error leaving pool:', error);
+        res.status(500).json({ message: 'Error leaving pool', error });
+    }
+});
 
 router.get('/get-all', async (req, res) => {
   try {
@@ -557,6 +697,7 @@ async function reorderPoolsForUser(poolsCollection: any, username: string) {
     }
 }
 // Simplified reorder route without Global pool restrictions
+/*
 router.post('/reorder', async (req, res) => {
     const { username, poolName, direction } = req.body;
     
@@ -642,7 +783,87 @@ router.post('/reorder', async (req, res) => {
             message: error.message || 'Internal server error during reorder'
         });
     }
+});*/
+
+// Reorder route
+router.post('/reorder', async (req, res) => {
+    const { username, poolName, direction } = req.body;
+    
+    try {
+        const database = await connectToDatabase();
+        const poolsCollection = database.collection('pools');
+
+        // Get all user's pools
+        const userPools = await poolsCollection.find({
+            'members.username': username.toLowerCase()
+        }).toArray();
+
+        // Sort by current order
+        const sortedPools = userPools.sort((a, b) => {
+            const indexA = a.members.find(m => 
+                m.username.toLowerCase() === username.toLowerCase()
+            )?.orderIndex ?? 0;
+            const indexB = b.members.find(m => 
+                m.username.toLowerCase() === username.toLowerCase()
+            )?.orderIndex ?? 0;
+            return indexA - indexB;
+        });
+
+        // Find current pool's position
+        const currentIndex = sortedPools.findIndex(p => p.name === poolName);
+        if (currentIndex === -1) {
+            return res.status(404).json({
+                success: false,
+                message: 'Pool not found'
+            });
+        }
+
+        // Calculate target index
+        const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+
+        // Validate move
+        if (targetIndex < 0 || targetIndex >= sortedPools.length) {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot move ${direction}, pool is at the ${direction === 'up' ? 'top' : 'bottom'}`
+            });
+        }
+
+        // Swap pools
+        [sortedPools[currentIndex], sortedPools[targetIndex]] = 
+        [sortedPools[targetIndex], sortedPools[currentIndex]];
+
+        // Update all indices
+        const bulkOps = sortedPools.map((pool, index) => ({
+            updateOne: {
+                filter: {
+                    name: pool.name,
+                    'members.username': username.toLowerCase()
+                },
+                update: {
+                    $set: {
+                        'members.$.orderIndex': index
+                    }
+                }
+            }
+        }));
+
+        await poolsCollection.bulkWrite(bulkOps);
+
+        res.json({
+            success: true,
+            message: 'Pool order updated successfully'
+        });
+
+    } catch (error:any) {
+        console.error('Error reordering pools:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Internal server error during reorder'
+        });
+    }
 });
+
 // In poolRoutes.ts
 router.get('/userPools/:username', async (req, res) => {
   try {
@@ -929,5 +1150,48 @@ router.get('/userPoolInfo/:username', async (req, res) => {
   }
 });
 
+async function normalizePoolOrder(poolsCollection: any, username: string) {
+    try {
+        // 1. Get all pools for the user
+        const userPools = await poolsCollection.find({
+            'members.username': username.toLowerCase()
+        }).toArray();
 
+        // 2. Sort pools by current orderIndex
+        const sortedPools = userPools.sort((a, b) => {
+            const indexA = a.members.find(m => 
+                m.username.toLowerCase() === username.toLowerCase()
+            )?.orderIndex ?? Infinity;
+            const indexB = b.members.find(m => 
+                m.username.toLowerCase() === username.toLowerCase()
+            )?.orderIndex ?? Infinity;
+            return indexA - indexB;
+        });
+
+        // 3. Create bulk operations to update all indices
+        const bulkOps = sortedPools.map((pool, index) => ({
+            updateOne: {
+                filter: {
+                    name: pool.name,
+                    'members.username': username.toLowerCase()
+                },
+                update: {
+                    $set: {
+                        'members.$.orderIndex': index
+                    }
+                }
+            }
+        }));
+
+        // 4. Execute bulk operations
+        if (bulkOps.length > 0) {
+            await poolsCollection.bulkWrite(bulkOps);
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Error normalizing pool order:', error);
+        return false;
+    }
+}
 export default router;
