@@ -2106,7 +2106,6 @@ async function loadAndDisplayUserPools() {
         return;
     }
 
-    // Ensure container exists
     const poolContainerWrapper = document.getElementById('pool-container-wrapper');
     if (!poolContainerWrapper) {
         console.error('Pool container wrapper not found');
@@ -2115,7 +2114,6 @@ async function loadAndDisplayUserPools() {
     
     poolContainerWrapper.innerHTML = '';
 
-    // Create ordered container
     const orderedContainer = document.createElement('div');
     orderedContainer.id = 'ordered-pools-container';
     poolContainerWrapper.appendChild(orderedContainer);
@@ -2128,8 +2126,17 @@ async function loadAndDisplayUserPools() {
         
         const pools = await response.json();
         
-        // Sort pools
+        // Sort pools: Global pool last, others by order/name
         pools.sort((a, b) => {
+            // Check if either pool is "Global"
+            const isAGlobal = a.name.toLowerCase() === 'global';
+            const isBGlobal = b.name.toLowerCase() === 'global';
+
+            // Global pool should always be last
+            if (isAGlobal) return 1;  // a is Global, move to end
+            if (isBGlobal) return -1; // b is Global, move to end
+
+            // For non-Global pools, sort by orderIndex
             const memberA = a.members.find(m => m.username.toLowerCase() === currentUsername.toLowerCase());
             const memberB = b.members.find(m => m.username.toLowerCase() === currentUsername.toLowerCase());
             
@@ -2166,7 +2173,7 @@ async function loadAndDisplayUserPools() {
         // Wait for all pools to be processed
         await Promise.all(poolPromises);
 
-        // Use requestAnimationFrame to ensure DOM is ready before updating action list
+        // Update pool actions list after all pools are displayed
         requestAnimationFrame(() => {
             updatePoolActionsList();
         });
