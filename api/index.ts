@@ -1,5 +1,4 @@
-import { exec } from 'child_process';
-import express, { Request, Response, NextFunction } from 'express';
+import express from 'express';
 import userRoutes from '../src/routes/userRoutes';
 import path from 'path';
 import picksRoutes from '../src/routes/picksRoutes'; 
@@ -9,8 +8,6 @@ import poolRoutes from '../src/routes/poolRoutes';
 import InjuryRoutes from '../src/routes/InjuryRoutes';
 import mongoose from 'mongoose';
 import timeWindowRoutes from '../src/routes/timeWindowRoutes';
-import { Server } from 'http';
-import fetch from 'node-fetch';
 import '../src/microservices/websocket';  
 import '../src/microservices/scheduler';
 import dashRoutes from '../src/routes/dashRoutes'

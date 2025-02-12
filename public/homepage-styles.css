@@ -780,13 +780,6 @@ h2 {
     /* Add any other styling you need */
 }
 
-
-
-
-
-
-
-
 .pool-name {
     font-size: 20px;
     font-family: 'Russo One', sans-serif;
@@ -805,19 +798,6 @@ h2 {
 
 
 
-
-
-.player-card {
-    position: relative;
-    width: 220px;
-    border: 2px solid #33d9ff; /* Neon light blue border */
-    border-radius: 8px;
-    margin: 10px;
-    padding: 10px;
-    background-color: #17203a; /* A deep blue for card background */
-    box-shadow: 0px 0px 20px #33d9ff; /* Neon light blue shadow for depth */
-    transition: transform 0.2s, box-shadow 0.2s; /* Animation for hover */
-}
 
 
 /* Input fields styling */
@@ -871,140 +851,6 @@ label {
     color: #33d9ff; /* Neon text color */
     font-weight: bold;
     margin-right: 10px;
-}
-
-
-/* Button Styling 
-button {
-    background-color: #033;
-    color: #0ff; 
-    border: 1px solid #0af; 
-    padding: 10px 20px;
-    font-size: 1em;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out;
-    margin-bottom: 20px;
-}*/
-
-
-/* Hover effect for the button to make it pop 
-button:hover {
-    box-shadow: 0 0 5px #0af,
-    0 0 5px #0af,
-    0 0 7px #0af;
-    transform: scale(1.05);
-}
-*/
-
-/* Styling for the form container */
-.form-container {
-    background-color: #011; /* Slightly lighter form background */
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 5px #0af, /* Neon glow effect */
-    0 0 5px #0af,
-    0 0 5px #0af;
-}
-
-
-/* Enhances the layout of form elements */
-.form-field {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-
-/* Give the create pool section a distinct look */
-#create-pool-section {
-    padding: 20px;
-    background: rgba(10, 15, 34, 0.85); /* Translucent background */
-    border: 2px solid #33d9ff; /* Neon border */
-    border-radius: 10px;
-    box-shadow: 0 0 5px #33d9ff, /* Outer neon glow */
-    0 0 5px #33d9ff;
-    margin: 20px 0;
-}
-
-
-/* Increase spacing between form elements */
-#pool-name, #pool-password {
-    margin-bottom: 15px; /* Adds more space below the input fields */
-}
-
-
-/* Style for the checkbox label */
-#private-pool-label {
-    display: inline-block;
-    margin-right: 10px; /* Adds space between the label and the checkbox */
-    vertical-align: middle; /* Aligns label with the checkbox */
-}
-
-
-/* Style for the checkbox */
-#is-private {
-    vertical-align: middle; /* Aligns checkbox vertically with the label */
-    margin-right: 15px; /* Adds space between the checkbox and the 'Create Pool' button */
-}
-
-
-/* Transform 'Create Pool' button into 'Go Back' button */
-#toggle-create-button.reverse {
-    background-color: #33d9ff; /* Neon blue for a 'go back' symbol */
-    transform: rotate(180deg); /* Rotate the button to indicate 'go back' */
-}
-
-
-/* Hide password field initially */
-#pool-password {
-    display: none;
-}
-
-
-/* Additional styling for the container to fix position issue */
-.create-pool-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* This centers the button in the flex container */
-    justify-content: space-between; /* This will add space between your elements */
-    width: 100%; /* Adjust width to fit content */
-    border-bottom: 1px solid #33d9ff; /* Neon-like blue border */
-    padding-bottom: 20px; /* Space above the border */
-}
-
-
-#create-pool-form input[type="submit"] {
-    background-color: #033; /* Dark background for the button */
-    color: #0ff; /* Neon text color */
-    border: 1px solid #0af; /* Neon border color */
-    padding: 10px 20px; /* Padding for the button */
-    font-size: 1em; /* Font size for the button */
-    border-radius: 5px; /* Rounded corners for the button */
-    cursor: pointer; /* Cursor changes to pointer to indicate it's clickable */
-    box-shadow: 0 0 5px #0af, /* Outer neon glow effect */
-    0 0 10px #0af, /* Middle neon glow effect */
-    0 0 15px #0af; /* Inner neon glow effect */
-    transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out; /* Smooth transition for hover effects */
-    width: auto; /* Adjust width as necessary */
-    margin-top: 10px; /* Space above the button */
-    display: block; /* Ensure the button is a block element to take up full width */
-}
-
-
-#create-pool-form-container {
-    border-bottom: 2px solid rgb(0, 247, 255); /* Neon border color */
-}
-
-
-#show-create-pool-form,
-#show-join-pool-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center; /* Make sure to use the correct IDs */
-    width: auto; /* Or specify a width */
-    margin: 20px auto; /* Top and bottom margin with auto horizontal margins */
 }
 
 
