@@ -21,13 +21,22 @@ interface PoolMember {
 }
 
 
-async function getNextOrderIndex(username: string, database: any) {
-  const poolsCollection = database.collection('pools');
-  const userPools = await poolsCollection.find({
-      'members.username': username.toLowerCase()
-  }).toArray();
-  
-  return userPools.length; // New pools get added at the end
+// Function to get next available index for new pool/member
+async function getNextOrderIndex(poolsCollection: any, username: string) {
+    const userPools = await poolsCollection.find({
+        'members.username': username.toLowerCase()
+    }).toArray();
+    
+    if (userPools.length === 0) return 0;
+    
+    const maxIndex = Math.max(...userPools.map(pool => {
+        const member = pool.members.find(m => 
+            m.username.toLowerCase() === username.toLowerCase()
+        );
+        return member?.orderIndex ?? -1;
+    }));
+    
+    return maxIndex + 1;
 }
 
 
@@ -878,20 +887,18 @@ router.get('/userPools/:username', async (req, res) => {
 
       // Sort pools in backend before sending
       const sortedPools = pools.sort((a, b) => {
-          const memberA = a.members.find(m => m.username.toLowerCase() === username);
-          const memberB = b.members.find(m => m.username.toLowerCase() === username);
-          
-          // Ensure orderIndex exists, use MAX_SAFE_INTEGER if missing
-          const orderA = typeof memberA?.orderIndex === 'number' ? memberA.orderIndex : Number.MAX_SAFE_INTEGER;
-          const orderB = typeof memberB?.orderIndex === 'number' ? memberB.orderIndex : Number.MAX_SAFE_INTEGER;
-          
-          if (orderA !== orderB) {
-              return orderA - orderB;
-          }
-          
-          // Secondary sort by pool name
-          return a.name.localeCompare(b.name);
-      });
+        const memberA = a.members.find(m => m.username.toLowerCase() === username);
+        const memberB = b.members.find(m => m.username.toLowerCase() === username);
+        
+        const orderA = typeof memberA?.orderIndex === 'number' ? memberA.orderIndex : -1;
+        const orderB = typeof memberB?.orderIndex === 'number' ? memberB.orderIndex : -1;
+        
+        if (orderA !== orderB) {
+            return orderB - orderA; // Reverse the order so higher indices appear first
+        }
+        
+        return a.name.localeCompare(b.name);
+    });
 
       // Send sorted pools with order validation
       res.json(sortedPools.map((pool, index) => ({
@@ -1150,14 +1157,14 @@ router.get('/userPoolInfo/:username', async (req, res) => {
   }
 });
 
+// Function to normalize pool order (lower index = lower position)
 async function normalizePoolOrder(poolsCollection: any, username: string) {
     try {
-        // 1. Get all pools for the user
         const userPools = await poolsCollection.find({
             'members.username': username.toLowerCase()
         }).toArray();
 
-        // 2. Sort pools by current orderIndex
+        // Sort in ascending order (lower orderIndex first)
         const sortedPools = userPools.sort((a, b) => {
             const indexA = a.members.find(m => 
                 m.username.toLowerCase() === username.toLowerCase()
@@ -1168,7 +1175,7 @@ async function normalizePoolOrder(poolsCollection: any, username: string) {
             return indexA - indexB;
         });
 
-        // 3. Create bulk operations to update all indices
+        // Create bulk operations to update all indices
         const bulkOps = sortedPools.map((pool, index) => ({
             updateOne: {
                 filter: {
@@ -1183,7 +1190,6 @@ async function normalizePoolOrder(poolsCollection: any, username: string) {
             }
         }));
 
-        // 4. Execute bulk operations
         if (bulkOps.length > 0) {
             await poolsCollection.bulkWrite(bulkOps);
         }
@@ -1194,4 +1200,6 @@ async function normalizePoolOrder(poolsCollection: any, username: string) {
         return false;
     }
 }
+
+
 export default router;

@@ -1024,23 +1024,19 @@ function updatePoolActionsList() {
     if (!poolActionsList) return;
     
     poolActionsList.innerHTML = '';
-
-    // Look for pools in the ordered-pools-container
     const orderedContainer = document.getElementById('ordered-pools-container');
     if (!orderedContainer) return;
 
-    // Get all pool wrappers from the ordered container
-    const pools = orderedContainer.querySelectorAll('.pool-wrapper');
+    const pools = Array.from(orderedContainer.querySelectorAll('.pool-wrapper'));
     const currentUsername = localStorage.getItem('username').toLowerCase();
 
-    // Convert to array and sort by order style
-    const poolsArray = Array.from(pools).sort((a, b) => {
-        const orderA = parseInt(a.style.order) || 0;
-        const orderB = parseInt(b.style.order) || 0;
-        return orderA - orderB;
+    // Sort pools by their order index before creating action items
+    pools.sort((a, b) => {
+        const indexA = parseInt(a.getAttribute('data-order-index')) || 0;
+        const indexB = parseInt(b.getAttribute('data-order-index')) || 0;
+        return indexA - indexB;
     });
-    
-    poolsArray.forEach((poolWrapper, index) => {
+    pools.forEach((poolWrapper) => {
         const poolName = poolWrapper.getAttribute('data-pool-name');
         const isSurvivorPool = poolWrapper.classList.contains('survivor-mode');
         const poolAdmin = poolWrapper.getAttribute('data-admin-username');
@@ -1048,9 +1044,7 @@ function updatePoolActionsList() {
     
         const actionItem = document.createElement('div');
         actionItem.className = 'pool-action-item';
-        // Set explicit ordering styles
-        actionItem.style.order = parseInt(poolWrapper.style.order) || index;
-        actionItem.dataset.order = index;
+        actionItem.dataset.order = poolWrapper.getAttribute('data-order-index');
         
         // Add order buttons
         const orderButtons = document.createElement('div');
@@ -1059,12 +1053,12 @@ function updatePoolActionsList() {
         const upButton = document.createElement('button');
         upButton.className = 'order-button';
         upButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
-        upButton.disabled = index === 0;
+        upButton.disabled = !poolWrapper.previousElementSibling;
 
         const downButton = document.createElement('button');
         downButton.className = 'order-button';
         downButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
-        downButton.disabled = index === poolsArray.length - 1;
+        downButton.disabled = !poolWrapper.nextElementSibling;
 
         // Add event listeners for reordering
         upButton.onclick = async () => {
@@ -1149,9 +1143,9 @@ async function movePool(poolName, direction) {
     }
 
     try {
-        console.log(`Attempting to ${direction} move for pool: ${poolName}`); // Debug log
+        // Invert the direction for the backend since our display is inverted
+        const backendDirection = direction === 'up' ? 'down' : 'up';
         
-        // Server update
         const response = await fetch('/pools/reorder', {
             method: 'POST',
             headers: {
@@ -1160,7 +1154,7 @@ async function movePool(poolName, direction) {
             body: JSON.stringify({
                 username: username,
                 poolName: poolName,
-                direction: direction
+                direction: backendDirection // Use inverted direction
             })
         });
 
@@ -1169,68 +1163,9 @@ async function movePool(poolName, direction) {
             throw new Error('Server reorder failed');
         }
 
-        // UI update
-        const poolActionsList = document.querySelector('.pool-actions-list');
-        const items = Array.from(poolActionsList.querySelectorAll('.pool-action-item'));
+        // Reload pools after successful move
+        await loadAndDisplayUserPools();
         
-        const currentItem = items.find(item => 
-            item.querySelector('.pool-name-text').textContent.trim().includes(poolName)
-        );
-        
-        if (!currentItem) return data;
-
-        const currentIndex = items.indexOf(currentItem);
-        const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-        
-        if (newIndex < 0 || newIndex >= items.length) return data;
-
-        const otherItem = items[newIndex];
-        
-        // Store current positions
-        const currentRect = currentItem.getBoundingClientRect();
-        const otherRect = otherItem.getBoundingClientRect();
-        const offset = direction === 'up' ? 
-            -(currentRect.top - otherRect.top) : 
-            otherRect.bottom - currentRect.bottom;
-
-        // Prepare for animation
-        currentItem.style.transform = `translateY(${offset}px)`;
-        otherItem.style.transform = `translateY(${-offset}px)`;
-
-        // Wait for animation
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        // Reset transforms
-        currentItem.style.transform = '';
-        otherItem.style.transform = '';
-
-        // Update DOM position
-        if (direction === 'up') {
-            poolActionsList.insertBefore(currentItem, otherItem);
-        } else {
-            // For downward movement, insert after the other item
-            poolActionsList.insertBefore(currentItem, otherItem.nextSibling);
-        }
-
-        // Update main pool display
-        const orderedContainer = document.getElementById('ordered-pools-container');
-        if (orderedContainer) {
-            const poolElements = Array.from(orderedContainer.children);
-            const currentPool = poolElements.find(el => 
-                el.getAttribute('data-pool-name') === poolName
-            );
-            const targetPool = poolElements[newIndex];
-
-            if (currentPool && targetPool) {
-                if (direction === 'up') {
-                    orderedContainer.insertBefore(currentPool, targetPool);
-                } else {
-                    orderedContainer.insertBefore(currentPool, targetPool.nextSibling);
-                }
-            }
-        }
-
-        console.log(`Successfully moved pool ${direction}`); // Debug log
         return data;
     } catch (error) {
         console.error('Error reordering pools:', error);
@@ -1914,9 +1849,11 @@ function displayNewPoolContainer(pool) {
 
     // Get member's order index
     const memberOrder = pool.members.find(m => 
-        m.username.toLowerCase() === username
+        m.username.toLowerCase() === username.toLowerCase()
     )?.orderIndex ?? 0;
-    poolWrapper.style.order = memberOrder;
+    
+    // Use negative order to reverse the display order (higher index = higher position)
+    poolWrapper.style.order = -memberOrder;
 
     const poolNameContainer = document.createElement('div');
     poolNameContainer.className = 'pool-name-container';
@@ -2113,11 +2050,10 @@ async function loadAndDisplayUserPools() {
     }
     
     poolContainerWrapper.innerHTML = '';
-
-    const orderedContainer = document.createElement('div');
-    orderedContainer.id = 'ordered-pools-container';
-    poolContainerWrapper.appendChild(orderedContainer);
-
+    const newOrderedContainer = document.createElement('div');
+    newOrderedContainer.id = 'ordered-pools-container';
+    newOrderedContainer.style.display = 'flex';
+    poolContainerWrapper.appendChild(newOrderedContainer);
     try {
         const response = await fetch(`/pools/userPools/${encodeURIComponent(currentUsername.toLowerCase())}`);
         if (!response.ok) {
@@ -2126,56 +2062,43 @@ async function loadAndDisplayUserPools() {
         
         const pools = await response.json();
         
-        // Sort pools: Global pool last, others by order/name
+        // Sort pools by orderIndex (ascending order)
         pools.sort((a, b) => {
-            // Check if either pool is "Global"
-            const isAGlobal = a.name.toLowerCase() === 'global';
-            const isBGlobal = b.name.toLowerCase() === 'global';
-
-            // Global pool should always be last
-            if (isAGlobal) return 1;  // a is Global, move to end
-            if (isBGlobal) return -1; // b is Global, move to end
-
-            // For non-Global pools, sort by orderIndex
             const memberA = a.members.find(m => m.username.toLowerCase() === currentUsername.toLowerCase());
             const memberB = b.members.find(m => m.username.toLowerCase() === currentUsername.toLowerCase());
             
-            const orderA = memberA?.orderIndex ?? Number.MAX_SAFE_INTEGER;
-            const orderB = memberB?.orderIndex ?? Number.MAX_SAFE_INTEGER;
+            const orderA = memberA?.orderIndex ?? 0;
+            const orderB = memberB?.orderIndex ?? 0;
             
+            // Sort by orderIndex (descending to show higher indices first)
             if (orderA !== orderB) {
-                return orderA - orderB;
+                return orderB - orderA;
             }
             return a.name.localeCompare(b.name);
         });
+        
 
-        // Array to store all pool display promises
-        const poolPromises = [];
-
-        // Process pools
-        for (const pool of pools) {
-            const promise = (async () => {
-                try {
-                    if (pool.mode === 'survivor') {
-                        console.log(`Processing survivor pool: ${pool.name}`);
-                        await displaySurvivorPool(pool);
-                    } else {
-                        console.log(`Processing classic pool: ${pool.name}`);
-                        await displayNewPoolContainer(pool);
-                    }
-                } catch (error) {
-                    console.error(`Error processing pool ${pool.name}:`, error);
+        const poolPromises = pools.map(async (pool) => {
+            try {
+                if (pool.mode === 'survivor') {
+                    await displaySurvivorPool(pool);
+                } else {
+                    await displayNewPoolContainer(pool);
                 }
-            })();
-            poolPromises.push(promise);
-        }
+            } catch (error) {
+                console.error(`Error processing pool ${pool.name}:`, error);
+            }
+        });
 
-        // Wait for all pools to be processed
         await Promise.all(poolPromises);
 
-        // Update pool actions list after all pools are displayed
+        // Update pool actions list
         requestAnimationFrame(() => {
-            updatePoolActionsList();
+            const poolActionsList = document.querySelector('.pool-actions-list');
+            if (poolActionsList) {
+                poolActionsList.innerHTML = '';
+                updatePoolActionsList();
+            }
         });
 
     } catch (error) {
@@ -2183,6 +2106,12 @@ async function loadAndDisplayUserPools() {
     }
 }
 
+
+
+// Helper function to get the ordered index of a pool
+function getPoolOrderIndex(poolWrapper) {
+    return parseInt(poolWrapper.getAttribute('data-order-index')) || 0;
+}
 // Make sure these functions are defined before they're used
 window.addEventListener('load', function() {
     // Initialize pool loading only after page is fully loaded
