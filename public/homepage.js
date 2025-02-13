@@ -1030,13 +1030,22 @@ function updatePoolActionsList() {
     const pools = Array.from(orderedContainer.querySelectorAll('.pool-wrapper'));
     const currentUsername = localStorage.getItem('username').toLowerCase();
 
-    // Sort pools by their order index before creating action items
-    pools.sort((a, b) => {
-        const indexA = parseInt(a.getAttribute('data-order-index')) || 0;
-        const indexB = parseInt(b.getAttribute('data-order-index')) || 0;
-        return indexA - indexB;
+    // Sort pools by their actual positions in the container
+    const poolsWithIndices = pools.map(poolWrapper => {
+        const memberOrder = parseInt(poolWrapper.style.order) || 0;
+        // Since we're using negative orders in the display, we need to convert back
+        const actualIndex = memberOrder;
+        return {
+            element: poolWrapper,
+            index: actualIndex
+        };
     });
-    pools.forEach((poolWrapper) => {
+
+    // Sort by index (ascending)
+    poolsWithIndices.sort((a, b) => a.index - b.index);
+
+    // Create action items in sorted order
+    poolsWithIndices.forEach(({element: poolWrapper}, displayIndex) => {
         const poolName = poolWrapper.getAttribute('data-pool-name');
         const isSurvivorPool = poolWrapper.classList.contains('survivor-mode');
         const poolAdmin = poolWrapper.getAttribute('data-admin-username');
@@ -1044,7 +1053,7 @@ function updatePoolActionsList() {
     
         const actionItem = document.createElement('div');
         actionItem.className = 'pool-action-item';
-        actionItem.dataset.order = poolWrapper.getAttribute('data-order-index');
+        actionItem.dataset.order = displayIndex;
         
         // Add order buttons
         const orderButtons = document.createElement('div');
@@ -1053,12 +1062,15 @@ function updatePoolActionsList() {
         const upButton = document.createElement('button');
         upButton.className = 'order-button';
         upButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
-        upButton.disabled = !poolWrapper.previousElementSibling;
+        upButton.disabled = displayIndex === 0;
 
         const downButton = document.createElement('button');
         downButton.className = 'order-button';
         downButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
-        downButton.disabled = !poolWrapper.nextElementSibling;
+        downButton.disabled = displayIndex === pools.length - 1;
+
+        orderButtons.appendChild(upButton);
+        orderButtons.appendChild(downButton);
 
         // Add event listeners for reordering
         upButton.onclick = async () => {
@@ -1076,25 +1088,17 @@ function updatePoolActionsList() {
 
         downButton.onclick = async () => {
             try {
-                console.log(`Attempting to move pool ${poolName} down`);
                 const response = await movePool(poolName, 'down');
-                console.log('Move response:', response);
                 if (response.success) {
                     downButton.classList.add('success');
                     setTimeout(() => downButton.classList.remove('success'), 500);
                     loadAndDisplayUserPools();
-                } else {
-                    console.error('Move failed:', response.message);
                 }
             } catch (error) {
                 console.error('Error moving pool down:', error);
             }
         };
 
-        orderButtons.appendChild(upButton);
-        orderButtons.appendChild(downButton);
-
-        // Pool name with mode indicator
         const nameSpan = document.createElement('span');
         nameSpan.className = 'pool-name-text';
         nameSpan.textContent = poolName + (isSurvivorPool ? ' (Survivor)' : '');
@@ -1102,7 +1106,6 @@ function updatePoolActionsList() {
         const buttonContainer = document.createElement('div');
         buttonContainer.className = 'pool-action-buttons';
 
-        // Add appropriate action button based on admin status
         if (isAdmin) {
             const deleteButton = document.createElement('button');
             deleteButton.className = 'pool-action-button delete';
@@ -1129,7 +1132,6 @@ function updatePoolActionsList() {
             buttonContainer.appendChild(leaveButton);
         }
 
-        // Assemble the action item
         actionItem.appendChild(orderButtons);
         actionItem.appendChild(nameSpan);
         actionItem.appendChild(buttonContainer);
@@ -2663,9 +2665,10 @@ async function displaySurvivorPool(pool) {
     poolWrapper.setAttribute('data-admin-username', pool.adminUsername);
     
     const memberOrder = pool.members.find(m => 
-        m.username.toLowerCase() === username
+        m.username.toLowerCase() === username.toLowerCase()
     )?.orderIndex ?? 0;
-    poolWrapper.style.order = memberOrder;
+    
+    poolWrapper.style.order = -memberOrder;
 
     // Pool name container
     const poolNameContainer = document.createElement('div');
