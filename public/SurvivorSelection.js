@@ -465,57 +465,7 @@ function sortPicks(picks) {
 }
 
 
-async function fetchUserPicksAndRender(username, poolSelection) {
-    console.log('\n=== Fetching User Picks ===');
-    console.log('Username:', username);
-    console.log('Pool Selection:', poolSelection);
 
-    try {
-        // First verify the pool mode
-        const poolsResponse = await fetch(`/pools/userPools/${encodeURIComponent(username)}`);
-        const pools = await poolsResponse.json();
-        
-        const selectedPoolData = pools.find(p => p.name === poolSelection);
-        console.log('Selected pool data:', selectedPoolData);
-
-        if (!selectedPoolData) {
-            console.error('Pool not found');
-            return;
-        }
-
-        if (selectedPoolData.mode !== 'survivor') {
-            console.error('Not a survivor pool:', selectedPoolData);
-            return;
-        }
-
-        // Fetch picks for the survivor pool
-        const response = await fetch(`/api/getPicks/${username}/${poolSelection}`);
-        const data = await response.json();
-        
-        console.log('Fetched picks data:', data);
-
-        // Clear existing picks
-        clearAllSelections();
-
-        // Render picks if they exist
-        if (data.picks && Array.isArray(data.picks)) {
-            console.log('Rendering regular picks:', data.picks);
-            data.picks.forEach(pick => {
-                console.log('Rendering pick:', pick);
-                renderPick(pick, false);
-            });
-        }
-
-        // Render immortal lock if it exists
-        if (data.immortalLock && Array.isArray(data.immortalLock) && data.immortalLock.length > 0) {
-            console.log('Rendering immortal lock:', data.immortalLock[0]);
-            renderPick(data.immortalLock[0], true);
-        }
-
-    } catch (error) {
-        console.error('Error in fetchUserPicksAndRender:', error);
-    }
-}
 
 // Add logging to renderPick function
 function renderPick(pick, isImmortalLock) {
@@ -847,6 +797,10 @@ function clearAllSelections() {
 
 
 async function fetchUserPicksAndRender(username, poolSelection) {
+    console.log('\n=== Fetching User Picks ===');
+    console.log('Username:', username);
+    console.log('Pool Selection:', poolSelection);
+
     try {
         // Reset all state
         userPicks = [];
