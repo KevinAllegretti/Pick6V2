@@ -3841,11 +3841,10 @@ text-align: center;
     padding: 16px;
     background: linear-gradient(
         145deg,
-        #0a1928 0%,
-        #1a3c4d 35%,
-        #2d2d4f 65%,
-        #1a1a2e 100%
-    );
+        #1b0a13 0%,
+        #600029 50%,
+        #1d1e2a 100%
+      );
     border: 1px solid #c8a951;
     border-radius: 8px;
     cursor: pointer;
@@ -3900,10 +3899,10 @@ text-align: center;
 .mode-card[data-mode="survivor"].active {
     background: linear-gradient(
         145deg,
-        #1a3c4d 0%,
-        #2d2d4f 50%,
-        #1a3c4d 100%
-    );
+        #1d1e2a 0%,
+        #600029 50%,
+         #1b0a13 100%
+      );
     border-color: #e9d5a0;
     box-shadow: 
         0 0 40px rgba(41, 171, 226, 0.25),
@@ -3939,23 +3938,24 @@ text-align: center;
 
 
 /* Eliminated player styling */
+/*
 .survivor-player-row.eliminated {
    
     border-color: #4a0f0f;
-}
+}*/
 
 .survivor-player-row.eliminated .survivor-profile-pic {
     border-color: #4a0f0f;
     box-shadow: 0 0 5px rgba(255, 49, 49, 0.5);
 }
-
+/*
 .survivor-player-row.eliminated::after {
     background-color: #FF3131;
 }
 
 .survivor-player-row.eliminated > div::after {
     background-color: #4a0f0f;
-}
+}*/
 
 .eliminated-status {
     color: #FF3131;
