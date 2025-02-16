@@ -1727,6 +1727,8 @@ label {
 }
 
 .mode-card {
+    width: 153px;
+    height: 275px;
     padding: 1rem;
     border: 2px solid rgba(51, 217, 255, 0.3);
     border-radius: 6px;
