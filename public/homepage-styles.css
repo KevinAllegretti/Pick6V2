@@ -3146,30 +3146,6 @@ body {
     text-shadow: 0 0 5px #39FF14;
 }
 
-/* Eliminated player styling */
-.survivor-player-row.eliminated {
-   
-    border-color: #FF3131;
-}
-
-.survivor-player-row.eliminated .survivor-profile-pic {
-    border-color: #FF3131;
-    box-shadow: 0 0 5px rgba(255, 49, 49, 0.5);
-}
-
-.survivor-player-row.eliminated::after {
-    background-color: #FF3131;
-}
-
-.survivor-player-row.eliminated > div::after {
-    background-color: #FF3131;
-}
-
-.eliminated-status {
-    color: #FF3131;
-    text-shadow: 0 0 5px rgba(255, 49, 49, 0.5);
-    font-weight: bold;
-}
 
 /* Add this to your CSS */
 .survivor-mode .team-logo {
@@ -3414,7 +3390,7 @@ body {
   .eliminated-status {
     /* A slightly muted deep burgundy with soft pink accents */
     background: linear-gradient(45deg, #311016, #52122a);
-    color: #ff8a8a;
+    color: #4a0f0f;
     border: 1px solid rgba(220, 20, 60, 0.3);
     padding: 6px 16px;
     border-radius: 4px;
@@ -3961,3 +3937,28 @@ text-align: center;
     letter-spacing: 0.5px;
 }
 
+
+/* Eliminated player styling */
+.survivor-player-row.eliminated {
+   
+    border-color: #4a0f0f;
+}
+
+.survivor-player-row.eliminated .survivor-profile-pic {
+    border-color: #4a0f0f;
+    box-shadow: 0 0 5px rgba(255, 49, 49, 0.5);
+}
+
+.survivor-player-row.eliminated::after {
+    background-color: #FF3131;
+}
+
+.survivor-player-row.eliminated > div::after {
+    background-color: #4a0f0f;
+}
+
+.eliminated-status {
+    color: #FF3131;
+    text-shadow: 0 0 5px rgba(255, 49, 49, 0.5);
+    font-weight: bold;
+}
