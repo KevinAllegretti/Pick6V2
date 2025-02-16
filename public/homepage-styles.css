@@ -3873,3 +3873,106 @@ body {
     letter-spacing: 0.1em;
     text-transform: uppercase;
 }
+
+
+/* Target specifically the survivor mode card */
+.mode-card[data-mode="survivor"] {
+    flex: 1;
+    padding: 16px;
+    background: linear-gradient(
+        145deg,
+        #0a1928 0%,
+        #1a3c4d 35%,
+        #2d2d4f 65%,
+        #1a1a2e 100%
+    );
+    border: 1px solid #c8a951;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 0 20px rgba(41, 171, 226, 0.1),
+        inset 0 0 30px rgba(10, 25, 40, 0.2);
+}
+
+/* Art Deco corner accents for survivor mode */
+.mode-card[data-mode="survivor"]::before,
+.mode-card[data-mode="survivor"]::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 1px solid #c8a951;
+    opacity: 0.5;
+    transition: all 0.3s ease;
+}
+
+.mode-card[data-mode="survivor"]::before {
+    top: 5px;
+    left: 5px;
+    border-right: none;
+    border-bottom: none;
+}
+
+.mode-card[data-mode="survivor"]::after {
+    bottom: 5px;
+    right: 5px;
+    border-left: none;
+    border-top: none;
+}
+
+.mode-card[data-mode="survivor"]:hover {
+    transform: translateY(-2px);
+    border-color: #e9d5a0;
+    box-shadow: 
+        0 0 30px rgba(41, 171, 226, 0.2),
+        inset 0 0 40px rgba(10, 25, 40, 0.3);
+}
+
+.mode-card[data-mode="survivor"]:hover::before,
+.mode-card[data-mode="survivor"]:hover::after {
+    opacity: 1;
+    border-color: #e9d5a0;
+}
+
+.mode-card[data-mode="survivor"].active {
+    background: linear-gradient(
+        145deg,
+        #1a3c4d 0%,
+        #2d2d4f 50%,
+        #1a3c4d 100%
+    );
+    border-color: #e9d5a0;
+    box-shadow: 
+        0 0 40px rgba(41, 171, 226, 0.25),
+        inset 0 0 50px rgba(10, 25, 40, 0.4);
+}
+
+/* Survivor mode title styling */
+.mode-card[data-mode="survivor"] .mode-title {
+    font-family: 'Poiret One', 'Josefin Sans', sans-serif;
+    font-size: 22px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(45deg, #c8a951, #e9d5a0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* Survivor mode description styling */
+.mode-card[data-mode="survivor"] .mode-description {
+    font-family: 'Playfair Display', 'Cormorant Garamond', serif;
+    font-size: 14px;
+    color: #e9d5a0;
+    line-height: 1.8;
+    opacity: 0.9;
+    font-style: italic;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    letter-spacing: 0.5px;
+}
+
