@@ -3,6 +3,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Wallpoet&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Goldman:wght@700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap');
+
 /* General Styling */
 body {
     font-family: 'Arial', sans-serif;
@@ -2781,21 +2784,7 @@ label {
     padding: 5px 0;  /* Reduced padding */
 }
 
-/* Vertical lines - Reduced height */
-.survivor-pool-header > span:not(:last-child)::after,
-.survivor-player-row > div:not(:last-child)::after {
-    height: 20px;  /* Reduced height */
-    width: 1px;
-    background-color: #a50000;
-}
 
-/* Profile picture - Reduced size */
-.survivor-profile-pic {
-    width: 32px;  /* Reduced from 43px */
-    height: 32px;  /* Reduced from 43px */
-    margin-right: 8px;  /* Reduced margin */
-    border: 1px solid #39FF14;  /* Thinner border */
-}
 
 /* User section - Adjusted spacing */
 .survivor-player-user {
@@ -2832,13 +2821,6 @@ label {
     margin-left: 8px;
 }
 
-/* User count - More compact */
-.survivor-user-count {
-    padding: 1px 6px;  /* Reduced padding */
-    font-size: 0.8em;  /* Reduced font size */
-    margin-left: 8px;
-    box-shadow: 0 0 3px #39FF14, 0 0 3px #39FF14, 0 0 3px #39FF14;  /* Reduced glow */
-}
 
 /* Current user highlighting - Subtler effect */
 .survivor-current-user-row {
@@ -3476,25 +3458,7 @@ body {
     overflow: hidden;
 }
 
-/* Elegant corner accents */
-.survivor-pool-container::before,
-.survivor-pool-container::after {
-    content: '';
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    background: linear-gradient(45deg, 
-        rgba(128, 0, 32, 0.1),
-        rgba(184, 134, 11, 0.1)
-    );
-    border-radius: 10px;
-    opacity: 0.3;
-}
 
-.survivor-pool-container::before {
-    top: 0;
-    left: 0;
-}
 
 
 /* Survivor Pool Name */
@@ -3532,10 +3496,71 @@ body {
 /* Header and Row Styling */
 .survivor-pool-header {
     background: linear-gradient(90deg, #0a1128 0%, #1a1b3c 100%);
-    border-bottom: 1px solid rgba(184, 134, 11, 0.3);
+    border: 2px solid rgba(184, 134, 11, 0.3);
     padding: 15px 0;
+    border-radius: 8px;
+}
+/* Header with Polished Wood Effect */
+/* Header with Dark Polished Wood Effect */
+/* Header with Royal Purple Wood Effect */
+.survivor-pool-header {
+    background: 
+        /* Fine wood grain texture */
+        repeating-linear-gradient(
+            45deg,
+            rgba(26, 27, 60, 0.15) 0px,
+            transparent 1px,
+            transparent 2px
+        ),
+        /* Subtle horizontal grain lines */
+        repeating-linear-gradient(
+            90deg,
+            rgba(41, 41, 102, 0.08) 0px,
+            transparent 1px,
+            transparent 3px
+        ),
+        /* Rich purple wood base color with glossy gradient */
+        linear-gradient(
+            90deg,
+            #0a1128 0%,
+            #1a1b3c 25%,
+            #24244f 50%,
+            #1a1b3c 75%,
+            #0a1128 100%
+        );
+    border: 2px solid rgba(184, 134, 11, 0.5);
+    padding: 15px 0;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        inset 0 2px 5px rgba(255, 255, 255, 0.07),
+        inset 0 -2px 5px rgba(0, 0, 0, 0.3);
 }
 
+/* Add glossy highlight effect */
+.survivor-pool-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.03) 45%,
+        rgba(255, 255, 255, 0.08) 50%,
+        rgba(255, 255, 255, 0.03) 55%,
+        transparent 100%
+    );
+    animation: woodSheen 8s infinite linear;
+}
+
+@keyframes woodSheen {
+    0% { transform: translateX(-50%); }
+    100% { transform: translateX(50%); }
+}
 .survivor-pool-header > span {
     font-family: 'Montserrat', sans-serif;
     color: #b8860b;
@@ -3549,10 +3574,9 @@ body {
 .survivor-player-row {
     border-bottom: 1px solid rgba(184, 134, 11, 0.1);
     background: linear-gradient(90deg, 
-        rgba(10, 17, 40, 0.8) 0%, 
-        rgba(26, 27, 60, 0.8) 100%
-    );
-    transition: all 0.3s ease;
+    rgba(128, 0, 32, 0.1) 0%, 
+    rgba(184, 134, 11, 0.05) 100%
+);
 }
 
 .survivor-player-row:hover {
@@ -3620,7 +3644,7 @@ body {
 
 /* Survivor Picks Button */
 .survivor-picks-button {
-    background: linear-gradient(45deg, #800020, #a23;
+    background: linear-gradient(45deg, #800020, #a23);
     border: none;
     color: #fff;
     font-family: 'Montserrat', sans-serif;
@@ -3671,18 +3695,6 @@ body {
     box-shadow: inset 0 0 25px rgba(128, 0, 32, 0.05);
 }
 
-/* Team Logo Styling */
-.survivor-mode .team-logo {
-    width: 42px;
-    height: 42px;
-    filter: drop-shadow(0 2px 6px rgba(184, 134, 11, 0.3));
-    transition: all 0.3s ease;
-}
-
-.survivor-mode .team-logo:hover {
-    transform: scale(1.12);
-    filter: drop-shadow(0 4px 12px rgba(184, 134, 11, 0.5));
-}
 
 /* Show More Button */
 .survivor-show-more-button {
@@ -3704,42 +3716,11 @@ body {
     box-shadow: 0 6px 20px rgba(128, 0, 32, 0.3);
 }
 
-/* View Selector Styling */
-.survivor-view-selector {
-    background: linear-gradient(45deg, #0a1128, #1a1b3c);
-    border: 1px solid #b8860b;
-    color: #b8860b;
-    font-family: 'Montserrat', sans-serif;
-    padding: 8px 20px;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
 
-.survivor-view-selector:hover {
-    border-color: #daa520;
-    box-shadow: 0 4px 12px rgba(184, 134, 11, 0.2);
-}
-
-/* Add subtle shimmer effect to containers */
-@keyframes shimmer {
-    0% { background-position: -1000px 0; }
-    100% { background-position: 1000px 0; }
-}
-
-.survivor-pool-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.05),
-        transparent
-    );
-    background-size: 2000px 100%;
-    animation: shimmer 8s infinite linear;
-    pointer-events: none;
+/* Vertical lines - Reduced height */
+.survivor-pool-header > span:not(:last-child)::after,
+.survivor-player-row > div:not(:last-child)::after {
+    height: 20px;  /* Reduced height */
+    width: 1px;
+    background-color: #b8860b;
 }
