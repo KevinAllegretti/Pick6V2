@@ -3952,6 +3952,7 @@ body {
 
 /* Survivor mode title styling */
 .mode-card[data-mode="survivor"] .mode-title {
+    width:200px;
     font-family: 'Poiret One', 'Josefin Sans', sans-serif;
     font-size: 22px;
     margin-bottom: 12px;
@@ -3962,6 +3963,7 @@ body {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    
 }
 
 /* Survivor mode description styling */
