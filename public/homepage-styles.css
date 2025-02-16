@@ -1737,6 +1737,7 @@ label {
 
 .form-group input {
     width: 100%;
+    font-size: 16px;
     padding: 0.5rem;
     background-color: #002244;
     border: 1px solid #33d9ff;
