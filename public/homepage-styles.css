@@ -3440,233 +3440,6 @@ body {
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap');
 
-/* Survivor Pool Container */
-.survivor-pool-container {
-    min-width: 600px;
-    max-width: 600px;
-    padding: 20px;
-    background: linear-gradient(145deg, 
-        #0a1128 0%, 
-        #800020 50%,
-        #1a1b3c 100%
-    );
-    border: 2px solid #b8860b;
-    border-radius: 12px;
-    box-shadow: 0 0 30px rgba(184, 134, 11, 0.15),
-                inset 0 0 50px rgba(128, 0, 32, 0.2);
-    position: relative;
-    overflow: hidden;
-}
-
-
-
-
-/* Survivor Pool Name */
-.survivor-pool-name {
-    font-family: 'Playfair Display', serif;
-    font-size: 26px;
-    background: linear-gradient(45deg, #b8860b, #daa520);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    margin-bottom: 20px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    position: relative;
-    padding-bottom: 12px;
-}
-
-.survivor-pool-name::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, 
-        transparent, 
-        #800020 20%, 
-        #b8860b 50%,
-        #800020 80%, 
-        transparent
-    );
-}
-
-/* Header and Row Styling */
-.survivor-pool-header {
-    border-bottom: 2px solid #b8860b;
-
-}
-/* Header with Polished Wood Effect */
-/* Header with Dark Polished Wood Effect */
-/* Header with Royal Purple Wood Effect */
-
-.survivor-pool-header > span {
-    font-family: 'Montserrat', sans-serif;
-    color: #b8860b;
-    font-size: 16px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-}
-
-/* Player Row Styling */
-.survivor-player-row {
-    border-bottom: 1px solid rgba(184, 134, 11, 0.1);
-    background: linear-gradient(90deg, 
-    rgba(128, 0, 32, 0.1) 0%, 
-    rgba(184, 134, 11, 0.05) 100%
-);
-}
-
-.survivor-player-row:hover {
-    background: linear-gradient(90deg, 
-        rgba(128, 0, 32, 0.1) 0%, 
-        rgba(184, 134, 11, 0.05) 100%
-    );
-}
-
-/* Profile Picture Styling */
-.survivor-profile-pic {
-    width: 40px;
-    height: 40px;
-    border: 2px solid #b8860b;
-    box-shadow: 0 0 15px rgba(128, 0, 32, 0.2);
-    transition: all 0.3s ease;
-}
-
-.survivor-profile-pic:hover {
-    transform: scale(1.05);
-    border-color: #daa520;
-    box-shadow: 0 0 20px rgba(184, 134, 11, 0.3);
-}
-
-/* Status Indicators */
-.active-status {
-    background: linear-gradient(45deg, #0a1128, #1a1b3c);
-    color: #b8860b;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 6px 16px;
-    border: 1px solid rgba(184, 134, 11, 0.3);
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.eliminated-status {
-    background: linear-gradient(45deg, #2c0910, #4a0d1c);
-    color: #ff9999;
-    border: 1px solid rgba(220, 20, 60, 0.3);
-    padding: 6px 16px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-/* Stats Container */
-.survivor-stats-container {
-    background: linear-gradient(90deg, #0a1128 0%, #1a1b3c 100%);
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid rgba(184, 134, 11, 0.2);
-    margin-bottom: 15px;
-}
-
-.survivor-user-count {
-    border: 1px solid #b8860b;
-    background: rgba(10, 17, 40, 0.9);
-    color: #b8860b;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    padding: 6px 16px;
-    border-radius: 20px;
-}
-
-/* Survivor Picks Button */
-.survivor-picks-button {
-    background: linear-gradient(45deg, #800020, #a23);
-    border: none;
-    color: #fff;
-    font-family: 'Montserrat', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    padding: 14px 32px;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(128, 0, 32, 0.3);
-    border-radius: 6px;
-}
-
-.survivor-picks-button:hover {
-    background: linear-gradient(45deg, #a23, #800020);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(128, 0, 32, 0.4);
-}
-
-.survivor-picks-button::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-        45deg,
-        transparent,
-        rgba(255, 255, 255, 0.1),
-        transparent
-    );
-    transform: rotate(45deg);
-    transition: transform 0.6s ease;
-}
-
-.survivor-picks-button:hover::after {
-    transform: rotate(45deg) translate(50%, 50%);
-}
-
-/* Current User Row Highlight */
-.survivor-current-user-row {
-    background: linear-gradient(90deg, 
-        rgba(128, 0, 32, 0.08) 0%,
-        rgba(184, 134, 11, 0.12) 50%,
-        rgba(128, 0, 32, 0.08) 100%
-    );
-    box-shadow: inset 0 0 25px rgba(128, 0, 32, 0.05);
-}
-
-
-/* Show More Button */
-.survivor-show-more-button {
-    background: linear-gradient(45deg, #800020, #a23);
-    border: none;
-    color: #fff;
-    font-family: 'Montserrat', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: all 0.3s ease;
-    padding: 10px 24px;
-    border-radius: 6px;
-    box-shadow: 0 4px 15px rgba(128, 0, 32, 0.2);
-}
-
-.survivor-show-more-button:hover {
-    background: linear-gradient(45deg, #a23, #800020);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(128, 0, 32, 0.3);
-}
-
-
-/* Vertical lines - Reduced height */
-.survivor-pool-header > span:not(:last-child)::after,
-.survivor-player-row > div:not(:last-child)::after {
-    height: 20px;  /* Reduced height */
-    width: 1px;
-    background-color: #b8860b;
-}
-
-
 /*hhhhhh*/
 
 /* Survivor Pool Container */
@@ -3748,13 +3521,7 @@ body {
     );
   }
   
-  .survivor-player-row:hover {
-    background: linear-gradient(
-      90deg,
-      rgba(96, 0, 41, 0.1) 0%,
-      rgba(212, 175, 55, 0.05) 100%
-    );
-  }
+
   
   /* Profile Picture Styling */
   .survivor-profile-pic {
@@ -3896,3 +3663,223 @@ body {
     background-color: #d4af37;
   }
   
+  /*asd*/
+
+  /* Rapture-inspired Survivor Pool styling */
+.survivor-pool-container {
+    min-width: 600px;
+    max-width: 600px;
+    padding: 20px;
+    /* Deep oceanic gradient with art deco undertones */
+    background: linear-gradient(
+        145deg,
+        #0a1928 0%,
+        #1a3c4d 35%,
+        #2d2d4f 65%,
+        #1a1a2e 100%
+    );
+    border: 2px solid #c8a951; /* Aged brass */
+    border-radius: 15px;
+    box-shadow: 
+        0 0 40px rgba(41, 171, 226, 0.15),
+        inset 0 0 60px rgba(10, 25, 40, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Art Deco pattern overlay */
+.survivor-pool-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        repeating-linear-gradient(
+            45deg,
+            rgba(200, 169, 81, 0.03) 0px,
+            rgba(200, 169, 81, 0.03) 1px,
+            transparent 1px,
+            transparent 10px
+        );
+    pointer-events: none;
+}
+
+.survivor-pool-name {
+    font-family: 'Poiret One', 'Playfair Display', serif;
+    font-size: 32px;
+    /* Metallic gold gradient with blue undertone */
+    background: linear-gradient(
+        45deg,
+        #c8a951,
+        #e9d5a0,
+        #c8a951
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.3),
+        0 0 10px rgba(41, 171, 226, 0.2);
+    margin-bottom: 25px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    position: relative;
+    padding-bottom: 15px;
+}
+
+/* Art Deco divider */
+.survivor-pool-name::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 2px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        #c8a951 20%,
+        #e9d5a0 50%,
+        #c8a951 80%,
+        transparent
+    );
+}
+
+.survivor-pool-header {
+    border-bottom: 2px solid #c8a951;
+    padding: 12px 0;
+    background: linear-gradient(
+        90deg,
+        rgba(10, 25, 40, 0.6),
+        rgba(41, 171, 226, 0.1)
+    );
+}
+
+.survivor-pool-header > span {
+    font-family: 'Josefin Sans', sans-serif;
+    color: #e9d5a0;
+    font-size: 16px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.survivor-player-row {
+    border-bottom: 1px solid rgba(200, 169, 81, 0.15);
+    background: linear-gradient(
+        90deg,
+        rgba(10, 25, 40, 0.3),
+        rgba(41, 171, 226, 0.05)
+    );
+    padding: 12px 0;
+    transition: all 0.3s ease;
+}
+
+.survivor-player-row:hover {
+    background: linear-gradient(
+        90deg,
+        rgba(41, 171, 226, 0.1),
+        rgba(200, 169, 81, 0.05)
+    );
+}
+
+.survivor-profile-pic {
+    width: 40px;
+    height: 40px;
+    border: 2px solid #c8a951;
+    box-shadow: 
+        0 0 15px rgba(41, 171, 226, 0.2),
+        inset 0 0 10px rgba(10, 25, 40, 0.3);
+    transition: all 0.3s ease;
+    border-radius: 50%;
+}
+
+.survivor-profile-pic:hover {
+    transform: scale(1.1);
+    border-color: #e9d5a0;
+    box-shadow: 
+        0 0 20px rgba(41, 171, 226, 0.4),
+        inset 0 0 15px rgba(10, 25, 40, 0.4);
+}
+
+.active-status {
+    background: linear-gradient(45deg, #1a3c4d, #2d2d4f);
+    color: #c8a951;
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 6px 16px;
+    border: 1px solid rgba(200, 169, 81, 0.3);
+    border-radius: 4px;
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.2),
+        inset 0 0 10px rgba(41, 171, 226, 0.1);
+}
+
+.eliminated-status {
+    background: linear-gradient(45deg, #4a0f0f, #2d0f1a);
+    color: #ff6b6b;
+    border: 1px solid rgba(255, 107, 107, 0.3);
+    padding: 6px 16px;
+    border-radius: 4px;
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.2),
+        inset 0 0 10px rgba(74, 15, 15, 0.3);
+}
+
+.survivor-picks-button {
+    background: linear-gradient(45deg, #1a3c4d, #2d2d4f);
+    border: 1px solid #c8a951;
+    color: #e9d5a0;
+    font-family: 'Josefin Sans', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 14px 32px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 
+        0 4px 15px rgba(41, 171, 226, 0.2),
+        inset 0 0 10px rgba(10, 25, 40, 0.3);
+    border-radius: 6px;
+}
+
+.survivor-picks-button:hover {
+    background: linear-gradient(45deg, #2d2d4f, #1a3c4d);
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 20px rgba(41, 171, 226, 0.3),
+        inset 0 0 15px rgba(10, 25, 40, 0.4);
+    color: #fff;
+}
+
+/* Art Deco shine effect */
+.survivor-picks-button::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(200, 169, 81, 0.1),
+        transparent
+    );
+    transform: rotate(45deg);
+    transition: transform 0.6s ease;
+}
+
+.survivor-current-user-row {
+    background: linear-gradient(
+        90deg,
+        rgba(41, 171, 226, 0.1),
+        rgba(200, 169, 81, 0.08)
+    );
+    box-shadow: inset 0 0 25px rgba(10, 25, 40, 0.1);
+}
