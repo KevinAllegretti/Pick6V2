@@ -3500,12 +3500,12 @@ body {
   /*asd*/
 
   /* Rapture-inspired Survivor Pool styling */
-/* Rapture-inspired Survivor Pool styling */
+/* Rapture-inspired Survivor Pool styling 
 .survivor-pool-container {
     min-width: 600px;
     max-width: 600px;
     padding: 12px;
-    /* Deep oceanic gradient with art deco undertones */
+    /* Deep oceanic gradient with art deco undertones 
     background: linear-gradient(
         145deg,
         #0a1928 0%,
@@ -3513,14 +3513,14 @@ body {
         #2d2d4f 65%,
         #1a1a2e 100%
     );
-    border: 2px solid #c8a951; /* Aged brass */
+    border: 2px solid #c8a951; /* Aged brass 
     border-radius: 15px;
     box-shadow: 
         0 0 40px rgba(41, 171, 226, 0.15),
         inset 0 0 60px rgba(10, 25, 40, 0.4);
     position: relative;
     overflow: hidden;
-}
+}*.
 
 /* Art Deco pattern overlay */
 .survivor-pool-container::before {
