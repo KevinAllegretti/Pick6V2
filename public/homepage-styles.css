@@ -3495,6 +3495,7 @@ body {
 
 /* Header and Row Styling */
 .survivor-pool-header {
+    border-bottom: 1px solid rgba(184, 134, 11, 0.3);
     padding: 15px 0;
 }
 /* Header with Polished Wood Effect */
