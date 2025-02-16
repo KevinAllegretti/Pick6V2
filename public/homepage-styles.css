@@ -2362,16 +2362,7 @@ label {
     font-weight: bold;
 }
 
-/* Pool name styling */
-.survivor-pool-name {
-    font-size: 20px;
-    font-family: 'Russo One', sans-serif;
-    color: #ffffff;
-    text-shadow: 0 0 10px #39FF14, 0 0 20px #39FF14;
-    margin-bottom: 1px;
-    margin-left: 10px;
-    line-height: 1;
-}
+
 
 /* User count styling for survivor mode */
 .survivor-user-count {
@@ -3387,17 +3378,7 @@ body {
     text-transform: uppercase;
     letter-spacing: 1.5px;
   }
-  
-  /* Player Row Styling */
-  .survivor-player-row {
-    border-bottom: 1px solid rgba(212, 175, 55, 0.1);
-    background: linear-gradient(
-      90deg,
-      rgba(96, 0, 41, 0.1) 0%,
-      rgba(212, 175, 55, 0.05) 100%
-    );
-  }
-  
+
 
   
   /* Profile Picture Styling */
@@ -3586,7 +3567,7 @@ body {
 
 .survivor-pool-name {
     font-family: 'Poiret One', 'Playfair Display', serif;
-    font-size: 24px;
+    font-size: 20px;
     /* Metallic gold gradient with blue undertone */
     background: linear-gradient(
         45deg,
@@ -3604,7 +3585,6 @@ body {
     letter-spacing: 3px;
     text-transform: uppercase;
     position: relative;
-    padding-bottom: 15px;
 }
 
 /* Art Deco divider */
@@ -3643,11 +3623,7 @@ body {
 
 .survivor-player-row {
     border-bottom: 1px solid rgba(200, 169, 81, 0.15);
-    background: linear-gradient(
-        90deg,
-        rgba(10, 25, 40, 0.3),
-        rgba(41, 171, 226, 0.05)
-    );
+
     padding: 4px 0;
     transition: all 0.3s ease;
 }
