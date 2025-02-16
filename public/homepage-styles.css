@@ -3877,6 +3877,9 @@ body {
     margin-bottom: 0.5rem;
 }
 
+.mode-card[data-mode="classic"] .mode-title{
+text-align: center;
+}
 
 /* Target specifically the survivor mode card */
 .mode-card[data-mode="survivor"] {
@@ -3955,10 +3958,10 @@ body {
 
 /* Survivor mode title styling */
 .mode-card[data-mode="survivor"] .mode-title {
-    width:153px;
+
     font-family: 'Poiret One', 'Josefin Sans', sans-serif;
     font-size: 1.125rem;
-
+    text-align: center;
     text-transform: uppercase;
     letter-spacing: 2px;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
