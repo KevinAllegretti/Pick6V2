@@ -1078,6 +1078,7 @@ label {
     border-radius: 8px; /* Optional border radius for rounded corners */
     margin: 20px 0; /* Space around the pool manager */
     transition: margin 0.3s ease-in-out;
+    min-width: 320px;
 }
 
 
