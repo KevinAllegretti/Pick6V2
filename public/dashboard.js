@@ -896,7 +896,7 @@ async function populatePoolSelector() {
           const warningDiv = document.createElement('div');
           warningDiv.className = 'pool-warning';
           warningDiv.textContent =
-            'Different last week picks detected across pools.  "All Pools" view will reflect the first pool.';
+            'Different last week picks detected across pools. Please manage picks in individual pools.';
           container.insertAdjacentElement('afterend', warningDiv);
           shouldShowAllOption = false; // Ensure "All Pools" option is not shown
         }
