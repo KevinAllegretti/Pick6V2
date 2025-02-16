@@ -963,60 +963,6 @@ function createSurvivorPlayerRow(memberData, currentUsername) {
 }
 
 
-async function fetchSurvivorPick(username, poolName, playerRow, teamLogos) {
-    const isPickTime = await isCurrentTimePickTime();
-    const encodedUsername = encodeURIComponent(username);
-    const encodedPoolName = encodeURIComponent(poolName);
-    
-    try {
-        const response = await fetch(`/api/getSurvivorPick/${encodedUsername}/${encodedPoolName}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const pickData = await response.json();
-        const picksContainer = playerRow.querySelector('.survivor-player-picks');
-        picksContainer.innerHTML = '';
-
-        const showingUsername = localStorage.getItem('username').toLowerCase();
-        if (username.toLowerCase() === showingUsername || !isPickTime) {
-            if (pickData && pickData.pick) {
-                const pickDiv = document.createElement('div');
-                pickDiv.className = 'survivor-pick';
-
-                const teamName = pickData.pick.teamName;
-                if (teamName && teamLogos[teamName]) {
-                    const logoImg = document.createElement('img');
-                    logoImg.src = teamLogos[teamName];
-                    logoImg.alt = teamName;
-                    logoImg.className = 'team-logo';
-                    pickDiv.appendChild(logoImg);
-                }
-
-                picksContainer.appendChild(pickDiv);
-            } else {
-                const noPickMessage = document.createElement('div');
-                noPickMessage.className = 'no-picks-message';
-                noPickMessage.textContent = 'No pick made';
-                picksContainer.appendChild(noPickMessage);
-            }
-        } else {
-            const bannerImage = document.createElement('img');
-            bannerImage.src = 'PickTimeNew.png';
-            bannerImage.alt = 'Player Making Selection';
-            bannerImage.className = 'pick-banner';
-            picksContainer.appendChild(bannerImage);
-        }
-    } catch (error) {
-        console.error('Error fetching survivor pick:', error);
-        const picksContainer = playerRow.querySelector('.survivor-player-picks');
-        picksContainer.innerHTML = '';
-        const errorMessage = document.createElement('div');
-        errorMessage.className = 'error-message';
-        errorMessage.textContent = ' ';
-        picksContainer.appendChild(errorMessage);
-    }
-}
 
 
 function updatePoolActionsList() {
@@ -1547,7 +1493,12 @@ async function fetchPicks(username, poolName, playerRow, teamLogos, isSurvivorPo
             } else {
                 switch (timePhase) {
                     case 'pick':
+                        if(!isSurvivorPool){
                         displayPickTimeBanner(picksContainer);
+                        }
+                        else{
+                            displaySurvivorPickTimeBanner(picksContainer);
+                        }
                         break;
                     case 'thursday':
                         console.log('Processing Thursday game time picks');
@@ -1672,6 +1623,14 @@ async function displayAllPicks(picks, container, teamLogos) {
 function displayPickTimeBanner(container) {
     const bannerImage = document.createElement('img');
     bannerImage.src = 'PickTimeNew.png';
+    bannerImage.alt = 'Player Making Selection';
+    bannerImage.className = 'pick-banner';
+    container.appendChild(bannerImage);
+}
+
+function displaySurvivorPickTimeBanner(container) {
+    const bannerImage = document.createElement('img');
+    bannerImage.src = 'lalwoo.png';
     bannerImage.alt = 'Player Making Selection';
     bannerImage.className = 'pick-banner';
     container.appendChild(bannerImage);
@@ -2539,61 +2498,7 @@ async function fetchSurvivorStatus(username, poolName) {
     }
 }
 
-// Function to fetch and display survivor pick
-async function fetchSurvivorPick(username, poolName, playerRow, teamLogos) {
-    const isPickTime = await isCurrentTimePickTime();
-    const encodedUsername = encodeURIComponent(username);
-    const encodedPoolName = encodeURIComponent(poolName);
-    
-    try {
-        const response = await fetch(`/api/getSurvivorPick/${encodedUsername}/${encodedPoolName}`);
-       /* if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }*/
-        
-        const pickData = await response.json();
-        const picksContainer = playerRow.querySelector('.survivor-player-picks');
-        picksContainer.innerHTML = '';
 
-        const showingUsername = localStorage.getItem('username').toLowerCase();
-        if (username.toLowerCase() === showingUsername || !isPickTime) {
-            if (pickData && pickData.pick) {
-                const pickDiv = document.createElement('div');
-                pickDiv.className = 'survivor-pick';
-
-                const teamName = pickData.pick.teamName;
-                if (teamName && teamLogos[teamName]) {
-                    const logoImg = document.createElement('img');
-                    logoImg.src = teamLogos[teamName];
-                    logoImg.alt = teamName;
-                    logoImg.className = 'team-logo';
-                    pickDiv.appendChild(logoImg);
-                }
-
-                picksContainer.appendChild(pickDiv);
-            } else {
-                const noPickMessage = document.createElement('div');
-                noPickMessage.className = 'no-picks-message';
-                noPickMessage.textContent = 'No pick made';
-                picksContainer.appendChild(noPickMessage);
-            }
-        } else {
-            const bannerImage = document.createElement('img');
-            bannerImage.src = 'PickTimeNew.png';
-            bannerImage.alt = 'Player Making Selection';
-            bannerImage.className = 'pick-banner';
-            picksContainer.appendChild(bannerImage);
-        }
-    } catch (error) {
-       // console.error('Error fetching survivor pick:', error);
-        const picksContainer = playerRow.querySelector('.survivor-player-picks');
-        picksContainer.innerHTML = '';
-        const errorMessage = document.createElement('div');
-        errorMessage.className = 'error-message';
-        errorMessage.textContent = ' ';
-        picksContainer.appendChild(errorMessage);
-    }
-}
 // Helper function to check if response is valid JSON
 async function isJsonResponse(response) {
     const contentType = response.headers.get('content-type');
