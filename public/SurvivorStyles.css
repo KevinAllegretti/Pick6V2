@@ -1499,24 +1499,6 @@ h4 {
   position: relative;
 }
 
-/* Art Deco pattern overlay */
-.container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-      repeating-linear-gradient(
-          45deg,
-          rgba(200, 169, 81, 0.03) 0px,
-          rgba(200, 169, 81, 0.03) 1px,
-          transparent 1px,
-          transparent 10px
-      );
-  pointer-events: none;
-}
 
 /* Reset & Submit buttons */
 button {

@@ -3654,28 +3654,32 @@ body {
 }
 
 .survivor-picks-button {
-    background: linear-gradient(45deg, #1a3c4d, #2d2d4f);
-    border: 1px solid #c8a951;
+    background: linear-gradient(45deg, #1b0a13, #600029);
+    border: 2px solid #d4af37;
     color: #e9d5a0;
     font-family: 'Josefin Sans', sans-serif;
     text-transform: uppercase;
     letter-spacing: 2px;
-    padding: 10px 24px;
+    padding: 8px 30px;  /* Reduced top/bottom padding */
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
-    box-shadow: 
-        0 4px 15px rgba(41, 171, 226, 0.2),
-        inset 0 0 10px rgba(10, 25, 40, 0.3);
-    border-radius: 6px;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2),
+                inset 0 0 10px rgba(10, 25, 40, 0.3);
+    border-radius: 8px;
+    display: flex;  /* Added flex display */
+    align-items: center;  /* Center vertically */
+    justify-content: center;  /* Center horizontally */
+    min-height: 40px;  /* Ensure consistent height */
+    line-height: 1;  /* Reset line height */
 }
 
 .survivor-picks-button:hover {
-    background: linear-gradient(45deg, #2d2d4f, #1a3c4d);
+    background: linear-gradient(45deg, #600029, #1b0a13);
     transform: translateY(-2px);
-    box-shadow: 
-        0 6px 20px rgba(41, 171, 226, 0.3),
-        inset 0 0 15px rgba(10, 25, 40, 0.4);
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3),
+                inset 0 0 15px rgba(10, 25, 40, 0.4);
+    border-color: #e9d5a0;
     color: #fff;
 }
 
