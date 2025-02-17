@@ -3286,26 +3286,6 @@ body {
 }
 
 
-/* Survivor Pool Container */
-.survivor-pool-container {
-    min-width: 600px;
-    max-width: 600px;
-    padding: 20px;
-    /* Deep burgundy to midnight blue gradient for a luxurious feel */
-    background: linear-gradient(
-      145deg,
-      #1b0a13 0%,
-      #600029 50%,
-      #1d1e2a 100%
-    );
-    border: 2px solid #d4af37; /* polished gold */
-    border-radius: 12px;
-    box-shadow: 0 0 30px rgba(212, 175, 55, 0.15),
-      inset 0 0 50px rgba(96, 0, 41, 0.2);
-    position: relative;
-    overflow: hidden;
-  }
-  
   /* Survivor Pool Name */
   .survivor-pool-name {
     font-family: 'Playfair Display', serif;
@@ -3521,6 +3501,28 @@ body {
     position: relative;
     overflow: hidden;
 }*.
+
+
+/* Survivor Pool Container */
+.survivor-pool-container {
+    min-width: 600px;
+    max-width: 600px;
+    padding: 20px;
+    /* Deep burgundy to midnight blue gradient for a luxurious feel */
+    background: linear-gradient(
+      145deg,
+      #1b0a13 0%,
+      #600029 50%,
+      #1d1e2a 100%
+    );
+    border: 2px solid #d4af37; /* polished gold */
+    border-radius: 12px;
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.15),
+      inset 0 0 50px rgba(96, 0, 41, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  
 
 /* Art Deco pattern overlay */
 .survivor-pool-container::before {

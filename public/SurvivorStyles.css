@@ -2,7 +2,7 @@
 
 body {
     font-family: 'Oswald', sans-serif;
-    background-color: #0a0f22;
+    background-color: #3b011a;
     /*color: #ddd;*/
     margin: 0;
     padding: 0;
@@ -206,7 +206,7 @@ body {
           margin: 10px auto;
           text-align: center;
           background: #121212;
-          color: #00ccff;
+          color: #c8a951;
           text-decoration: none;
           border-radius: 50px;
           border: 2px solid #00ccff;
@@ -237,30 +237,55 @@ body {
   margin-bottom: 20px; /* Some spacing after the button group */
   gap: 15px; /* Space between buttons */
 }
-
-/* Individual Buttons */
 .button-group button {
   max-width: 380px;
-  width: 80%; /* Set a width for the buttons */
+  width: 80%;
   padding: 12px 24px;
-  margin: 0; /* Remove default margin */
+  margin: 0;
   font-size: 1.1em;
-  font-family: 'Montserrat', sans-serif;
-  background: linear-gradient(45deg, #00BFFF, #33d9ff); /* Adjusted gradient background */
-  color: #ffffff;
-  border: none;
+  font-family: 'Josefin Sans', 'Montserrat', sans-serif;
+  background: linear-gradient(45deg, #c8a951, #e9d5a0, #d4af37); /* Rich gold gradient */
+  color: #1a1a2f; /* Dark text for contrast */
+  border: 1px solid rgba(200, 169, 81, 0.3);
   border-radius: 10px;
   cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2),
+              inset 0 0 20px rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
 }
 
 .button-group button:hover {
-  background: linear-gradient(45deg, #33d9ff, #00BFFF);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(45deg, #d4af37, #e9d5a0, #c8a951);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3),
+              inset 0 0 25px rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
 }
 
+/* Art Deco shine effect */
+.button-group button::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transform: rotate(45deg);
+  transition: transform 0.6s ease;
+}
+
+.button-group button:hover::after {
+  transform: rotate(45deg) translate(50%, 50%);
+}
 #addPick {
     width: 100%; /* Take the full width of its parent */
 }
@@ -388,19 +413,19 @@ input, select {
     margin: 10px auto;
     text-align: center;
     background: #121212;
-    color: #00ccff;
+    color: #c8a951;
     text-decoration: none;
     border-radius: 50px;
-    border: 2px solid #00ccff;
+    border: 2px solid #c8a951;
     transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
     cursor: pointer;
-    box-shadow: 0px 4px 15px rgba(0, 204, 255, 0.4);
+    box-shadow: 0px 4px 15px rgba(255, 238, 0, 0.4);
 }
 
 .back-button:hover {
-    background-color: #00ccff;
+    background-color: #c8a951;
     color: #121212;
-    box-shadow: 0px 6px 20px rgba(0, 204, 255, 0.6);
+    box-shadow: 0px 6px 20px rgba(255, 230, 0, 0.6);
 }
 
 .back-button-container {
@@ -684,18 +709,10 @@ h4 {
   box-shadow: 0 0 5px #00e9fa;; /* Blue glow */
 }
 
-.at-symbol {
-  font-size: 30px; /* Larger for emphasis */
-  color: #00e9fa;; /* Bright red for visibility */
-  margin: 0 15px;
-  flex: 0 0 50px; /* Bigger and bolder */
-  padding-left: 18px;
-  font-family: 'Montserrat', sans-serif;
-}
 
 .commence-time {
   width: 100%;
-  color: #4de4ff; /* Bright green for high visibility */
+  color: #c8a951; /* Bright green for high visibility */
   font-size: 18px;
   text-align: center;
   padding: 5px 0;
@@ -1214,18 +1231,18 @@ h4 {
 }
 
 .pool-selector:hover {
-  box-shadow: 0 0 15px rgba(0, 183, 255, 0.6);
+  box-shadow: 0 0 15px rgba(255, 230, 0, 0.6);
   background-color: rgba(0, 24, 48, 0.9);
 }
 
 .pool-selector:focus {
   outline: none;
-  box-shadow: 0 0 20px rgba(0, 183, 255, 0.6);
+  box-shadow: 0 0 20px rgba(255, 187, 0, 0.6);
 }
 
 .pool-selector option {
-  background-color: rgb(0, 24, 48);
-  color: #33d9ff;
+  background-color: rgb(48, 0, 36);
+  color: #c8a951;
   padding: 10px;
 }
 
@@ -1238,9 +1255,9 @@ h4 {
 }
 
 .pool-selector-label {
-  color: #33d9ff;
+  color: #c8a951;
   font-size: 16px;
-  text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+  text-shadow: 0 0 5px rgba(255, 217, 0, 0.5);
 }
 
 .pool-selector {
@@ -1257,7 +1274,7 @@ h4 {
 }
 
 .pool-selector-label {
-  color: #33d9ff;
+  color: #c8a951;
   font-size: .96rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1391,4 +1408,240 @@ h4 {
     border: 2px solid #00FF00 !important;
     box-shadow: 0 0 10px rgba(0, 255, 0, 0.5) !important;
     text-shadow: 0 0 5px #00FF00 !important;
+}
+
+/* Update game container to better contain its children */
+.game-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: nowrap; /* Prevent wrapping */
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  background: #17203a;
+  border: 2px solid #33d9ff;
+  box-shadow: 0 0 10px #33d9ff;
+  min-width: 250px;
+  max-width: 100%; /* Ensure it doesn't exceed parent width */
+  overflow: hidden; /* Prevent content from spilling out */
+  box-sizing: border-box; /* Include padding in width calculation */
+}
+
+/* Adjust team containers to fit within game container */
+.team-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 1 auto; /* Allow shrinking but not growing */
+  min-width: 0; /* Allow container to shrink below content size */
+  color: #fff;
+  border-radius: 8px;
+  margin: 5px;
+  padding: 15px; /* Reduced padding */
+  font-family: 'Orbitron', sans-serif;
+  box-shadow: 0 0 5px #00e9fa;
+}
+
+/* Adjust the at-symbol to prevent it from causing overflow */
+.at-symbol {
+  font-size: 24px; /* Slightly smaller */
+  color: #c8a951;
+  margin: 0 10px;
+  flex: 0 0 auto; /* Prevent flex growing/shrinking */
+  padding-left: 0; /* Remove extra padding */
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Update picks container to handle game containers better */
+.picks-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  gap: 20px; /* Add consistent spacing between game containers */
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* Media query for mobile devices */
+@media (max-width: 600px) {
+  .game-container {
+    margin-right: 0; /* Remove margin that could cause overflow */
+    width: 100%; /* Take full width */
+    padding: 10px; /* Reduce padding on mobile */
+  }
+  
+  .team-container {
+    padding: 10px; /* Further reduce padding on mobile */
+  }
+  
+  .at-symbol {
+    font-size: 20px; /* Even smaller on mobile */
+    margin: 0 5px;
+  }
+}
+
+/* Main container styling */
+.container {
+  width: 70%;
+  max-height: 632px;
+  overflow-y: auto;
+  margin: 0 auto;
+  background: linear-gradient(145deg, #1b0a13 0%, #600029 50%, #1d1e2a 100%);
+  border: 2px solid #d4af37;
+  border-radius: 15px;
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.15),
+              inset 0 0 50px rgba(96, 0, 41, 0.2);
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Art Deco pattern overlay */
+.container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+      repeating-linear-gradient(
+          45deg,
+          rgba(200, 169, 81, 0.03) 0px,
+          rgba(200, 169, 81, 0.03) 1px,
+          transparent 1px,
+          transparent 10px
+      );
+  pointer-events: none;
+}
+
+/* Reset & Submit buttons */
+button {
+  background: linear-gradient(45deg, #1a3c4d, #2d2d4f);
+  border: 1px solid #c8a951;
+  color: #e9d5a0;
+  font-family: 'Josefin Sans', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 12px 24px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2),
+              inset 0 0 10px rgba(10, 25, 40, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: linear-gradient(45deg, #2d2d4f, #1a3c4d);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3),
+              inset 0 0 15px rgba(10, 25, 40, 0.4);
+  color: #fff;
+}
+
+/* Art Deco shine effect for buttons */
+button::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+      45deg,
+      transparent,
+      rgba(200, 169, 81, 0.1),
+      transparent
+  );
+  transform: rotate(45deg);
+  transition: transform 0.6s ease;
+}
+
+/* Game container styling */
+.game-container {
+  background: linear-gradient(145deg, #1b0a13 0%, #2d1a20 50%, #1d1e2a 100%);
+  border: 1px solid #c8a951;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.1),
+              inset 0 0 30px rgba(96, 0, 41, 0.15);
+}
+
+/* Team container styling */
+.team-container {
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(200, 169, 81, 0.3);
+  background: linear-gradient(145deg, #1a1a2f 0%, #2d1a20 100%);
+}
+
+/* Heading styles */
+h1, h2, h4 {
+  font-family: 'Poiret One', 'Playfair Display', serif;
+  background: linear-gradient(45deg, #c8a951, #e9d5a0, #c8a951);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+/* Bet button styling */
+.bet-button {
+  background: linear-gradient(45deg, #1a3c4d, #2d2d4f);
+  border: 1px solid #c8a951;
+  color: #e9d5a0;
+  font-family: 'Josefin Sans', sans-serif;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+}
+
+.bet-button:hover {
+  background: linear-gradient(45deg, #2d2d4f, #1a3c4d);
+  border-color: #e9d5a0;
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+}
+
+.bet-button.selected {
+  background: linear-gradient(45deg, #c8a951, #e9d5a0) !important;
+  color: #1a1a2f !important;
+  border-color: #c8a951 !important;
+  text-shadow: none;
+}
+
+/* Pool selector styling */
+.pool-selector {
+  background: linear-gradient(145deg, #1b0a13 0%, #2d1a20 50%, #1d1e2a 100%);
+  border: 1px solid #c8a951;
+  color: #e9d5a0;
+  font-family: 'Josefin Sans', sans-serif;
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.15);
+}
+
+.pool-selector:hover {
+  border-color: #e9d5a0;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.25);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1b0a13;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #c8a951, #e9d5a0);
+  border-radius: 10px;
+  border: 3px solid #1b0a13;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, #e9d5a0, #c8a951);
 }
