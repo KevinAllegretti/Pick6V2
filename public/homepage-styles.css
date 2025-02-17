@@ -2856,7 +2856,14 @@ body {
     padding: 0 20px; /* Keep some padding for content */
     box-sizing: border-box;
     border: 2px solid #33d9ff;
-    background-color: #17203a;
+    /*background-color: #17203a;*/
+    background: linear-gradient(
+        145deg,
+        #0a1928 0%,
+        #1a3c4d 35%,
+        #2d2d4f 65%,
+        #1a1a2e 100%
+    );
     border-radius: 8px;
 }
 
