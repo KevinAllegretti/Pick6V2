@@ -2134,7 +2134,7 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
      if (username === 'huh' || username === 'reallylongnameeee') {
          playerUserStyle = `style="background-image: url('MajorMLgif.gif'); background-size: cover; background-position: center;"`;
      } else if (username === 'slangmastergeneral') {
-         playerUserStyle = `style="background-image: url('MajorMLNew.png'); background-size: cover; background-position: center;"`;
+         playerUserStyle = `style="background-image: url('MajorMLNewgif.png'); background-size: cover; background-position: center;"`;
      }
  
      playerRow.innerHTML = `
