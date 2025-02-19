@@ -2131,7 +2131,7 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
      let playerUserStyle = '';
      const username = memberData.username.toLowerCase();
      
-     if (username === 'huh') {
+     if (username === 'huh' || username === 'reallylongnameeee') {
          playerUserStyle = `style="background-image: url('MajorML.png'); background-size: cover; background-position: center;"`;
      } else if (username === 'slangmastergeneral') {
          playerUserStyle = `style="background-image: url('MajorMLNew.png'); background-size: cover; background-position: center;"`;
