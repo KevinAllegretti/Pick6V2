@@ -4016,3 +4016,23 @@ text-align: center;
     z-index: -1;
 }
 
+/* Update header styling */
+.pool-header .header-rank {
+    text-align: center;
+    padding-left: 10px; /* Adjust this value as needed */
+}
+
+/* Update player rank styling */
+.player-row .player-rank {
+    text-align: center;
+    padding-left: 10px; /* Match the header padding */
+}
+
+/* Update flexbox settings to ensure alignment */
+.pool-header .header-rank, .player-row .player-rank { 
+    flex: 0.5;
+    display: flex;
+    justify-content: center; /* Center the content */
+    padding-left: 10px; /* Consistent padding */
+    min-width: 40px; /* Set minimum width to prevent squishing */
+}
