@@ -3979,7 +3979,7 @@ text-align: center;
 }
 
 .player-user {
-    position: relative;
+    position: left;
     z-index: 1;
 }
 
@@ -4009,4 +4009,29 @@ text-align: center;
     right: 0;
     bottom: 0;
     z-index: -1;
+}
+
+.player-user {
+    flex: 2.5;
+    max-width: 240px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    cursor: pointer;
+    justify-content: flex-start; /* Aligns content to the left */
+    padding-left: 0px; /* Remove any left padding */
+    margin-left: -8px; /* Add negative margin to pull content left */
+    background-color: rgba(var(--seed-rgb), .5);
+}
+
+.player-username {
+    font-size: 1rem;
+    white-space: nowrap;
+    text-align: left; /* Ensure text is left-aligned */
+    margin-left: 0; /* Remove any left margin */
+}
+
+.player-profile-pic {
+    margin-right: 8px; /* Keep some space between profile pic and username */
+    margin-left: 0; /* Remove any left margin */
 }

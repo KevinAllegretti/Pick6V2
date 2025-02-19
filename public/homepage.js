@@ -2131,11 +2131,21 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
      let playerUserStyle = '';
      const username = memberData.username.toLowerCase();
      
-     if (username === 'huh' || username === 'reallylongnameeee') {
-         playerUserStyle = `style="background-image: url('Immaculate Week.gif'); background-size: cover; background-position: center;"`;
+     if (username === 'huh') {
+         playerUserStyle = `style="background-image: url('Immaculate Week.gif'); background-size: cover; background-position: center;Color: White; text-shadow: 
+                1px 1px 0 black, 
+                -1px -1px 0 black, 
+                -1px 1px 0 black, 
+                1px -1px 0 black;"`;
      } else if (username === 'slangmastergeneral') {
          playerUserStyle = `style="background-image: url('MajorMLNewgif.gif'); background-size: cover; background-position: center;"`;
-     }
+       } else if (username === 'reallylongnameeee') {
+        playerUserStyle = `style="background-image: url('MajorMLgif.gif'); background-size: cover; background-position: center; Color: White; text-shadow: 
+                1px 1px 0 black, 
+                -1px -1px 0 black, 
+                -1px 1px 0 black, 
+                1px -1px 0 black;"`;
+    }
  
      playerRow.innerHTML = `
          <div class="player-user" ${playerUserStyle}>
