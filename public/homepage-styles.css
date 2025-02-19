@@ -3983,11 +3983,11 @@ text-align: center;
     z-index: 1;
 }
 
-.player-user[style*="MajorML.png"] {
+.player-user[style*="MajorML.gif"] {
     position: relative;
 }
 
-.player-user[style*="MajorML.png"]::before {
+.player-user[style*="MajorML.gif"]::before {
     content: '';
     position: absolute;
     top: 0;
