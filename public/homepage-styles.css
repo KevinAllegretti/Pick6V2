@@ -946,6 +946,7 @@ label {
     margin-right: 10px; /* Space between image and username */
     flex-shrink: 0;
     border: 1.5px solid #33d9ff;
+    margin-left: 0;
 }
 
 
@@ -1043,6 +1044,7 @@ label {
    /* Hideow: hidden;  overflow */
     white-space: wrap; /* Keep content in a single line */
     overflow-x: auto;
+    text-align: left; /* Ensure text is left-aligned */
 }
 
 
@@ -3981,6 +3983,9 @@ text-align: center;
 .player-user {
     position: left;
     z-index: 1;
+    justify-content: flex-start; /* Aligns content to the left */
+    padding-left: 0px; /* Remove any left padding */
+    margin-left: 0px; /* Add negative margin to pull content left */
 }
 
 .player-user[style*="MajorML.gif"] {
