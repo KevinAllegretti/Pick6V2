@@ -2126,6 +2126,27 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
     if (currentUsername && memberData.username.toLowerCase() === currentUsername.toLowerCase()) {
         playerRow.classList.add('current-user-row');
     }
+
+    // Check if the username is "Huh" and handle the special background
+    const isHuh = memberData.username.toLowerCase() === 'huh';
+    const playerUserStyle = isHuh ? 
+        `style="background-image: url('MajorML.png'); background-size: cover; background-position: center;"` : 
+        '';
+
+    playerRow.innerHTML = `
+        <div class="player-user" ${playerUserStyle}>
+            <div class="player-profile-pic" style="background-image: url('${memberData.profilePic}')"></div>
+            <span class="player-username">${memberData.username}</span>
+        </div>
+        <div class="player-rank">${memberData.rank}</div>
+        <div class="player-points">${memberData.points}</div>
+        <div class="player-picks"></div>
+        <div class="player-immortal-lock"></div>
+        <div class="player-win">${memberData.wins}</div>
+        <div class="player-loss">${memberData.losses}</div>
+        <div class="player-push">${memberData.pushes}</div>
+    `;
+    /*
     playerRow.innerHTML = `
         <div class="player-rank">${memberData.rank}</div>
         <div class="player-user">
@@ -2138,7 +2159,7 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
         <div class="player-win">${memberData.wins}</div>
         <div class="player-loss">${memberData.losses}</div>
         <div class="player-push">${memberData.pushes}</div>
-    `;
+    `;*/
 
     if (isAdmin) {
         const userSection = playerRow.querySelector('.player-user');

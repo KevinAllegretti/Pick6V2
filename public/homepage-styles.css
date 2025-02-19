@@ -964,7 +964,7 @@ label {
 .player-row > div:not(:last-child)::after {
     content: '';
     position: absolute;
-    right: 0;
+
     top: 50%; /* Center the line vertically */
     transform: translateY(-50%); /* Offset the line by half its height to center it */
     height: 30px; /* Adjust the height as needed */
@@ -3267,18 +3267,20 @@ body {
 
 
 .pool-header > span:not(:last-child)::after,
-.player-row > div:not(:last-child)::after {
+.player-row > div:not(:last-child)::after, .player-immortal-lock::after {
     content: '' !important;
     position: absolute !important;
     right: 0 !important;
-    top: 50% !important;
+    top: 50 !important;
     transform: translateY(-50%) !important;
     height: 30px !important;
-    width: 1.5px !important;
+    width: 1px !important;
     background-color: #33d9ff !important;
 }
 
-
+.player-immortal-lock::after{
+    top: 1 !important;
+}
 /* Ensure the picks submitted background doesn't interfere */
 .picks-submitted-background {
     z-index: 1 !important;
@@ -3974,4 +3976,23 @@ text-align: center;
     color: #FF3131;
     text-shadow: 0 0 5px rgba(255, 49, 49, 0.5);
     font-weight: bold;
+}
+
+.player-user {
+    position: relative;
+    z-index: 1;
+}
+
+.player-user[style*="MajorML.png"] {
+    position: relative;
+}
+
+.player-user[style*="MajorML.png"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
 }
