@@ -2152,6 +2152,13 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
         -1px  1px 0 black,
          1px  1px 0 black;"`;
     }
+    else if (username === 'sohigs') {
+        playerUserStyle = `style="background-image: url('Devastating Week.gif'); background-size: cover; background-position: center; Color: White; text-shadow: 
+           -1px -1px 0 black,  
+         1px -1px 0 black,
+        -1px  1px 0 black,
+         1px  1px 0 black;"`;
+    }
  
      playerRow.innerHTML = `
          <div class="player-user" ${playerUserStyle}>
