@@ -2146,7 +2146,7 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
         -1px  1px 0 black,
          1px  1px 0 black;"`;
     }else if (username === 'yuh') {
-        playerUserStyle = `style="background-image: url('Colonel Covers.png'); background-size: cover; background-position: center; Color: White; text-shadow: 
+        playerUserStyle = `style="background-image: url('Colonel Covers.gif'); background-size: cover; background-position: center; Color: White; text-shadow: 
            -1px -1px 0 black,  
          1px -1px 0 black,
         -1px  1px 0 black,
@@ -2161,6 +2161,13 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
     }
     else if (username === 'yuh2') {
         playerUserStyle = `style="background-image: url('Mile High Club.gif'); background-size: cover; background-position: center; Color: White; text-shadow: 
+           -1px -1px 0 black,  
+         1px -1px 0 black,
+        -1px  1px 0 black,
+         1px  1px 0 black;"`;
+    }
+    else if (username === 'test1') {
+        playerUserStyle = `style="background-image: url('Top Dog.png'); background-size: cover; background-position: center; Color: White; text-shadow: 
            -1px -1px 0 black,  
          1px -1px 0 black,
         -1px  1px 0 black,
