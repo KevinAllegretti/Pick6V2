@@ -2172,6 +2172,12 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
          1px -1px 0 black,
         -1px  1px 0 black,
          1px  1px 0 black;"`;
+    } else if (username === 'immortaltest') {
+        playerUserStyle = `style="background-image: url('Immortal Legend.png'); background-size: cover; background-position: center; Color: White; text-shadow: 
+           -1px -1px 0 black,  
+         1px -1px 0 black,
+        -1px  1px 0 black,
+         1px  1px 0 black;"`;
     }
      playerRow.innerHTML = `
          <div class="player-user" ${playerUserStyle}>
