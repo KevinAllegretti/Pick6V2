@@ -1189,7 +1189,7 @@ label {
     display: flex;
     align-items: flex-end; /* Align all pick and immortal-lock elements to the bottom */
     justify-content: space-around; /* Adjust space around the elements */
-    height: 100%; /* Ensure it takes up full height */
+
 }
 .player-immortal-lock {
     margin-bottom: -11px;
@@ -4036,4 +4036,26 @@ text-align: center;
     justify-content: center; /* Center the content */
     padding-left: 10px; /* Consistent padding */
     min-width: 40px; /* Set minimum width to prevent squishing */
+}
+
+/* Add these styles to maintain consistent row height */
+.player-picks {
+    height: 66px; /* Set fixed height to match non-banner rows */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* Prevent banner from causing overflow */
+}
+
+.pick-banner {
+    max-height: 100%; /* Ensure banner doesn't exceed container height */
+    width: auto; /* Maintain aspect ratio */
+    object-fit: contain; /* Ensure image fits within bounds */
+}
+
+/* Ensure consistent row height */
+.player-row {
+    height: 66px; /* Set fixed height */
+    min-height: 66px; /* Enforce minimum height */
+    max-height: 66px; /* Enforce maximum height */
 }
