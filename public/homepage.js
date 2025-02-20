@@ -2125,7 +2125,7 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
     const currentUsername = localStorage.getItem('username');
     if (currentUsername && memberData.username.toLowerCase() === currentUsername.toLowerCase()) {
         playerRow.classList.add('current-user-row');
-    }
+     }
 
      // Check for special backgrounds
      let playerUserStyle = '';
@@ -2165,7 +2165,7 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
          1px -1px 0 black,
         -1px  1px 0 black,
          1px  1px 0 black;"`;
-    }
+     }
     else if (username === 'test1') {
         playerUserStyle = `style="background-image: url('Top Dog.png'); background-size: cover; background-position: center; Color: White; text-shadow: 
            -1px -1px 0 black,  
@@ -2178,14 +2178,20 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
          1px -1px 0 black,
         -1px  1px 0 black,
          1px  1px 0 black;"`;
-    }
+     }
     else if (username === 'yuh3') {
         playerUserStyle = `style="background-image: url('Genius or Dunce.gif'); background-size: cover; background-position: center; Color: White; text-shadow: 
            -1px -1px 0 black,  
          1px -1px 0 black,
         -1px  1px 0 black,
          1px  1px 0 black;"`;
-    }
+     }  else if (username === 'ztest') {
+        playerUserStyle = `style="background-image: url('Runt.gif'); background-size: cover; background-position: center; Color: White; text-shadow: 
+           -1px -1px 0 black,  
+         1px -1px 0 black,
+        -1px  1px 0 black,
+         1px  1px 0 black;"`;
+     }
      playerRow.innerHTML = `
          <div class="player-user" ${playerUserStyle}>
              <div class="player-profile-pic" style="background-image: url('${memberData.profilePic}')"></div>
