@@ -2159,7 +2159,13 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
         -1px  1px 0 black,
          1px  1px 0 black;"`;
     }
- 
+    else if (username === 'yuh2') {
+        playerUserStyle = `style="background-image: url('Mile High CLub.gif'); background-size: cover; background-position: center; Color: White; text-shadow: 
+           -1px -1px 0 black,  
+         1px -1px 0 black,
+        -1px  1px 0 black,
+         1px  1px 0 black;"`;
+    }
      playerRow.innerHTML = `
          <div class="player-user" ${playerUserStyle}>
              <div class="player-profile-pic" style="background-image: url('${memberData.profilePic}')"></div>
