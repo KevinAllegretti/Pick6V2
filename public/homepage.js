@@ -1882,12 +1882,19 @@ function displayNewPoolContainer(pool) {
                         <span>show ${allRows.length - 10} more</span>
                     `;
                     
+                    // Add inline styles to ensure visibility
+                    showMoreButton.style.display = 'flex';
+                    showMoreButton.style.position = 'relative';
+                    showMoreButton.style.zIndex = '100';
+                    showMoreButton.style.visibility = 'visible';
+                    showMoreButton.style.opacity = '1';
+                    
                     let expanded = false;
                     showMoreButton.addEventListener('click', () => {
                         if (!expanded) {
                             allRows.forEach(row => row.style.display = '');
                             showMoreButton.innerHTML = `
-                                <i class="fas fa-chevron-down"></i>
+                                <i class="fas fa-chevron-up"></i>
                                 <i class="fas fa-users" style="font-size: 0.9em"></i>
                                 <span>show less</span>
                             `;
@@ -1906,10 +1913,13 @@ function displayNewPoolContainer(pool) {
                         expanded = !expanded;
                     });
                 
-                    const existingButton = container.querySelector('.show-more-button');
+                    // Remove any existing button
+                    const existingButton = document.querySelector('.show-more-button');
                     if (existingButton) existingButton.remove();
                     
-                    container.appendChild(showMoreButton);
+                    // Append the button AFTER the pool container to ensure it's visible
+                    const poolWrapper = poolScrollableContainer.closest('.pool-wrapper');
+                    poolWrapper.appendChild(showMoreButton);
                 }
             }
         }, 100);
