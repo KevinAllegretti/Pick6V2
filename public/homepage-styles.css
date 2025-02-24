@@ -3002,24 +3002,7 @@ body {
     box-shadow: 0 0 5px rgba(57, 255, 20, 0.3);
 }
 
-.survivor-pool-container .show-more-button {
-    position: relative;
-    bottom: -5px;
-    margin-left: 70px;
-    padding: 10px 25px;
-    background-color: transparent;
-    color: #39FF14;
-    border: 1px solid #39FF14;
-    border-radius: 12px;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 0.85em;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.3s ease;
-    margin-bottom: 50px;
-}
+
 
 .survivor-pool-container .show-more-button:hover {
     background-color: rgba(57, 255, 20, 0.1);
@@ -3031,71 +3014,12 @@ body {
     align-items: center;
 }
 
-.survivor-view-selector {
-    padding: 2px 30px 2px 8px;
-    background-color: #202124;
-    color: #39FF14;
-    border: 1px solid #39FF14;
-    border-radius: 12px;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 0.9em;
-    cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    box-shadow: 0 0 5px #39FF14, 0 0 5px #39FF14, 0 0 5px #39FF14;
-}
-
-.survivor-view-selector:hover {
-    box-shadow: 0 0 10px #39FF14, 0 0 10px #39FF14, 0 0 10px #39FF14;
-}
-
-.survivor-view-selector:focus {
-    outline: none;
-    box-shadow: 0 0 15px #39FF14, 0 0 15px #39FF14, 0 0 15px #39FF14;
-}
-
-.survivor-view-selector option {
-    background-color: #17203a;
-    color: #39FF14;
-    padding: 8px;
-}
-
 .survivor-stats-container {
     display: flex;
     gap: 10px;
     align-items: center;
 }
 
-.survivor-view-selector {
-    padding: 2px 30px 2px 8px;
-    background-color: #202124;
-    color: #39FF14;
-    border: 1px solid #39FF14;
-    border-radius: 12px;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 0.9em;
-    cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    box-shadow: 0 0 5px #39FF14, 0 0 5px #39FF14, 0 0 5px #39FF14;
-}
-
-.survivor-view-selector:hover {
-    box-shadow: 0 0 10px #39FF14, 0 0 10px #39FF14, 0 0 10px #39FF14;
-}
-
-.survivor-view-selector:focus {
-    outline: none;
-    box-shadow: 0 0 15px #39FF14, 0 0 15px #39FF14, 0 0 15px #39FF14;
-}
-
-.survivor-view-selector option {
-    background-color: #17203a;
-    color: #39FF14;
-    padding: 8px;
-}
 
 .eliminated-player {
     background-color: red !important;
@@ -3114,46 +3038,6 @@ body {
     align-items: center;
 }
 
-.survivor-view-selector {
-    padding: 2px 30px 2px 8px;
-    background-color: #202124;
-    color: #39FF14;
-    border: 1px solid #39FF14;
-    border-radius: 12px;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 0.9em;
-    cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    box-shadow: 0 0 5px #39FF14, 0 0 5px #39FF14, 0 0 5px #39FF14;
-}
-
-.survivor-view-selector:hover {
-    box-shadow: 0 0 10px #39FF14, 0 0 10px #39FF14, 0 0 10px #39FF14;
-}
-
-.survivor-view-selector:focus {
-    outline: none;
-    box-shadow: 0 0 15px #39FF14, 0 0 15px #39FF14, 0 0 15px #39FF14;
-}
-
-.survivor-view-selector option {
-    background-color: #17203a;
-    color: #39FF14;
-    padding: 8px;
-}
-
-.survivor-pool-container .dropdown-arrow {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #39FF14;
-    font-size: 0.7em;
-    pointer-events: none;
-    text-shadow: 0 0 5px #39FF14;
-}
 
 
 /* Add this to your CSS */
@@ -3229,12 +3113,12 @@ body {
 
 .survivor-picks-button:hover {
     color: #ffffff;
-    background: rgba(57, 255, 20, 0.3);
-    box-shadow: 0 0 30px rgba(57, 255, 20, 0.7),
-                inset 0 0 30px rgba(57, 255, 20, 0.5);
+    background: rgba(239, 255, 20, 0.3);
+    box-shadow: 0 0 30px rgb(255, 251, 20),
+                inset 0 0 30px rgba(255, 251, 20);
     transform: translateY(-2px) scale(1.02);
     border-color: #ffffff;
-    text-shadow: 0 0 10px rgba(57, 255, 20, 0.8);
+    text-shadow: 0 0 10px rgba(255, 231, 20, 0.8);
 }
 
 .survivor-picks-button:hover::before {
@@ -3243,8 +3127,8 @@ body {
 
 .survivor-picks-button:active {
     transform: translateY(1px);
-    box-shadow: 0 0 10px rgba(57, 255, 20, 0.4),
-                inset 0 0 10px rgba(57, 255, 20, 0.2);
+    box-shadow: 0 0 10px rgba(255, 251, 20),
+                inset 0 0 10px rgba(255, 251, 20);
 }
 
 .survivor-picks-button:disabled {
@@ -3475,11 +3359,7 @@ body {
     box-shadow: 0 4px 15px rgba(96, 0, 41, 0.2);
   }
   
-  .survivor-show-more-button:hover {
-    background: linear-gradient(45deg, #800036, #600029);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(96, 0, 41, 0.3);
-  }
+
   
   /* Vertical lines - Reduced height */
   .survivor-pool-header > span:not(:last-child)::after,
