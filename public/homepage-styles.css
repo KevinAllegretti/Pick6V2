@@ -3961,3 +3961,71 @@ text-align: center;
     margin-bottom: 30px;
     max-width: 180px;
 }
+
+/* Styling for player picks and immortal lock text alignment */
+.player-picks, .player-immortal-lock {
+    display: flex;
+    align-items: flex-end; /* Align all elements to the bottom */
+    justify-content: space-around; /* Distribute elements evenly */
+    min-height: 66px; /* Match the fixed height of player rows */
+}
+
+.pick, .immortal-lock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end; /* Align items to the bottom of the container */
+    width: 100%;
+    font-family: 'quantico', sans-serif;
+    padding-bottom: 5px; /* Add some padding at the bottom */
+}
+
+.pick img, .immortal-lock img {
+    margin-bottom: 8px; /* Add space between the icon and the text */
+    padding-left: 10px;
+}
+
+.pick span, .immortal-lock span {
+    line-height: 1; /* Ensure consistent line height */
+    margin-top: auto; /* Push the text to the bottom */
+    white-space: nowrap; /* Prevent text from wrapping */
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis for text that overflows */
+    max-width: 100%; /* Limit text width to container width */
+}
+
+/* Fix for the vertical divider lines to ensure they don't affect alignment */
+.pool-header > span:not(:last-child)::after,
+.player-row > div:not(:last-child)::after, 
+.player-immortal-lock::after {
+    content: '' !important;
+    position: absolute !important;
+    right: 0 !important;
+    top: 50% !important; /* Center the line vertically */
+    transform: translateY(-50%) !important;
+    height: 30px !important;
+    width: 1px !important;
+    background-color: #33d9ff !important;
+    z-index: 2 !important; /* Make sure the lines appear above content */
+}
+
+/* Ensure player-immortal-lock has correct positioning */
+.player-immortal-lock {
+    position: relative;
+    margin-bottom: 0; /* Remove bottom margin */
+}
+
+/* Fix for pick banner alignment */
+.pick-banner {
+    max-height: 100%;
+    width: auto;
+    object-fit: contain;
+    margin-bottom: 0; /* Remove bottom margin */
+}
+
+/* Ensure consistent spacing in the text area */
+.player-picks span, .player-immortal-lock span {
+    padding: 0 5px; /* Add some horizontal padding for text */
+    display: block; /* Make spans block elements for better control */
+    text-align: center; /* Center the text */
+}
