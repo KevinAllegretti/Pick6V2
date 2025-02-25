@@ -2223,7 +2223,7 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
          1px -1px 0 black,
         -1px  1px 0 black,
          1px  1px 0 black;"`;
-        }else if (username === 'zinga') {
+        }else if (username === 'zing') {
             playerUserStyle = `style="background-image: url('Doctor Who.png'); background-size: cover; background-position: center; Color: White; text-shadow: 
                -1px -1px 0 black,  
              1px -1px 0 black,
