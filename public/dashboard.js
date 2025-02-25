@@ -8,27 +8,7 @@ let betOptions = [];
 let isDeadline = false;
 let lastWeekPicks = {}; 
 
-/*
-// Modified loadWeeklyPicks function to handle the case where no picks exist
-async function loadWeeklyPicks() {
-    try {
-        const response = await fetch('/api/getWeeklyPicks');
-        if (!response.ok) throw new Error('Failed to fetch weekly picks');
-        
-        const data = await response.json();
-        betOptions = Array.isArray(data) ? data : [];
-        
-        if (betOptions.length > 0) {
-            renderBetOptions();
-        } else {
-            console.log('No weekly picks available');
-            document.getElementById('picksContainer').innerHTML = '<p class="no-picks-message">No picks available at this time.</p>';
-        }
-    } catch (error) {
-        console.error('Failed to fetch weekly picks:', error);
-        document.getElementById('picksContainer').innerHTML = '<p class="error-message">Failed to load picks. Please try again later.</p>';
-    }
-}*/
+
 async function blackOutPreviousBets() {
     let key;
     if (selectedPool === 'all') {
@@ -997,6 +977,7 @@ function updatePoolSelectorError() {
 }
 //come back to here
 // Modified submit picks function with enhanced error handling
+// Modified submit picks function with deduplication
 async function submitUserPicks() {
     if (!storedUsername) {
         alert('Please log in to submit picks');
@@ -1018,33 +999,50 @@ async function submitUserPicks() {
         return !isNaN(parsedDate) ? new Date(parsedDate).toISOString() : null;
     };
 
-    // Create the data object with picks, including locked picks
+    // IMPORTANT FIX: Deduplicate picks before submission
+    // Create a Map with team-type as key to ensure uniqueness
+    const uniquePicksMap = new Map();
+    
+    // Process userPicks
+    userPicks.forEach(pick => {
+        const key = `${pick.teamName}-${pick.type}`;
+        uniquePicksMap.set(key, {
+            teamName: pick.teamName,
+            type: pick.type,
+            value: pick.value,
+            commenceTime: validateDate(pick.commenceTime)
+        });
+    });
+    
+    // Process lockedPicks (these will override userPicks if there's a duplicate)
+    lockedPicks.forEach(pick => {
+        const key = `${pick.teamName}-${pick.type}`;
+        uniquePicksMap.set(key, {
+            teamName: pick.teamName,
+            type: pick.type,
+            value: pick.value,
+            commenceTime: validateDate(pick.commenceTime),
+            isLocked: true
+        });
+    });
+    
+    // Convert Map values to array for submission
+    const uniquePicks = Array.from(uniquePicksMap.values());
+
+    // Create the data object with deduplicated picks
     const data = {
-        picks: [
-            ...userPicks.map(pick => ({
-                teamName: pick.teamName,
-                type: pick.type,
-                value: pick.value,
-                commenceTime: validateDate(pick.commenceTime)
-            })),
-            ...lockedPicks.map(pick => ({
-                teamName: pick.teamName,
-                type: pick.type,
-                value: pick.value,
-                commenceTime: validateDate(pick.commenceTime),
-                isLocked: true // Add a flag to indicate this is a locked pick
-            }))
-        ],
+        picks: uniquePicks,
         immortalLock: userImmortalLock || lockedImmortalLock ? [{
             teamName: (userImmortalLock || lockedImmortalLock).teamName,
             type: (userImmortalLock || lockedImmortalLock).type,
             value: (userImmortalLock || lockedImmortalLock).value,
             commenceTime: validateDate((userImmortalLock || lockedImmortalLock).commenceTime),
-            isLocked: !!lockedImmortalLock // Add a flag to indicate if the immortal lock is locked
+            isLocked: !!lockedImmortalLock
         }] : []
     };
 
-    console.log("Picks Data Before Submission:", data);
+    console.log("Deduplicated Picks Data Before Submission:", data);
+    console.log("Total unique picks:", uniquePicks.length);
 
     try {
         if (selectedPool === 'all') {

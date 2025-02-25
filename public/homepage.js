@@ -1452,8 +1452,6 @@ function checkIfThursdayGame(commenceTime) {
     console.log(`Day (Local): ${dayLocal}`);
     return dayLocal === 4; // Return true for Thursday in local timezone
 }
-
-
 async function fetchPicks(username, poolName, playerRow, teamLogos, isSurvivorPool = false) {
     const encodedUsername = encodeURIComponent(username);
     const encodedPoolName = encodeURIComponent(poolName);
@@ -1494,7 +1492,7 @@ async function fetchPicks(username, poolName, playerRow, teamLogos, isSurvivorPo
                 switch (timePhase) {
                     case 'pick':
                         if(!isSurvivorPool){
-                        displayPickTimeBanner(picksContainer);
+                            displayPickTimeBanner(picksContainer);
                         }
                         else{
                             displaySurvivorPickTimeBanner(picksContainer);
@@ -1503,16 +1501,29 @@ async function fetchPicks(username, poolName, playerRow, teamLogos, isSurvivorPo
                     case 'thursday':
                         console.log('Processing Thursday game time picks');
                         
-                        // Filter for Thursday night games
-                        const thursdayPicks = picksData.picks.filter(pick => 
-                            checkIfThursdayGame(pick.commenceTime)
-                        );
-                        
-                        if (thursdayPicks.length > 0) {
-                            // User has Thursday picks - display them
-                            if (isSurvivorPool) {
-                                await displaySurvivorPick(thursdayPicks[0], picksContainer, teamLogos);
-                            } else {
+                        if (isSurvivorPool) {
+                            // For survivor pools, check if they have a Thursday pick
+                            const thursdayPick = picksData.picks.find(pick => 
+                                checkIfThursdayGame(pick.commenceTime)
+                            );
+                            
+                            if (thursdayPick) {
+                                // If they have a Thursday pick, display it
+                                await displaySurvivorPick(thursdayPick, picksContainer, teamLogos);
+                            } else if (picksData.picks.length > 0) {
+                                // Only show the banner if they have submitted a pick (just not a Thursday one)
+                                displaySurvivorPickTimeBanner(picksContainer);
+                            }
+                            // If they have no picks at all, leave it blank (do nothing)
+                        } else {
+                            // Regular pool logic (unchanged)
+                            // Filter for Thursday night games
+                            const thursdayPicks = picksData.picks.filter(pick => 
+                                checkIfThursdayGame(pick.commenceTime)
+                            );
+                            
+                            if (thursdayPicks.length > 0) {
+                                // User has Thursday picks - display them
                                 await displayAllPicks(thursdayPicks, picksContainer, teamLogos);
                                 
                                 // Show locked banner for remaining picks in regular pools
@@ -1523,14 +1534,10 @@ async function fetchPicks(username, poolName, playerRow, teamLogos, isSurvivorPo
                                     lockedBanner.className = 'locked-picks-banner';
                                     picksContainer.appendChild(lockedBanner);
                                 }
+                            } else {
+                                // User has no Thursday picks - show pick time banner
+                                displayPickTimeBanner(picksContainer);
                             }
-                        } else {
-                            // User has no Thursday picks - show pick time banner
-                            const pickTimeBanner = document.createElement('img');
-                            pickTimeBanner.src = 'PickTimeNew.png';
-                            pickTimeBanner.alt = 'Player Making Selection';
-                            pickTimeBanner.className = 'pick-banner';
-                            picksContainer.appendChild(pickTimeBanner);
                         }
                         break;
                     case 'sunday':
@@ -1572,7 +1579,11 @@ async function fetchPicks(username, poolName, playerRow, teamLogos, isSurvivorPo
                 }
             }
         } else {
-            displayNoPicks(picksContainer);
+            // If there are no picks, display appropriate message but not for survivor pools in Thursday phase
+            // For survivor pools with no picks during Thursday phase, leave it blank
+            if (!(isSurvivorPool && timePhase === 'thursday')) {
+                displayNoPicks(picksContainer);
+            }
         }
     } catch (error) {
         console.error('Error fetching picks:', error);
@@ -1594,6 +1605,7 @@ async function displaySurvivorPick(pick, container, teamLogos) {
 
     container.appendChild(pickDiv);
 }
+
 async function displayAllPicks(picks, container, teamLogos) {
     // Clear container first
     container.innerHTML = '';

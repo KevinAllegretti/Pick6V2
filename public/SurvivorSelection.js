@@ -8,50 +8,218 @@ let betOptions = [];
 let isDeadline = false;
 let lastWeekPicks = {}; 
 
-/*
-// Modified loadWeeklyPicks function to handle the case where no picks exist
-async function loadWeeklyPicks() {
-    try {
-        const response = await fetch('/api/getWeeklyPicks');
-        if (!response.ok) throw new Error('Failed to fetch weekly picks');
-        
-        const data = await response.json();
-        betOptions = Array.isArray(data) ? data : [];
-        
-        if (betOptions.length > 0) {
-            renderBetOptions();
-        } else {
-            console.log('No weekly picks available');
-            document.getElementById('picksContainer').innerHTML = '<p class="no-picks-message">No picks available at this time.</p>';
+async function blackOutPreviousBets() {
+    let key;
+    if (selectedPool === 'all') {
+        try {
+            const response = await fetch(`/pools/userPools/${encodeURIComponent(storedUsername)}`);
+            const pools = await response.json();
+            const classicPools = pools.filter(pool => pool.mode === 'classic');
+            if (classicPools.length > 0) {
+                key = classicPools[0].name;
+                // Fetch last week's picks if they don't exist
+                if (!lastWeekPicks[key]) {
+                    await fetchLastWeekPicks(storedUsername, key);
+                }
+                await applyBlackout(key);
+            }
+        } catch (error) {
+            console.error('Error fetching pools:', error);
         }
-    } catch (error) {
-        console.error('Failed to fetch weekly picks:', error);
-        document.getElementById('picksContainer').innerHTML = '<p class="error-message">Failed to load picks. Please try again later.</p>';
+    } else {
+        key = selectedPool;
+        // Fetch last week's picks if they don't exist
+        if (!lastWeekPicks[key]) {
+            await fetchLastWeekPicks(storedUsername, key);
+        }
+        await applyBlackout(key);
     }
-}*/
+}
 
-// Modified fetchLastWeekPicks to handle errors better
+async function applyBlackout(key) {
+    console.log('Blackout - Selected Pool:', selectedPool);
+    console.log('Blackout - Using key:', key);
+    console.log('Blackout - Last Week Picks:', lastWeekPicks[key]);
+    
+    // Handle regular picks
+    if (lastWeekPicks[key] && Array.isArray(lastWeekPicks[key].picks)) {
+        lastWeekPicks[key].picks.forEach(pick => {
+            const teamClass = pick.teamName.replace(/\s+/g, '-').toLowerCase();
+            const typeClass = pick.type.toLowerCase();
+            const betButtons = document.querySelectorAll(`.bet-button[data-team="${teamClass}"][data-type="${typeClass}"]`);
+
+            console.log(`Blacking out regular pick: ${pick.teamName} ${pick.type}`);
+            betButtons.forEach(button => {
+                button.style.backgroundColor = 'black';
+                button.style.color = 'red';
+                button.dataset.previousPick = 'true';
+                button.title = 'You made this pick last week!';
+            });
+        });
+    }
+
+    // Handle immortal lock pick
+    if (lastWeekPicks[key] && lastWeekPicks[key].immortalLockPick) {
+        // Handle both array and single object cases
+        const immortalLocks = Array.isArray(lastWeekPicks[key].immortalLockPick) 
+            ? lastWeekPicks[key].immortalLockPick 
+            : [lastWeekPicks[key].immortalLockPick];
+
+        immortalLocks.forEach(immortalPick => {
+            if (immortalPick && immortalPick.teamName && immortalPick.type) {
+                console.log('Processing immortal lock:', immortalPick);
+                const teamClass = immortalPick.teamName.replace(/\s+/g, '-').toLowerCase();
+                const typeClass = immortalPick.type.toLowerCase();
+                
+                const betButtons = document.querySelectorAll(
+                    `.bet-button[data-team="${teamClass}"][data-type="${typeClass}"]`
+                );
+                
+                console.log(`Found ${betButtons.length} buttons to blackout for immortal lock`);
+                betButtons.forEach(button => {
+                    button.style.backgroundColor = 'black';
+                    button.style.color = 'red';
+                    button.dataset.previousPick = 'true';
+                    button.dataset.previousImmortalLock = 'true';
+                    button.title = 'This was your Immortal Lock pick last week!';
+                });
+            }
+        });
+    }
+}
+function applyBlackout(key) {
+    console.log('Blackout - Selected Pool:', selectedPool);
+    console.log('Blackout - Using key:', key);
+    console.log('Blackout - Last Week Picks:', lastWeekPicks[key]);
+    
+    // Handle regular picks
+    if (lastWeekPicks[key] && Array.isArray(lastWeekPicks[key].picks)) {
+        lastWeekPicks[key].picks.forEach(pick => {
+            const teamClass = pick.teamName.replace(/\s+/g, '-').toLowerCase();
+            const typeClass = pick.type.toLowerCase();
+            const betButtons = document.querySelectorAll(`.bet-button[data-team="${teamClass}"][data-type="${typeClass}"]`);
+
+            console.log(`Blacking out regular pick: ${pick.teamName} ${pick.type}`);
+            betButtons.forEach(button => {
+                button.style.backgroundColor = 'black';
+                button.style.color = 'red';
+                button.dataset.previousPick = 'true';
+                button.title = 'You made this pick last week!';
+            });
+        });
+    }
+
+    // Handle immortal lock pick
+    if (lastWeekPicks[key] && lastWeekPicks[key].immortalLockPick) {
+        // Handle both array and single object cases
+        const immortalLocks = Array.isArray(lastWeekPicks[key].immortalLockPick) 
+            ? lastWeekPicks[key].immortalLockPick 
+            : [lastWeekPicks[key].immortalLockPick];
+
+        immortalLocks.forEach(immortalPick => {
+            if (immortalPick && immortalPick.teamName && immortalPick.type) {
+                console.log('Processing immortal lock:', immortalPick);
+                const teamClass = immortalPick.teamName.replace(/\s+/g, '-').toLowerCase();
+                const typeClass = immortalPick.type.toLowerCase();
+                
+                const betButtons = document.querySelectorAll(
+                    `.bet-button[data-team="${teamClass}"][data-type="${typeClass}"]`
+                );
+                
+                console.log(`Found ${betButtons.length} buttons to blackout for immortal lock`);
+                betButtons.forEach(button => {
+                    button.style.backgroundColor = 'black';
+                    button.style.color = 'red';
+                    button.dataset.previousPick = 'true';
+                    button.dataset.previousImmortalLock = 'true';
+                    button.title = 'This was your Immortal Lock pick last week!';
+                });
+            }
+        });
+    }
+}
+// Also update the validatePick function to properly handle immortal locks
+function validatePick(option) {
+    const betButton = document.querySelector(
+        `.bet-button[data-team="${option.teamName.replace(/\s+/g, '-').toLowerCase()}"][data-type="${option.type.toLowerCase()}"]`
+    );
+    
+    if (betButton?.dataset.previousPick === 'true') {
+        const message = betButton.dataset.previousImmortalLock 
+            ? "This was your Immortal Lock pick last week. You cannot select it again."
+            : "You made this pick last week. You cannot select it again.";
+        alert(message);
+        return false;
+    }
+
+    // Rest of the validation logic...
+    const currentMatchup = betOptions.find(bet => 
+        bet.homeTeam === option.teamName || bet.awayTeam === option.teamName
+    );
+    
+    if (!currentMatchup) {
+        console.error('No matchup found for team:', option.teamName);
+        return false;
+    }
+
+    return true;
+}
+
+// Add debug logging to fetchLastWeekPicks
 async function fetchLastWeekPicks(username, poolName) {
     try {
         const response = await fetch(`/api/getLastWeekPicks/${encodeURIComponent(username)}/${encodeURIComponent(poolName)}`);
         if (!response.ok) throw new Error('Failed to fetch last week picks');
         
         const data = await response.json();
-        const key = `${username}-${poolName}`;
+        console.log('Last week picks raw data:', data);
         
-        lastWeekPicks[key] = {
-            picks: data.success ? data.picks : [],
-            immortalLockPick: data.success ? data.immortalLockPick : []
-        };
+        // Only process and store data if success is true
+        if (data.success) {
+            // Store with just the pool name as key
+            lastWeekPicks[poolName] = {
+                picks: Array.isArray(data.picks) ? data.picks : [],
+                immortalLockPick: data.immortalLockPick || null
+            };
+
+            console.log('Processed last week picks:', lastWeekPicks[poolName]);
+            
+            // Only blackout if we have actual picks
+            if (lastWeekPicks[poolName].picks.length > 0 || lastWeekPicks[poolName].immortalLockPick) {
+                blackOutPreviousBets();
+            }
+        } else {
+            console.log('No last week picks available');
+            lastWeekPicks[poolName] = {
+                picks: [],
+                immortalLockPick: null
+            };
+        }
     } catch (error) {
         console.error('Error fetching last week picks:', error);
-        // Initialize with empty arrays if there's an error
-        const key = `${username}-${poolName}`;
-        lastWeekPicks[key] = {
+        // Still initialize the object with empty arrays even on error
+        lastWeekPicks[poolName] = {
             picks: [],
-            immortalLockPick: []
+            immortalLockPick: null
         };
     }
+}
+
+
+// Add this helper function to check if a team was picked last week
+function wasPickedLastWeek(teamName, type) {
+    const key = `${storedUsername}-${selectedPool}`;
+    if (!lastWeekPicks[key]) return false;
+
+    // Check regular picks
+    const regularPickMatch = lastWeekPicks[key].picks?.some(pick => 
+        pick.teamName === teamName && pick.type === type
+    );
+
+    // Check immortal lock pick
+    const immortalLockMatch = lastWeekPicks[key].immortalLockPick?.teamName === teamName;
+
+    return regularPickMatch || immortalLockMatch;
 }
 // Team mapping constants
 const mlbToNflMap = {
@@ -206,7 +374,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const sundayTime = new Date(sundayDeadline);
             
             const isThursdayGameTime = now > thursdayTime && now < sundayTime;
-
+            const injuryContainer = document.getElementById('injuryContainer');
+            if (injuryContainer) {
+                injuryContainer.classList.add('hidden-border');
+                injuryContainer.classList.remove('visible-border');
+            }
             // Initialize dashboard first
             await initializeDashboard();
 
@@ -254,6 +426,7 @@ async function initializeDashboard() {
         console.error('Error initializing dashboard:', error);
     }
 }
+/*
 async function populatePoolSelector() {
     const poolSelector = document.getElementById('poolSelector');
     if (!poolSelector) {
@@ -411,8 +584,291 @@ async function populatePoolSelector() {
         poolSelector.innerHTML = '<option value="error">Error loading pools</option>';
         poolSelector.classList.add('error');
     }
-}
+}*/
+const style = document.createElement('style');
+style.textContent = `
+    .pool-warning {
+        color: rgb(237, 216, 99);
+        margin-top: 8px;
+        font-size: 14px;
+        display: block;
+        text-align: center;
+        padding: 8px;
+        border-radius: 4px;
 
+    }
+
+    .pool-selector-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+`;
+document.head.appendChild(style);
+
+
+async function populatePoolSelector() {
+    const poolSelector = document.getElementById('poolSelector');
+    if (!poolSelector) {
+      console.error('Pool selector element not found');
+      return;
+    }
+  
+    const currentSelection = poolSelector.value;
+    poolSelector.innerHTML = '<option value="loading">Loading pools...</option>';
+  
+    try {
+      // First check if we're in Thursday game time
+      const timeResponse = await fetch('/api/timewindows');
+      if (!timeResponse.ok) throw new Error('Failed to fetch time windows.');
+  
+      const { thursdayDeadline, sundayDeadline } = await timeResponse.json();
+      const now = getCurrentTimeInUTC4();
+      const thursdayTime = new Date(thursdayDeadline);
+      const sundayTime = new Date(sundayDeadline);
+  
+      const isThursdayGameTime = now > thursdayTime && now < sundayTime;
+  
+      // Fetch pools
+      const response = await fetch(
+        `/pools/userPools/${encodeURIComponent(storedUsername)}`
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const pools = await response.json();
+      const classicPools = pools.filter((pool) => pool.mode === 'survivor');
+  
+      if (classicPools.length === 0) {
+        poolSelector.innerHTML =
+          '<option value="none">User is in no survivor pools</option>';
+        return;
+      }
+  
+      // Clear any existing warnings
+      const existingWarnings = document.querySelectorAll('.pool-warning');
+      existingWarnings.forEach((warning) => warning.remove());
+  
+      // Reset the selector's content
+      poolSelector.innerHTML = '';
+  
+      // If there's only one pool, just add that pool
+      if (classicPools.length === 1) {
+        const option = document.createElement('option');
+        option.value = classicPools[0].name;
+        option.textContent = classicPools[0].name;
+        poolSelector.appendChild(option);
+        selectedPool = classicPools[0].name;
+  
+        // Fetch and store last week's picks for single pool
+        const lastWeekResponse = await fetch(
+          `/api/getLastWeekPicks/${encodeURIComponent(
+            storedUsername
+          )}/${encodeURIComponent(classicPools[0].name)}`
+        );
+        const lastWeekData = await lastWeekResponse.json();
+        lastWeekPicks[classicPools[0].name] = {
+          picks:
+            lastWeekData.success && Array.isArray(lastWeekData.picks)
+              ? lastWeekData.picks
+              : [],
+          immortalLockPick:
+            lastWeekData.success && lastWeekData.immortalLockPick
+              ? lastWeekData.immortalLockPick
+              : null,
+        };
+      } else {
+        // Multiple pools - check for both current and last week's picks differences
+        let shouldShowAllOption = true;
+        let currentPicksMatch = true; // Initialize to true
+        let lastWeekPicksMatch = true; // Initialize to true
+  
+        // Fetch current picks for all pools
+        const currentPoolPicks = await Promise.all(
+          classicPools.map(async (pool) => {
+            try {
+              const response = await fetch(
+                `/api/getPicks/${storedUsername}/${pool.name}`
+              );
+              const data = await response.json();
+              return {
+                poolName: pool.name,
+                picks: data.picks || [],
+                immortalLock: data.immortalLock || [],
+              };
+            } catch (error) {
+              console.error(`Error fetching picks for pool ${pool.name}:`, error);
+              return null;
+            }
+          })
+        );
+  
+        // Filter out failed requests
+        const validCurrentPicks = currentPoolPicks.filter((pick) => pick !== null);
+  
+        // Check if current picks match across pools
+        if (validCurrentPicks.length > 1) {
+          const firstPool = validCurrentPicks[0];
+          currentPicksMatch = validCurrentPicks.every((poolPick) => {
+            const regularPicksMatch =
+              JSON.stringify(sortPicks(poolPick.picks)) ===
+              JSON.stringify(sortPicks(firstPool.picks));
+            const immortalLockMatch =
+              JSON.stringify(poolPick.immortalLock) ===
+              JSON.stringify(firstPool.immortalLock);
+            return regularPicksMatch && immortalLockMatch;
+          });
+  
+          if (currentPicksMatch) {
+            // Store the matching picks in global state for "all" view
+            userPicks = [...firstPool.picks];
+            userImmortalLock = firstPool.immortalLock?.[0] || null;
+            picksCount = userPicks.length;
+          } else {
+            shouldShowAllOption = false;
+          }
+        } else {
+          currentPicksMatch = true; // Only one pool, so picks match by default
+        }
+  
+        // If current picks match, check last week's picks
+        if (currentPicksMatch) {
+          const lastWeekPoolPicks = await Promise.all(
+            classicPools.map(async (pool) => {
+              try {
+                const response = await fetch(
+                  `/api/getLastWeekPicks/${encodeURIComponent(
+                    storedUsername
+                  )}/${encodeURIComponent(pool.name)}`
+                );
+                const data = await response.json();
+                return {
+                  poolName: pool.name,
+                  picks: data.success && Array.isArray(data.picks) ? data.picks : [],
+                  immortalLockPick:
+                    data.success && data.immortalLockPick ? data.immortalLockPick : null,
+                };
+              } catch (error) {
+                console.error(
+                  `Error fetching last week picks for pool ${pool.name}:`,
+                  error
+                );
+                return null;
+              }
+            })
+          );
+  
+          // Filter out failed requests
+          const validLastWeekPicks = lastWeekPoolPicks.filter(
+            (pick) => pick !== null
+          );
+  
+          if (validLastWeekPicks.length > 1) {
+            const firstPool = validLastWeekPicks[0];
+            lastWeekPicksMatch = validLastWeekPicks.every((poolPick) => {
+              const regularPicksMatch =
+                JSON.stringify(sortPicks(poolPick.picks)) ===
+                JSON.stringify(sortPicks(firstPool.picks));
+              const immortalLockMatch =
+                JSON.stringify(poolPick.immortalLockPick) ===
+                JSON.stringify(firstPool.immortalLockPick);
+              return regularPicksMatch && immortalLockMatch;
+            });
+  
+            if (lastWeekPicksMatch) {
+              // Store the matching picks for the 'all' view
+              lastWeekPicks['all'] = {
+                picks: firstPool.picks,
+                immortalLockPick: firstPool.immortalLockPick,
+              };
+            } else {
+              shouldShowAllOption = false;
+            }
+          } else {
+            lastWeekPicksMatch = true; // Only one pool, so picks match by default
+          }
+        } else {
+          lastWeekPicksMatch = false; // Current picks don't match, so last week's don't matter
+        }
+  
+        const container = poolSelector.closest('.pool-selector-container');
+  
+        // If current picks don't match, add warning
+        if (!currentPicksMatch && container) {
+          const warningDiv = document.createElement('div');
+          warningDiv.className = 'pool-warning';
+          warningDiv.textContent =
+            'Different current picks detected across pools. Please manage picks in individual pools, or select reset picks on all individual pools to obtain the "all pools" view.';
+          container.insertAdjacentElement('afterend', warningDiv);
+          shouldShowAllOption = false; // Ensure "All Pools" option is not shown
+        }
+  
+        // If last week's picks don't match and current picks DO match, add warning
+        else if (!lastWeekPicksMatch && currentPicksMatch && container) {
+          const warningDiv = document.createElement('div');
+          warningDiv.className = 'pool-warning';
+          warningDiv.textContent =
+            'Different last week picks detected across pools. Please manage picks in individual pools.';
+          container.insertAdjacentElement('afterend', warningDiv);
+          shouldShowAllOption = false; // Ensure "All Pools" option is not shown
+        }
+  
+        // Only add "All Pools" option if all picks match
+        if (shouldShowAllOption) {
+          const allOption = document.createElement('option');
+          allOption.value = 'all';
+          allOption.textContent = 'All Pools';
+          poolSelector.appendChild(allOption);
+        }
+  
+        // Add individual pool options
+        classicPools.forEach((pool) => {
+          const option = document.createElement('option');
+          option.value = pool.name;
+          option.textContent = pool.name;
+          poolSelector.appendChild(option);
+        });
+  
+        // Set appropriate selection
+        if (!shouldShowAllOption && selectedPool === 'all') {
+          // If currently on "all" but picks don't match, switch to first pool
+          poolSelector.value = classicPools[0].name;
+          selectedPool = classicPools[0].name;
+  
+          // Clear current picks state
+          userPicks = [];
+          userImmortalLock = null;
+          picksCount = 0;
+  
+          // Clear UI selections
+          document.querySelectorAll('.bet-button').forEach((button) => {
+            if (!button.dataset.thursdayGame) {
+              button.classList.remove('selected', 'immortal-lock-selected');
+            }
+          });
+        } else if (currentSelection && currentSelection !== 'loading') {
+          poolSelector.value = currentSelection;
+          selectedPool = currentSelection;
+        }
+      }
+  
+      // Fetch and render picks
+      await fetchUserPicksAndRender(storedUsername, selectedPool);
+  
+      // If it's Thursday game time, apply features after rendering
+      if (isThursdayGameTime) {
+        setTimeout(() => {
+          enableThursdayGameFeatures();
+        }, 100);
+      }
+    } catch (error) {
+      console.error('Error fetching pools:', error);
+      poolSelector.innerHTML = '<option value="error">Error loading pools</option>';
+      poolSelector.classList.add('error');
+    }
+  }
+  
 
 // Helper function to sort picks for comparison
 function sortPicks(picks) {
@@ -483,24 +939,7 @@ function renderPick(pick, isImmortalLock) {
     console.log('Created option:', option);
     selectBet(option, true);
 }
-const style = document.createElement('style');
-style.textContent = `
-    .thursday-warning {
-        color: rgb(99, 209, 237);
-        margin-top: 8px;
-        font-size: 14px;
-        display: block;
-        text-align: center;
-        padding: 8px;
-        border-radius: 4px;
-    }
 
-    .pool-selector-container {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-`;
 document.head.appendChild(style);
 // Keep the existing helper function and CSS
 function hasThursdayPicksInPool(data, now) {
@@ -544,18 +983,23 @@ async function submitUserPicks() {
         return;
     }
 
+    // Check if we have either user picks or locked picks
     if (userPicks.length === 0 && lockedPicks.length === 0) {
         alert('Please add at least one pick before submitting.');
         return;
     }
 
-    // Create the data object with picks
+    // Combine picks, ensuring we only have one pick total (survivor mode)
+    const combinedPicks = [...lockedPicks, ...userPicks];
+    if (combinedPicks.length > 1) {
+        console.error('Invalid state: Multiple picks detected in survivor mode');
+        alert('Error: Multiple picks detected. Please reset and try again.');
+        return;
+    }
+
+    // Create the data object with the single pick
     const data = {
-        picks: [
-            ...userPicks,
-            ...lockedPicks
-        ],
-        // Removed immortal lock related code since it's no longer used
+        picks: combinedPicks
     };
 
     try {
@@ -592,14 +1036,13 @@ async function submitUserPicks() {
         } else {
             // Submit to single pool
             await submitToPool(selectedPool, data);
-            alert('Picks submitted successfully!');
+            alert('Pick submitted successfully!');
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('An error occurred while submitting picks. Please try again.');
+        alert('An error occurred while submitting pick. Please try again.');
     }
 }
-
 
 function setupEventListeners() {
     // Pool selector change
@@ -1009,11 +1452,21 @@ function validatePick(option) {
     return !!currentMatchup; // Just make sure it's a valid matchup
 }
 
-// Simplified update cell function
 function updateBetCell(option, isSelected) {
-    // First, remove selection from all buttons
+    // Get current time to check if this is a Thursday game that has commenced
+    const now = getCurrentTimeInUTC4();
+    const currentMatchup = betOptions.find(bet => 
+        bet.homeTeam === option.teamName || bet.awayTeam === option.teamName
+    );
+    
+    const isThursdayGame = currentMatchup && checkIfThursdayGame(currentMatchup.commenceTime);
+    const hasCommenced = currentMatchup && new Date(currentMatchup.commenceTime) < now;
+    
+    // First, remove selection from all buttons that aren't locked Thursday picks
     document.querySelectorAll('.bet-button').forEach(button => {
-        button.classList.remove('selected');
+        if (!button.dataset.thursdayGame) {
+            button.classList.remove('selected');
+        }
     });
     
     // Then update the specific button if selected
@@ -1026,9 +1479,16 @@ function updateBetCell(option, isSelected) {
         
         betButtons.forEach(button => {
             button.classList.add('selected');
+            
+            // If this is a Thursday game that has commenced, mark it as locked
+            if (isThursdayGame && hasCommenced) {
+                button.dataset.thursdayGame = 'true';
+                button.classList.add('user-thursday-pick');
+            }
         });
     }
 }
+
 
 
 // Render a single pick
@@ -1041,52 +1501,6 @@ function renderPick(pick, isImmortalLock) {
     };
     console.log('Created option:', option);
     selectBet(option, true, isImmortalLock);
-}
-
-function selectBet(option, isRendering = false) {
-    // For initial rendering
-    if (isRendering) {
-        updateBetCell(option, true);
-        userPicks = [createPickObject(option)]; // Replace any existing pick
-        picksCount = 1;
-        return;
-    }
-
-    // Check if this is a commenced Thursday game
-    const betButton = document.querySelector(
-        `.bet-button[data-team="${option.teamName.replace(/\s+/g, '-').toLowerCase()}"][data-type="${option.type.toLowerCase()}"]`
-    );
-
-    if (betButton && betButton.dataset.thursdayGame === 'true' && !isRendering) {
-        alert('Thursday game has already commenced!');
-        return;
-    }
-
-    // Handle previous week's pick check
-    if (betButton && betButton.dataset.previousPick === 'true' && !isRendering) {
-        alert("You made this pick last week. You cannot select it again.");
-        return;
-    }
-
-    // Handle deselection of current pick
-    if (userPicks.length === 1 && 
-        userPicks[0].teamName === option.teamName && 
-        userPicks[0].type === option.type) {
-        userPicks = [];
-        picksCount = 0;
-        updateBetCell(option, false);
-        return;
-    }
-
-    // Validate the new pick
-    if (!validatePickForThursday(option)) return;
-
-    // Clear any existing picks and select the new one
-    clearAllSelections();
-    const currentPick = createPickObject(option);
-    userPicks = [currentPick];
-    picksCount = 1;
-    updateBetCell(option, true);
 }
 
 // Pick validation and creation
@@ -1132,19 +1546,21 @@ function validatePick(option) {
 }
 
 function createPickObject(option) {
-    // Add check for commenceTime, make it optional
-    const currentMatchup = betOptions.find(bet => bet.homeTeam === option.teamName || bet.awayTeam === option.teamName);
+    const currentMatchup = betOptions.find(bet => 
+        bet.homeTeam === option.teamName || bet.awayTeam === option.teamName
+    );
 
     const pickObject = {
         teamName: option.teamName,
         type: option.type,
         value: option.value,
-        commenceTime: currentMatchup.commenceTime
     };
 
-    // Only add commenceTime if it exists
+    // Only add commenceTime if it exists in the option or we can find it
     if (option.commenceTime) {
         pickObject.commenceTime = option.commenceTime;
+    } else if (currentMatchup && currentMatchup.commenceTime) {
+        pickObject.commenceTime = currentMatchup.commenceTime;
     }
 
     return pickObject;
@@ -1592,9 +2008,17 @@ function checkIfThursdayGame(commenceTime) {
     console.log(`Day (Local): ${dayLocal}`);*/
     return dayLocal === 4; // Return true for Thursday in local timezone
 }
-
 function validatePickForThursday(option) {
-    console.log("Validating Thursday Pick:", option);
+    console.log("Validating pick for Thursday constraints:", option);
+    
+    // If we already have a locked Thursday pick, prevent selecting a different team
+    if (lockedPicks.length > 0) {
+        console.log("Already have locked Thursday picks:", lockedPicks);
+        alert("You already have a locked Thursday pick that cannot be changed.");
+        return false;
+    }
+    
+    // Validate against the current game matchup
     const currentMatchup = betOptions.find(bet => 
         bet.homeTeam === option.teamName || bet.awayTeam === option.teamName
     );
@@ -1603,35 +2027,17 @@ function validatePickForThursday(option) {
         console.log("No current matchup found for:", option.teamName);
         return false;
     }
-
-    // Check for opposing team bet
-    const opposingTeamBet = lockedPicks.find(pick => 
-        (currentMatchup.homeTeam !== option.teamName && pick.teamName === currentMatchup.homeTeam) ||
-        (currentMatchup.awayTeam !== option.teamName && pick.teamName === currentMatchup.awayTeam)
-    );
-
-    const opposingImmortalLock = lockedImmortalLock && (
-        (currentMatchup.homeTeam !== option.teamName && lockedImmortalLock.teamName === currentMatchup.homeTeam) ||
-        (currentMatchup.awayTeam !== option.teamName && lockedImmortalLock.teamName === currentMatchup.awayTeam)
-    );
-
-    if (opposingTeamBet || opposingImmortalLock) {
-        console.log("Opposing team bet or immortal lock found.");
-        alert("You cannot select a pick from both teams in the same matchup.");
-        return false;
+    
+    // Check if this is a Thursday game that has already commenced
+    if (checkIfThursdayGame(currentMatchup.commenceTime)) {
+        const now = getCurrentTimeInUTC4();
+        if (new Date(currentMatchup.commenceTime) < now) {
+            console.log("This Thursday game has already commenced");
+            alert("Thursday game has already commenced. You cannot select teams from this game.");
+            return false;
+        }
     }
-
-    // Check for multiple bets on the same team
-    const existingTeamPick = lockedPicks.find(pick => pick.teamName === option.teamName);
-    const existingImmortalLockOnSameTeam = lockedImmortalLock && lockedImmortalLock.teamName === option.teamName;
-
-    if (existingTeamPick || existingImmortalLockOnSameTeam) {
-        console.log("Existing pick or immortal lock on the same team found.");
-        alert("Only one pick per team is allowed.");
-        return false;
-    }
-
-    console.log("Thursday pick validated successfully.");
+    
     return true;
 }
 
@@ -1639,88 +2045,107 @@ function enableThursdayGameFeatures() {
     console.log('Enabling Thursday game features...');
     const now = getCurrentTimeInUTC4();
     const blackedOutGames = new Set();
-    const userThursdayPicks = new Set();
-
-    // Force a DOM update before proceeding
-    requestAnimationFrame(() => {
-        // Track user's Thursday picks including both regular and locked picks
-        const allPicks = [
-            ...userPicks,
-            ...lockedPicks,
-            ...(userImmortalLock ? [userImmortalLock] : []),
-            ...(lockedImmortalLock ? [lockedImmortalLock] : [])
-        ];
-
-        console.log('All picks to check:', allPicks);
-
-        allPicks.forEach(pick => {
-            if (!pick || !pick.commenceTime) return;
-
-            const commenceTime = new Date(pick.commenceTime);
-            if (checkIfThursdayGame(pick.commenceTime) && commenceTime < now) {
-                // Store the pick with exact casing and format from the pick object
-                userThursdayPicks.add(`${pick.teamName}-${pick.type}`);
-            }
-        });
-
-        console.log('User Thursday picks:', userThursdayPicks);
-
-        // Identify Thursday games
-        betOptions.forEach(bet => {
-            if (checkIfThursdayGame(bet.commenceTime)) {
-                blackedOutGames.add(`${bet.homeTeam} vs ${bet.awayTeam}`);
-            }
-        });
-
-        console.log('Blacked out games:', blackedOutGames);
-
-        // Apply classes to Thursday games
-        blackedOutGames.forEach(gameKey => {
-            const [awayTeam, homeTeam] = gameKey.split(' vs ');
+    
+    // Track all picks (user picks and already locked picks)
+    const allUserPicks = [
+        ...userPicks,
+        ...lockedPicks
+    ];
+    
+    console.log('All picks to process for Thursday features:', allUserPicks);
+    
+    // Identify Thursday games that have commenced
+    betOptions.forEach(bet => {
+        if (checkIfThursdayGame(bet.commenceTime)) {
+            const commenceTime = new Date(bet.commenceTime);
+            const hasCommenced = commenceTime < now;
             
-            [homeTeam, awayTeam].forEach(team => {
-                const teamClass = team.replace(/\s+/g, '-').toLowerCase();
-                const betButtons = document.querySelectorAll(`.bet-button[data-team="${teamClass}"]`);
+            if (hasCommenced) {
+                blackedOutGames.add(`${bet.homeTeam} vs ${bet.awayTeam}`);
                 
-                betButtons.forEach(button => {
-                    // Construct the identifier using the exact team name and type from the bet options
-                    const matchingBet = betOptions.find(bet => 
-                        (bet.homeTeam === team || bet.awayTeam === team) &&
-                        bet.type.toLowerCase() === button.dataset.type
+                // Check if user has a pick for this game
+                const userPickForGame = allUserPicks.find(pick => 
+                    pick.teamName === bet.homeTeam || pick.teamName === bet.awayTeam
+                );
+                
+                // If user has a pick for this game, lock it
+                if (userPickForGame && !lockedPicks.some(p => p.teamName === userPickForGame.teamName)) {
+                    console.log('Moving pick to locked picks:', userPickForGame);
+                    
+                    // Remove from userPicks if it exists there
+                    userPicks = userPicks.filter(p => 
+                        p.teamName !== userPickForGame.teamName
                     );
-
-                    if (matchingBet) {
-                        const buttonIdentifier = `${team}-${matchingBet.type}`;
-                        console.log(`Checking button: ${buttonIdentifier}`);
-                        
-                        const isUserPick = Array.from(userThursdayPicks).some(pick => 
-                            pick.toLowerCase() === buttonIdentifier.toLowerCase()
-                        );
-                        console.log(`Is user pick: ${isUserPick}`);
-
-                        button.dataset.thursdayGame = 'true';
-                        
-                        // Remove existing classes first
-                        button.classList.remove('user-thursday-pick');
-                        
-                        if (isUserPick) {
-                            console.log(`Adding user-thursday-pick class to: ${buttonIdentifier}`);
-                            button.classList.add('user-thursday-pick');
-                        }
-
-                        // Ensure click handler is properly set
-                        button.onclick = (e) => {
-                            e.stopPropagation();
-                            if (isUserPick) {
-                                alert('This pick is locked for Thursday games.');
-                            }
-                        };
+                    
+                    // Add to lockedPicks if not already there
+                    if (!lockedPicks.some(p => p.teamName === userPickForGame.teamName)) {
+                        lockedPicks = [userPickForGame]; // Replace with the new locked pick
                     }
-                });
+                }
+            }
+        }
+    });
+    
+    console.log('Games with commenced Thursday games:', blackedOutGames);
+    console.log('User picks after locking Thursday games:', userPicks);
+    console.log('Locked picks after processing:', lockedPicks);
+    
+    // Update UI to reflect locked Thursday picks
+    blackedOutGames.forEach(gameKey => {
+        const [awayTeam, homeTeam] = gameKey.split(' vs ');
+        
+        // Process both home and away team buttons
+        [homeTeam, awayTeam].forEach(team => {
+            const teamClass = team.replace(/\s+/g, '-').toLowerCase();
+            const betButtons = document.querySelectorAll(`.bet-button[data-team="${teamClass}"]`);
+            
+            betButtons.forEach(button => {
+                // Set all buttons in commenced Thursday games as locked
+                button.dataset.thursdayGame = 'true';
+                
+                // Check if this is the user's pick
+                const isUserPick = lockedPicks.some(pick => 
+                    pick.teamName === team && pick.type.toLowerCase() === button.dataset.type
+                );
+                
+                if (isUserPick) {
+                    console.log(`Marking button as user's Thursday pick: ${team}-${button.dataset.type}`);
+                    button.classList.add('selected', 'user-thursday-pick');
+                }
+                
+                // Update click handler to prevent changes to locked picks
+                button.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (isUserPick) {
+                        alert('This pick is locked for Thursday games and cannot be changed.');
+                    } else if (lockedPicks.length > 0) {
+                        alert('You already have a locked Thursday pick. You cannot select a different team.');
+                    } else {
+                        alert('Thursday game has already commenced. You cannot select teams from this game.');
+                    }
+                };
             });
         });
     });
+    
+    // If user has any locked picks, disable the ability to select other picks
+    if (lockedPicks.length > 0) {
+        document.querySelectorAll('.bet-button').forEach(button => {
+            if (!button.classList.contains('user-thursday-pick')) {
+                button.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    alert('You already have a locked Thursday pick. You cannot select a different team.');
+                };
+            }
+        });
+    }
+    
+  
 }
+
 // Lock specific pick function with updated pick count management
 function lockSpecificPick(pick) {
     console.log('=== Before Locking Pick ===');

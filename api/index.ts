@@ -27,6 +27,7 @@ require('dotenv').config();
 
 app.use(express.static('public/logos/'));
 app.use(express.static('public/infoPics/'));
+app.use(express.static('public/CallingCards/'));
 app.use(express.static('public/halloweenPics/'));
 // 2. Logging middleware\
 /*
