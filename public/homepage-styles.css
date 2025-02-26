@@ -4066,12 +4066,5 @@ text-align: center;
     padding: 0 5px;
 }
   
-  /* Ensure the survivor row has proper spacing */
-  .survivor-player-row {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    align-items: center;
-    padding: 5px 0;
-}
-  
+
 
