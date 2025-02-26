@@ -309,7 +309,6 @@ router.post('/joinByName', async (req, res) => {
         res.status(500).json({ message: 'Error joining pool', error });
     }
 });*/
-
 router.post('/joinByName', async (req, res) => {
     try {
         const { poolName, username, poolPassword } = req.body;
@@ -339,21 +338,61 @@ router.post('/joinByName', async (req, res) => {
         );
         
         if (!isMemberAlready) {
-            const newMember = {
-                user: user._id,
-                username: username.toLowerCase(),
-                points: 0,
-                picks: [],
-                win: 0,
-                loss: 0,
-                push: 0,
-                orderIndex: 0
-            };
+            // Check if this is a survivor pool
+            if (pool.mode === 'survivor') {
+                // Check if the user was previously eliminated
+                const wasEliminated = pool.eliminatedMembers && 
+                                      pool.eliminatedMembers.some(m => 
+                                          m.username.toLowerCase() === username.toLowerCase()
+                                      );
+                
+                if (wasEliminated) {
+                    // If they were eliminated before, create survivor member with isEliminated=true
+                    const newMember = {
+                        user: user._id,
+                        username: username.toLowerCase(),
+                        orderIndex: 0,
+                        isEliminated: true // Mark as eliminated
+                    };
+                    
+                    await poolsCollection.updateOne(
+                        { name: poolName },
+                        { $push: { members: newMember } } as any
+                    );
+                    
+                    console.log(`User ${username} rejoined survivor pool ${poolName} as eliminated`);
+                } else {
+                    // Normal survivor member (not eliminated)
+                    const newMember = {
+                        user: user._id,
+                        username: username.toLowerCase(),
+                        orderIndex: 0,
+                        isEliminated: false
+                    };
+                    
+                    await poolsCollection.updateOne(
+                        { name: poolName },
+                        { $push: { members: newMember } } as any
+                    );
+                }
+            } else {
+                // Regular pool member (classic mode)
+                const newMember = {
+                    user: user._id,
+                    username: username.toLowerCase(),
+                    points: 0,
+                    picks: [],
+                    win: 0,
+                    loss: 0,
+                    push: 0,
+                    orderIndex: 0
+                };
 
-            await poolsCollection.updateOne(
-                { name: poolName },
-                { $push: { members: newMember } as any}
-            );
+                await poolsCollection.updateOne(
+                    { name: poolName },
+                    { $push: { members: newMember } } as any
+                );
+            }
 
             // After joining, normalize all indices
             await normalizePoolOrder(poolsCollection, username);
@@ -370,8 +409,6 @@ router.post('/joinByName', async (req, res) => {
         res.status(500).json({ message: 'Error joining pool', error });
     }
 });
-
-
 
 
 router.get('/getSurvivorStatus/:username/:poolName', async (req, res) => {
