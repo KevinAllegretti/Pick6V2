@@ -1609,7 +1609,7 @@ function displaySurvivorPickTimeBanner(container) {
     const bannerImage = document.createElement('img');
     bannerImage.src = 'lalwoo.png';
     bannerImage.alt = 'Player Making Selection';
-    bannerImage.className = 'pick-banner';
+    bannerImage.className = 'Survivor-pick-banner';
     container.appendChild(bannerImage);
 }
 

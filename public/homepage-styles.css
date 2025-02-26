@@ -4022,6 +4022,14 @@ text-align: center;
     object-fit: contain;
     margin-bottom: 0; /* Remove bottom margin */
 }
+/* Fix for pick banner alignment */
+.Survivor-pick-banner {
+    max-height: 67px !important;
+    max-width:96px !important;
+    width: auto;
+    object-fit: contain;
+    margin-bottom: 0; /* Remove bottom margin */
+}
 
 /* Ensure consistent spacing in the text area */
 .player-picks span, .player-immortal-lock span {
