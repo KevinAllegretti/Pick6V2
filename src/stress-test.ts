@@ -42,7 +42,7 @@ const config: TestConfig = {
   mongoDbUri: 'mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/', // Your MongoDB connection string
   dbName: 'Pick6',
   collectionName: 'users',
-  concurrentUsers: 75, // Number of simulated concurrent users
+  concurrentUsers: 24, // Number of simulated concurrent users
   testDurationSec: 60, // Duration of test in seconds
   rampUpSec: 10, // Time to ramp up to full load
   requestIntervalMs: 500, // Time between requests from each "user"
