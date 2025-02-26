@@ -7,6 +7,8 @@ import { updateUserPoints, updateUserStats, saveResultsToServer,
     updateTuesdayStartTime, deletePicksFromServer} from './serverUtils';
     import { fetchAndSaveInjuries } from './InjuryServices';
     import { deleteInjuriesFromServer } from '../routes/InjuryRoutes';
+    import { incrementWeek } from './serverUtils';
+    import { getCurrentWeek } from './serverUtils';
 import { connectToDatabase } from './connectDB';
 let gameScores: any[] = [];
 
@@ -343,6 +345,7 @@ async function processPick(username, poolName, pickEntry, gameScores, allResults
           if (isMoneylineBet && result === 'miss') {
               console.log(`Eliminating user ${username} from survivor pool ${poolName} due to moneyline loss`);
               
+              const currentWeek = await getCurrentWeek();
               // Update survivor status
               await poolsCollection.updateOne(
                   {
@@ -357,13 +360,14 @@ async function processPick(username, poolName, pickEntry, gameScores, allResults
               );
 
               // Add to eliminatedMembers array
-              await poolsCollection.updateOne(
+           await poolsCollection.updateOne(
                   { name: poolName },
                   {
                       $addToSet: {
                           eliminatedMembers: {
                               username: username.toLowerCase(),
-                              eliminatedAt: new Date()
+                              eliminatedAt: new Date(),
+                              eliminationWeek: currentWeek
                           }
                       }
                   }
@@ -689,12 +693,23 @@ async function mockFetchNFLScores() {
     console.error('Error in mock NFL scores:', error);
   }
 }
-cron.schedule('51 10 * * 3', () => {
+cron.schedule('26 11 * * 3', () => {
   console.log("It's Thursday 4:00 PM");
   mockFetchNFLScores();
 });
 
 /*
+
+cron.schedule('0 0 * * 2', async () => {
+  console.log("It's Tuesday 12:00 AM, incrementing NFL week");
+  await incrementWeek();
+});
+
+
+
+
+
+
 cron.schedule('0 19 * * 4', () => {
   console.log("It's Thursday 7:00 PM, now saving picks to last week");
   savePicksToLastWeek();

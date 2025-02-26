@@ -408,3 +408,81 @@ export async function updateTuesdayStartTime(): Promise<void> {
     }
 }
 
+export async function initializeWeek() {
+    const database = await connectToDatabase();
+    const weeksCollection = database.collection('weeks');
+    
+    // Check if a current week record exists
+    const currentWeek = await weeksCollection.findOne({ identifier: 'currentWeek' });
+    
+    if (!currentWeek) {
+      // Create the initial week record
+      await weeksCollection.insertOne({
+        identifier: 'currentWeek',
+        week: 1,
+        lastUpdated: new Date()
+      });
+      console.log('Initialized week to 1');
+      return 1;
+    }
+    
+    return currentWeek.week;
+  }
+  
+  // Get the current week
+  export async function getCurrentWeek() {
+    const database = await connectToDatabase();
+    const weeksCollection = database.collection('weeks');
+    
+    const currentWeek = await weeksCollection.findOne({ identifier: 'currentWeek' });
+    return currentWeek ? currentWeek.week : await initializeWeek();
+  }
+  
+  // Increment the week
+  export async function incrementWeek() {
+    const database = await connectToDatabase();
+    const weeksCollection = database.collection('weeks');
+    
+    const result: any = await weeksCollection.findOneAndUpdate(
+      { identifier: 'currentWeek' },
+      { 
+        $inc: { week: 1 },
+        $set: { lastUpdated: new Date() }
+      },
+      { returnDocument: 'after' }
+    );
+    
+    if (!result.value) {
+      return await initializeWeek();
+    }
+    
+    console.log(`Incremented week to ${result.value.week}`);
+    return result.value.week;
+  }
+  
+  // Set the week to a specific value
+  export async function setWeek(weekNumber: number) {
+    if (weekNumber < 1 || weekNumber > 18) {
+      throw new Error('Week number must be between 1 and 18');
+    }
+    
+    const database = await connectToDatabase();
+    const weeksCollection = database.collection('weeks');
+    
+    const result: any = await weeksCollection.findOneAndUpdate(
+      { identifier: 'currentWeek' },
+      { 
+        $set: { 
+          week: weekNumber,
+          lastUpdated: new Date()
+        }
+      },
+      { 
+        returnDocument: 'after',
+        upsert: true 
+      }
+    );
+    
+    console.log(`Set week to ${result.value.week}`);
+    return result.value.week;
+  }

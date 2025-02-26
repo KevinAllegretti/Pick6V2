@@ -926,41 +926,6 @@ function sortPlayersByPoints(players) {
         });
 }
 
-function createSurvivorPlayerRow(memberData, currentUsername) {
-    const playerRow = document.createElement('div');
-    playerRow.className = 'survivor-player-row';
-    
-    if (memberData.username.toLowerCase() === currentUsername.toLowerCase()) {
-        playerRow.classList.add('survivor-current-user-row');
-    }
-
-    if (memberData.isEliminated) {
-        playerRow.classList.add('eliminated-player'); // Add class to apply red styling
-    }
-
-    // Add click event handler for profile interaction
-    playerRow.addEventListener('click', (event) => {
-        const clickedElement = event.target;
-        if (clickedElement.closest('.survivor-player-user')) {
-            showInPoolUserProfile(memberData.username);
-        }
-    });
-
-    playerRow.innerHTML = `
-        <div class="survivor-player-user">
-            <div class="survivor-profile-pic" style="background-image: url('${memberData.profilePic || 'Default.png'}')"></div>
-            <span class="player-username">${memberData.username}</span>
-        </div>
-        <div class="survivor-player-picks"></div>
-        <div class="survivor-player-eliminated">
-            <span class="${memberData.isEliminated ? 'eliminated-status' : 'active-status'}">
-                ${memberData.isEliminated ? 'ELIMINATED' : 'ACTIVE'}
-            </span>
-        </div>
-    `;
-
-    return playerRow;
-}
 
 
 
@@ -2637,6 +2602,80 @@ async function isJsonResponse(response) {
         return false;
     }
 }
+// First, add this helper function to fetch elimination info
+async function fetchEliminationInfo(username, poolName) {
+    try {
+        const encodedUsername = encodeURIComponent(username);
+        const encodedPoolName = encodeURIComponent(poolName);
+        
+        const response = await fetch(`/pools/getEliminationInfo/${encodedUsername}/${encodedPoolName}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching elimination info:', error);
+        return { isEliminated: false, eliminationWeek: null };
+    }
+}
+
+// Updated createSurvivorPlayerRow function with elimination week info
+function createSurvivorPlayerRow(memberData, currentUsername) {
+    const playerRow = document.createElement('div');
+    playerRow.className = 'survivor-player-row';
+    
+    if (memberData.username.toLowerCase() === currentUsername.toLowerCase()) {
+        playerRow.classList.add('survivor-current-user-row');
+    }
+
+    if (memberData.isEliminated) {
+        playerRow.classList.add('eliminated-player');
+        
+        // Create the structure first without elimination info
+        playerRow.innerHTML = `
+            <div class="survivor-player-user">
+                <div class="survivor-profile-pic" style="background-image: url('${memberData.profilePic || 'Default.png'}')"></div>
+                <span class="player-username">${memberData.username}</span>
+            </div>
+            <div class="survivor-player-picks"></div>
+            <div class="survivor-player-eliminated">
+                <span class="eliminated-status">
+                    ELIMINATED
+                    <span class="week-info"></span>
+                </span>
+            </div>
+        `;
+        
+        // After creating the structure, fetch the elimination info
+        fetchEliminationInfo(memberData.username, localStorage.getItem('currentPoolName'))
+            .then(eliminationInfo => {
+                const weekInfo = playerRow.querySelector('.week-info');
+                if (eliminationInfo.eliminationWeek) {
+                    weekInfo.innerHTML = `<span class="week-number">(Week ${eliminationInfo.eliminationWeek})</span>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching elimination info:', error);
+            });
+    } else {
+        playerRow.innerHTML = `
+            <div class="survivor-player-user">
+                <div class="survivor-profile-pic" style="background-image: url('${memberData.profilePic || 'Default.png'}')"></div>
+                <span class="player-username">${memberData.username}</span>
+            </div>
+            <div class="survivor-player-picks"></div>
+            <div class="survivor-player-eliminated">
+                <span class="active-status">ACTIVE</span>
+            </div>
+        `;
+    }
+
+    return playerRow;
+}
+
+// Complete displaySurvivorPool function with all changes
 async function displaySurvivorPool(pool) {
     const teamLogos = {
         'Arizona Cardinals': '/ARILogo.png',
@@ -2680,6 +2719,9 @@ async function displaySurvivorPool(pool) {
     }
 
     username = username.toLowerCase();
+
+    // Set the current pool name in localStorage for later use
+    localStorage.setItem('currentPoolName', pool.name);
 
     // Find or create ordered container
     let orderedContainer = document.getElementById('ordered-pools-container');
@@ -2801,14 +2843,11 @@ async function displaySurvivorPool(pool) {
 
         // Display first 10 players
         const initialPlayers = displayPlayers.slice(0, 10);
-        initialPlayers.forEach(memberData => {
-            const playerRow = createSurvivorPlayerRow(memberData, currentUsername);
-            if (memberData.isEliminated) {
-                playerRow.classList.add('eliminated');
-            }
+        for (const memberData of initialPlayers) {
+            const playerRow = await createSurvivorPlayerRow(memberData, currentUsername);
             fetchPicks(memberData.username, pool.name, playerRow, teamLogos, true);
             poolContainer.appendChild(playerRow);
-        });
+        }
 
         // Add show more button if there are more than 10 players
         if (displayPlayers.length > 10) {
@@ -2821,17 +2860,14 @@ async function displaySurvivorPool(pool) {
             `;
 
             let expanded = false;
-            showMoreButton.addEventListener('click', () => {
+            showMoreButton.addEventListener('click', async () => {
                 if (!expanded) {
                     const remainingPlayers = displayPlayers.slice(10);
-                    remainingPlayers.forEach(memberData => {
-                        const playerRow = createSurvivorPlayerRow(memberData, currentUsername);
-                        if (memberData.isEliminated) {
-                            playerRow.classList.add('eliminated');
-                        }
+                    for (const memberData of remainingPlayers) {
+                        const playerRow = await createSurvivorPlayerRow(memberData, currentUsername);
                         fetchPicks(memberData.username, pool.name, playerRow, teamLogos, true);
                         poolContainer.appendChild(playerRow);
-                    });
+                    }
                     showMoreButton.innerHTML = `
                         <i class="fas fa-chevron-up"></i>
                         <i class="fas fa-users" style="font-size: 0.9em"></i>
@@ -2873,30 +2909,6 @@ async function displaySurvivorPool(pool) {
         console.error('Error displaying survivor pool:', error);
     }
 }
-function createSurvivorPlayerRow(memberData, currentUsername) {
-    const playerRow = document.createElement('div');
-    playerRow.className = 'survivor-player-row';
-    
-    if (memberData.username.toLowerCase() === currentUsername.toLowerCase()) {
-        playerRow.classList.add('survivor-current-user-row');
-    }
-
-    playerRow.innerHTML = `
-        <div class="survivor-player-user">
-            <div class="survivor-profile-pic" style="background-image: url('${memberData.profilePic || 'Default.png'}')"></div>
-            <span class="player-username">${memberData.username}</span>
-        </div>
-        <div class="survivor-player-picks"></div>
-        <div class="survivor-player-eliminated">
-            <span class="${memberData.isEliminated ? 'eliminated-status' : 'active-status'}">
-                ${memberData.isEliminated ? 'ELIMINATED' : 'ACTIVE'}
-            </span>
-        </div>
-    `;
-
-    return playerRow;
-}
-
 
 
 

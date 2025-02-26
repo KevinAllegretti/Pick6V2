@@ -50,7 +50,8 @@ const poolSchema = new mongoose.Schema({
   eliminatedMembers: {  // New field to track eliminated members
     type: [{
       username: String,
-      eliminatedAt: Date
+      eliminatedAt: Date,
+      eliminationWeek: Number
     }],
     default: [],
   },

@@ -3022,7 +3022,7 @@ body {
 
 
 .eliminated-player {
-    background-color: red !important;
+
     color: white !important;
 }
 
@@ -4029,3 +4029,49 @@ text-align: center;
     display: block; /* Make spans block elements for better control */
     text-align: center; /* Center the text */
 }
+
+ .eliminated-status {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+
+    font-family:'montserrat', 'sans-serif';
+    text-transform: uppercase;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Eliminated status styling */
+  .eliminated-status {
+    background: linear-gradient(to right, #45101e, #701a23);
+    color: #ff3131;
+    border: 1px solid rgba(255, 107, 107, 0.3);
+    text-shadow: 0 0 5px rgba(255, 49, 49, 0.5);
+  }
+  
+  /* Week number styling */
+  .eliminated-status .week-number {
+    display: inline-block;
+    font-weight: bold;
+    color: #fff;
+  }
+  
+  /* Survivor elimination container */
+  .survivor-player-eliminated {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+}
+  
+  /* Ensure the survivor row has proper spacing */
+  .survivor-player-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    align-items: center;
+    padding: 5px 0;
+}
+  
+

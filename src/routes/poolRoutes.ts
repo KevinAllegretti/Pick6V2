@@ -4,6 +4,7 @@ import express from 'express';
 import {leavePool} from '../Controllers/poolController';
 import Pool from '../models/Pool';
 import { connectToDatabase } from '../microservices/connectDB';
+import { getCurrentWeek } from '../microservices/serverUtils';
 import { ObjectId } from 'mongodb';
 
 
@@ -401,13 +402,57 @@ router.get('/getSurvivorStatus/:username/:poolName', async (req, res) => {
         res.status(500).json({ message: 'Error fetching survivor status' });
     }
 });
+router.get('/getEliminationInfo/:username/:poolName', async (req, res) => {
+    try {
+        const { username, poolName } = req.params;
+        const database = await connectToDatabase();
+        const poolsCollection = database.collection('pools');
 
+        const pool = await poolsCollection.findOne({
+            name: poolName,
+            mode: 'survivor',
+            'eliminatedMembers.username': username.toLowerCase()
+        });
+
+        if (!pool) {
+            return res.json({ 
+                isEliminated: false, 
+                eliminationWeek: null,
+                message: 'User is still active or not found in this pool'
+            });
+        }
+
+        const eliminatedMember = pool.eliminatedMembers.find(
+            m => m.username.toLowerCase() === username.toLowerCase()
+        );
+
+        if (!eliminatedMember) {
+            return res.json({ 
+                isEliminated: false, 
+                eliminationWeek: null,
+                message: 'User is still active in this pool'
+            });
+        }
+
+        res.json({
+            isEliminated: true,
+            eliminationWeek: eliminatedMember.eliminationWeek || null,
+            eliminatedAt: eliminatedMember.eliminatedAt || null
+        });
+    } catch (error) {
+        console.error('Error fetching elimination info:', error);
+        res.status(500).json({ message: 'Error fetching elimination information' });
+    }
+});
 // Update a user's survivor status
 router.post('/updateSurvivorStatus', async (req, res) => {
     try {
         const { username, poolName, isEliminated } = req.body;
         const database = await connectToDatabase();
         const poolsCollection = database.collection('pools');
+
+        // Get current week
+        const currentWeek = await getCurrentWeek();
 
         // Define update operations with proper typing
         const updateOperations = [
@@ -427,7 +472,7 @@ router.post('/updateSurvivorStatus', async (req, res) => {
             }
         ] as any[]; // Type assertion for the array
 
-        // If eliminating, add to eliminatedMembers array
+        // If eliminating, add to eliminatedMembers array with week information
         if (isEliminated) {
             updateOperations.push({
                 updateOne: {
@@ -436,7 +481,8 @@ router.post('/updateSurvivorStatus', async (req, res) => {
                         $addToSet: {
                             eliminatedMembers: {
                                 username: username.toLowerCase(),
-                                eliminatedAt: new Date()
+                                eliminatedAt: new Date(),
+                                eliminationWeek: currentWeek
                             }
                         }
                     } as any // Type assertion for the $addToSet operation
@@ -452,7 +498,8 @@ router.post('/updateSurvivorStatus', async (req, res) => {
 
         res.json({ 
             success: true, 
-            message: `User ${isEliminated ? 'eliminated' : 'reactivated'} successfully` 
+            message: `User ${isEliminated ? 'eliminated' : 'reactivated'} successfully`,
+            eliminationWeek: isEliminated ? currentWeek : null
         });
     } catch (error) {
         console.error('Error updating survivor status:', error);
