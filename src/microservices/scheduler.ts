@@ -278,6 +278,9 @@ async function processPick(username, poolName, pickEntry, gameScores, allResults
 async function processPick(username, poolName, pickEntry, gameScores, allResults, resultsCollection, isImmortalLock) {
   const { teamName, value: betValue } = pickEntry;
   
+  // Ensure betValue is in a consistent format right at the beginning
+  const betValueString = typeof betValue === 'string' ? betValue : String(betValue);
+  
   // Find the match in the gameScores
   const match = gameScores.find(m => m.home_team === teamName || m.away_team === teamName);
 
@@ -321,8 +324,8 @@ async function processPick(username, poolName, pickEntry, gameScores, allResults
           return;
       }
 
-      // Get the bet result
-      const { result, odds } = getBetResult(betValue, homeTeamScore, awayTeamScore, teamName, homeTeam, awayTeam);
+      // Get the bet result - use betValueString to ensure it's a string
+      const { result, odds } = getBetResult(betValueString, homeTeamScore, awayTeamScore, teamName, homeTeam, awayTeam);
       const points = calculatePointsForResult({ result, odds, type: isImmortalLock ? 'ImmortalLock' : undefined });
 
       // Check if we need to eliminate the user (for survivor pools)
@@ -333,7 +336,8 @@ async function processPick(username, poolName, pickEntry, gameScores, allResults
       const pool = await poolsCollection.findOne({ name: poolName });
       
       if (pool && pool.mode === 'survivor') {
-          const numericValue = parseFloat(betValue.replace(/[^-+\d.]/g, ''));
+          // Use betValueString instead of betValue to avoid the type error
+          const numericValue = parseFloat(betValueString.replace(/[^-+\d.]/g, ''));
           const isMoneylineBet = Math.abs(numericValue) >= 100;
           
           if (isMoneylineBet && result === 'miss') {
@@ -402,7 +406,6 @@ async function processPick(username, poolName, pickEntry, gameScores, allResults
       console.error('Error processing bet result:', error);
   }
 }
-
 
 const url1 = 'http://localhost:3000/api/saveWeeklyPicks';
 const url2 = 'http://localhost:3000/api/fetchMLBData';
@@ -579,8 +582,8 @@ const mockNFLGames = [
     home_team: "Philadelphia Eagles",
     away_team: "Washington Commanders",
     scores: [
-      { name: "Philadelphia Eagles", score: "31" },
-      { name: "Washington Commanders", score: "24" }
+      { name: "Philadelphia Eagles", score: "24" },
+      { name: "Washington Commanders", score: "31" }
     ]
   },
   {
@@ -686,7 +689,7 @@ async function mockFetchNFLScores() {
     console.error('Error in mock NFL scores:', error);
   }
 }
-cron.schedule('51 12 * * 1', () => {
+cron.schedule('51 10 * * 3', () => {
   console.log("It's Thursday 4:00 PM");
   mockFetchNFLScores();
 });
