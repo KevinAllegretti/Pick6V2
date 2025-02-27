@@ -283,6 +283,79 @@ router.post('/api/savePicks/:username/:poolName', async (req, res) => {
     }
 });
 
-// Other existing routes remain the same...
+// Add this route to your pickRoutes.ts file
+
+router.get('/api/getSurvivorPastPicks/:username/:poolName', async (req, res) => {
+    try {
+        const { username, poolName } = req.params;
+        const database = await connectToDatabase();
+        const survivorPastPicksCollection = database.collection('survivorPastPicks');
+
+        // Find all past picks for this user in this survivor pool
+        const userSurvivorPicks = await survivorPastPicksCollection.findOne({
+            username: username.toLowerCase(),
+            poolName
+        });
+
+        if (userSurvivorPicks && userSurvivorPicks.pastPicks) {
+            // Return the full history of picks with their weeks
+            res.json({
+                success: true,
+                pastPicks: userSurvivorPicks.pastPicks
+            });
+        } else {
+            // User has no survivor history yet
+            res.json({
+                success: true,
+                pastPicks: []
+            });
+        }
+    } catch (error) {
+        console.error('Error fetching survivor past picks:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch survivor past picks',
+            error: error instanceof Error ? error.message : String(error)
+        });
+    }
+});
+
+// Add an additional helper route to get just the team names that have been picked
+router.get('/api/getSurvivorPickedTeams/:username/:poolName', async (req, res) => {
+    try {
+        const { username, poolName } = req.params;
+        const database = await connectToDatabase();
+        const survivorPastPicksCollection = database.collection('survivorPastPicks');
+
+        // Find all past picks for this user in this survivor pool
+        const userSurvivorPicks = await survivorPastPicksCollection.findOne({
+            username: username.toLowerCase(),
+            poolName
+        });
+
+        if (userSurvivorPicks && userSurvivorPicks.pastPicks) {
+            // Extract just the team names for easier frontend filtering
+            const pickedTeams = userSurvivorPicks.pastPicks.map(pickData => pickData.pick.teamName);
+            
+            res.json({
+                success: true,
+                pickedTeams
+            });
+        } else {
+            // User has no survivor history yet
+            res.json({
+                success: true,
+                pickedTeams: []
+            });
+        }
+    } catch (error) {
+        console.error('Error fetching survivor picked teams:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch survivor picked teams',
+            error: error instanceof Error ? error.message : String(error)
+        });
+    }
+});
 
 export default router;

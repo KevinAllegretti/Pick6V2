@@ -288,6 +288,7 @@ export async function fetchPicksData(username: string, poolName: string): Promis
 }
 
 // Function to save picks to last week's collection
+/*
 export async function savePicksToLastWeek(): Promise<void> {
     try {
         const database = await connectToDatabase();
@@ -310,8 +311,108 @@ export async function savePicksToLastWeek(): Promise<void> {
         console.error('Error saving picks to last week collection:', error);
         throw new Error('Failed to save picks to last week collection');
     }
+}*/
+
+export async function savePicksToLastWeek(): Promise<void> {
+    try {
+        const database = await connectToDatabase();
+        const lastWeeksPicksCollection = database.collection('lastWeeksPicks');
+        const picksCollection = database.collection('userPicks');
+        const poolsCollection = database.collection('pools');
+
+        // Get all pools with "classic" mode
+        const classicPools = await poolsCollection.find({ mode: "classic" }).toArray();
+        const classicPoolNames = classicPools.map(pool => pool.name);
+
+        // Only get picks that belong to classic mode pools
+        const allPicks = await picksCollection.find({
+            poolName: { $in: classicPoolNames }
+        }).toArray();
+
+        for (const pickData of allPicks) {
+            const { username, poolName, picks, immortalLock } = pickData;
+            await lastWeeksPicksCollection.updateOne(
+                { username: username, poolName: poolName },
+                { $set: { picks: picks, immortalLockPick: immortalLock } },
+                { upsert: true }
+            );
+        }
+
+        console.log(`Saved ${allPicks.length} picks from ${classicPoolNames.length} classic mode pools to last week collection`);
+    } catch (error: any) {
+        console.error('Error saving picks to last week collection:', error);
+        throw new Error('Failed to save picks to last week collection');
+    }
 }
 
+export async function saveSurvivorPicks(): Promise<void> {
+    try {
+        const database = await connectToDatabase();
+        const survivorPastPicksCollection = database.collection('survivorPastPicks');
+        const picksCollection = database.collection('userPicks');
+        const poolsCollection = database.collection('pools');
+
+        // Get current week
+        const currentWeek = await getCurrentWeek();
+        
+        // Get all pools with "survivor" mode
+        const survivorPools = await poolsCollection.find({ mode: "survivor" }).toArray();
+        const survivorPoolNames = survivorPools.map(pool => pool.name);
+        
+        if (survivorPoolNames.length === 0) {
+            console.log('No survivor pools found, skipping survivor picks update');
+            return;
+        }
+
+        // Only get picks that belong to survivor mode pools
+        const allSurvivorPicks = await picksCollection.find({
+            poolName: { $in: survivorPoolNames }
+        }).toArray();
+
+        console.log(`Found ${allSurvivorPicks.length} picks from ${survivorPoolNames.length} survivor mode pools`);
+
+        for (const pickData of allSurvivorPicks) {
+            const { username, poolName, picks } = pickData;
+            
+            // For each pick in the user's picks, add it to their survivor history
+            if (picks && Array.isArray(picks) && picks.length > 0) {
+                // Process each pick in the user's picks array
+                for (const pick of picks) {
+                    // Add current week to the pick data
+                    const pickWithWeek = {
+                        week: currentWeek,
+                        pick: pick
+                    };
+                    
+                    // Check if this pick for this week already exists to avoid duplicates
+                    const existingRecord = await survivorPastPicksCollection.findOne({
+                        username: username.toLowerCase(),
+                        poolName: poolName,
+                        "pastPicks.week": currentWeek
+                    });
+
+                    if (!existingRecord) {
+                        // Add the pick to the user's survivor history if no pick exists for this week
+                        await survivorPastPicksCollection.updateOne(
+                            { username: username.toLowerCase(), poolName: poolName },
+                            { $push: { pastPicks: pickWithWeek } } as any,
+                            { upsert: true }
+                        );
+                    } else {
+                        console.log(`Week ${currentWeek} pick already exists for user ${username} in pool ${poolName}, skipping`);
+                    }
+                }
+                
+                console.log(`Saved week ${currentWeek} survivor pick for user ${username} in pool ${poolName}`);
+            }
+        }
+
+        console.log(`Successfully saved all survivor picks for week ${currentWeek}`);
+    } catch (error: any) {
+        console.error('Error saving survivor picks:', error);
+        throw new Error('Failed to save survivor picks');
+    }
+}
 function getCurrentTimeInUTC4(): Date {
     const now = new Date();
     now.setHours(now.getHours() - 4); // Convert UTC to EST (UTC-4)

@@ -2462,3 +2462,189 @@ document.getElementById('teamFilter')?.addEventListener('change', async function
     }
 });
 
+// Function to fetch survivor past picks
+async function fetchSurvivorPastPicks(username, poolName) {
+    try {
+        console.log(`Fetching survivor past picks for ${username} in pool ${poolName}`);
+        const response = await fetch(`/api/getSurvivorPastPicks/${encodeURIComponent(username)}/${encodeURIComponent(poolName)}`);
+        if (!response.ok) throw new Error('Failed to fetch survivor past picks');
+        
+        const data = await response.json();
+        if (data.success) {
+            return data.pastPicks || [];
+        } else {
+            console.log('No survivor past picks found');
+            return [];
+        }
+    } catch (error) {
+        console.error('Error fetching survivor past picks:', error);
+        return [];
+    }
+}
+
+// Function to fetch survivor past picks
+async function fetchSurvivorPastPicks(username, poolName) {
+    try {
+        console.log(`Fetching survivor past picks for ${username} in pool ${poolName}`);
+        const response = await fetch(`/api/getSurvivorPastPicks/${encodeURIComponent(username)}/${encodeURIComponent(poolName)}`);
+        if (!response.ok) throw new Error('Failed to fetch survivor past picks');
+        
+        const data = await response.json();
+        if (data.success) {
+            return data.pastPicks || [];
+        } else {
+            console.log('No survivor past picks found');
+            return [];
+        }
+    } catch (error) {
+        console.error('Error fetching survivor past picks:', error);
+        return [];
+    }
+}
+
+// Function to black out previously picked teams in survivor pool
+async function blackOutSurvivorPicks() {
+    console.log('Checking for survivor pool mode');
+    if (!storedUsername) return;
+
+    // Check if current pool is a survivor pool
+    try {
+        const poolsResponse = await fetch(`/pools/userPools/${encodeURIComponent(storedUsername)}`);
+        const pools = await poolsResponse.json();
+        
+        // Find current pool info
+        const currentPoolName = selectedPool === 'all' ? null : selectedPool;
+        const isSurvivorPool = pools.some(pool => 
+            (currentPoolName === null || pool.name === currentPoolName) && pool.mode === 'survivor'
+        );
+
+        if (!isSurvivorPool) {
+            console.log('Not a survivor pool, using regular blackout');
+            blackOutPreviousBets(); // Use regular blackout for non-survivor pools
+            return;
+        }
+
+        console.log('Survivor pool detected, using survivor blackout');
+        
+        // If "all" is selected, get a list of all survivor pools
+        let poolsToCheck = [];
+        if (currentPoolName === null) {
+            poolsToCheck = pools.filter(pool => pool.mode === 'survivor').map(pool => pool.name);
+        } else {
+            poolsToCheck = [currentPoolName];
+        }
+
+        // Get past picks for all relevant pools
+        const allPastPicks = [];
+        for (const poolName of poolsToCheck) {
+            const pastPicks = await fetchSurvivorPastPicks(storedUsername, poolName);
+            allPastPicks.push(...pastPicks);
+        }
+
+        console.log('All past picks:', allPastPicks);
+
+        // Black out all teams that have been picked in any week
+        if (allPastPicks.length > 0) {
+            allPastPicks.forEach(pastPick => {
+                const pick = pastPick.pick;
+                const week = pastPick.week;
+                
+                if (pick && pick.teamName) {
+                    const teamClass = pick.teamName.replace(/\s+/g, '-').toLowerCase();
+                    const betButtons = document.querySelectorAll(`.bet-button[data-team="${teamClass}"]`);
+
+                    console.log(`Blacking out team ${pick.teamName} from Week ${week}`);
+                    betButtons.forEach(button => {
+                        button.style.backgroundColor = 'black';
+                        button.style.color = 'red';
+                        button.dataset.previousPick = 'true';
+                        button.dataset.pickedWeek = week;
+                        
+                        // Change the button text to include the week information
+                        button.innerHTML = `SELECT TEAM<br><span style="font-size: 9px; color: white;">(Selected Week ${week})</span>`;
+                        button.title = `You picked this team in Week ${week}`;
+                        
+                        // Adjust button height if needed
+                        button.style.maxwidth = '120px';
+                        button.style.paddingBottom = '8px';
+                    });
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error during survivor blackout:', error);
+    }
+}
+
+// Modified validatePick function for survivor mode
+function validatePickForSurvivor(option) {
+    // Check if this is a previously picked team
+    const betButton = document.querySelector(
+        `.bet-button[data-team="${option.teamName.replace(/\s+/g, '-').toLowerCase()}"]`
+    );
+    
+    if (betButton?.dataset.previousPick === 'true') {
+        const week = betButton.dataset.pickedWeek || 'a previous';
+        alert(`You picked this team in Week ${week}. In Survivor pool, you cannot select the same team twice.`);
+        return false;
+    }
+
+    return validatePickForThursday(option);
+}
+
+// Override the selectBet function to use survivor validation when in survivor mode
+const originalSelectBet = selectBet;
+selectBet = async function(option, isRendering = false) {
+    // For initial rendering, pass through to original
+    if (isRendering) {
+        return originalSelectBet(option, isRendering);
+    }
+
+    // Check if current pool is a survivor pool
+    try {
+        const poolsResponse = await fetch(`/pools/userPools/${encodeURIComponent(storedUsername)}`);
+        const pools = await poolsResponse.json();
+        
+        const currentPoolName = selectedPool === 'all' ? null : selectedPool;
+        const currentPool = pools.find(pool => 
+            currentPoolName === null || pool.name === currentPoolName
+        );
+        
+        if (currentPool && currentPool.mode === 'survivor') {
+            // Use survivor validation
+            if (!validatePickForSurvivor(option)) {
+                return;
+            }
+        }
+        
+        // Call original function
+        return originalSelectBet(option, isRendering);
+    } catch (error) {
+        console.error('Error checking pool mode:', error);
+        return originalSelectBet(option, isRendering);
+    }
+};
+
+// Update initialization to use blackOutSurvivorPicks
+const originalInitializeDashboard = initializeDashboard;
+initializeDashboard = async function() {
+    await originalInitializeDashboard();
+    
+    // Check if we should use survivor blackout
+    await blackOutSurvivorPicks();
+};
+
+// Also update the populatePoolSelector function to call blackOutSurvivorPicks when pool changes
+const originalPoolSelector = document.getElementById('poolSelector');
+if (originalPoolSelector) {
+    const originalOnChange = originalPoolSelector.onchange;
+    originalPoolSelector.onchange = async function(e) {
+        // Call original handler
+        if (originalOnChange) {
+            await originalOnChange.call(this, e);
+        }
+        
+        // Apply survivor blackout after pool change
+        setTimeout(blackOutSurvivorPicks, 500);
+    };
+}

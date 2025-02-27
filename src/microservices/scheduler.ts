@@ -4,7 +4,7 @@ import fetch from 'node-fetch';
 import { updateUserPoints, updateUserStats, saveResultsToServer, 
     deleteResultsFromServer, getAllPicks, getBetResult, calculatePointsForResult, 
     savePicksToLastWeek,   updateThursdayDeadline,
-    updateTuesdayStartTime, deletePicksFromServer} from './serverUtils';
+    updateTuesdayStartTime, deletePicksFromServer, saveSurvivorPicks} from './serverUtils';
     import { fetchAndSaveInjuries } from './InjuryServices';
     import { deleteInjuriesFromServer } from '../routes/InjuryRoutes';
     import { incrementWeek } from './serverUtils';
@@ -536,22 +536,19 @@ console.log(`Data size: ${dataSize} bytes`);
 return betOptions;
 };
 
-cron.schedule('0 8 * * 1', () => {
-  console.log("MON It's 8:00am fetching and saving injuries");
+
+
+cron.schedule('0 0 * * 2', () => {
+  console.log("TUESDAY It's 12:00am fetching and saving injuries");
   fetchAndSaveInjuries();
 });
 
-cron.schedule('0 8 * * 2', () => {
-  console.log("TUESDAY It's 8:00am fetching and saving injuries");
-  fetchAndSaveInjuries();
-});
-
-cron.schedule('0 8 * * 3', () => {
+cron.schedule('0 0 * * 3', () => {
   console.log(" WED It's 8:00am fetching and saving injuries");
   fetchAndSaveInjuries();
 });
 
-cron.schedule('0 8 * * 4', () => {
+cron.schedule('0 0 * * 4', () => {
   console.log(" THURSDAY It's 8:00am fetching and saving injuries");
   fetchAndSaveInjuries();
 });
@@ -697,6 +694,11 @@ cron.schedule('26 11 * * 3', () => {
   console.log("It's Thursday 4:00 PM");
   mockFetchNFLScores();
 });
+cron.schedule('58 13 * * 4', () => {
+  console.log("It's Thursday 4:00 PM");
+  saveSurvivorPicks();
+});
+
 
 /*
 
