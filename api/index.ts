@@ -8,6 +8,7 @@ import poolRoutes from '../src/routes/poolRoutes';
 import InjuryRoutes from '../src/routes/InjuryRoutes';
 import mongoose from 'mongoose';
 import timeWindowRoutes from '../src/routes/timeWindowRoutes';
+import weekRoutes from '../src/routes/weekRoutes';
 import '../src/microservices/websocket';  
 import '../src/microservices/scheduler';
 import dashRoutes from '../src/routes/dashRoutes'
@@ -69,7 +70,7 @@ app.get('/dashboard', (req, res) => {
 app.use(picksRoutes);
 app.use('/api', dashRoutes);
 app.use(profileRoutes);
-
+app.use(weekRoutes);
 app.use('/api', InjuryRoutes);
 
 app.use('/api', timeWindowRoutes)

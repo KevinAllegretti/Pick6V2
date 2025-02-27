@@ -128,5 +128,35 @@ router.post('/api/saveUserBio', async (req, res) => {
   }
 });
 
-
+router.get('/getUserPoints/:username/:poolName', async (req, res) => {
+  try {
+      const { username, poolName } = req.params;
+      const database = await connectToDatabase();
+      const poolsCollection = database.collection('pools');
+      
+      const pool = await poolsCollection.findOne({ 
+          name: poolName,
+          'members.username': username.toLowerCase()
+      });
+      
+      if (pool) {
+          const member = pool.members.find(m => 
+              m.username.toLowerCase() === username.toLowerCase()
+          );
+          
+          if (member) {
+              return res.json({ points: member.points || 0 });
+          }
+      }
+      
+      res.json({ points: 0 });
+  } catch (error) {
+      console.error('Error getting user points:', error);
+      res.status(500).json({ 
+          success: false, 
+          message: 'Error retrieving user points',
+          points: 0
+      });
+  }
+});
 export default router;

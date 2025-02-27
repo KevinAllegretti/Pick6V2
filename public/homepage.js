@@ -614,61 +614,224 @@ async function saveUserBio(bio) {
     } else {
         alert('Failed to save bio');
     }
+}// First, modify the event listener for profile clicks to pass the points data directly
+document.addEventListener('click', function(event) {
+    // Check for both classic and survivor pool profile clicks
+    if (event.target.closest('.player-username') || event.target.closest('.player-profile-pic') ||
+        event.target.closest('.survivor-player-user')) {
+        
+        // Find the containing player row
+        const playerRow = event.target.closest('.player-row') || event.target.closest('.survivor-player-row');
+        
+        if (playerRow) {
+            // Get the username
+            const usernameElement = playerRow.querySelector('.player-username');
+            const username = usernameElement ? usernameElement.textContent.trim() : '';
+            
+            // Get the points directly from the same row
+            const pointsElement = playerRow.querySelector('.player-points');
+            const points = pointsElement ? parseFloat(pointsElement.textContent.trim()) || 0 : 0;
+            
+            console.log(`Profile clicked: ${username}, Points: ${points}`);
+            
+            // Show profile with the points we just grabbed
+            showInPoolUserProfile(username, points);
+        }
+    }
+});
+
+// Event listener for profile clicks
+document.addEventListener('click', function(event) {
+    // Check for profile clicks in classic pools
+    if (event.target.closest('.player-username') || event.target.closest('.player-profile-pic')) {
+        // Find the player row
+        const playerRow = event.target.closest('.player-row');
+        if (playerRow) {
+            // Get the username
+            const usernameEl = playerRow.querySelector('.player-username');
+            if (!usernameEl) return;
+            
+            const username = usernameEl.textContent.trim();
+            
+            // Get the points
+            const pointsEl = playerRow.querySelector('.player-points');
+            if (!pointsEl) return;
+            
+            const pointsText = pointsEl.textContent.trim();
+            let pointsValue = 0;
+            try {
+                const cleanPointsText = pointsText.replace(/[^\d.]/g, '');
+                pointsValue = parseFloat(cleanPointsText);
+                if (isNaN(pointsValue)) pointsValue = 0;
+            } catch (error) {
+                console.error('Error parsing points:', error);
+            }
+            
+            // Find the pool container to determine pool type
+            const poolWrapper = playerRow.closest('.pool-wrapper');
+            const isClassicPool = !poolWrapper.classList.contains('survivor-mode');
+            
+            console.log(`Profile clicked: ${username}, Points: ${pointsValue}, Pool type: ${isClassicPool ? 'Classic' : 'Survivor'}`);
+            
+            // Pass all info to the profile function
+            showProfileWithContext(username, pointsValue, isClassicPool);
+        }
+    }
+    
+    // Check for profile clicks in survivor pools
+    if (event.target.closest('.survivor-player-user')) {
+        const playerRow = event.target.closest('.survivor-player-row');
+        if (playerRow) {
+            const usernameEl = playerRow.querySelector('.player-username');
+            if (!usernameEl) return;
+            
+            const username = usernameEl.textContent.trim();
+            
+            // For survivor pools, check if player is eliminated
+            const isEliminated = playerRow.classList.contains('eliminated-player');
+            
+            console.log(`Survivor profile clicked: ${username}, Status: ${isEliminated ? 'Eliminated' : 'Active'}`);
+            
+            // Pass survivor-specific info
+            showProfileWithContext(username, 0, false, isEliminated);
+        }
+    }
+});
+
+// Handler function with pool type context
+function showProfileWithContext(username, pointsValue, isClassicPool, isEliminated = false) {
+    // Store values in global variables to ensure they're not lost
+    window.currentProfilePoints = pointsValue;
+    window.currentProfileIsClassic = isClassicPool;
+    window.currentProfileIsEliminated = isEliminated;
+    
+    // Call the main function
+    showInPoolUserProfile(username);
 }
 
+// Main profile function
 async function showInPoolUserProfile(username) {
-    const url = `/api/getUserProfile/${username.toLowerCase()}`;
+    // Get stored context values
+    const points = window.currentProfilePoints || 0;
+    const isClassicPool = window.currentProfileIsClassic;
+    const isEliminated = window.currentProfileIsEliminated;
+    
+    console.log(`Processing profile: ${username}, Points: ${points}, Classic Pool: ${isClassicPool}, Eliminated: ${isEliminated}`);
+    
     try {
-        const response = await fetch(url);
+        // Get user data
+        const response = await fetch(`/api/getUserProfile/${username.toLowerCase()}`);
         const userData = await response.json();
-        const poolInfoResponse = await fetch(`/pools/userPools/${username.toLowerCase()}`);
-        const poolInfo = await poolInfoResponse.json();
-
-        let win = 0;
-        let loss = 0;
-        let push = 0;
-        if (poolInfo.length > 0) {
-            const userPool = poolInfo.find(pool => pool.name === localStorage.getItem('currentPoolName'));
-            if (userPool) {
-                const userMember = userPool.members.find(member => member.username.toLowerCase() === username.toLowerCase());
-                if (userMember) {
-                    win = userMember.win;
-                    loss = userMember.loss;
-                    push = userMember.push;
-                }
-            }
-        }
-        userData.win = win;
-        userData.loss = loss;
-        userData.push = push;
-
+        
+        // Get bio data
         const bioResponse = await fetch(`/api/getUserBio/${username.toLowerCase()}`);
         const bioData = await bioResponse.json();
-        userData.bio = bioData.bio;
-
-        updateSlideOutPanelInPool(userData);
+        userData.bio = bioData.bio || '';
+        
+        // For classic pools only, calculate weekly average
+        if (isClassicPool) {
+            const weekResponse = await fetch('/getCurrentWeek');
+            let currentWeek = 1; // Default value
+            
+            if (weekResponse.ok) {
+                const weekData = await weekResponse.json();
+                currentWeek = parseInt(weekData.week) || 1;
+            }
+            
+            // Calculate weekly average
+            const numPoints = points;
+            const numWeek = Math.max(1, currentWeek);
+            const weeklyAverage = (numPoints / numWeek).toFixed(1);
+            
+            console.log(`Weekly average: ${weeklyAverage} (${numPoints}/${numWeek})`);
+            
+            userData.points = numPoints;
+            userData.weeklyAverage = weeklyAverage;
+        }
+        
+        // For survivor pools, add elimination status
+        if (!isClassicPool) {
+            userData.isEliminated = isEliminated;
+        }
+        
+        // Add the pool type to userData
+        userData.isClassicPool = isClassicPool;
+        
+        // Display the panel
+        updateProfileDisplay(userData);
     } catch (error) {
-        console.error('Error fetching user profile:', error);
+        console.error('Error loading profile data:', error);
+        
+        // Fallback
+        const fallbackData = {
+            username: username,
+            profilePicture: 'Default.png',
+            bio: 'Unable to load bio',
+            isClassicPool: isClassicPool,
+            points: points
+        };
+        
+        if (isClassicPool) {
+            fallbackData.weeklyAverage = (points / 1).toFixed(1);
+        } else {
+            fallbackData.isEliminated = isEliminated;
+        }
+        
+        updateProfileDisplay(fallbackData);
     }
 }
 
-function updateSlideOutPanelInPool(userData) {
-    let panelContent = document.getElementById('slideOutPanelInPool');
-    if (!panelContent) {
-        const template = document.getElementById('in-pool-profile-template').content.cloneNode(true);
-        document.body.appendChild(template);
-        panelContent = document.getElementById('slideOutPanelInPool');
+// Display function with pool type awareness
+function updateProfileDisplay(userData) {
+    // Get or create the panel
+    let panel = document.getElementById('slideOutPanelInPool');
+    if (!panel) {
+        const template = document.getElementById('in-pool-profile-template');
+        if (template) {
+            document.body.appendChild(template.content.cloneNode(true));
+            panel = document.getElementById('slideOutPanelInPool');
+        } else {
+            console.error('Profile template not found!');
+            return;
+        }
     }
-    document.querySelector('#slideOutPanelInPool .profile-icon-center').src = userData.profilePicture || 'Default.png';
-    document.getElementById('displayNameInPool').textContent = userData.username;
-    document.getElementById('userBioInPool').textContent = userData.bio || 'No bio available';
-    const userRecordContainer = document.getElementById('userRecordInPool');
-    userRecordContainer.innerHTML = `
-        <div>Win: ${userData.win} | Loss: ${userData.loss} | Push: ${userData.push}</div>
-    `;
-    panelContent.classList.add('visible');
     
+    // Update profile picture
+    const profileImg = panel.querySelector('.profile-icon-center');
+    if (profileImg) profileImg.src = userData.profilePicture || 'Default.png';
     
+    // Update username
+    const nameEl = document.getElementById('displayNameInPool');
+    if (nameEl) nameEl.textContent = userData.username;
+    
+    // Update bio
+    const bioEl = document.getElementById('userBioInPool');
+    if (bioEl) bioEl.textContent = userData.bio || 'No bio available';
+    
+    // Update stats with pool type awareness
+    const statsEl = document.getElementById('userRecordInPool');
+    if (statsEl) {
+        if (userData.isClassicPool) {
+            // Classic pool - show weekly average
+            const pointsDisplay = typeof userData.points === 'number' ? userData.points : 0;
+            const avgDisplay = userData.weeklyAverage || '0.0';
+            
+            statsEl.innerHTML = `
+                <div>Weekly Average: ${avgDisplay} pts </div>
+            `;
+        } else {
+            // Survivor pool - show status
+            const status = userData.isEliminated ? 'ELIMINATED' : 'ACTIVE';
+            const statusClass = userData.isEliminated ? 'eliminated-status' : 'active-status';
+            
+            statsEl.innerHTML = `
+                <div class="${statusClass}">${status}</div>
+            `;
+        }
+    }
+    
+    // Show the panel
+    panel.classList.add('visible');
 }
 //testing purposes
 
