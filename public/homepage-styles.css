@@ -4076,3 +4076,7 @@ text-align: center;
   
 
 
+.locked-picks-banner{
+    max-width: 350px !important;
+    min-height: 65px !important;
+}

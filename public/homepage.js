@@ -1493,11 +1493,7 @@ async function fetchPicks(username, poolName, playerRow, teamLogos, isSurvivorPo
                                 
                                 // Show locked banner for remaining picks in regular pools
                                 if (picksData.picks.length > thursdayPicks.length) {
-                                    const lockedBanner = document.createElement('img');
-                                    lockedBanner.src = 'ThursdayLocked.png';
-                                    lockedBanner.alt = 'Picks Locked';
-                                    lockedBanner.className = 'locked-picks-banner';
-                                    picksContainer.appendChild(lockedBanner);
+                                    displayThursdayPickTimeBanner(picksContainer)
                                 }
                             } else {
                                 // User has no Thursday picks - show pick time banner
@@ -1605,19 +1601,18 @@ function displayPickTimeBanner(container) {
     container.appendChild(bannerImage);
 }
 
+function displayThursdayPickTimeBanner(container) {
+    const lockedBanner = document.createElement('img');
+    lockedBanner.src = 'ThursdayLocked.png';
+    lockedBanner.alt = 'Picks Locked';
+    lockedBanner.className = 'locked-picks-banner';
+    container.appendChild(lockedBanner);
+}
 function displaySurvivorPickTimeBanner(container) {
     const bannerImage = document.createElement('img');
-    bannerImage.src = 'lalwoo.png';
+    bannerImage.src = 'SurvivorPickBanner.png';
     bannerImage.alt = 'Player Making Selection';
     bannerImage.className = 'Survivor-pick-banner';
-    container.appendChild(bannerImage);
-}
-
-function displayLockedBanner(container) {
-    const bannerImage = document.createElement('img');
-    bannerImage.src = 'LockedPicks.png';
-    bannerImage.alt = 'Picks Locked';
-    bannerImage.className = 'locked-picks-banner';
     container.appendChild(bannerImage);
 }
 
