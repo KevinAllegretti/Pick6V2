@@ -2743,6 +2743,7 @@ async function updateUiForEliminationStatus(status) {
 // Track whether populatePoolSelector is currently running
 let isPopulatingPoolSelector = false;
 
+
 // Complete replacement for populatePoolSelector
 async function populatePoolSelector() {
     // Prevent concurrent calls
@@ -2845,12 +2846,14 @@ async function populatePoolSelector() {
             let shouldShowAllOption = true;
             let currentPicksMatch = true; 
             let lastWeekPicksMatch = true;
+            let survivorPastPicksMatch = true;
   
             // If there are no active pools or only one active pool, we can skip the check
             if (activePools.length <= 1) {
                 shouldShowAllOption = true;
                 currentPicksMatch = true;
                 lastWeekPicksMatch = true;
+                survivorPastPicksMatch = true;
             } else {
                 // Fetch current picks for ACTIVE pools only
                 const currentPoolPicks = await Promise.all(
@@ -2956,8 +2959,79 @@ async function populatePoolSelector() {
                     } else {
                         lastWeekPicksMatch = true; // Only one valid pool, so last week picks match by default
                     }
+                    
+                    // Now check survivor past picks if current and last week's picks match
+                    if (lastWeekPicksMatch && currentPicksMatch) {
+                        // Fetch survivor past picks for all active pools
+                        const pastPicksResults = await Promise.all(
+                            activePools.map(async (pool) => {
+                                try {
+                                    const pastPicks = await fetchSurvivorPastPicks(storedUsername, pool.name);
+                                    return {
+                                        poolName: pool.name,
+                                        pastPicks: pastPicks
+                                    };
+                                } catch (error) {
+                                    console.error(`Error fetching survivor past picks for pool ${pool.name}:`, error);
+                                    return null;
+                                }
+                            })
+                        );
+
+                        // Filter out failed requests
+                        const validPastPicks = pastPicksResults.filter(result => result !== null);
+
+                        // Only compare if we have multiple pools with valid past picks
+                        if (validPastPicks.length > 1) {
+                            const firstPoolPicks = validPastPicks[0].pastPicks;
+                            
+                            // Compare past picks across pools
+                            survivorPastPicksMatch = validPastPicks.every(poolResult => {
+                                // If different number of past picks, they can't match
+                                if (poolResult.pastPicks.length !== firstPoolPicks.length) {
+                                    return false;
+                                }
+                                
+                                // Sort past picks by week to ensure consistent comparison
+                                const sortedFirstPoolPicks = [...firstPoolPicks].sort((a, b) => a.week - b.week);
+                                const sortedPoolPicks = [...poolResult.pastPicks].sort((a, b) => a.week - b.week);
+                                
+                                // Compare each week's picks
+                                for (let i = 0; i < sortedFirstPoolPicks.length; i++) {
+                                    const pick1 = sortedFirstPoolPicks[i];
+                                    const pick2 = sortedPoolPicks[i];
+                                    
+                                    // Check if week numbers match
+                                    if (pick1.week !== pick2.week) {
+                                        return false;
+                                    }
+                                    
+                                    // Check if picks match (both team name and type if applicable)
+                                    if (!pick1.pick || !pick2.pick) {
+                                        return false;
+                                    }
+                                    
+                                    if (pick1.pick.teamName !== pick2.pick.teamName) {
+                                        return false;
+                                    }
+                                    
+                                    if (pick1.pick.type && pick2.pick.type && pick1.pick.type !== pick2.pick.type) {
+                                        return false;
+                                    }
+                                }
+                                
+                                return true;
+                            });
+                            
+                            // If survivor past picks don't match, don't show "All Pools" option
+                            if (!survivorPastPicksMatch) {
+                                shouldShowAllOption = false;
+                            }
+                        }
+                    }
                 } else {
                     lastWeekPicksMatch = false; // Current picks don't match, so last week's don't matter
+                    survivorPastPicksMatch = false; // Current picks don't match, so survivor past picks don't matter
                 }
             }
   
@@ -2979,6 +3053,16 @@ async function populatePoolSelector() {
                 warningDiv.className = 'pool-warning';
                 warningDiv.textContent =
                     'Different last week picks detected across active pools. Please manage picks in individual pools.';
+                container.insertAdjacentElement('afterend', warningDiv);
+                shouldShowAllOption = false; // Ensure "All Pools" option is not shown
+            }
+            
+            // If survivor past picks don't match but current and last week picks match, add warning
+            else if (!survivorPastPicksMatch && currentPicksMatch && lastWeekPicksMatch && container) {
+                const warningDiv = document.createElement('div');
+                warningDiv.className = 'pool-warning';
+                warningDiv.textContent =
+                    'Different survivor past picks detected across active pools. Please manage picks in individual pools.';
                 container.insertAdjacentElement('afterend', warningDiv);
                 shouldShowAllOption = false; // Ensure "All Pools" option is not shown
             }
@@ -3066,6 +3150,7 @@ async function populatePoolSelector() {
 
 // Ensure window.populatePoolSelector points to our implementation
 window.populatePoolSelector = populatePoolSelector;
+
 
 // =====================================================
 // MODIFIED EVENT LISTENERS

@@ -694,11 +694,11 @@ cron.schedule('26 11 * * 3', () => {
   console.log("It's Thursday 4:00 PM");
   mockFetchNFLScores();
 });
-/*
-cron.schedule('18 14 * * 4', () => {
+
+cron.schedule('43 11 * * 5', () => {
   console.log("It's Thursday 4:00 PM");
   saveSurvivorPicks();
-});*/
+});
 
 
 /*
