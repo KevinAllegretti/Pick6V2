@@ -2658,52 +2658,81 @@ async function getSurvivorStatus(username, poolName) {
 }
 
 // Function to update UI based on elimination status
-function updateUiForEliminationStatus(status) {
+// Updated function to properly handle button state when switching between pools
+async function updateUiForEliminationStatus(status) {
     const submitButton = document.getElementById('submitPicks');
     const resetButton = document.getElementById('resetPicks');
     
     if (!submitButton || !resetButton) return;
     
-    if (status === 'eliminated') {
-        // Disable buttons
-        submitButton.classList.add('disabled');
-        resetButton.classList.add('disabled');
-        submitButton.disabled = true;
-        resetButton.disabled = true;
-        
-        // Add elimination banner/message
-        const picksContainer = document.getElementById('picksContainer');
-        if (picksContainer) {
-            // Remove any existing message
-            const existingMsg = document.querySelector('.elimination-message');
-            if (existingMsg) existingMsg.remove();
-            
+    // Clear any existing messages
+    const existingMsg = document.querySelector('.elimination-message');
+    if (existingMsg) existingMsg.remove();
     
-        }
-    } else {
-        // Enable buttons (unless it's game time)
+    const existingGameMsg = document.querySelector('.game-time-message');
+    if (existingGameMsg) existingGameMsg.remove();
+    
+    try {
+        // Always check the time window first
+        const timeResponse = await fetch('/api/timewindows');
+        const { tuesdayStartTime, thursdayDeadline, sundayDeadline } = await timeResponse.json();
         const now = getCurrentTimeInUTC4();
-        fetch('/api/timewindows')
-            .then(r => r.json())
-            .then(timeWindows => {
-                const { tuesdayStartTime, thursdayDeadline, sundayDeadline } = timeWindows;
-                const tuesdayTime = new Date(tuesdayStartTime);
-                const thursdayTime = new Date(thursdayDeadline);
-                const sundayTime = new Date(sundayDeadline);
-                
-                // Only enable if it's pick time
-                if (now > tuesdayTime && now < thursdayTime) {
-                    submitButton.classList.remove('disabled');
-                    resetButton.classList.remove('disabled');
-                    submitButton.disabled = false;
-                    resetButton.disabled = false;
-                }
-            })
-            .catch(error => console.error('Error checking time windows:', error));
+        const tuesdayTime = new Date(tuesdayStartTime);
+        const thursdayTime = new Date(thursdayDeadline);
+        const sundayTime = new Date(sundayDeadline);
         
-        // Remove elimination message if present
-        const existingMsg = document.querySelector('.elimination-message');
-        if (existingMsg) existingMsg.remove();
+        // Only show game time message after Sunday deadline
+        const isSundayGameTime = now > sundayTime && now < tuesdayTime;
+        
+        if (status === 'eliminated') {
+            // ALWAYS disable buttons for eliminated pools
+            submitButton.classList.add('disabled');
+            resetButton.classList.add('disabled');
+            submitButton.disabled = true;
+            resetButton.disabled = true;
+            
+
+        } else {
+            // For active pools, check if it's Sunday game time
+            if (isSundayGameTime) {
+                // Disable buttons during Sunday game time
+                submitButton.classList.add('disabled');
+                resetButton.classList.add('disabled');
+                submitButton.disabled = true;
+                resetButton.disabled = true;
+                
+                // Add game time message
+                const picksContainer = document.getElementById('picksContainer');
+                if (picksContainer) {
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = 'game-time-message';
+                    msgDiv.style.backgroundColor = '#fff3cd';
+                    msgDiv.style.color = '#856404';
+                    msgDiv.style.padding = '10px';
+                    msgDiv.style.borderRadius = '5px';
+                    msgDiv.style.marginBottom = '15px';
+                    msgDiv.style.textAlign = 'center';
+                    msgDiv.style.fontWeight = 'bold';
+                    msgDiv.textContent = "It's game time! Pick submission is currently unavailable.";
+                    picksContainer.insertAdjacentElement('beforebegin', msgDiv);
+                }
+            } else {
+                // IMPORTANT: Always enable buttons for active pools when not in Sunday game time
+                submitButton.classList.remove('disabled');
+                resetButton.classList.remove('disabled');
+                submitButton.disabled = false;
+                resetButton.disabled = false;
+            }
+        }
+    } catch (error) {
+        console.error('Error checking time windows:', error);
+        // On error, enable buttons for active pools by default
+        if (status !== 'eliminated') {
+            submitButton.classList.remove('disabled');
+            resetButton.classList.remove('disabled');
+            submitButton.disabled = false;
+            resetButton.disabled = false;
+        }
     }
 }
 
@@ -2773,6 +2802,11 @@ async function populatePoolSelector() {
             const status = await getSurvivorStatus(storedUsername, pool.name);
             poolEliminationStatus[pool.name] = status;
         }
+        
+        // Filter out eliminated pools before checking for matching picks
+        const activePools = survivorPools.filter(pool => 
+            poolEliminationStatus[pool.name] !== 'eliminated'
+        );
 
         // If there's only one pool, just add that pool
         if (survivorPools.length === 1) {
@@ -2809,140 +2843,147 @@ async function populatePoolSelector() {
         } else {
             // Multiple pools - check for both current and last week's picks differences
             let shouldShowAllOption = true;
-            let currentPicksMatch = true; // Initialize to true
-            let lastWeekPicksMatch = true; // Initialize to true
+            let currentPicksMatch = true; 
+            let lastWeekPicksMatch = true;
   
-            // Fetch current picks for all pools
-            const currentPoolPicks = await Promise.all(
-                survivorPools.map(async (pool) => {
-                    try {
-                        const response = await fetch(
-                            `/api/getPicks/${storedUsername}/${pool.name}`
-                        );
-                        const data = await response.json();
-                        return {
-                            poolName: pool.name,
-                            picks: data.picks || [],
-                            immortalLock: data.immortalLock || [],
-                        };
-                    } catch (error) {
-                        console.error(`Error fetching picks for pool ${pool.name}:`, error);
-                        return null;
-                    }
-                })
-            );
-  
-            // Filter out failed requests
-            const validCurrentPicks = currentPoolPicks.filter((pick) => pick !== null);
-  
-            // Check if current picks match across pools
-            if (validCurrentPicks.length > 1) {
-                const firstPool = validCurrentPicks[0];
-                currentPicksMatch = validCurrentPicks.every((poolPick) => {
-                    const regularPicksMatch =
-                        JSON.stringify(sortPicks(poolPick.picks)) ===
-                        JSON.stringify(sortPicks(firstPool.picks));
-                    const immortalLockMatch =
-                        JSON.stringify(poolPick.immortalLock) ===
-                        JSON.stringify(firstPool.immortalLock);
-                    return regularPicksMatch && immortalLockMatch;
-                });
-  
-                if (currentPicksMatch) {
-                    // Store the matching picks in global state for "all" view
-                    userPicks = [...firstPool.picks];
-                    userImmortalLock = firstPool.immortalLock?.[0] || null;
-                    picksCount = userPicks.length;
-                } else {
-                    shouldShowAllOption = false;
-                }
+            // If there are no active pools or only one active pool, we can skip the check
+            if (activePools.length <= 1) {
+                shouldShowAllOption = true;
+                currentPicksMatch = true;
+                lastWeekPicksMatch = true;
             } else {
-                currentPicksMatch = true; // Only one pool, so picks match by default
-            }
-  
-            // If current picks match, check last week's picks
-            if (currentPicksMatch) {
-                const lastWeekPoolPicks = await Promise.all(
-                    survivorPools.map(async (pool) => {
+                // Fetch current picks for ACTIVE pools only
+                const currentPoolPicks = await Promise.all(
+                    activePools.map(async (pool) => {
                         try {
                             const response = await fetch(
-                                `/api/getLastWeekPicks/${encodeURIComponent(
-                                    storedUsername
-                                )}/${encodeURIComponent(pool.name)}`
+                                `/api/getPicks/${storedUsername}/${pool.name}`
                             );
                             const data = await response.json();
                             return {
                                 poolName: pool.name,
-                                picks: data.success && Array.isArray(data.picks) ? data.picks : [],
-                                immortalLockPick:
-                                    data.success && data.immortalLockPick ? data.immortalLockPick : null,
+                                picks: data.picks || [],
+                                immortalLock: data.immortalLock || [],
                             };
                         } catch (error) {
-                            console.error(
-                                `Error fetching last week picks for pool ${pool.name}:`,
-                                error
-                            );
+                            console.error(`Error fetching picks for pool ${pool.name}:`, error);
                             return null;
                         }
                     })
                 );
-  
+      
                 // Filter out failed requests
-                const validLastWeekPicks = lastWeekPoolPicks.filter(
-                    (pick) => pick !== null
-                );
-  
-                if (validLastWeekPicks.length > 1) {
-                    const firstPool = validLastWeekPicks[0];
-                    lastWeekPicksMatch = validLastWeekPicks.every((poolPick) => {
+                const validCurrentPicks = currentPoolPicks.filter((pick) => pick !== null);
+      
+                // Check if current picks match across ACTIVE pools only
+                if (validCurrentPicks.length > 1) {
+                    const firstPool = validCurrentPicks[0];
+                    currentPicksMatch = validCurrentPicks.every((poolPick) => {
                         const regularPicksMatch =
                             JSON.stringify(sortPicks(poolPick.picks)) ===
                             JSON.stringify(sortPicks(firstPool.picks));
                         const immortalLockMatch =
-                            JSON.stringify(poolPick.immortalLockPick) ===
-                            JSON.stringify(firstPool.immortalLockPick);
+                            JSON.stringify(poolPick.immortalLock) ===
+                            JSON.stringify(firstPool.immortalLock);
                         return regularPicksMatch && immortalLockMatch;
                     });
-  
-                    if (lastWeekPicksMatch) {
-                        // Store the matching picks for the 'all' view
-                        lastWeekPicks['all'] = {
-                            picks: firstPool.picks,
-                            immortalLockPick: firstPool.immortalLockPick,
-                        };
+      
+                    if (currentPicksMatch) {
+                        // Store the matching picks in global state for "all" view
+                        userPicks = [...firstPool.picks];
+                        userImmortalLock = firstPool.immortalLock?.[0] || null;
+                        picksCount = userPicks.length;
                     } else {
                         shouldShowAllOption = false;
                     }
                 } else {
-                    lastWeekPicksMatch = true; // Only one pool, so picks match by default
+                    currentPicksMatch = true; // Only one valid pool, so picks match by default
                 }
-            } else {
-                lastWeekPicksMatch = false; // Current picks don't match, so last week's don't matter
+      
+                // If current picks match, check last week's picks for ACTIVE pools only
+                if (currentPicksMatch) {
+                    const lastWeekPoolPicks = await Promise.all(
+                        activePools.map(async (pool) => {
+                            try {
+                                const response = await fetch(
+                                    `/api/getLastWeekPicks/${encodeURIComponent(
+                                        storedUsername
+                                    )}/${encodeURIComponent(pool.name)}`
+                                );
+                                const data = await response.json();
+                                return {
+                                    poolName: pool.name,
+                                    picks: data.success && Array.isArray(data.picks) ? data.picks : [],
+                                    immortalLockPick:
+                                        data.success && data.immortalLockPick ? data.immortalLockPick : null,
+                                };
+                            } catch (error) {
+                                console.error(
+                                    `Error fetching last week picks for pool ${pool.name}:`,
+                                    error
+                                );
+                                return null;
+                            }
+                        })
+                    );
+      
+                    // Filter out failed requests
+                    const validLastWeekPicks = lastWeekPoolPicks.filter(
+                        (pick) => pick !== null
+                    );
+      
+                    if (validLastWeekPicks.length > 1) {
+                        const firstPool = validLastWeekPicks[0];
+                        lastWeekPicksMatch = validLastWeekPicks.every((poolPick) => {
+                            const regularPicksMatch =
+                                JSON.stringify(sortPicks(poolPick.picks)) ===
+                                JSON.stringify(sortPicks(firstPool.picks));
+                            const immortalLockMatch =
+                                JSON.stringify(poolPick.immortalLockPick) ===
+                                JSON.stringify(firstPool.immortalLockPick);
+                            return regularPicksMatch && immortalLockMatch;
+                        });
+      
+                        if (lastWeekPicksMatch) {
+                            // Store the matching picks for the 'all' view
+                            lastWeekPicks['all'] = {
+                                picks: firstPool.picks,
+                                immortalLockPick: firstPool.immortalLockPick,
+                            };
+                        } else {
+                            shouldShowAllOption = false;
+                        }
+                    } else {
+                        lastWeekPicksMatch = true; // Only one valid pool, so last week picks match by default
+                    }
+                } else {
+                    lastWeekPicksMatch = false; // Current picks don't match, so last week's don't matter
+                }
             }
   
             const container = poolSelector.closest('.pool-selector-container');
   
-            // If current picks don't match, add warning
+            // If current picks don't match, add warning (only consider active pools)
             if (!currentPicksMatch && container) {
                 const warningDiv = document.createElement('div');
                 warningDiv.className = 'pool-warning';
                 warningDiv.textContent =
-                    'Different current picks detected across pools. Please manage picks in individual pools, or select reset picks on all individual pools to obtain the "all pools" view.';
+                    'Different current picks detected across active pools. Please manage picks in individual pools, or select reset picks on all individual pools to obtain the "all pools" view.';
                 container.insertAdjacentElement('afterend', warningDiv);
                 shouldShowAllOption = false; // Ensure "All Pools" option is not shown
             }
   
-            // If last week's picks don't match and current picks DO match, add warning
+            // If last week's picks don't match and current picks DO match, add warning (only consider active pools)
             else if (!lastWeekPicksMatch && currentPicksMatch && container) {
                 const warningDiv = document.createElement('div');
                 warningDiv.className = 'pool-warning';
                 warningDiv.textContent =
-                    'Different last week picks detected across pools. Please manage picks in individual pools.';
+                    'Different last week picks detected across active pools. Please manage picks in individual pools.';
                 container.insertAdjacentElement('afterend', warningDiv);
                 shouldShowAllOption = false; // Ensure "All Pools" option is not shown
             }
   
-            // Only add "All Pools" option if all picks match
+            // Only add "All Pools" option if all picks match (or there are no active pools to check)
             if (shouldShowAllOption) {
                 // Check if all pools are eliminated
                 const allEliminated = survivorPools.every(pool => 
@@ -3022,6 +3063,9 @@ async function populatePoolSelector() {
     
     isPopulatingPoolSelector = false;
 }
+
+// Ensure window.populatePoolSelector points to our implementation
+window.populatePoolSelector = populatePoolSelector;
 
 // =====================================================
 // MODIFIED EVENT LISTENERS
