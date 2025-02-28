@@ -2359,39 +2359,9 @@ label {
     font-weight: bold;
 }
 
-.active-status {
-    color: #39FF14; /* Green color for active status */
-    font-weight: bold;
-}
 
 
 
-/* User count styling for survivor mode */
-.survivor-user-count {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 2px 8px;
-    background-color: #202124;
-    border: 1px solid #39FF14;
-    border-radius: 12px;
-    font-size: 0.9em;
-    color: #39FF14;
-    font-family: 'Montserrat', 'Sans-serif';
-    box-shadow: 0 0 5px #39FF14, 0 0 5px #39FF14, 0 0 5px #39FF14;
-    margin-left: 10px;
-}
-
-/* Current user highlighting for survivor mode */
-.survivor-current-user-row {
-    background: linear-gradient(90deg, 
-        rgba(57, 255, 20, 0.08) 0%,
-        rgba(57, 255, 20, 0.15) 50%,
-        rgba(57, 255, 20, 0.08) 100%
-    );
-    box-shadow: inset 0 0 15px rgba(57, 255, 20, 0.05);
-    transition: background 0.3s ease;
-}
 
 /*mehhh*/
 
@@ -2608,7 +2578,6 @@ label {
 .pool-name-text {
     flex: 1;
     overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
     padding: 0 10px;
 }
@@ -2782,16 +2751,6 @@ label {
     margin-left: 8px;
 }
 
-
-/* Current user highlighting - Subtler effect */
-.survivor-current-user-row {
-    background: linear-gradient(90deg, 
-        rgba(57, 255, 20, 0.05) 0%,
-        rgba(57, 255, 20, 0.1) 50%,
-        rgba(57, 255, 20, 0.05) 100%
-    );
-    box-shadow: inset 0 0 10px rgba(57, 255, 20, 0.03);
-}
 
 
 
@@ -3334,17 +3293,7 @@ body {
     transform: rotate(45deg) translate(50%, 50%);
   }
   
-  /* Current User Row Highlight */
-  .survivor-current-user-row {
-    background: linear-gradient(
-      90deg,
-      rgba(96, 0, 41, 0.08) 0%,
-      rgba(212, 175, 55, 0.12) 50%,
-      rgba(96, 0, 41, 0.08) 100%
-    );
-    box-shadow: inset 0 0 25px rgba(96, 0, 41, 0.05);
-  }
-  
+
   /* Show More Button */
   .survivor-show-more-button {
     background: linear-gradient(45deg, #600029, #800036);
@@ -3567,7 +3516,7 @@ body {
 }
 
 .survivor-picks-button:hover {
-    background: linear-gradient(45deg, #600029, #1b0a13);
+    background: linear-gradient(45deg, #c8a951, #d4af37);
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3),
                 inset 0 0 15px rgba(10, 25, 40, 0.4);
@@ -3596,11 +3545,12 @@ body {
 .survivor-current-user-row {
     background: linear-gradient(
         90deg,
-        rgba(41, 171, 226, 0.1),
-        rgba(200, 169, 81, 0.08)
+        rgba(233, 213, 160, 0.15), /* #e9d5a0 with 60% opacity */
+        rgba(212, 175, 55, 0.1)   /* #d4af37 with 60% opacity */
     );
     box-shadow: inset 0 0 25px rgba(10, 25, 40, 0.1);
 }
+
 
 
 
@@ -4096,17 +4046,6 @@ text-align: center;
     min-width: 70px;
 }
 
-/* For the pool manager display specifically */
-.pool-wrapper .pool-name {
-    white-space: normal; /* Allow text to wrap */
-    overflow: visible;
-    text-overflow: clip;
-    padding-right: 5px;
-    display: block;
-    width: 100%;
-    text-align: center;
-    margin-bottom: 5px;
-}
 
 /* Maintain the clean layout of pool items */
 .pool-action-item {
@@ -4139,22 +4078,3 @@ text-align: center;
     flex-shrink: 0;
 }
 
-
-/* For the specific layout shown in the screenshot */
-.pool-wrapper {
-    margin-bottom: 10px;
-}
-
-.pool-wrapper .pool-name {
-    display: block;
-    width: 100%;
-    text-align: center;
-    margin: 10px 0;
-    font-size: 16px;
-    white-space: normal;
-}
-
-.pool-wrapper .pool-button {
-    display: block;
-    margin: 0 auto;
-}
