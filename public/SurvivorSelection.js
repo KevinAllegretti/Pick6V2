@@ -2617,3 +2617,886 @@ if (originalPoolSelector) {
     };
 }
 
+// =====================================================
+// SURVIVOR POOL ELIMINATION STATUS IMPLEMENTATION
+// =====================================================
+
+// Track elimination status for each pool
+let poolEliminationStatus = {};
+
+// Add this CSS for elimination styling
+const eliminationStyle = document.createElement('style');
+eliminationStyle.textContent = `
+    .elimination-message {
+        background-color: #ffcccc;
+        color: #cc0000;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        text-align: center;
+        font-weight: bold;
+    }
+    
+    option.eliminated-pool {
+        color: #cc0000;
+    }
+`;
+document.head.appendChild(eliminationStyle);
+
+// Function to fetch survivor status for a user in a pool
+async function getSurvivorStatus(username, poolName) {
+    try {
+        const response = await fetch(`/getSurvivorStatus/${encodeURIComponent(username)}/${encodeURIComponent(poolName)}`);
+        if (!response.ok) throw new Error('Failed to fetch survivor status');
+        
+        const data = await response.json();
+        return data.status; // Will be 'eliminated' or 'active'
+    } catch (error) {
+        console.error('Error fetching survivor status:', error);
+        return 'unknown'; // Default to unknown on error
+    }
+}
+
+// Function to update UI based on elimination status
+function updateUiForEliminationStatus(status) {
+    const submitButton = document.getElementById('submitPicks');
+    const resetButton = document.getElementById('resetPicks');
+    
+    if (!submitButton || !resetButton) return;
+    
+    if (status === 'eliminated') {
+        // Disable buttons
+        submitButton.classList.add('disabled');
+        resetButton.classList.add('disabled');
+        submitButton.disabled = true;
+        resetButton.disabled = true;
+        
+        // Add elimination banner/message
+        const picksContainer = document.getElementById('picksContainer');
+        if (picksContainer) {
+            // Remove any existing message
+            const existingMsg = document.querySelector('.elimination-message');
+            if (existingMsg) existingMsg.remove();
+            
+    
+        }
+    } else {
+        // Enable buttons (unless it's game time)
+        const now = getCurrentTimeInUTC4();
+        fetch('/api/timewindows')
+            .then(r => r.json())
+            .then(timeWindows => {
+                const { tuesdayStartTime, thursdayDeadline, sundayDeadline } = timeWindows;
+                const tuesdayTime = new Date(tuesdayStartTime);
+                const thursdayTime = new Date(thursdayDeadline);
+                const sundayTime = new Date(sundayDeadline);
+                
+                // Only enable if it's pick time
+                if (now > tuesdayTime && now < thursdayTime) {
+                    submitButton.classList.remove('disabled');
+                    resetButton.classList.remove('disabled');
+                    submitButton.disabled = false;
+                    resetButton.disabled = false;
+                }
+            })
+            .catch(error => console.error('Error checking time windows:', error));
+        
+        // Remove elimination message if present
+        const existingMsg = document.querySelector('.elimination-message');
+        if (existingMsg) existingMsg.remove();
+    }
+}
+
+// =====================================================
+// FIXED POOL SELECTOR IMPLEMENTATION (PREVENTS DUPLICATION)
+// =====================================================
+
+// Track whether populatePoolSelector is currently running
+let isPopulatingPoolSelector = false;
+
+// Complete replacement for populatePoolSelector
+async function populatePoolSelector() {
+    // Prevent concurrent calls
+    if (isPopulatingPoolSelector) {
+        console.log('Pool selector already being populated, skipping duplicate call');
+        return;
+    }
+    
+    isPopulatingPoolSelector = true;
+    
+    const poolSelector = document.getElementById('poolSelector');
+    if (!poolSelector) {
+        console.error('Pool selector element not found');
+        isPopulatingPoolSelector = false;
+        return;
+    }
+  
+    const currentSelection = poolSelector.value;
+    poolSelector.innerHTML = '<option value="loading">Loading pools...</option>';
+  
+    try {
+        // First check if we're in Thursday game time
+        const timeResponse = await fetch('/api/timewindows');
+        if (!timeResponse.ok) throw new Error('Failed to fetch time windows.');
+  
+        const { thursdayDeadline, sundayDeadline } = await timeResponse.json();
+        const now = getCurrentTimeInUTC4();
+        const thursdayTime = new Date(thursdayDeadline);
+        const sundayTime = new Date(sundayDeadline);
+  
+        const isThursdayGameTime = now > thursdayTime && now < sundayTime;
+  
+        // Fetch pools
+        const response = await fetch(`/pools/userPools/${encodeURIComponent(storedUsername)}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
+        const pools = await response.json();
+        const survivorPools = pools.filter((pool) => pool.mode === 'survivor');
+  
+        if (survivorPools.length === 0) {
+            poolSelector.innerHTML = '<option value="none">User is in no survivor pools</option>';
+            isPopulatingPoolSelector = false;
+            return;
+        }
+  
+        // Clear any existing warnings
+        const existingWarnings = document.querySelectorAll('.pool-warning');
+        existingWarnings.forEach((warning) => warning.remove());
+  
+        // Completely clear the selector content to prevent duplication
+        poolSelector.innerHTML = '';
+  
+        // Fetch elimination status for each pool
+        for (const pool of survivorPools) {
+            const status = await getSurvivorStatus(storedUsername, pool.name);
+            poolEliminationStatus[pool.name] = status;
+        }
+
+        // If there's only one pool, just add that pool
+        if (survivorPools.length === 1) {
+            const option = document.createElement('option');
+            option.value = survivorPools[0].name;
+            option.textContent = survivorPools[0].name + 
+                (poolEliminationStatus[survivorPools[0].name] === 'eliminated' ? ' (Eliminated)' : '');
+            
+            if (poolEliminationStatus[survivorPools[0].name] === 'eliminated') {
+                option.style.color = '#cc0000';
+                option.classList.add('eliminated-pool');
+            }
+            
+            poolSelector.appendChild(option);
+            selectedPool = survivorPools[0].name;
+  
+            // Fetch and store last week's picks for single pool
+            const lastWeekResponse = await fetch(
+                `/api/getLastWeekPicks/${encodeURIComponent(
+                    storedUsername
+                )}/${encodeURIComponent(survivorPools[0].name)}`
+            );
+            const lastWeekData = await lastWeekResponse.json();
+            lastWeekPicks[survivorPools[0].name] = {
+                picks:
+                    lastWeekData.success && Array.isArray(lastWeekData.picks)
+                        ? lastWeekData.picks
+                        : [],
+                immortalLockPick:
+                    lastWeekData.success && lastWeekData.immortalLockPick
+                        ? lastWeekData.immortalLockPick
+                        : null,
+            };
+        } else {
+            // Multiple pools - check for both current and last week's picks differences
+            let shouldShowAllOption = true;
+            let currentPicksMatch = true; // Initialize to true
+            let lastWeekPicksMatch = true; // Initialize to true
+  
+            // Fetch current picks for all pools
+            const currentPoolPicks = await Promise.all(
+                survivorPools.map(async (pool) => {
+                    try {
+                        const response = await fetch(
+                            `/api/getPicks/${storedUsername}/${pool.name}`
+                        );
+                        const data = await response.json();
+                        return {
+                            poolName: pool.name,
+                            picks: data.picks || [],
+                            immortalLock: data.immortalLock || [],
+                        };
+                    } catch (error) {
+                        console.error(`Error fetching picks for pool ${pool.name}:`, error);
+                        return null;
+                    }
+                })
+            );
+  
+            // Filter out failed requests
+            const validCurrentPicks = currentPoolPicks.filter((pick) => pick !== null);
+  
+            // Check if current picks match across pools
+            if (validCurrentPicks.length > 1) {
+                const firstPool = validCurrentPicks[0];
+                currentPicksMatch = validCurrentPicks.every((poolPick) => {
+                    const regularPicksMatch =
+                        JSON.stringify(sortPicks(poolPick.picks)) ===
+                        JSON.stringify(sortPicks(firstPool.picks));
+                    const immortalLockMatch =
+                        JSON.stringify(poolPick.immortalLock) ===
+                        JSON.stringify(firstPool.immortalLock);
+                    return regularPicksMatch && immortalLockMatch;
+                });
+  
+                if (currentPicksMatch) {
+                    // Store the matching picks in global state for "all" view
+                    userPicks = [...firstPool.picks];
+                    userImmortalLock = firstPool.immortalLock?.[0] || null;
+                    picksCount = userPicks.length;
+                } else {
+                    shouldShowAllOption = false;
+                }
+            } else {
+                currentPicksMatch = true; // Only one pool, so picks match by default
+            }
+  
+            // If current picks match, check last week's picks
+            if (currentPicksMatch) {
+                const lastWeekPoolPicks = await Promise.all(
+                    survivorPools.map(async (pool) => {
+                        try {
+                            const response = await fetch(
+                                `/api/getLastWeekPicks/${encodeURIComponent(
+                                    storedUsername
+                                )}/${encodeURIComponent(pool.name)}`
+                            );
+                            const data = await response.json();
+                            return {
+                                poolName: pool.name,
+                                picks: data.success && Array.isArray(data.picks) ? data.picks : [],
+                                immortalLockPick:
+                                    data.success && data.immortalLockPick ? data.immortalLockPick : null,
+                            };
+                        } catch (error) {
+                            console.error(
+                                `Error fetching last week picks for pool ${pool.name}:`,
+                                error
+                            );
+                            return null;
+                        }
+                    })
+                );
+  
+                // Filter out failed requests
+                const validLastWeekPicks = lastWeekPoolPicks.filter(
+                    (pick) => pick !== null
+                );
+  
+                if (validLastWeekPicks.length > 1) {
+                    const firstPool = validLastWeekPicks[0];
+                    lastWeekPicksMatch = validLastWeekPicks.every((poolPick) => {
+                        const regularPicksMatch =
+                            JSON.stringify(sortPicks(poolPick.picks)) ===
+                            JSON.stringify(sortPicks(firstPool.picks));
+                        const immortalLockMatch =
+                            JSON.stringify(poolPick.immortalLockPick) ===
+                            JSON.stringify(firstPool.immortalLockPick);
+                        return regularPicksMatch && immortalLockMatch;
+                    });
+  
+                    if (lastWeekPicksMatch) {
+                        // Store the matching picks for the 'all' view
+                        lastWeekPicks['all'] = {
+                            picks: firstPool.picks,
+                            immortalLockPick: firstPool.immortalLockPick,
+                        };
+                    } else {
+                        shouldShowAllOption = false;
+                    }
+                } else {
+                    lastWeekPicksMatch = true; // Only one pool, so picks match by default
+                }
+            } else {
+                lastWeekPicksMatch = false; // Current picks don't match, so last week's don't matter
+            }
+  
+            const container = poolSelector.closest('.pool-selector-container');
+  
+            // If current picks don't match, add warning
+            if (!currentPicksMatch && container) {
+                const warningDiv = document.createElement('div');
+                warningDiv.className = 'pool-warning';
+                warningDiv.textContent =
+                    'Different current picks detected across pools. Please manage picks in individual pools, or select reset picks on all individual pools to obtain the "all pools" view.';
+                container.insertAdjacentElement('afterend', warningDiv);
+                shouldShowAllOption = false; // Ensure "All Pools" option is not shown
+            }
+  
+            // If last week's picks don't match and current picks DO match, add warning
+            else if (!lastWeekPicksMatch && currentPicksMatch && container) {
+                const warningDiv = document.createElement('div');
+                warningDiv.className = 'pool-warning';
+                warningDiv.textContent =
+                    'Different last week picks detected across pools. Please manage picks in individual pools.';
+                container.insertAdjacentElement('afterend', warningDiv);
+                shouldShowAllOption = false; // Ensure "All Pools" option is not shown
+            }
+  
+            // Only add "All Pools" option if all picks match
+            if (shouldShowAllOption) {
+                // Check if all pools are eliminated
+                const allEliminated = survivorPools.every(pool => 
+                    poolEliminationStatus[pool.name] === 'eliminated'
+                );
+                
+                // For "All Pools" status, if ANY pool is still active, we consider it active
+                poolEliminationStatus['all'] = allEliminated ? 'eliminated' : 'active';
+                
+                const allOption = document.createElement('option');
+                allOption.value = 'all';
+                allOption.textContent = 'All Pools' + (allEliminated ? ' (All Eliminated)' : '');
+                
+                if (allEliminated) {
+                    allOption.style.color = '#cc0000';
+                    allOption.classList.add('eliminated-pool');
+                }
+                
+                poolSelector.appendChild(allOption);
+            }
+  
+            // Add individual pool options
+            survivorPools.forEach((pool) => {
+                const option = document.createElement('option');
+                option.value = pool.name;
+                option.textContent = pool.name + 
+                    (poolEliminationStatus[pool.name] === 'eliminated' ? ' (Eliminated)' : '');
+                
+                if (poolEliminationStatus[pool.name] === 'eliminated') {
+                    option.style.color = '#cc0000';
+                    option.classList.add('eliminated-pool');
+                }
+                
+                poolSelector.appendChild(option);
+            });
+  
+            // Set appropriate selection
+            if (!shouldShowAllOption && selectedPool === 'all') {
+                // If currently on "all" but picks don't match, switch to first pool
+                poolSelector.value = survivorPools[0].name;
+                selectedPool = survivorPools[0].name;
+  
+                // Clear current picks state
+                userPicks = [];
+                userImmortalLock = null;
+                picksCount = 0;
+  
+                // Clear UI selections
+                document.querySelectorAll('.bet-button').forEach((button) => {
+                    if (!button.dataset.thursdayGame) {
+                        button.classList.remove('selected', 'immortal-lock-selected');
+                    }
+                });
+            } else if (currentSelection && currentSelection !== 'loading') {
+                poolSelector.value = currentSelection;
+                selectedPool = currentSelection;
+            }
+        }
+  
+        // Fetch and render picks
+        await fetchUserPicksAndRender(storedUsername, selectedPool);
+        
+        // Update UI based on elimination status
+        updateUiForEliminationStatus(poolEliminationStatus[selectedPool]);
+  
+        // If it's Thursday game time, apply features after rendering
+        if (isThursdayGameTime) {
+            setTimeout(() => {
+                enableThursdayGameFeatures();
+            }, 100);
+        }
+    } catch (error) {
+        console.error('Error fetching pools:', error);
+        poolSelector.innerHTML = '<option value="error">Error loading pools</option>';
+        poolSelector.classList.add('error');
+    }
+    
+    isPopulatingPoolSelector = false;
+}
+
+// =====================================================
+// MODIFIED EVENT LISTENERS
+// =====================================================
+
+// Update event listeners to handle elimination status
+function setupEventListeners() {
+    // Pool selector change
+    const poolSelector = document.getElementById('poolSelector');
+    if (poolSelector) {
+        poolSelector.addEventListener('change', async function(e) {
+            console.log('Pool changed to:', e.target.value);
+            selectedPool = e.target.value;
+            
+            try {
+                // Clear state first
+                userPicks = [];
+                userImmortalLock = null;
+                lockedPicks = [];
+                lockedImmortalLock = null;
+                picksCount = 0;
+                
+                // Clear UI selections but preserve base click functionality
+                document.querySelectorAll('.bet-button').forEach(button => {
+                    button.classList.remove('selected', 'immortal-lock-selected', 'user-thursday-pick');
+                    button.style.backgroundColor = '';
+                    button.style.color = '';
+                    button.dataset.previousPick = '';
+                    button.dataset.previousImmortalLock = '';
+                    button.dataset.thursdayGame = '';
+                    button.title = '';
+                });
+
+                // Reset immortal lock checkbox
+                const immortalLockCheck = document.getElementById('immortalLockCheck');
+                if (immortalLockCheck) {
+                    immortalLockCheck.checked = false;
+                    immortalLockCheck.disabled = false;
+                }
+
+                if (selectedPool === 'all') {
+                    // For "all" view, ONLY get first pool's picks since we know they match
+                    const poolsResponse = await fetch(`/pools/userPools/${encodeURIComponent(storedUsername)}`);
+                    const allPools = await poolsResponse.json();
+                    const survivorPools = allPools.filter(pool => pool.mode === 'survivor');
+                    
+                    if (survivorPools.length > 0) {
+                        const response = await fetch(`/api/getPicks/${storedUsername}/${survivorPools[0].name}`);
+                        const data = await response.json();
+                        
+                        if (data.picks) {
+                            data.picks.forEach(pick => renderPick(pick, false));
+                        }
+                        if (data.immortalLock && data.immortalLock.length > 0) {
+                            renderPick(data.immortalLock[0], true);
+                        }
+                    }
+                } else {
+                    // For individual pool, fetch normally
+                    const response = await fetch(`/api/getPicks/${storedUsername}/${selectedPool}`);
+                    const data = await response.json();
+                    
+                    if (data.picks) {
+                        data.picks.forEach(pick => renderPick(pick, false));
+                    }
+                    if (data.immortalLock && data.immortalLock.length > 0) {
+                        renderPick(data.immortalLock[0], true);
+                    }
+                }
+
+                // Re-apply last week's picks blackout
+                await fetchLastWeekPicks(storedUsername, selectedPool);
+                await blackOutPreviousBets();
+
+                // Check for Thursday features
+                const timeResponse = await fetch('/api/timewindows');
+                if (timeResponse.ok) {
+                    const { thursdayDeadline, sundayDeadline } = await timeResponse.json();
+                    const now = getCurrentTimeInUTC4();
+                    const thursdayTime = new Date(thursdayDeadline);
+                    const sundayTime = new Date(sundayDeadline);
+                    
+                    if (now > thursdayTime && now < sundayTime) {
+                        setTimeout(() => {
+                            enableThursdayGameFeatures();
+                        }, 300);
+                    }
+                }
+                
+                // Update UI based on elimination status for the selected pool
+                updateUiForEliminationStatus(poolEliminationStatus[selectedPool]);
+            } catch (error) {
+                console.error('Error handling pool change:', error);
+            }
+        });
+    }
+
+    // Submit button
+    const submitButton = document.getElementById('submitPicks');
+    if (submitButton) {
+        submitButton.addEventListener('click', submitUserPicks);
+    }
+
+    // Reset button
+    const resetButton = document.getElementById('resetPicks');
+    if (resetButton) {
+        resetButton.addEventListener('click', resetPicks);
+    }
+
+    // Display injuries button
+    const displayInjuriesBtn = document.getElementById('displayInjuriesBtn');
+    if (displayInjuriesBtn) {
+        displayInjuriesBtn.addEventListener('click', handleDisplayInjuries);
+    }
+}
+
+// =====================================================
+// MODIFIED SUBMIT AND RESET FUNCTIONS
+// =====================================================
+
+// Modified submit picks function to only submit to active pools
+async function submitUserPicks() {
+    if (!storedUsername) {
+        alert('Please log in to submit picks');
+        return;
+    }
+
+    if (selectedPool === 'none') {
+        alert('Join a pool to submit picks!');
+        return;
+    }
+
+    // Check if the selected pool is eliminated
+    if (poolEliminationStatus[selectedPool] === 'eliminated') {
+        alert('You are eliminated from this pool and cannot submit picks.');
+        return;
+    }
+
+    // Check if we have either user picks or locked picks
+    if (userPicks.length === 0 && lockedPicks.length === 0) {
+        alert('Please add at least one pick before submitting.');
+        return;
+    }
+
+    // Combine picks, ensuring we only have one pick total (survivor mode)
+    const combinedPicks = [...lockedPicks, ...userPicks];
+    if (combinedPicks.length > 1) {
+        console.error('Invalid state: Multiple picks detected in survivor mode');
+        alert('Error: Multiple picks detected. Please reset and try again.');
+        return;
+    }
+
+    // Create the data object with the single pick
+    const data = {
+        picks: combinedPicks
+    };
+
+    try {
+        if (selectedPool === 'all') {
+            // Get the pools from the selector
+            const poolSelector = document.getElementById('poolSelector');
+            const availablePools = Array.from(poolSelector.options)
+                .map(option => option.value)
+                .filter(value => value !== 'all' && poolEliminationStatus[value] !== 'eliminated');
+
+            if (availablePools.length === 0) {
+                alert('No active pools found to submit picks to.');
+                return;
+            }
+
+            // Submit to each active pool
+            const results = await Promise.all(availablePools.map(async poolName => {
+                try {
+                    await submitToPool(poolName, data);
+                    return { poolName, success: true };
+                } catch (error) {
+                    return { poolName, success: false, error: error.message };
+                }
+            }));
+
+            // Check results and provide feedback
+            const failures = results.filter(result => !result.success);
+            if (failures.length === 0) {
+                alert(`Picks successfully submitted to all ${availablePools.length} active pools!`);
+            } else {
+                const failedPools = failures.map(f => f.poolName).join(', ');
+                alert(`Successfully submitted to ${availablePools.length - failures.length} pools.\nFailed for pools: ${failedPools}`);
+            }
+        } else {
+            // Submit to single pool
+            await submitToPool(selectedPool, data);
+            alert('Pick submitted successfully!');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while submitting pick. Please try again.');
+    }
+}
+
+// Modified reset picks function to only reset active pools
+async function resetPicks() {
+    if (selectedPool === 'none') {
+        alert('Join a pool to reset picks!');
+        return;
+    }
+
+    // Check if the selected pool is eliminated
+    if (poolEliminationStatus[selectedPool] === 'eliminated') {
+        alert('You are eliminated from this pool and cannot reset picks.');
+        return;
+    }
+
+    try {
+        // First check if we're in Thursday game time
+        const timeResponse = await fetch('/api/timewindows');
+        if (!timeResponse.ok) throw new Error('Failed to fetch time windows.');
+        
+        const { thursdayDeadline, sundayDeadline } = await timeResponse.json();
+        const now = getCurrentTimeInUTC4();
+        const thursdayTime = new Date(thursdayDeadline);
+        const sundayTime = new Date(sundayDeadline);
+        
+        const isThursdayGameTime = now > thursdayTime && now < sundayTime;
+
+        // Get current picks for the selected pool before resetting
+        let currentPicks;
+        if (selectedPool !== 'all') {
+            const response = await fetch(`/api/getPicks/${storedUsername}/${selectedPool}`);
+            currentPicks = await response.json();
+        }
+
+        if (selectedPool === 'all') {
+            const confirmReset = confirm('Are you sure you want to reset all your picks? This cannot be undone.');
+            
+            if (confirmReset) {
+                const poolsResponse = await fetch(`/pools/userPools/${encodeURIComponent(storedUsername)}`);
+                if (!poolsResponse.ok) throw new Error('Failed to fetch user pools');
+                
+                const allPools = await poolsResponse.json();
+                const survivorPools = allPools.filter(pool => pool.mode === 'survivor');
+
+                // Only reset active pools
+                const activePools = survivorPools.filter(pool => 
+                    poolEliminationStatus[pool.name] !== 'eliminated'
+                );
+
+                if (activePools.length === 0) {
+                    alert('No active pools found to reset picks.');
+                    return;
+                }
+
+                // Check which active pools have picks
+                const poolsWithPicks = await Promise.all(activePools.map(async pool => {
+                    try {
+                        const response = await fetch(`/api/getPicks/${storedUsername}/${pool.name}`);
+                        const data = await response.json();
+                        return {
+                            poolName: pool.name,
+                            hasPicks: !!(data.picks?.length || data.immortalLock?.length),
+                            currentPicks: data
+                        };
+                    } catch (error) {
+                        console.error(`Error checking picks for ${pool.name}:`, error);
+                        return { poolName: pool.name, hasPicks: false };
+                    }
+                }));
+
+                const poolsToReset = poolsWithPicks.filter(pool => pool.hasPicks);
+
+                if (poolsToReset.length === 0) {
+                    alert('No picks found to reset in active pools.');
+                    return;
+                }
+
+                // Reset pools
+                const results = await Promise.all(poolsToReset.map(async pool => {
+                    try {
+                        const poolPicks = pool.currentPicks;
+                        let dataToSave;
+
+                        if (isThursdayGameTime) {
+                            // During Thursday game time, preserve Thursday picks
+                            const poolLockedPicks = poolPicks.picks?.filter(pick => {
+                                const matchup = betOptions.find(bet => 
+                                    bet.homeTeam === pick.teamName || bet.awayTeam === pick.teamName
+                                );
+                                if (!matchup) return false;
+                                return checkIfThursdayGame(pick.commenceTime);
+                            }) || [];
+
+                            const poolLockedImmortalLock = poolPicks.immortalLock?.find(lock => {
+                                const matchup = betOptions.find(bet => 
+                                    bet.homeTeam === lock.teamName || bet.awayTeam === lock.teamName
+                                );
+                                if (!matchup) return false;
+                                return checkIfThursdayGame(lock.commenceTime);
+                            });
+
+                            dataToSave = {
+                                picks: poolLockedPicks,
+                                immortalLock: poolLockedImmortalLock ? [poolLockedImmortalLock] : []
+                            };
+                        } else {
+                            // Outside Thursday game time, clear all picks
+                            dataToSave = {
+                                picks: [],
+                                immortalLock: []
+                            };
+                        }
+                        
+                        await fetch(`/api/savePicks/${storedUsername}/${pool.poolName}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(dataToSave)
+                        });
+                        
+                        return { poolName: pool.poolName, success: true };
+                    } catch (error) {
+                        return { poolName: pool.poolName, success: false };
+                    }
+                }));
+
+                const successfulResets = results.filter(r => r.success).map(r => r.poolName);
+                if (successfulResets.length > 0) {
+                    alert(`Successfully reset picks for: ${successfulResets.join(', ')}`);
+                }
+            }
+        } else {
+            // For single pool reset
+            if (currentPicks?.picks?.length || currentPicks?.immortalLock?.length) {
+                let dataToSave;
+
+                if (isThursdayGameTime) {
+                    // During Thursday game time, preserve Thursday picks
+                    const poolLockedPicks = currentPicks.picks?.filter(pick => {
+                        const matchup = betOptions.find(bet => 
+                            bet.homeTeam === pick.teamName || bet.awayTeam === pick.teamName
+                        );
+                        if (!matchup) return false;
+                        return checkIfThursdayGame(pick.commenceTime);
+                    }) || [];
+
+                    const poolLockedImmortalLock = currentPicks.immortalLock?.find(lock => {
+                        const matchup = betOptions.find(bet => 
+                            bet.homeTeam === lock.teamName || bet.awayTeam === lock.teamName
+                        );
+                        if (!matchup) return false;
+                        return checkIfThursdayGame(lock.commenceTime);
+                    });
+
+                    dataToSave = {
+                        picks: poolLockedPicks,
+                        immortalLock: poolLockedImmortalLock ? [poolLockedImmortalLock] : []
+                    };
+                } else {
+                    // Outside Thursday game time, clear all picks
+                    dataToSave = {
+                        picks: [],
+                        immortalLock: []
+                    };
+                }
+
+                await fetch(`/api/savePicks/${storedUsername}/${selectedPool}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataToSave)
+                });
+                
+                alert('Picks reset successfully!');
+            } else {
+                alert('No picks found to reset.');
+            }
+        }
+        
+        // Update UI
+        userPicks = [];
+        userImmortalLock = null;
+        
+        // Only preserve locked picks during Thursday game time
+        if (!isThursdayGameTime) {
+            lockedPicks = [];
+            lockedImmortalLock = null;
+        }
+        
+        picksCount = lockedPicks.length;
+        
+        document.querySelectorAll('.bet-button').forEach(button => {
+            if (!button.dataset.thursdayGame) {
+                button.classList.remove('selected', 'immortal-lock-selected');
+            }
+        });
+        
+        await fetchUserPicksAndRender(storedUsername, selectedPool);
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while resetting picks. Please try again.');
+    }
+}
+
+// =====================================================
+// INITIALIZATION
+// =====================================================
+
+// Replace the original initializeDashboard function with this to include elimination status
+async function initializeDashboard() {
+    if (!storedUsername) {
+        console.error('Username not found in storage');
+        return;
+    }
+
+    try {
+        // Load weekly picks first
+        await loadWeeklyPicks();
+
+        // Setup event listeners
+        setupEventListeners();
+
+        // Initialize pool selector and fetch initial picks
+        await populatePoolSelector();
+
+        // Check time window
+        await checkCurrentTimeWindow();
+    } catch (error) {
+        console.error('Error initializing dashboard:', error);
+    }
+}
+
+// Ensure only one initializeDashboard call happens
+let dashboardInitialized = false;
+
+// Update the initialization on page load
+document.addEventListener('DOMContentLoaded', async () => {
+    if (dashboardInitialized) return;
+    dashboardInitialized = true;
+    
+    if (storedUsername) {
+        try {
+            // Check time window first
+            const timeResponse = await fetch('/api/timewindows');
+            if (!timeResponse.ok) throw new Error('Failed to fetch time windows.');
+            
+            const { thursdayDeadline, sundayDeadline } = await timeResponse.json();
+            const now = getCurrentTimeInUTC4();
+            const thursdayTime = new Date(thursdayDeadline);
+            const sundayTime = new Date(sundayDeadline);
+            
+            const isThursdayGameTime = now > thursdayTime && now < sundayTime;
+            const injuryContainer = document.getElementById('injuryContainer');
+            if (injuryContainer) {
+                injuryContainer.classList.add('hidden-border');
+                injuryContainer.classList.remove('visible-border');
+            }
+            
+            // Initialize dashboard 
+            await initializeDashboard();
+
+            // If it's Thursday game time, apply the features after a delay
+            if (isThursdayGameTime) {
+                setTimeout(() => {
+                    enableThursdayGameFeatures();
+                }, 100);
+            }
+            
+            // Make sure we update UI based on elimination status
+            if (selectedPool) {
+                updateUiForEliminationStatus(poolEliminationStatus[selectedPool]);
+            }
+        } catch (error) {
+            console.error('Error during initialization:', error);
+        }
+        
+        isInitialPageLoad = false;
+    }
+});
+
+// Ensure window.populatePoolSelector points to our implementation
+// This prevents multiple implementations from being called
+window.populatePoolSelector = populatePoolSelector;
