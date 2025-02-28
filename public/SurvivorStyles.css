@@ -623,7 +623,7 @@ input, select {
     border: 1px solid #33d9ff; /* Border color */
     border-radius: 10px; /* Rounded corners */
     padding: 10px; /* Padding around the text */
-    gap: 10px; /* Space between child elements */
+    gap: 5px; /* Space between child elements */
 }
   
 
@@ -760,7 +760,7 @@ h4 {
 
   .picks-container2 {
     display: flex;
-    gap: 20px; /* Add space between game day containers */
+    gap: 3px; /* Add space between game day containers */
 }
 
 .game-day-container {
@@ -1461,7 +1461,7 @@ h4 {
   justify-content: center;
   align-items: flex-start;
   width: 100%;
-  gap: 20px; /* Add consistent spacing between game containers */
+  gap: 3px; /* Add consistent spacing between game containers */
   padding: 10px;
   box-sizing: border-box;
 }
