@@ -601,8 +601,8 @@ const mockNFLGames = [
     home_team: "Miami Dolphins",
     away_team: "Tampa Bay Buccaneers",
     scores: [
-      { name: "Miami Dolphins", score: "28" },
-      { name: "Tampa Bay Buccaneers", score: "17" }
+      { name: "Miami Dolphins", score: "18" },
+      { name: "Tampa Bay Buccaneers", score: "24" }
     ]
   },
   {
@@ -690,7 +690,7 @@ async function mockFetchNFLScores() {
     console.error('Error in mock NFL scores:', error);
   }
 }
-cron.schedule('26 11 * * 3', () => {
+cron.schedule('46 12 * * 5', () => {
   console.log("It's Thursday 4:00 PM");
   mockFetchNFLScores();
 });
