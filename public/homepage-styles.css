@@ -3072,9 +3072,9 @@ body {
 
 .survivor-picks-button:hover {
     color: #ffffff;
-    background: rgba(239, 255, 20, 0.3);
-    box-shadow: 0 0 30px rgb(255, 251, 20),
-                inset 0 0 30px rgba(255, 251, 20);
+       background: linear-gradient(45deg, #800036, #600029);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(96, 0, 41, 0.4);
     transform: translateY(-2px) scale(1.02);
     border-color: #ffffff;
     text-shadow: 0 0 10px rgba(255, 231, 20, 0.8);
@@ -3515,14 +3515,6 @@ body {
     line-height: 1;  /* Reset line height */
 }
 
-.survivor-picks-button:hover {
-    background: linear-gradient(45deg, #c8a951, #d4af37);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3),
-                inset 0 0 15px rgba(10, 25, 40, 0.4);
-    border-color: #e9d5a0;
-    color: #fff;
-}
 
 /* Art Deco shine effect */
 .survivor-picks-button::after {
