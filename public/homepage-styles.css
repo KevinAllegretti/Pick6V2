@@ -4129,14 +4129,15 @@ text-align: center;
     box-shadow: 0 0 5px rgba(51, 217, 255, 0.5);
   }
   
-  /* Bracket container - make sure it doesn't exceed viewport */
+  /* Bracket container - make it taller to avoid scrolling */
   .playoff-bracket-container {
     padding: 10px;
     overflow-x: auto;
-    overflow-y: auto;
+    overflow-y: visible; /* Changed from auto to visible */
     background-color: #0a0f22;
-    min-height: 100px;
-    max-height: 70vh; /* Limit height to 70% of viewport to prevent overflow */
+    min-height: 400px; /* Increased minimum height */
+    height: auto; /* Let it grow as needed */
+    max-height: none; /* Remove max-height limitation */
     scrollbar-width: thin;
     scrollbar-color: #33d9ff rgba(10, 15, 34, 0.5);
     position: relative; /* Create stacking context */
@@ -4231,28 +4232,29 @@ text-align: center;
     box-shadow: 0 0 10px #33d9ff;
   }
   
-  /* Bracket structure with better spacing */
-  .playoff-rounds {
+  /* Adjust round spacing for better fit without vertical scrolling */
+  .playoff-bracket-container .playoff-rounds {
     display: flex;
-    padding-bottom: 10px;
+    padding-bottom: 20px;
     justify-content: space-between;
-    gap: 15px; /* Add gap between rounds */
+    gap: 30px; /* Increased gap between rounds */
+    min-height: 460px; /* Increased minimum height to accommodate all matches */
   }
   
-  .bracket-round {
+  .playoff-bracket-container .bracket-round {
     display: flex;
     flex-direction: column;
     justify-content: space-around;
     flex: 1;
-    min-width: 100px; /* More compact */
-    max-width: 130px; /* Limit width */
+    min-width: 120px; /* Slightly wider */
+    max-width: 160px; /* Increased max width */
     position: relative;
     margin: 0 5px; /* Add margins between rounds */
   }
   
-  /* Match containers - better spacing to prevent overlapping */
+  /* Add more vertical spacing between matches */
   .playoff-bracket-container .match-container {
-    margin: 10px 0; /* Vertical margins to separate matches */
+    margin: 15px 0; /* Increased vertical margins to separate matches */
     position: relative;
   }
   
@@ -4568,6 +4570,7 @@ text-align: center;
     box-shadow: 0 0 10px rgba(51, 217, 255, 0.3);
   }
   
+ 
   
   /* Add styles for playoff bracket title */
   .playoffs-title {
