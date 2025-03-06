@@ -11,6 +11,7 @@ import timeWindowRoutes from '../src/routes/timeWindowRoutes';
 import weekRoutes from '../src/routes/weekRoutes';
 import '../src/microservices/websocket';  
 import '../src/microservices/scheduler';
+import playoffRoutes from '../src/routes/playoffRoutes'
 import dashRoutes from '../src/routes/dashRoutes'
 import { fetchNFLschedule } from '../src/Controllers/dashController';
 import { fetchTeamsAndWeeks, fetchGamesByFilter } from '../src/Controllers/dashController';
@@ -74,7 +75,7 @@ app.use(weekRoutes);
 app.use('/api', InjuryRoutes);
 
 app.use('/api', timeWindowRoutes)
-
+app.use(playoffRoutes)
 app.post('/api/fetchTeamsAndWeeks', fetchTeamsAndWeeks);
 app.post('/api/fetchGamesByFilter', fetchGamesByFilter);
 

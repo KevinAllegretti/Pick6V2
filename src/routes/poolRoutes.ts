@@ -161,7 +161,18 @@ router.post('/create', async (req, res) => {
 
 router.post('/create', async (req, res) => {
     try {
-        const { name, isPrivate, adminUsername, mode, password } = req.body;
+        // Add hasPlayoffs to the destructured properties
+        const { name, isPrivate, adminUsername, mode, password, hasPlayoffs } = req.body;
+
+        // Log the incoming request
+        console.log('Creating pool with params:', { 
+            name, 
+            isPrivate, 
+            adminUsername, 
+            mode, 
+            hasPassword: !!password, 
+            hasPlayoffs 
+        });
 
         const db = await connectToDatabase();
         const usersCollection = db.collection("users");
@@ -184,6 +195,7 @@ router.post('/create', async (req, res) => {
             orderIndex: 0
         };
 
+        // Include hasPlayoffs in the new pool object
         const newPool = {
             name,
             isPrivate,
@@ -191,13 +203,23 @@ router.post('/create', async (req, res) => {
             adminUsername: adminUsername.toLowerCase(),
             password: isPrivate ? password : undefined,
             members: [adminMember],
-            mode: mode || 'classic'
+            mode: mode || 'classic',
+            // Only set hasPlayoffs when mode is classic
+            hasPlayoffs: mode === 'classic' ? !!hasPlayoffs : false
         };
+
+        console.log('Creating pool with model:', {
+            ...newPool,
+            password: newPool.password ? '***' : undefined // Hide password in logs
+        });
 
         const result = await poolsCollection.insertOne(newPool);
         
         // After creating the pool, normalize all indices
         await normalizePoolOrder(poolsCollection, adminUsername);
+
+        // Log the created pool ID and whether hasPlayoffs was set
+        console.log('Pool created with ID:', result.insertedId, 'hasPlayoffs:', !!hasPlayoffs);
 
         res.status(201).json({ 
             message: 'Pool created successfully',

@@ -13,7 +13,32 @@ interface IMember {
   push?: number;
   isEliminated?: boolean;
 }
+interface IPlayoffMember {
+  user: mongoose.Types.ObjectId;
+  username: string;
+  seed: number;
+  position: string;
+  weeklyPoints: number;
+  eliminatedInWeek?: number;
+  hasBye: boolean;
+  isAdvancing: boolean;
+  picks?: any[];
+  win?: number;
+  loss?: number;
+  push?: number;
+}
 
+interface IPlayoffMatch {
+  matchId: string;
+  round: number;
+  week: number;
+  player1Position: string;
+  player2Position: string;
+  player1Id?: mongoose.Types.ObjectId;
+  player2Id?: mongoose.Types.ObjectId;
+  winner?: string;
+  nextMatchPosition: string;
+}
 const poolSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -72,7 +97,104 @@ const poolSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+
+  hasPlayoffs: {
+    type: Boolean,
+    default: false
+  },
+  
+  playoffMembers: {
+    type: [{
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+      },
+      username: {
+        type: String,
+        required: true
+      },
+      seed: {
+        type: Number,
+        required: true
+      },
+      position: {
+        type: String,
+        required: true
+      },
+      weeklyPoints: {
+        type: Number,
+        default: 0
+      },
+      eliminatedInWeek: {
+        type: Number
+      },
+      hasBye: {
+        type: Boolean,
+        default: false
+      },
+      isAdvancing: {
+        type: Boolean,
+        default: false
+      },
+      picks: [{ 
+        teamName: String,
+        type: String,
+        value: String,
+        teamRole: String,
+        awayTeam: String,
+        homeTeam: String,
+        commenceTime: Date
+      }],
+      win: { 
+        type: Number, 
+        default: 0 
+      },
+      loss: { 
+        type: Number, 
+        default: 0 
+      },
+      push: { 
+        type: Number, 
+        default: 0 
+      }
+    }],
+    default: []
+  },
+  
+  playoffBracket: {
+    type: [{
+      matchId: String,
+      round: Number,
+      week: Number,
+      player1Position: String,
+      player2Position: String,
+      player1Id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      },
+      player2Id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      },
+      winner: String,
+      nextMatchPosition: String
+    }],
+    default: []
+  },
+  
+  playoffCurrentWeek: {
+    type: Number,
+    min: 14,
+    max: 17
+  },
+  
+  playoffWinner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }
 });
+
 // Middleware to use correct member schema based on pool mode
 poolSchema.pre('save', function(next) {
   if (this.isModified('mode') || this.isModified('members')) {

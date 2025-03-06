@@ -171,9 +171,129 @@
                     <label>Password</label>
                     <input type="password" placeholder="Enter pool password">
                 </div>
+                <!-- Add this to your create pool form, right after the privacy toggle -->
+<div id="playoffs-toggle" class="form-group playoffs-toggle hidden">
+    <label class="checkbox-container">
+        <input type="checkbox" id="hasPlayoffs" name="hasPlayoffs"> 
+        <span class="checkbox-label">Enable Playoffs</span>
+    </label>
+    <div class="playoffs-info">
+        <p>Playoffs will run from Week 14-17 with the top 10 players.</p>
+    </div>
+</div>
 
+<style>
+/* Styling for the playoffs toggle */
+.playoffs-toggle {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: rgba(51, 217, 255, 0.05);
+    border-radius: 6px;
+    border: 1px solid rgba(51, 217, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.playoffs-toggle.hidden {
+    display: none;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    margin-bottom: 10px;
+}
+
+.checkbox-container input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #33d9ff;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    position: relative;
+    margin-right: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.checkbox-container input[type="checkbox"]:checked {
+    background-color: #33d9ff;
+    border-color: #33d9ff;
+}
+
+.checkbox-container input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    color: #17203a;
+    font-size: 14px;
+    font-weight: bold;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.checkbox-container:hover input[type="checkbox"] {
+    border-color: #33d9ff;
+    box-shadow: 0 0 5px rgba(51, 217, 255, 0.5);
+}
+
+.checkbox-label {
+    color: #33d9ff;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.playoffs-info {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    border-left: 3px solid #33d9ff;
+}
+
+.playoffs-info p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    margin: 0;
+    line-height: 1.4;
+}
+</style>
+
+<script>
+// JavaScript to toggle the playoffs checkbox based on selected mode
+document.addEventListener('DOMContentLoaded', function() {
+    const modeCards = document.querySelectorAll('.mode-card');
+    const playoffsToggle = document.getElementById('playoffs-toggle');
+    
+    // Show/hide based on initial mode
+    const activeMode = document.querySelector('.mode-card.active');
+    if (activeMode && activeMode.dataset.mode === 'classic') {
+        playoffsToggle.classList.remove('hidden');
+    } else {
+        playoffsToggle.classList.add('hidden');
+    }
+    
+    // Update when mode changes
+    modeCards.forEach(card => {
+        card.addEventListener('click', () => {
+            if (card.dataset.mode === 'classic') {
+                playoffsToggle.classList.remove('hidden');
+            } else {
+                playoffsToggle.classList.add('hidden');
+                // Reset checkbox when switching away from classic
+                const checkbox = document.getElementById('hasPlayoffs');
+                if (checkbox) checkbox.checked = false;
+            }
+        });
+    });
+});
+</script>
                 <button type="submit" class="submit-btn">Create Pool</button>
             </form>
+            
         </div>
 
         <div class="tab-content hidden" id="join-pool-content">

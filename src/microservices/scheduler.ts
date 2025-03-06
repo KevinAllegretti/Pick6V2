@@ -807,3 +807,80 @@ cron.schedule('58 23 * * 1', () => {
   console.log("It's Monday 11:45 PM");
   fetchNFLScores();
 });*/
+
+// Add this to your main server.ts file to integrate the playoff routes
+
+// Also add this to your scheduler (cron.ts) for automated playoff processing
+
+// Initialize playoffs at week 14
+const url6= 'http://localhost:3000';
+cron.schedule('05 14 * * 4', async () => {
+  const currentWeek = await getCurrentWeek();
+  
+  if (currentWeek === 14) {
+    console.log("Week 14 detected: Initializing playoffs for eligible pools");
+    try {
+      const response = await fetch(`${url6}/api/playoffs/initialize`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to initialize playoffs: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Playoffs initialization result:', data);
+    } catch (error) {
+      console.error('Error initializing playoffs:', error);
+    }
+  }
+});
+
+// Process playoff results at the end of each week (Sunday night)
+cron.schedule('0 23 * * 0', async () => {
+  const currentWeek = await getCurrentWeek();
+  
+  if (currentWeek >= 14 && currentWeek <= 17) {
+    console.log(`Processing playoff results for week ${currentWeek}`);
+    try {
+      const response = await fetch(`${url6}/api/playoffs/processResults`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to process playoff results: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Playoff results processing:', data);
+    } catch (error) {
+      console.error('Error processing playoff results:', error);
+    }
+  }
+});
+
+// Advance playoffs to next round (Monday morning)
+cron.schedule('0 6 * * 1', async () => {
+  const currentWeek = await getCurrentWeek();
+  
+  if (currentWeek >= 14 && currentWeek <= 16) {
+    console.log(`Advancing playoffs from week ${currentWeek}`);
+    try {
+      const response = await fetch(`${url6}/api/playoffs/advance`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to advance playoffs: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Playoff advancement result:', data);
+    } catch (error) {
+      console.error('Error advancing playoffs:', error);
+    }
+  }
+});
