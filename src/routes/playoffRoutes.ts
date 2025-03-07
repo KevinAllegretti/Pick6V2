@@ -67,7 +67,6 @@ router.post('/api/playoffs/initialize', async (req, res) => {
         continue;
       }
       
-      // Create the playoff members array with reset points
       const playoffMembers = topMembers.map((member, index) => {
         const seed = index + 1;
         const hasBye = hasByeForSeed(seed, topMembers.length);
@@ -82,12 +81,12 @@ router.post('/api/playoffs/initialize', async (req, res) => {
           hasBye,
           isAdvancing: hasBye, // Players with byes automatically advance
           picks: [],
-          win: member.win,
-          loss: member.loss,
-          push: member.push
+          // INSTEAD, initialize with zero records:
+          win: 0,
+          loss: 0,
+          push: 0
         };
       });
-      
       // Create the playoff bracket structure
       const playoffBracket = createBracketForPlayerCount(topMembers.length);
       
@@ -124,6 +123,62 @@ router.post('/api/playoffs/initialize', async (req, res) => {
   }
 });
 
+
+
+router.get('/api/playoffs/:poolName/member/:username', async (req, res) => {
+    try {
+        const { poolName, username } = req.params;
+        
+        const database = await connectToDatabase();
+        const poolsCollection = database.collection('pools');
+        
+        const pool = await poolsCollection.findOne({ 
+            name: poolName,
+            hasPlayoffs: true
+        });
+        
+        if (!pool) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Playoff pool not found' 
+            });
+        }
+        
+        // Find the member in the playoff members array
+        const member = pool.playoffMembers.find(m => 
+            m.username.toLowerCase() === username.toLowerCase()
+        );
+        
+        if (!member) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Member not found in playoff pool' 
+            });
+        }
+        
+        // Return the member's playoff stats
+        res.json({
+            success: true,
+            poolName,
+            member: {
+                username: member.username,
+                seed: member.seed,
+                position: member.position,
+                win: member.win || 0,
+                loss: member.loss || 0,
+                push: member.push || 0,
+                weeklyPoints: member.weeklyPoints || 0,
+                isAdvancing: member.isAdvancing
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching playoff member:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: error instanceof Error ? error.message : 'Unknown error'
+        });
+    }
+});
 // Get playoff bracket for a specific pool
 router.get('/api/playoffs/:poolName/bracket', async (req, res) => {
   try {
@@ -288,107 +343,266 @@ router.post('/api/playoffs/:poolName/picks', async (req, res) => {
 
 // Process playoff results at the end of the week
 router.post('/api/playoffs/processResults', async (req, res) => {
-  try {
-    const currentWeek = await getCurrentWeek();
-    
-    // Only allow processing during playoff weeks
-    if (currentWeek < 14 || currentWeek > 17) {
-      return res.status(400).json({ 
-        success: false, 
-        message: `Cannot process playoff results - current week is ${currentWeek}, playoffs are weeks 14-17` 
-      });
-    }
-    
-    const database = await connectToDatabase();
-    const poolsCollection = database.collection('pools');
-    const userPicksCollection = database.collection('userPicks');
-    const resultsCollection = database.collection('betResultsGlobal');
-    
-    // Get all playoff pools for the current week
-    const pools = await poolsCollection.find({ 
-      hasPlayoffs: true,
-      playoffCurrentWeek: currentWeek
-    }).toArray();
-    interface PoolResult {
+    try {
+      const currentWeek = await getCurrentWeek();
+      
+      // Only allow processing during playoff weeks
+      if (currentWeek < 14 || currentWeek > 17) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `Cannot process playoff results - current week is ${currentWeek}, playoffs are weeks 14-17` 
+        });
+      }
+      
+      const database = await connectToDatabase();
+      const poolsCollection = database.collection('pools');
+      const userPicksCollection = database.collection('userPicks');
+      const resultsCollection = database.collection('betResultsGlobal');
+      
+      // Get all playoff pools for the current week
+      const pools = await poolsCollection.find({ 
+        hasPlayoffs: true,
+        playoffCurrentWeek: currentWeek
+      }).toArray();
+      
+      interface PoolResult {
         poolName: string; 
         success: boolean;
         message?: string;
         memberCount?: number;
         advancedToWeek?: number;
-        processedMembers?: number; // Add this property
+        processedMembers?: number;
       }
-      
+        
       const results: PoolResult[] = [];
-    
-    for (const pool of pools) {
-      // Process results for all active playoff members
-      for (const member of pool.playoffMembers) {
-        if (!member.eliminatedInWeek && !member.hasBye) {
-          let weeklyPoints = 0;
-          
-          // Get the user's picks from userPicks collection
-          const userPicks = await userPicksCollection.findOne({
-            username: member.username.toLowerCase(),
-            poolName: `playoff_${pool.name}`, // Fixed variable here
-            week: currentWeek
-          });
-          
-          if (userPicks && userPicks.picks && userPicks.picks.length > 0) {
-            // Get the latest results from betResultsGlobal
-            const resultsDoc = await resultsCollection.findOne({ identifier: 'currentResults' });
+      
+      for (const pool of pools) {
+        console.log(`Processing playoff results for pool: ${pool.name}`);
+        
+        // Process results for all active playoff members
+        for (const member of pool.playoffMembers) {
+          if (!member.eliminatedInWeek && !member.hasBye) {
+            let weeklyPoints = 0;
             
-            if (resultsDoc && resultsDoc.results) {
-              // Calculate points for each pick
-              for (const pick of userPicks.picks) {
-                const matchingResult = resultsDoc.results.find(r => 
-                  r.username.toLowerCase() === member.username.toLowerCase() &&
-                  r.teamName === pick.teamName &&
-                  r.betValue === pick.value
-                );
-                
-                if (matchingResult) {
-                  weeklyPoints += matchingResult.points || 0;
+            // Get the user's picks from userPicks collection
+            // Important: Use the playoff_ prefix for poolName
+            const userPicks = await userPicksCollection.findOne({
+              username: member.username.toLowerCase(),
+              poolName: `playoff_${pool.name}`,
+              week: currentWeek
+            });
+            
+            if (userPicks && userPicks.picks && userPicks.picks.length > 0) {
+              console.log(`Found picks for ${member.username} in playoff_${pool.name}`);
+              
+              // Get the latest results from betResultsGlobal
+              const resultsDoc = await resultsCollection.findOne({ identifier: 'currentResults' });
+              
+              if (resultsDoc && resultsDoc.results) {
+                // Calculate points for each pick
+                for (const pick of userPicks.picks) {
+                  // Look for results that match this player's pick and the playoff poolName
+                  const matchingResult = resultsDoc.results.find(r => 
+                    r.username.toLowerCase() === member.username.toLowerCase() &&
+                    r.teamName === pick.teamName &&
+                    r.betValue === pick.value &&
+                    r.poolName === `playoff_${pool.name}`  // Make sure we're matching playoff results
+                  );
+                  
+                  if (matchingResult) {
+                    console.log(`Found matching result for ${member.username}'s pick on ${pick.teamName}: ${matchingResult.points || 0} points`);
+                    weeklyPoints += matchingResult.points || 0;
+                  }
                 }
               }
             }
+            
+            // Update member's weekly points
+            member.weeklyPoints = weeklyPoints;
+            console.log(`Updated weekly points for ${member.username}: ${weeklyPoints}`);
           }
-          
-          // Update member's weekly points
-          member.weeklyPoints = weeklyPoints;
         }
+        
+        // Save the updated pool
+        await poolsCollection.updateOne(
+          { _id: pool._id },
+          { 
+            $set: { 
+              playoffMembers: pool.playoffMembers 
+            }  
+          }
+        );
+        
+        results.push({ 
+          poolName: pool.name, 
+          success: true,
+          processedMembers: pool.playoffMembers.filter(m => !m.eliminatedInWeek && !m.hasBye).length
+        });
       }
       
-      // Save the updated pool
-      await poolsCollection.updateOne(
-        { _id: pool._id },
-        { 
-          $set: { 
-            playoffMembers: pool.playoffMembers 
-          }  
-        }
-      );
-      
-      results.push({ 
-        poolName: pool.name, 
-        success: true,
-        processedMembers: pool.playoffMembers.filter(m => !m.eliminatedInWeek && !m.hasBye).length
+      res.json({ 
+        success: true, 
+        message: `Processed results for ${pools.length} playoff pools`, 
+        results 
+      });
+    } catch (error) {
+      console.error('Error processing playoff results:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: error instanceof Error ? error.message : 'Unknown error'
       });
     }
-    
-    res.json({ 
-      success: true, 
-      message: `Processed results for ${pools.length} playoff pools`, 
-      results 
-    });
-  } catch (error) {
-    console.error('Error processing playoff results:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
+  });
 
+  router.post('/api/playoffs/:poolName/picks', async (req, res) => {
+    try {
+      const { poolName } = req.params;
+      const { picks } = req.body;
+      const username = req.headers['x-username'] as string;
+      
+      if (!username) {
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+      }
+      
+      const database = await connectToDatabase();
+      const poolsCollection = database.collection('pools');
+      const userPicksCollection = database.collection('userPicks');
+      const timeWindowCollection = database.collection('timewindows');
+      
+      const pool = await poolsCollection.findOne({ name: poolName, hasPlayoffs: true });
+      
+      if (!pool) {
+        return res.status(404).json({ success: false, message: 'Playoff pool not found' });
+      }
+      
+      // Check if picks can be submitted (before Thursday deadline)
+      const timeWindow = await timeWindowCollection.findOne({});
+      
+      if (!timeWindow) {
+        return res.status(404).json({ success: false, message: 'Time window not found' });
+      }
+      
+      const now = new Date();
+      const thursdayDeadline = new Date(timeWindow.thursdayDeadline);
+      
+      if (now > thursdayDeadline) {
+        return res.status(400).json({ success: false, message: 'Picks submission deadline has passed' });
+      }
+      
+      // Find the member in the playoff pool
+      const member = pool.playoffMembers.find(m => 
+        m.username.toLowerCase() === username.toLowerCase() && 
+        !m.eliminatedInWeek &&
+        !m.hasBye
+      );
+      
+      if (!member) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'User not found in playoff pool or not eligible to submit picks' 
+        });
+      }
+      
+      console.log(`Saving playoff picks for ${username} in playoff_${poolName}`);
+      
+      // Save picks to userPicks collection with the playoff_ prefix
+      await userPicksCollection.updateOne(
+        { 
+          username: username.toLowerCase(),
+          poolName: `playoff_${poolName}`,
+          week: pool.playoffCurrentWeek
+        },
+        {
+          $set: {
+            picks,
+            immortalLock: []  // No immortal locks in playoffs
+          }
+        },
+        { upsert: true }
+      );
+      
+      res.json({ success: true, message: 'Playoff picks saved successfully' });
+    } catch (error) {
+      console.error('Error saving playoff picks:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
+  // Add a new API endpoint to check if a pool is in playoff mode
+router.get('/api/playoffs/isPlayoff/:poolName', async (req, res) => {
+    try {
+      const { poolName } = req.params;
+      const database = await connectToDatabase();
+      const poolsCollection = database.collection('pools');
+      
+      const pool = await poolsCollection.findOne({ name: poolName });
+      
+      if (!pool) {
+        return res.status(404).json({ success: false, message: 'Pool not found' });
+      }
+      
+      // Check if the pool has playoffs and is in playoff mode (week >= 14)
+      const currentWeek = await getCurrentWeek();
+      const isPlayoffMode = pool.hasPlayoffs && currentWeek >= 14 && currentWeek <= 17;
+      
+      res.json({
+        success: true,
+        poolName,
+        isPlayoffMode,
+        playoffCurrentWeek: pool.playoffCurrentWeek || null
+      });
+    } catch (error) {
+      console.error('Error checking playoff status:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // New API endpoint to get a user's playoff picks
+router.get('/api/playoffs/:poolName/picks/:username', async (req, res) => {
+    try {
+      const { poolName, username } = req.params;
+      
+      const database = await connectToDatabase();
+      const userPicksCollection = database.collection('userPicks');
+      const poolsCollection = database.collection('pools');
+      
+      // First, verify this is a playoff pool
+      const pool = await poolsCollection.findOne({ name: poolName, hasPlayoffs: true });
+      
+      if (!pool) {
+        return res.status(404).json({ success: false, message: 'Playoff pool not found' });
+      }
+      
+      // Fetch the user's playoff picks
+      const userPicks = await userPicksCollection.findOne({
+        username: username.toLowerCase(),
+        poolName: `playoff_${poolName}`,
+        week: pool.playoffCurrentWeek
+      });
+      
+      // Return the picks or empty arrays if none found
+      res.json({
+        success: true,
+        username,
+        poolName,
+        week: pool.playoffCurrentWeek,
+        picks: userPicks?.picks || [],
+        immortalLock: userPicks?.immortalLock || []
+      });
+    } catch (error) {
+      console.error('Error fetching playoff picks:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
 // Advance playoffs to the next round
 router.post('/api/playoffs/advance', async (req, res) => {
   try {

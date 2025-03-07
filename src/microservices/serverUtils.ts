@@ -118,7 +118,19 @@ export async function getAllPicks(): Promise<any[]> {
     try {
         const database = await connectToDatabase();
         const picksCollection = database.collection('userPicks');
+        
+        // Get all picks, including both regular and playoff picks
         const allPicks = await picksCollection.find({}).toArray();
+        
+        // Add a flag to each pick indicating whether it's a playoff pick
+        allPicks.forEach(pick => {
+            pick.isPlayoffPick = pick.poolName.startsWith('playoff_');
+            if (pick.isPlayoffPick) {
+                // Store original pool name without prefix for reference
+                pick.originalPoolName = pick.poolName.substring(8);
+            }
+        });
+        
         return allPicks;
     } catch (error) {
         console.error('Error fetching all picks:', error);
@@ -280,6 +292,14 @@ export function calculatePointsForResult({ result, odds, type }: { result: strin
     return points;
 }
 
+export async function fetchPlayoffPicksData(username: string, poolName: string): Promise<any> {
+    const database = await connectToDatabase();
+    const picksCollection = database.collection('userPicks');
+    return picksCollection.findOne({ 
+        username: username.toLowerCase(), 
+        poolName: `playoff_${poolName}` 
+    });
+}
 
 export async function fetchPicksData(username: string, poolName: string): Promise<any> {
     const database = await connectToDatabase();

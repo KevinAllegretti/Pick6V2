@@ -358,4 +358,216 @@ router.get('/api/getSurvivorPickedTeams/:username/:poolName', async (req, res) =
     }
 });
 
+// Add these routes to your pickRoutes.ts file to handle playoff picks
+
+// Route to save playoff picks specifically
+router.post('/api/savePlayoffPicks/:username/:poolName', async (req, res) => {
+    try {
+        const { username, poolName } = req.params;
+        const { picks, immortalLock } = req.body;
+
+        const database = await connectToDatabase();
+        const picksCollection = database.collection('userPicks');
+
+        // Use playoff_ prefix to distinguish playoff picks
+        const playoffPoolName = `playoff_${poolName}`;
+
+        // Get current week from the pools collection to include in picks
+        const poolsCollection = database.collection('pools');
+        const pool = await poolsCollection.findOne({ name: poolName, hasPlayoffs: true });
+        
+        if (!pool || !pool.playoffCurrentWeek) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Pool not found or not in playoff mode' 
+            });
+        }
+
+        // Add current playoff week to the picks data
+        const playoffWeek = pool.playoffCurrentWeek;
+
+        // Use the updateOne method with upsert option to create or update the document
+        await picksCollection.updateOne(
+            { 
+                username: username.toLowerCase(), 
+                poolName: playoffPoolName,
+                week: playoffWeek
+            }, 
+            {
+                $set: {
+                    picks,
+                    immortalLock,
+                    week: playoffWeek
+                }
+            },
+            { upsert: true }
+        );
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error saving or updating playoff picks:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+// Route to retrieve playoff picks specifically
+router.get('/api/getPlayoffPicks/:username/:poolName', async (req, res) => {
+    try {
+        const { username, poolName } = req.params;
+        const database = await connectToDatabase();
+        const picksCollection = database.collection('userPicks');
+        const poolsCollection = database.collection('pools');
+
+        // First check if the pool is in playoff mode
+        const pool = await poolsCollection.findOne({ name: poolName, hasPlayoffs: true });
+        
+        if (!pool || !pool.playoffCurrentWeek) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Pool not found or not in playoff mode' 
+            });
+        }
+
+        // Use playoff_ prefix to retrieve playoff picks
+        const playoffPoolName = `playoff_${poolName}`;
+        const playoffWeek = pool.playoffCurrentWeek;
+
+        // Query the collection using both username, playoff pool name, and week
+        const userPicksData = await picksCollection.findOne({
+            username: username.toLowerCase(),
+            poolName: playoffPoolName,
+            week: playoffWeek
+        });
+
+        if (userPicksData) {
+            res.json({
+                ...userPicksData,
+                isPlayoffPicks: true,
+                playoffWeek
+            });
+        } else {
+            res.status(404).json({ 
+                message: 'No playoff picks found for the given username in this pool' 
+            });
+        }
+    } catch (error) {
+        console.error('Error retrieving playoff picks:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+// Modify existing getPicks route to check if a pool is in playoff mode
+router.get('/api/getPicks/:username/:poolName', async (req, res) => {
+    try {
+        const { username, poolName } = req.params;
+        const database = await connectToDatabase();
+        const picksCollection = database.collection('userPicks');
+        
+        // Check if this is already a playoff pool request (has playoff_ prefix)
+        const isPlayoffRequest = poolName.startsWith('playoff_');
+        
+        if (isPlayoffRequest) {
+            // Handle direct playoff request
+            const userPicksData = await picksCollection.findOne({
+                username: username.toLowerCase(),
+                poolName
+            });
+
+            if (userPicksData) {
+                res.json(userPicksData);
+            } else {
+                res.status(404).json({ message: 'No playoff picks found for the given username in this pool' });
+            }
+            return;
+        }
+        
+        // If not an explicit playoff request, check if the pool is in playoff mode
+        const poolsCollection = database.collection('pools');
+        const pool = await poolsCollection.findOne({ name: poolName });
+        
+        const currentWeek = await getCurrentWeek(); // Assuming you have this function
+        const isPlayoffWeek = currentWeek >= 14 && currentWeek <= 17;
+        const isPlayoffPool = pool?.hasPlayoffs && isPlayoffWeek;
+        
+        // If it's a playoff pool and in playoff weeks, check for playoff picks first
+        if (isPlayoffPool) {
+            const playoffPoolName = `playoff_${poolName}`;
+            const playoffPicksData = await picksCollection.findOne({
+                username: username.toLowerCase(),
+                poolName: playoffPoolName,
+                week: pool.playoffCurrentWeek || currentWeek
+            });
+            
+            if (playoffPicksData) {
+                // Return playoff picks if they exist
+                res.json({
+                    ...playoffPicksData,
+                    isPlayoffPicks: true,
+                    playoffWeek: pool.playoffCurrentWeek || currentWeek
+                });
+                return;
+            }
+        }
+        
+        // If we get here, either it's not a playoff pool or no playoff picks were found
+        // Fall back to regular pool picks
+        const userPicksData = await picksCollection.findOne({
+            username: username.toLowerCase(),
+            poolName
+        });
+
+        if (userPicksData) {
+            res.json(userPicksData);
+        } else {
+            res.status(404).json({ message: 'No picks found for the given username in this pool' });
+        }
+    } catch (error) {
+        console.error('Error fetching picks:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+// Add a route to check if a pool is in playoff mode
+router.get('/api/isPlayoffPool/:poolName', async (req, res) => {
+    try {
+        const { poolName } = req.params;
+        const database = await connectToDatabase();
+        const poolsCollection = database.collection('pools');
+        
+        const pool = await poolsCollection.findOne({ name: poolName });
+        if (!pool) {
+            return res.status(404).json({ success: false, message: 'Pool not found' });
+        }
+        
+        const currentWeek = await getCurrentWeek(); // Assuming you have this function
+        const isPlayoffWeek = currentWeek >= 14 && currentWeek <= 17;
+        const isPlayoffPool = pool.hasPlayoffs && isPlayoffWeek;
+        
+        res.json({
+            success: true,
+            poolName,
+            isPlayoffPool,
+            playoffCurrentWeek: pool.playoffCurrentWeek || null,
+            currentWeek
+        });
+    } catch (error) {
+        console.error('Error checking playoff status:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+// Import current week helper if needed
+async function getCurrentWeek() {
+    try {
+        const database = await connectToDatabase();
+        const weeksCollection = database.collection('weeks');
+        
+        const currentWeek = await weeksCollection.findOne({ identifier: 'currentWeek' });
+        return currentWeek ? currentWeek.week : 1;
+    } catch (error) {
+        console.error('Error fetching current week:', error);
+        return 1; // Default to week 1 if error
+    }
+}
+
 export default router;
