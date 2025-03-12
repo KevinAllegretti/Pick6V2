@@ -285,7 +285,11 @@ export function calculatePointsForResult({ result, odds, type }: { result: strin
             break;
             
         case 'push':
+            if (type === "ImmortalLock") {
+                points -= 2; // Penalty for immortal lock push
+            }else{
             points += 0.5; // Points for a push
+            }
             break;
     }
 

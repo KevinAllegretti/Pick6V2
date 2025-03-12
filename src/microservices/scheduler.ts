@@ -709,10 +709,6 @@ async function mockFetchNFLScores() {
   }
 }
 
-cron.schedule('57 15 * * 5', () => {
-  console.log("It's Thursday 4:00 PM");
-  mockFetchNFLScores();
-});
 
 cron.schedule('43 11 * * 5', () => {
   console.log("It's Thursday 4:00 PM");
@@ -827,13 +823,16 @@ cron.schedule('58 23 * * 1', () => {
   fetchNFLScores();
 });*/
 
-// Add this to your main server.ts file to integrate the playoff routes
 
-// Also add this to your scheduler (cron.ts) for automated playoff processing
+
+cron.schedule('07 14 * * 3', () => {
+  console.log("It's Thursday 4:00 PM");
+  mockFetchNFLScores();
+});
 
 // Initialize playoffs at week 14
 const url6= 'http://localhost:3000';
-cron.schedule('17 15 * * 5', async () => {
+cron.schedule('07 13 * * 3', async () => {
   const currentWeek = await getCurrentWeek();
   
   if (currentWeek === 14) {
@@ -856,8 +855,35 @@ cron.schedule('17 15 * * 5', async () => {
   }
 });
 
+
+// Advance playoffs to next round (Monday morning)
+cron.schedule('11 14 * * 3', async () => {
+  const currentWeek = await getCurrentWeek();
+  
+  if (currentWeek >= 14 && currentWeek <= 17) {
+    console.log(`Advancing playoffs from week ${currentWeek}`);
+    try {
+      const response = await fetch(`${url6}/api/playoffs/advance`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to advance playoffs: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Playoff advancement result:', data);
+    } catch (error) {
+      console.error('Error advancing playoffs:', error);
+    }
+  }
+});
+
+
+/*
 // Process playoff results at the end of each week (Sunday night)
-cron.schedule('0 23 * * 0', async () => {
+cron.schedule('11 20 * * 2', async () => {
   const currentWeek = await getCurrentWeek();
   
   if (currentWeek >= 14 && currentWeek <= 17) {
@@ -878,28 +904,34 @@ cron.schedule('0 23 * * 0', async () => {
       console.error('Error processing playoff results:', error);
     }
   }
-});
-
-// Advance playoffs to next round (Monday morning)
-cron.schedule('0 6 * * 1', async () => {
+});*/
+// Reverse advance playoffs cron job
+// This can be placed alongside your other cron jobs
+// Note: You might want to comment this out when not in use
+/*
+// Reverse playoffs advancement (only enable when needed)
+cron.schedule('12 15 * * 2', async () => {
   const currentWeek = await getCurrentWeek();
   
-  if (currentWeek >= 14 && currentWeek <= 16) {
-    console.log(`Advancing playoffs from week ${currentWeek}`);
+  // Only allow reversing during playoff weeks 15-17
+  if (currentWeek >= 15 && currentWeek <= 17) {
+    console.log(`Reversing playoff advancement from week ${currentWeek} to ${currentWeek - 1}`);
     try {
-      const response = await fetch(`${url6}/api/playoffs/advance`, {
+      const response = await fetch(`${url6}/api/playoffs/reverseAdvance`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
       
       if (!response.ok) {
-        throw new Error(`Failed to advance playoffs: ${response.status}`);
+        throw new Error(`Failed to reverse playoff advancement: ${response.status}`);
       }
       
       const data = await response.json();
-      console.log('Playoff advancement result:', data);
+      console.log('Playoff reverse advancement result:', data);
     } catch (error) {
-      console.error('Error advancing playoffs:', error);
+      console.error('Error reversing playoff advancement:', error);
     }
+  } else {
+    console.log(`Not reversing playoffs: current week ${currentWeek} is not within range 15-17`);
   }
-});
+});*/

@@ -1,4 +1,4 @@
-// Pool.ts
+// Updated Pool.ts with championship fields
 import mongoose from 'mongoose';
 import { poolMemberSchema, survivorPoolMemberSchema } from './poolMember';
 
@@ -13,6 +13,7 @@ interface IMember {
   push?: number;
   isEliminated?: boolean;
 }
+
 interface IPlayoffMember {
   user: mongoose.Types.ObjectId;
   username: string;
@@ -39,6 +40,18 @@ interface IPlayoffMatch {
   winner?: string;
   nextMatchPosition: string;
 }
+
+// New interface for the champion info
+interface IPlayoffChampion {
+  username: string;
+  seed: number;
+  winningPoints: number;
+  dateWon: Date;
+  win: number;
+  loss: number;
+  push: number;
+}
+
 const poolSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -192,6 +205,34 @@ const poolSchema = new mongoose.Schema({
   playoffWinner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
+  },
+  
+  // New fields for championship features
+  playoffCompleted: {
+    type: Boolean,
+    default: false
+  },
+  
+  playoffChampion: {
+    username: String,
+    seed: Number,
+    winningPoints: Number,
+    dateWon: {
+      type: Date,
+      default: Date.now
+    },
+    win: {
+      type: Number,
+      default: 0
+    },
+    loss: {
+      type: Number,
+      default: 0
+    },
+    push: {
+      type: Number,
+      default: 0
+    }
   }
 });
 

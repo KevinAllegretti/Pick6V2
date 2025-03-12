@@ -7,11 +7,12 @@ import { ObjectId } from 'mongodb';
 const router = express.Router();
 
 // Initialize playoffs for all pools that have hasPlayoffs=true
+// Initialize playoffs for all pools that have hasPlayoffs=true
 router.post('/api/playoffs/initialize', async (req, res) => {
   try {
     const currentWeek = await getCurrentWeek();
     
-    // Only proceed if we're at week 14
+    // Only proceed if we're at week 14 (always start playoffs at week 14)
     if (currentWeek !== 14) {
       return res.status(400).json({ 
         success: false, 
@@ -30,15 +31,16 @@ router.post('/api/playoffs/initialize', async (req, res) => {
     }).toArray();
     
     interface PoolResult {
-        poolName: string;
-        success: boolean;
-        message?: string;      // Used in the first result object
-        memberCount?: number;  // Used in the second result object
-        // Include any other properties used elsewhere
-        advancedToWeek?: number;
-        processedMembers?: number;
-      }
-      const results: PoolResult[] = [];
+      poolName: string;
+      success: boolean;
+      message?: string;      // Used in the first result object
+      memberCount?: number;  // Used in the second result object
+      // Include any other properties used elsewhere
+      advancedToWeek?: number;
+      processedMembers?: number;
+    }
+    
+    const results: PoolResult[] = [];
     
     for (const pool of pools) {
       // Sort members by points to determine seeding
@@ -87,6 +89,7 @@ router.post('/api/playoffs/initialize', async (req, res) => {
           push: 0
         };
       });
+      
       // Create the playoff bracket structure
       const playoffBracket = createBracketForPlayerCount(topMembers.length);
       
@@ -122,7 +125,6 @@ router.post('/api/playoffs/initialize', async (req, res) => {
     });
   }
 });
-
 
 
 router.get('/api/playoffs/:poolName/member/:username', async (req, res) => {
@@ -180,6 +182,7 @@ router.get('/api/playoffs/:poolName/member/:username', async (req, res) => {
     }
 });
 // Get playoff bracket for a specific pool
+// Updated bracket API endpoint to include championship information
 router.get('/api/playoffs/:poolName/bracket', async (req, res) => {
   try {
     const { poolName } = req.params;
@@ -196,15 +199,13 @@ router.get('/api/playoffs/:poolName/bracket', async (req, res) => {
     // Get the current playoff week
     const currentWeek = pool.playoffCurrentWeek || 14;
     
+    // Get the player count for this bracket
+    const playerCount = pool.playoffMembers ? pool.playoffMembers.length : 0;
+    
     // Format the bracket data for the frontend
     const bracketData = {
       currentWeek,
-      rounds: [
-        { round: 1, week: 14, name: 'First Round' },
-        { round: 2, week: 15, name: 'Quarterfinals' },
-        { round: 3, week: 16, name: 'Semifinals' },
-        { round: 4, week: 17, name: 'Finals' }
-      ],
+      rounds: generateRoundsBasedOnPlayerCount(playerCount),
       matches: pool.playoffBracket.map(match => {
         const player1 = pool.playoffMembers.find(m => m.position === match.player1Position);
         const player2 = pool.playoffMembers.find(m => m.position === match.player2Position);
@@ -220,7 +221,8 @@ router.get('/api/playoffs/:poolName/bracket', async (req, res) => {
             points: player1.weeklyPoints,
             isAdvancing: player1.isAdvancing,
             hasBye: player1.hasBye,
-            eliminated: !!player1.eliminatedInWeek
+            eliminated: !!player1.eliminatedInWeek,
+            position: player1.position
           } : null,
           player2: player2 ? {
             id: player2.user,
@@ -229,7 +231,8 @@ router.get('/api/playoffs/:poolName/bracket', async (req, res) => {
             points: player2.weeklyPoints,
             isAdvancing: player2.isAdvancing,
             hasBye: player2.hasBye,
-            eliminated: !!player2.eliminatedInWeek
+            eliminated: !!player2.eliminatedInWeek,
+            position: player2.position
           } : null,
           winner: match.winner,
           nextMatch: match.nextMatchPosition
@@ -250,7 +253,18 @@ router.get('/api/playoffs/:poolName/bracket', async (req, res) => {
           loss: member.loss,
           push: member.push
         }
-      }))
+      })),
+      // Add completion status and champion information
+      isCompleted: !!pool.playoffCompleted,
+      champion: pool.playoffChampion ? {
+        username: pool.playoffChampion.username,
+        seed: pool.playoffChampion.seed,
+        winningPoints: pool.playoffChampion.winningPoints,
+        dateWon: pool.playoffChampion.dateWon,
+        win: pool.playoffChampion.win,
+        loss: pool.playoffChampion.loss,
+        push: pool.playoffChampion.push
+      } : null
     };
     
     res.json({ success: true, bracket: bracketData });
@@ -604,17 +618,27 @@ router.get('/api/playoffs/:poolName/picks/:username', async (req, res) => {
     }
   });
 // Advance playoffs to the next round
+// Updated advancement logic to properly handle player positions
+// This should be added to your router.post('/api/playoffs/advance') endpoint
+
+// Modified canAdvancePlayoffs function to allow final advancement
+// This fixes the issue where the final match can't be processed
+function canAdvancePlayoffs(playerCount: number, currentWeek: number): boolean {
+  if (playerCount <= 8) {
+    // 6-8 player brackets run weeks 14-16
+    // Changed to include week 16 so the final match can be processed
+    return currentWeek >= 14 && currentWeek <= 16;
+  } else {
+    // 9-10 player brackets run weeks 14-17
+    // Changed to include week 17 so the final match can be processed
+    return currentWeek >= 14 && currentWeek <= 17;
+  }
+}
+
+// Updated advance playoffs route to handle the final week correctly
 router.post('/api/playoffs/advance', async (req, res) => {
   try {
     const currentWeek = await getCurrentWeek();
-    
-    // Only allow advancing during playoff weeks
-    if (currentWeek < 14 || currentWeek > 16) { // Can't advance past week 17
-      return res.status(400).json({ 
-        success: false, 
-        message: `Cannot advance playoffs - current week is ${currentWeek}, playoffs advance during weeks 14-16` 
-      });
-    }
     
     const database = await connectToDatabase();
     const poolsCollection = database.collection('pools');
@@ -626,24 +650,51 @@ router.post('/api/playoffs/advance', async (req, res) => {
     }).toArray();
     
     interface PoolResult {
-        poolName: string; 
-        success: boolean;
-        message?: string;
-        memberCount?: number;
-        advancedToWeek?: number; // Add this property
-      }
+      poolName: string; 
+      success: boolean;
+      message?: string;
+      memberCount?: number;
+      advancedToWeek?: number | string;
+      playoffWinner?: string;
+    }
       
-      const results: PoolResult[] = [];
+    const results: PoolResult[] = [];
     
     for (const pool of pools) {
+      // Determine if we can advance based on player count
+      const playerCount = pool.playoffMembers ? pool.playoffMembers.length : 0;
+      
+      // Check if this is the final week for this bracket size
+      const isFinalWeek = (playerCount <= 8 && currentWeek === 16) || 
+                         (playerCount > 8 && currentWeek === 17);
+      
+      if (!canAdvancePlayoffs(playerCount, currentWeek)) {
+        results.push({ 
+          poolName: pool.name, 
+          success: false, 
+          message: `Cannot advance playoffs - current week is ${currentWeek}, final playoff week for this bracket size is ${getFinalWeekNumber(playerCount)}` 
+        });
+        continue;
+      }
+      
       // Process each match in the current week
       const currentMatches = pool.playoffBracket.filter(match => match.week === currentWeek);
+      
+      // Debug log - before processing
+      console.log(`Processing week ${currentWeek} for pool ${pool.name} with ${currentMatches.length} matches`);
+      console.log('Player positions before advancing:');
+      pool.playoffMembers.forEach(member => {
+        console.log(`${member.username} (Seed ${member.seed}): position=${member.position}, isAdvancing=${member.isAdvancing}`);
+      });
       
       for (const match of currentMatches) {
         const player1 = pool.playoffMembers.find(m => m.position === match.player1Position);
         const player2 = pool.playoffMembers.find(m => m.position === match.player2Position);
         
-        if (!player1 || !player2) continue;
+        if (!player1 || !player2) {
+          console.log(`Match ${match.matchId} has missing player(s): player1=${player1?.username || 'missing'}, player2=${player2?.username || 'missing'}`);
+          continue; 
+        }
         
         // Determine winner based on points or seed tiebreaker
         let winner;
@@ -656,7 +707,9 @@ router.post('/api/playoffs/advance', async (req, res) => {
           winner = player1.seed < player2.seed ? player1 : player2;
         }
         
-        // Update match with winner
+        console.log(`Match ${match.matchId} winner: ${winner.username} (${winner.position})`);
+        
+        // Update match with winner position
         match.winner = winner.position;
         
         // Update player advancing status
@@ -671,8 +724,24 @@ router.post('/api/playoffs/advance', async (req, res) => {
           player2.eliminatedInWeek = currentWeek;
         }
         
-        // Move advancing player to next position if not the finals
-        if (match.nextMatchPosition !== "WINNER") {
+        // Check if this is the finals match (has nextMatchPosition === "WINNER")
+        const isFinalMatch = match.nextMatchPosition === "WINNER";
+        
+        if (isFinalMatch) {
+          // This was the final match - set the playoff winner and championship details
+          pool.playoffWinner = winner.user;
+          pool.playoffChampion = {
+            username: winner.username,
+            seed: winner.seed,
+            winningPoints: winner.weeklyPoints || 0,
+            dateWon: new Date(),
+            win: winner.win || 0,
+            loss: winner.loss || 0,
+            push: winner.push || 0
+          };
+          console.log(`Setting playoff winner to ${winner.username}`);
+        } else if (match.nextMatchPosition !== "WINNER") {
+          // Only move advancing player if not the finals
           // Find the next match
           const nextMatch = pool.playoffBracket.find(m => 
             m.player1Position === match.nextMatchPosition || 
@@ -680,8 +749,14 @@ router.post('/api/playoffs/advance', async (req, res) => {
           );
           
           if (nextMatch) {
+            console.log(`Moving ${winner.username} to next position: ${match.nextMatchPosition}`);
+            
             // Update winner's position for next week
+            const oldPosition = winner.position;
             winner.position = match.nextMatchPosition;
+            
+            // Important: Log the position change to help debugging
+            console.log(`Changed ${winner.username}'s position from ${oldPosition} to ${match.nextMatchPosition}`);
             
             // Set player ID in next match
             if (nextMatch.player1Position === match.nextMatchPosition) {
@@ -689,44 +764,73 @@ router.post('/api/playoffs/advance', async (req, res) => {
             } else {
               nextMatch.player2Id = winner.user;
             }
+          } else {
+            console.error(`Could not find next match for position ${match.nextMatchPosition}`);
           }
-        } else {
-          // This was the final match - set the playoff winner
-          pool.playoffWinner = winner.user;
         }
       }
+      
+      // Debug log - after processing
+      console.log('Player positions after advancing:');
+      pool.playoffMembers.forEach(member => {
+        console.log(`${member.username} (Seed ${member.seed}): position=${member.position}, isAdvancing=${member.isAdvancing}, eliminated=${!!member.eliminatedInWeek}`);
+      });
       
       // Reset weekly points for all members
       pool.playoffMembers.forEach(member => {
         member.weeklyPoints = 0;
       });
       
-      // Advance to next week
-      const nextWeek = currentWeek + 1;
-      
-      // Update the pool in the database
-      await poolsCollection.updateOne(
-        { _id: pool._id },
-        { 
-          $set: { 
-            playoffMembers: pool.playoffMembers,
-            playoffBracket: pool.playoffBracket,
-            playoffCurrentWeek: nextWeek,
-            playoffWinner: pool.playoffWinner || undefined
-          } 
-        }
-      );
-      
-      results.push({ 
-        poolName: pool.name, 
-        success: true, 
-        advancedToWeek: nextWeek
-      }); 
-    } 
+      // Special handling for the final week
+      if (isFinalWeek) {
+        // Mark the playoffs as completed instead of advancing the week
+        await poolsCollection.updateOne(
+          { _id: pool._id },
+          { 
+            $set: { 
+              playoffMembers: pool.playoffMembers,
+              playoffBracket: pool.playoffBracket,
+              playoffWinner: pool.playoffWinner || undefined,
+              playoffChampion: pool.playoffChampion || undefined,
+              playoffCompleted: true
+            }
+          }
+        );
+        
+        results.push({ 
+          poolName: pool.name, 
+          success: true, 
+          message: `Playoffs completed! Champion: ${pool.playoffChampion ? pool.playoffChampion.username : 'Unknown'}`,
+          advancedToWeek: 'completed',
+          playoffWinner: pool.playoffChampion ? pool.playoffChampion.username : undefined
+        });
+      } else {
+        // Normal case - advance to next week
+        const nextWeek = currentWeek + 1;
+        
+        await poolsCollection.updateOne(
+          { _id: pool._id },
+          { 
+            $set: { 
+              playoffMembers: pool.playoffMembers,
+              playoffBracket: pool.playoffBracket,
+              playoffCurrentWeek: nextWeek,
+              playoffWinner: pool.playoffWinner || undefined
+            } 
+          }
+        );
+        
+        results.push({ 
+          poolName: pool.name, 
+          success: true, 
+          advancedToWeek: nextWeek
+        }); 
+      }
+    }
     
     res.json({ 
       success: true, 
-      message: `Advanced ${pools.length} playoff pools from week ${currentWeek} to week ${currentWeek + 1}`, 
+      message: `Processed ${pools.length} playoff pools from week ${currentWeek}`, 
       results 
     });
   } catch (error) {
@@ -737,7 +841,149 @@ router.post('/api/playoffs/advance', async (req, res) => {
     });
   }
 });
-
+// Reverse the advancement of playoffs to the previous round
+router.post('/api/playoffs/reverseAdvance', async (req, res) => {
+  try {
+    const currentWeek = await getCurrentWeek();
+    
+    // Only allow reversing during playoff weeks (except week 14 which is the first playoff week)
+    if (currentWeek < 15 || currentWeek > 17) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Cannot reverse advance playoffs - current week is ${currentWeek}, can only reverse during weeks 15-17` 
+      });
+    }
+    
+    const database = await connectToDatabase();
+    const poolsCollection = database.collection('pools');
+    
+    // Get all playoff pools for the current week
+    const pools = await poolsCollection.find({ 
+      hasPlayoffs: true,
+      playoffCurrentWeek: currentWeek
+    }).toArray();
+    
+    interface PoolResult {
+      poolName: string; 
+      success: boolean;
+      message?: string;
+      reversedToWeek?: number;
+    }
+      
+    const results: PoolResult[] = [];
+    
+    for (const pool of pools) {
+      const previousWeek = currentWeek - 1;
+      
+      // Get the matches from the previous week
+      const previousMatches = pool.playoffBracket.filter(match => match.week === previousWeek);
+      
+      // Revert player positions and advancement status
+      for (const match of previousMatches) {
+        // Find players in the current match
+        const winningPlayer = pool.playoffMembers.find(m => m.position === match.winner);
+        
+        if (winningPlayer) {
+          // Find the original positions
+          const originalPosition = match.player1Position === match.winner ? 
+            match.player1Position : match.player2Position;
+          
+          // Reset the player's position
+          winningPlayer.position = originalPosition;
+          
+          // Reset the advancement status for both players in the match
+          const player1 = pool.playoffMembers.find(m => 
+            m.position === match.player1Position || 
+            (m.eliminatedInWeek === previousWeek && 
+             (match.player1Position === match.player1Position || match.player1Position === match.player2Position))
+          );
+          
+          const player2 = pool.playoffMembers.find(m => 
+            m.position === match.player2Position || 
+            (m.eliminatedInWeek === previousWeek && 
+             (match.player2Position === match.player1Position || match.player2Position === match.player2Position))
+          );
+          
+          if (player1) {
+            player1.isAdvancing = false;
+            if (player1.eliminatedInWeek === previousWeek) {
+              delete player1.eliminatedInWeek;
+            }
+          }
+          
+          if (player2) {
+            player2.isAdvancing = false;
+            if (player2.eliminatedInWeek === previousWeek) {
+              delete player2.eliminatedInWeek;
+            }
+          }
+          
+          // Reset the winner in the match
+          delete match.winner;
+          
+          // Reset any nextMatch assignments from this match
+          if (match.nextMatchPosition !== "WINNER") {
+            const nextMatch = pool.playoffBracket.find(m => 
+              m.player1Position === match.nextMatchPosition || 
+              m.player2Position === match.nextMatchPosition
+            );
+            
+            if (nextMatch) {
+              if (nextMatch.player1Position === match.nextMatchPosition) {
+                delete nextMatch.player1Id;
+              } else {
+                delete nextMatch.player2Id;
+              }
+            }
+          } else {
+            // If this was the final match, remove the playoff winner
+            delete pool.playoffWinner;
+          }
+        }
+      }
+      
+      // If there were byes in the previous week, restore those
+      for (const member of pool.playoffMembers) {
+        if (member.hasBye && previousWeek === 14) {
+          member.isAdvancing = true;
+        }
+      }
+      
+      // Update the pool in the database
+      await poolsCollection.updateOne(
+        { _id: pool._id },
+        { 
+          $set: { 
+            playoffMembers: pool.playoffMembers,
+            playoffBracket: pool.playoffBracket,
+            playoffCurrentWeek: previousWeek,
+          },
+          $unset: {
+            playoffWinner: ""
+          }
+        }
+      );
+      
+      results.push({ 
+        poolName: pool.name, 
+        success: true, 
+        reversedToWeek: previousWeek
+      }); 
+    } 
+    
+    res.json({ 
+      success: true, 
+      message: `Reversed ${pools.length} playoff pools from week ${currentWeek} to week ${currentWeek - 1}`, 
+      results 
+    });
+  } catch (error) {
+    console.error('Error reversing playoff advancement:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
 // Handle player leaving mid-playoffs
 router.post('/api/playoffs/:poolName/handlePlayerLeaving', async (req, res) => {
   try {
@@ -856,116 +1102,8 @@ router.post('/api/playoffs/:poolName/handlePlayerLeaving', async (req, res) => {
     });
   }
 });
-// Check if a player has a bye based on seed and total players
-function hasByeForSeed(seed: number, totalPlayers: number): boolean {
-    // For 10 players: Seeds 1-6 have byes in Week 14
-    if (totalPlayers === 10) {
-      return seed <= 6;
-    }
-    
-    // For 9 players: Seeds 1-6 have byes
-    if (totalPlayers === 9) {
-      return seed <= 6;
-    }
-    
-    // For 8 players: Seeds 1-4 have byes
-    if (totalPlayers === 8) {
-      return seed <= 4;
-    }
-    
-    // For 7 players: Seeds 1-2 have byes
-    if (totalPlayers === 7) {
-      return seed <= 2;
-    }
-    
-    // For 6 players: Seeds 1-2 have byes
-    if (totalPlayers === 6) {
-      return seed <= 2;
-    }
-    
-    return false;
-  }
-  
-// Get initial bracket position based on seed and total players
-function getInitialPosition(seed: number, totalPlayers: number): string {
-    // 10-player bracket positions (based on the corrected image)
-    if (totalPlayers === 10) {
-      switch(seed) {
-        case 1: return "R2_M1_P1"; // Seed 1 has a bye in Week 14
-        case 2: return "R2_M4_P1"; // Seed 2 has a bye in Week 14
-        case 3: return "R2_M2_P1"; // Seed 3 has a bye in Week 14
-        case 4: return "R2_M3_P1"; // Seed 4 has a bye in Week 14
-        case 5: return "R2_M3_P2"; // Seed 5 plays Seed 4 in Week 15
-        case 6: return "R2_M2_P2"; // Seed 6 plays Seed 3 in Week 15
-        case 7: return "R1_M2_P1"; // Seed 7 plays in Week 14 vs 10
-        case 8: return "R1_M1_P1"; // Seed 8 plays in Week 14 vs 9
-        case 9: return "R1_M1_P2"; // Seed 9 plays in Week 14 vs 8
-        case 10: return "R1_M2_P2"; // Seed 10 plays in Week 14 vs 7
-        default: return "";
-      }
-    }
-  
-    // 9-player bracket (adjusting same pattern)
-    if (totalPlayers === 9) {
-      switch(seed) {
-        case 1: return "R2_M1_P1"; // Seed 1 has a bye
-        case 2: return "R2_M4_P1"; // Seed 2 has a bye
-        case 3: return "R2_M2_P1"; // Seed 3 has a bye
-        case 4: return "R2_M3_P1"; // Seed 4 has a bye
-        case 5: return "R2_M3_P2"; // Seed 5 plays Seed 4 in Week 15
-        case 6: return "R2_M2_P2"; // Seed 6 plays Seed 3 in Week 15
-        case 7: return "R1_M1_P1"; // Seed 7 plays Week 14 vs 8
-        case 8: return "R1_M1_P2"; // Seed 8 plays Week 14 vs 7
-        case 9: return "R1_M2_P1"; // Seed 9 plays Week 14 (gets a bye in second match)
-        default: return "";
-      }
-    }
-  
-    // 8-player bracket
-    if (totalPlayers === 8) {
-      switch(seed) {
-        case 1: return "R2_M1_P1"; // Seed 1 has a bye
-        case 2: return "R2_M4_P1"; // Seed 2 has a bye
-        case 3: return "R2_M2_P1"; // Seed 3 has a bye
-        case 4: return "R2_M3_P1"; // Seed 4 has a bye
-        case 5: return "R1_M1_P1"; // Seed 5 plays Week 14 vs 8
-        case 6: return "R1_M2_P1"; // Seed 6 plays Week 14 vs 7
-        case 7: return "R1_M2_P2"; // Seed 7 plays Week 14 vs 6
-        case 8: return "R1_M1_P2"; // Seed 8 plays Week 14 vs 5
-        default: return "";
-      }
-    }
-  
-    // 7-player bracket
-    if (totalPlayers === 7) {
-      switch(seed) {
-        case 1: return "R2_M1_P1"; // Seed 1 has a bye
-        case 2: return "R2_M4_P1"; // Seed 2 has a bye
-        case 3: return "R1_M1_P1"; // Seed 3 plays Week 14 vs 6
-        case 4: return "R1_M2_P1"; // Seed 4 plays Week 14 vs 5
-        case 5: return "R1_M2_P2"; // Seed 5 plays Week 14 vs 4
-        case 6: return "R1_M1_P2"; // Seed 6 plays Week 14 vs 3
-        case 7: return "R1_M3_P1"; // Seed 7 plays Week 14 (gets a bye in second match)
-        default: return "";
-      }
-    }
-  
-    // 6-player bracket
-    if (totalPlayers === 6) {
-      switch(seed) {
-        case 1: return "R2_M1_P1"; // Seed 1 has a bye
-        case 2: return "R2_M4_P1"; // Seed 2 has a bye
-        case 3: return "R1_M1_P1"; // Seed 3 plays Week 14 vs 6
-        case 4: return "R1_M2_P1"; // Seed 4 plays Week 14 vs 5
-        case 5: return "R1_M2_P2"; // Seed 5 plays Week 14 vs 4
-        case 6: return "R1_M1_P2"; // Seed 6 plays Week 14 vs 3
-        default: return "";
-      }
-    }
-  
-    return "";
-  }
-  
+
+
   
 
 interface BracketMatch {
@@ -978,96 +1116,267 @@ interface BracketMatch {
   }
 // Create bracket structure based on player count
 // Create bracket structure based on player count
+// Create bracket structure based on player count - fixed for 6 players
 function createBracketForPlayerCount(playerCount: number): BracketMatch[] {
-    const bracket: BracketMatch[] = [];
-    
-    if (playerCount === 10) {
-      // First round (Week 14) - 2 matches
-      bracket.push(
-        { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M1_P2" },
-        { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M4_P2" }
-      );
-      
-      // Second round (Week 15) - 4 matches
-      bracket.push(
-        { matchId: "R2_M1", round: 2, week: 15, player1Position: "R2_M1_P1", player2Position: "R2_M1_P2", nextMatchPosition: "R3_M1_P1" },
-        { matchId: "R2_M2", round: 2, week: 15, player1Position: "R2_M2_P1", player2Position: "R2_M2_P2", nextMatchPosition: "R3_M1_P2" },
-        { matchId: "R2_M3", round: 2, week: 15, player1Position: "R2_M3_P1", player2Position: "R2_M3_P2", nextMatchPosition: "R3_M2_P1" },
-        { matchId: "R2_M4", round: 2, week: 15, player1Position: "R2_M4_P1", player2Position: "R2_M4_P2", nextMatchPosition: "R3_M2_P2" }
-      );
-    }
-    else if (playerCount === 9) {
-      // First round (Week 14) - 1 match (7 vs 8), seed 9 advances to Week 15
-      bracket.push(
-        { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M1_P2" },
-        { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M4_P2" } // This is a placeholder match for seed 9
-      );
-      
-      // Second round (Week 15) - 4 matches
-      bracket.push(
-        { matchId: "R2_M1", round: 2, week: 15, player1Position: "R2_M1_P1", player2Position: "R2_M1_P2", nextMatchPosition: "R3_M1_P1" },
-        { matchId: "R2_M2", round: 2, week: 15, player1Position: "R2_M2_P1", player2Position: "R2_M2_P2", nextMatchPosition: "R3_M1_P2" },
-        { matchId: "R2_M3", round: 2, week: 15, player1Position: "R2_M3_P1", player2Position: "R2_M3_P2", nextMatchPosition: "R3_M2_P1" },
-        { matchId: "R2_M4", round: 2, week: 15, player1Position: "R2_M4_P1", player2Position: "R2_M4_P2", nextMatchPosition: "R3_M2_P2" }
-      );
-    }
-    else if (playerCount === 8) {
-      // First round (Week 14) - 2 matches (5 vs 8, 6 vs 7)
-      bracket.push(
-        { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M1_P2" },
-        { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M4_P2" }
-      );
-      
-      // Second round (Week 15) - 4 matches
-      bracket.push(
-        { matchId: "R2_M1", round: 2, week: 15, player1Position: "R2_M1_P1", player2Position: "R2_M1_P2", nextMatchPosition: "R3_M1_P1" },
-        { matchId: "R2_M2", round: 2, week: 15, player1Position: "R2_M2_P1", player2Position: "R2_M2_P2", nextMatchPosition: "R3_M1_P2" },
-        { matchId: "R2_M3", round: 2, week: 15, player1Position: "R2_M3_P1", player2Position: "R2_M3_P2", nextMatchPosition: "R3_M2_P1" },
-        { matchId: "R2_M4", round: 2, week: 15, player1Position: "R2_M4_P1", player2Position: "R2_M4_P2", nextMatchPosition: "R3_M2_P2" }
-      );
-    }
-    else if (playerCount === 7) {
-      // First round (Week 14) - 2 matches (3 vs 6, 4 vs 5), seed 7 to Week 15
-      bracket.push(
-        { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M2_P2" },
-        { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M3_P2" },
-        { matchId: "R1_M3", round: 1, week: 14, player1Position: "R1_M3_P1", player2Position: "R1_M3_P2", nextMatchPosition: "R2_M4_P2" } // Placeholder for seed 7
-      );
-      
-      // Second round (Week 15) - 3 matches
-      bracket.push(
-        { matchId: "R2_M1", round: 2, week: 15, player1Position: "R2_M1_P1", player2Position: "R2_M1_P2", nextMatchPosition: "R3_M1_P1" },
-        { matchId: "R2_M2", round: 2, week: 15, player1Position: "R2_M2_P1", player2Position: "R2_M2_P2", nextMatchPosition: "R3_M1_P2" },
-        { matchId: "R2_M3", round: 2, week: 15, player1Position: "R2_M3_P1", player2Position: "R2_M3_P2", nextMatchPosition: "R3_M2_P1" },
-        { matchId: "R2_M4", round: 2, week: 15, player1Position: "R2_M4_P1", player2Position: "R2_M4_P2", nextMatchPosition: "R3_M2_P2" }
-      );
-    }
-    else if (playerCount === 6) {
-      // First round (Week 14) - 2 matches (3 vs 6, 4 vs 5)
-      bracket.push(
-        { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M2_P2" },
-        { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M3_P2" }
-      );
-      
-      // Second round (Week 15) - 3 matches (1 vs winner of match, 2 vs winner of match)
-      bracket.push(
-        { matchId: "R2_M1", round: 2, week: 15, player1Position: "R2_M1_P1", player2Position: "R2_M1_P2", nextMatchPosition: "R3_M1_P1" },
-        { matchId: "R2_M2", round: 2, week: 15, player1Position: "R2_M2_P1", player2Position: "R2_M2_P2", nextMatchPosition: "R3_M1_P2" },
-        { matchId: "R2_M3", round: 2, week: 15, player1Position: "R2_M3_P1", player2Position: "R2_M3_P2", nextMatchPosition: "R3_M2_P1" },
-        { matchId: "R2_M4", round: 2, week: 15, player1Position: "R2_M4_P1", player2Position: "R2_M4_P2", nextMatchPosition: "R3_M2_P2" }
-      );
-    }
-    
-    // For all player counts, add the semifinals and finals
+  const bracket: BracketMatch[] = [];
+  
+  if (playerCount === 6) {
+    // 6 player bracket (3 weeks: 14, 15, 16)
+    // First round (Week 14) - 2 matches with 2 players getting byes
     bracket.push(
-      { matchId: "R3_M1", round: 3, week: 16, player1Position: "R3_M1_P1", player2Position: "R3_M1_P2", nextMatchPosition: "R4_M1_P1" },
-      { matchId: "R3_M2", round: 3, week: 16, player1Position: "R3_M2_P1", player2Position: "R3_M2_P2", nextMatchPosition: "R4_M1_P2" },
-      { matchId: "R4_M1", round: 4, week: 17, player1Position: "R4_M1_P1", player2Position: "R4_M1_P2", nextMatchPosition: "WINNER" }
+      { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M1_P1" },
+      { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M2_P1" } // FIXED: Winner goes to R2_M2_P1
     );
     
-    return bracket;
+    // Semifinals (Week 15) - 2 matches
+    bracket.push(
+      { matchId: "R2_M1", round: 2, week: 15, player1Position: "R2_M1_P1", player2Position: "R2_M1_P2", nextMatchPosition: "R3_M1_P1" },
+      { matchId: "R2_M2", round: 2, week: 15, player1Position: "R2_M2_P1", player2Position: "R2_M2_P2", nextMatchPosition: "R3_M1_P2" }
+    );
+    
+    // Finals (Week 16) - 1 match
+    bracket.push(
+      { matchId: "R3_M1", round: 3, week: 16, player1Position: "R3_M1_P1", player2Position: "R3_M1_P2", nextMatchPosition: "WINNER" }
+    );
+  }
+  else if (playerCount === 7) {
+    // 7 player bracket (3 weeks: 14, 15, 16)
+    // First round (Week 14) - 3 matches with one player getting a bye
+    bracket.push(
+      { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M1_P1" },
+      { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M1_P2" },
+      { matchId: "R1_M3", round: 1, week: 14, player1Position: "R1_M3_P1", player2Position: "R1_M3_P2", nextMatchPosition: "R2_M2_P1" }
+    );
+    
+    // Semifinals (Week 15) - 2 matches
+    bracket.push(
+      { matchId: "R2_M1", round: 2, week: 15, player1Position: "R2_M1_P1", player2Position: "R2_M1_P2", nextMatchPosition: "R3_M1_P1" },
+      { matchId: "R2_M2", round: 2, week: 15, player1Position: "R2_M2_P1", player2Position: "R2_M2_P2", nextMatchPosition: "R3_M1_P2" }
+    );
+    
+    // Finals (Week 16) - 1 match
+    bracket.push(
+      { matchId: "R3_M1", round: 3, week: 16, player1Position: "R3_M1_P1", player2Position: "R3_M1_P2", nextMatchPosition: "WINNER" }
+    );
+  }
+  else if (playerCount === 8) {
+    // 8 player bracket (3 weeks: 14, 15, 16)
+    // First round (Week 14) - Quarterfinals - 4 matches
+    bracket.push(
+      { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M1_P1" },
+      { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M1_P2" },
+      { matchId: "R1_M3", round: 1, week: 14, player1Position: "R1_M3_P1", player2Position: "R1_M3_P2", nextMatchPosition: "R2_M2_P1" },
+      { matchId: "R1_M4", round: 1, week: 14, player1Position: "R1_M4_P1", player2Position: "R1_M4_P2", nextMatchPosition: "R2_M2_P2" }
+    );
+    
+    // Semifinals (Week 15) - 2 matches
+    bracket.push(
+      { matchId: "R2_M1", round: 2, week: 15, player1Position: "R2_M1_P1", player2Position: "R2_M1_P2", nextMatchPosition: "R3_M1_P1" },
+      { matchId: "R2_M2", round: 2, week: 15, player1Position: "R2_M2_P1", player2Position: "R2_M2_P2", nextMatchPosition: "R3_M1_P2" }
+    );
+    
+    // Finals (Week 16) - 1 match
+    bracket.push(
+      { matchId: "R3_M1", round: 3, week: 16, player1Position: "R3_M1_P1", player2Position: "R3_M1_P2", nextMatchPosition: "WINNER" }
+    );
+  }
+  else if (playerCount >= 9) {
+    // 9-10 player bracket (Full 4 weeks: 14, 15, 16, 17)
+    // First round (Week 14) - 2 matches
+    bracket.push(
+      { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M1_P2" },
+      { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M4_P2" }
+    );
+    
+    // Second round (Week 15) - 4 matches (Quarterfinals)
+    bracket.push(
+      { matchId: "R2_M1", round: 2, week: 15, player1Position: "R2_M1_P1", player2Position: "R2_M1_P2", nextMatchPosition: "R3_M1_P1" },
+      { matchId: "R2_M2", round: 2, week: 15, player1Position: "R2_M2_P1", player2Position: "R2_M2_P2", nextMatchPosition: "R3_M1_P2" },
+      { matchId: "R2_M3", round: 2, week: 15, player1Position: "R2_M3_P1", player2Position: "R2_M3_P2", nextMatchPosition: "R3_M2_P1" },
+      { matchId: "R2_M4", round: 2, week: 15, player1Position: "R2_M4_P1", player2Position: "R2_M4_P2", nextMatchPosition: "R3_M2_P2" }
+    );
+    
+    // Semifinals (Week 16)
+    bracket.push(
+      { matchId: "R3_M1", round: 3, week: 16, player1Position: "R3_M1_P1", player2Position: "R3_M1_P2", nextMatchPosition: "R4_M1_P1" },
+      { matchId: "R3_M2", round: 3, week: 16, player1Position: "R3_M2_P1", player2Position: "R3_M2_P2", nextMatchPosition: "R4_M1_P2" }
+    );
+    
+    // Finals (Week 17)
+    bracket.push(
+      { matchId: "R4_M1", round: 4, week: 17, player1Position: "R4_M1_P1", player2Position: "R4_M1_P2", nextMatchPosition: "WINNER" }
+    );
   }
   
-
+  return bracket;
+}
   
+
+  // Helper function to generate the appropriate rounds based on player count
+function generateRoundsBasedOnPlayerCount(playerCount: number) {
+  if (playerCount <= 6) {
+    // 6 player brackets (3 rounds: weeks 14, 15, 16)
+    return [
+      { round: 1, week: 14, name: 'First Round' },
+      { round: 2, week: 15, name: 'Semifinals' },
+      { round: 3, week: 16, name: 'Finals' }
+    ];
+  } else if (playerCount === 7) {
+    // 7 player brackets (3 rounds: weeks 14, 15, 16)
+    return [
+      { round: 1, week: 14, name: 'First Round' },
+      { round: 2, week: 15, name: 'Semifinals' },
+      { round: 3, week: 16, name: 'Finals' }
+    ];
+  } else if (playerCount === 8) {
+    // 8 player brackets (3 rounds: weeks 14, 15, 16)
+    return [
+      { round: 1, week: 14, name: 'Quarterfinals' },
+      { round: 2, week: 15, name: 'Semifinals' },
+      { round: 3, week: 16, name: 'Finals' }
+    ];
+  } else {
+    // 9-10 player brackets (4 rounds: weeks 14, 15, 16, 17)
+    return [
+      { round: 1, week: 14, name: 'First Round' },
+      { round: 2, week: 15, name: 'Quarterfinals' },
+      { round: 3, week: 16, name: 'Semifinals' },
+      { round: 4, week: 17, name: 'Finals' }
+    ];
+  }
+}
+
+
+// Function to determine if a bracket has completed based on player count and current week
+function hasPlayoffsCompleted(playerCount: number, currentWeek: number): boolean {
+  if (playerCount <= 8) {
+    return currentWeek > 16; // 6-8 player brackets end at week 16
+  } else {
+    return currentWeek > 17; // 9-10 player brackets end at week 17
+  }
+}
+
+// Function to get the final week number based on player count
+function getFinalWeekNumber(playerCount: number): number {
+  if (playerCount <= 8) {
+    return 16; // 6-8 player brackets end at week 16
+  } else {
+    return 17; // 9-10 player brackets end at week 17
+  }
+}
+
+// Function to check if the pool is in the correct week for initialization
+function isCorrectInitializationWeek(currentWeek: number): boolean {
+  return currentWeek === 14; // All playoff brackets start in week 14
+}
+
+// Helper function to determine initial player position based on seed and player count
+function getInitialPosition(seed: number, totalPlayers: number): string {
+  // 6-player bracket positions
+  if (totalPlayers === 6) {
+    switch(seed) {
+      case 1: return "R2_M1_P2"; // Seed 1 has a bye in Week 14
+      case 2: return "R2_M2_P2"; // Seed 2 has a bye in Week 14
+      case 3: return "R1_M1_P1"; // Seed 3 plays in Week 14 
+      case 4: return "R1_M2_P1"; // Seed 4 plays in Week 14
+      case 5: return "R1_M2_P2"; // Seed 5 plays in Week 14
+      case 6: return "R1_M1_P2"; // Seed 6 plays in Week 14
+      default: return "";
+    }
+  }
+
+  // 7-player bracket positions
+  if (totalPlayers === 7) {
+    switch(seed) {
+      case 1: return "R2_M1_P2"; // Seed 1 has a bye in Week 14
+      case 2: return "R2_M2_P2"; // Seed 2 has a bye in Week 14
+      case 3: return "R1_M1_P1"; // Seed 3 plays in Week 14
+      case 4: return "R1_M2_P1"; // Seed 4 plays in Week 14
+      case 5: return "R1_M2_P2"; // Seed 5 plays in Week 14
+      case 6: return "R1_M3_P1"; // Seed 6 plays in Week 14
+      case 7: return "R1_M3_P2"; // Seed 7 plays in Week 14
+      default: return "";
+    }
+  }
+
+  // 8-player bracket positions (quarterfinals)
+  if (totalPlayers === 8) {
+    switch(seed) {
+      case 1: return "R1_M1_P1"; // Seed 1 plays in Week 14
+      case 2: return "R1_M4_P1"; // Seed 2 plays in Week 14
+      case 3: return "R1_M2_P1"; // Seed 3 plays in Week 14
+      case 4: return "R1_M3_P1"; // Seed 4 plays in Week 14
+      case 5: return "R1_M3_P2"; // Seed 5 plays in Week 14
+      case 6: return "R1_M2_P2"; // Seed 6 plays in Week 14
+      case 7: return "R1_M4_P2"; // Seed 7 plays in Week 14
+      case 8: return "R1_M1_P2"; // Seed 8 plays in Week 14
+      default: return "";
+    }
+  }
+
+  // 9-10 player bracket (follow original logic)
+  // More complex seeding with First Round and Quarterfinals
+  if (totalPlayers === 9) {
+    switch(seed) {
+      case 1: return "R2_M1_P1"; // Seed 1 has a bye in Week 14
+      case 2: return "R2_M4_P1"; // Seed 2 has a bye in Week 14
+      case 3: return "R2_M2_P1"; // Seed 3 has a bye in Week 14
+      case 4: return "R2_M3_P1"; // Seed 4 has a bye in Week 14
+      case 5: return "R2_M3_P2"; // Seed 5 plays Seed 4 in Week 15
+      case 6: return "R2_M2_P2"; // Seed 6 plays Seed 3 in Week 15
+      case 7: return "R1_M1_P1"; // Seed 7 plays Week 14 vs 8
+      case 8: return "R1_M1_P2"; // Seed 8 plays Week 14 vs 7
+      case 9: return "R1_M2_P1"; // Seed 9 plays Week 14 (gets a bye in second match)
+      default: return "";
+    }
+  }
+
+  if (totalPlayers === 10) {
+    switch(seed) {
+      case 1: return "R2_M1_P1"; // Seed 1 has a bye in Week 14
+      case 2: return "R2_M4_P1"; // Seed 2 has a bye in Week 14
+      case 3: return "R2_M2_P1"; // Seed 3 has a bye in Week 14
+      case 4: return "R2_M3_P1"; // Seed 4 has a bye in Week 14
+      case 5: return "R2_M3_P2"; // Seed 5 plays Seed 4 in Week 15
+      case 6: return "R2_M2_P2"; // Seed 6 plays Seed 3 in Week 15
+      case 7: return "R1_M2_P1"; // Seed 7 plays in Week 14 vs 10
+      case 8: return "R1_M1_P1"; // Seed 8 plays in Week 14 vs 9
+      case 9: return "R1_M1_P2"; // Seed 9 plays in Week 14 vs 8
+      case 10: return "R1_M2_P2"; // Seed 10 plays in Week 14 vs 7
+      default: return "";
+    }
+  }
+
+  return "";
+}
+
+// Check if a player has a bye based on seed and total players
+function hasByeForSeed(seed: number, totalPlayers: number): boolean {
+  // For 10 players: Seeds 1-6 have byes in Week 14
+  if (totalPlayers === 10) {
+    return seed <= 4;
+  }
+  
+  // For 9 players: Seeds 1-4 have byes
+  if (totalPlayers === 9) {
+    return seed <= 4;
+  }
+  
+  // For 8 players: No byes - all play in quarterfinals
+  if (totalPlayers === 8) {
+    return false;
+  }
+  
+  // For 7 players: Seeds 1-2 have byes
+  if (totalPlayers === 7) {
+    return seed <= 2;
+  }
+  
+  // For 6 players: Seeds 1-2 have byes
+  if (totalPlayers === 6) {
+    return seed <= 2;
+  }
+  
+  return false;
+}
 export default router;

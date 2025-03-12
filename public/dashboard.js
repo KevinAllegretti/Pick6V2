@@ -3386,5 +3386,5 @@ document.addEventListener('DOMContentLoaded', function() {
     styleElement.textContent = playoffStyles;
     document.head.appendChild(styleElement);
     
-    // Rest of your initialization code...
+
 });

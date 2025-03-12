@@ -3357,42 +3357,52 @@ async function fetchPlayoffBracket(poolName) {
     }
 }
 
-// Add this function to your JavaScript file
 function renderBracket(bracketData, container, poolName) {
     console.log('Starting to render bracket with data:', bracketData);
     
     // Clear the bracket container
     container.innerHTML = '';
     
-    // Group matches by round
-    const rounds = {};
-    bracketData.rounds.forEach(round => {
-        rounds[round.round] = {
-            name: round.name,
-            week: round.week,
-            matches: []
-        };
-    });
+    // Get the member count to determine bracket style
+    const memberCount = bracketData.members ? bracketData.members.length : 0;
     
-    // Populate rounds with matches
-    bracketData.matches.forEach(match => {
-        if (rounds[match.round]) {
-            rounds[match.round].matches.push(match);
-        }
-    });
+    // Determine actual rounds based on member count
+    let roundsToShow = [];
+    const allRounds = [...bracketData.rounds];
+    
+    // Modify rounds based on player count
+    if (memberCount <= 6) {
+      // 6 player bracket has 3 rounds: First Round, Semifinals, Finals
+      // But we need to adjust weeks: 14, 15, 16 (instead of 15, 16, 17)
+      roundsToShow = [
+        { round: 1, week: 14, name: "First Round" },
+        { round: 2, week: 15, name: "Semifinals" },
+        { round: 3, week: 16, name: "Finals" }
+      ];
+    } else if (memberCount <= 8) {
+      // 8 player bracket runs in weeks 14-16
+      roundsToShow = [
+        { round: 1, week: 14, name: "Quarterfinals" },
+        { round: 2, week: 15, name: "Semifinals" },
+        { round: 3, week: 16, name: "Finals" }
+      ];
+    } else {
+      // 9-10 player bracket uses all 4 rounds (weeks 14-17)
+      roundsToShow = allRounds;
+    }
     
     // Create round headers
     const roundHeadersDiv = document.createElement('div');
     roundHeadersDiv.className = 'playoff-round-headers';
     
-    bracketData.rounds.forEach(round => {
-        const headerDiv = document.createElement('div');
-        headerDiv.className = `round-header ${round.week === bracketData.currentWeek ? 'current-round' : ''}`;
-        headerDiv.innerHTML = `
-            <h3>${round.name}</h3>
-            <div class="round-week">Week ${round.week}</div>
-        `;
-        roundHeadersDiv.appendChild(headerDiv);
+    roundsToShow.forEach((round, index) => {
+      const headerDiv = document.createElement('div');
+      headerDiv.className = `round-header ${round.week === bracketData.currentWeek ? 'current-round' : ''}`;
+      headerDiv.innerHTML = `
+        <h3>${round.name}</h3>
+        <div class="round-week">Week ${round.week}</div>
+      `;
+      roundHeadersDiv.appendChild(headerDiv);
     });
     
     container.appendChild(roundHeadersDiv);
@@ -3401,33 +3411,78 @@ function renderBracket(bracketData, container, poolName) {
     const bracketRoundsDiv = document.createElement('div');
     bracketRoundsDiv.className = 'playoff-rounds';
     
-    Object.values(rounds).forEach(round => {
-        const roundElement = document.createElement('div');
-        roundElement.className = 'bracket-round';
-        
-        // Sort matches by their position in the bracket
-        const sortedMatches = round.matches.sort((a, b) => {
-            const aPos = a.player1?.position || a.player2?.position || '';
-            const bPos = b.player1?.position || b.player2?.position || '';
-            return aPos.localeCompare(bPos);
-        });
-        
-        // Add matches to the round
-        sortedMatches.forEach(match => {
-            const matchElement = createMatchElement(match, poolName);
-            roundElement.appendChild(matchElement);
-        });
-        
-        bracketRoundsDiv.appendChild(roundElement);
+    // Filter matches to only include ones for the rounds we're showing
+    const visibleWeeks = roundsToShow.map(r => r.week);
+    const visibleMatches = bracketData.matches.filter(match => 
+      visibleWeeks.includes(match.week)
+    );
+    
+    // Group matches by round
+    const roundGroups = {};
+    roundsToShow.forEach(round => {
+      roundGroups[round.round] = {
+        name: round.name,
+        week: round.week,
+        matches: visibleMatches.filter(match => match.week === round.week)
+      };
+    });
+    
+    // Add rounds to the bracket
+    Object.values(roundGroups).forEach((roundGroup, roundIndex) => {
+      const roundElement = document.createElement('div');
+      roundElement.className = 'bracket-round';
+      
+      // Set data attributes for easier styling
+      roundElement.dataset.round = roundGroup.week;
+      roundElement.dataset.totalRounds = roundsToShow.length;
+      roundElement.dataset.playerCount = memberCount;
+      
+      // Sort matches by their position in the bracket
+      const sortedMatches = roundGroup.matches.sort((a, b) => {
+        const aPos = a.player1?.position || a.player2?.position || '';
+        const bPos = b.player1?.position || b.player2?.position || '';
+        return aPos.localeCompare(bPos);
+      });
+      
+      // Add matches to the round
+      sortedMatches.forEach(match => {
+        const matchElement = createMatchElement(match, poolName);
+        roundElement.appendChild(matchElement);
+      });
+      
+      bracketRoundsDiv.appendChild(roundElement);
     });
     
     container.appendChild(bracketRoundsDiv);
     
-    // Add bracket connectors in a second pass
-    createBracketConnectors(bracketData);
+    // Add custom class based on player count for specific CSS styling
+    container.classList.add(`bracket-size-${memberCount}`);
     
-    console.log('Bracket rendered successfully');
-}
+    // Add bracket connectors in a second pass
+    createBracketConnectors(bracketData, visibleMatches, roundsToShow.length);
+    
+    console.log('Bracket rendered successfully with', memberCount, 'players');
+  }
+  
+  // Modified createBracketConnectors to handle different bracket sizes
+  function createBracketConnectors(bracketData, visibleMatches, roundCount) {
+    // For each match, add a visual indicator of connections
+    const matchContainers = document.querySelectorAll('.match-container');
+    
+    matchContainers.forEach(matchContainer => {
+      const matchId = matchContainer.dataset.matchId;
+      const match = visibleMatches.find(m => m.id === matchId);
+      
+      if (match && match.nextMatch !== "WINNER") {
+        matchContainer.classList.add('has-connector');
+        
+        // Add data attribute for round-specific connector styling
+        const round = match.round;
+        matchContainer.dataset.connectorRound = round;
+        matchContainer.dataset.totalRounds = roundCount;
+      }
+    });
+  }
 
 // Function to create match elements
 function createMatchElement(match, poolName) {
@@ -3511,19 +3566,7 @@ function createEmptySlot() {
 }
 
 // Function to create bracket connectors
-function createBracketConnectors(bracketData) {
-    // For each match, add a visual indicator of connections
-    const matchContainers = document.querySelectorAll('.match-container');
-    
-    matchContainers.forEach(matchContainer => {
-        const matchId = matchContainer.dataset.matchId;
-        const match = bracketData.matches.find(m => m.id === matchId);
-        
-        if (match && match.nextMatch !== "WINNER") {
-            matchContainer.classList.add('has-connector');
-        }
-    });
-}
+
 
 
 
@@ -4529,3 +4572,680 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1000); // Delay to ensure DOM is fully loaded
     }
 });
+
+
+//neeehehehehe
+
+// Frontend function to render brackets dynamically based on player count
+function renderBracket(bracketData, container, poolName) {
+    console.log('Starting to render bracket with data:', bracketData);
+    
+    // Clear the bracket container
+    container.innerHTML = '';
+    
+    // Get the member count to determine bracket style
+    const memberCount = bracketData.members ? bracketData.members.length : 0;
+    
+    // Add a class to the container based on player count
+    container.classList.add(`bracket-size-${memberCount}`);
+    
+    // Create round headers
+    const roundHeadersDiv = document.createElement('div');
+    roundHeadersDiv.className = 'playoff-round-headers';
+    
+    bracketData.rounds.forEach((round) => {
+      const headerDiv = document.createElement('div');
+      headerDiv.className = `round-header ${round.week === bracketData.currentWeek ? 'current-round' : ''}`;
+      headerDiv.innerHTML = `
+        <h3>${round.name}</h3>
+        <div class="round-week">Week ${round.week}</div>
+      `;
+      roundHeadersDiv.appendChild(headerDiv);
+    });
+    
+    container.appendChild(roundHeadersDiv);
+    
+    // Create bracket rounds
+    const bracketRoundsDiv = document.createElement('div');
+    bracketRoundsDiv.className = 'playoff-rounds';
+    
+    // Group matches by round
+    const roundGroups = {};
+    bracketData.rounds.forEach(round => {
+      roundGroups[round.week] = {
+        name: round.name,
+        week: round.week,
+        matches: []
+      };
+    });
+    
+    // Add matches to their respective rounds
+    bracketData.matches.forEach(match => {
+      if (roundGroups[match.week]) {
+        roundGroups[match.week].matches.push(match);
+      }
+    });
+    
+    // Create round elements in order
+    Object.values(roundGroups).sort((a, b) => a.week - b.week).forEach(roundGroup => {
+      const roundElement = document.createElement('div');
+      roundElement.className = 'bracket-round';
+      roundElement.setAttribute('data-week', roundGroup.week);
+      
+      // Sort matches by their position in the bracket for proper order
+      const sortedMatches = roundGroup.matches.sort((a, b) => {
+        const aPos = a.player1?.position || a.player2?.position || '';
+        const bPos = b.player1?.position || b.player2?.position || '';
+        return aPos.localeCompare(bPos);
+      });
+      
+      // Add matches to the round
+      sortedMatches.forEach(match => {
+        const matchElement = createMatchElement(match, poolName);
+        roundElement.appendChild(matchElement);
+      });
+      
+      bracketRoundsDiv.appendChild(roundElement);
+    });
+    
+    container.appendChild(bracketRoundsDiv);
+    
+    // Add bracket connectors in a second pass
+    createBracketConnectors(bracketData);
+    
+    console.log('Bracket rendered successfully with', memberCount, 'players and', Object.keys(roundGroups).length, 'rounds');
+  }
+  
+  // Helper function to create a match element
+  function createMatchElement(match, poolName) {
+    const matchContainer = document.createElement('div');
+    matchContainer.className = 'match-container';
+    matchContainer.dataset.matchId = match.id;
+    matchContainer.dataset.round = match.round;
+    matchContainer.dataset.week = match.week;
+    
+    const matchBracket = document.createElement('div');
+    matchBracket.className = 'match-bracket';
+    
+    // First player slot
+    if (match.player1) {
+      const player1Element = createPlayerSlot(match.player1, match.winner, poolName);
+      matchBracket.appendChild(player1Element);
+    } else {
+      matchBracket.appendChild(createEmptySlot());
+    }
+    
+    // Second player slot
+    if (match.player2) {
+      const player2Element = createPlayerSlot(match.player2, match.winner, poolName);
+      matchBracket.appendChild(player2Element);
+    } else {
+      matchBracket.appendChild(createEmptySlot());
+    }
+    
+    matchContainer.appendChild(matchBracket);
+    return matchContainer;
+  }
+  
+  // Helper function to create bracket connectors
+  function createBracketConnectors(bracketData) {
+    // For each match, add a visual indicator of connections
+    const matchContainers = document.querySelectorAll('.match-container');
+    
+    matchContainers.forEach(matchContainer => {
+      const matchId = matchContainer.dataset.matchId;
+      const match = bracketData.matches.find(m => m.id === matchId);
+      
+      if (match && match.nextMatch !== "WINNER") {
+        matchContainer.classList.add('has-connector');
+      }
+    });
+  }
+  
+  // Helper to create player slots
+  function createPlayerSlot(player, winnerId, poolName) {
+    const playerSlot = document.createElement('div');
+    playerSlot.className = `player-slot ${player.isAdvancing ? 'advancing' : ''} ${player.eliminated ? 'eliminated' : ''}`;
+    playerSlot.dataset.playerId = player.id;
+    playerSlot.dataset.position = player.position;
+    playerSlot.dataset.poolName = poolName;
+    
+    // Get profile pic URL - fetch from server or use default
+    const profilePicUrl = player.profilePic || 'Default.png';
+    
+    // Add profile picture and player info
+    playerSlot.innerHTML = `
+      <div class="player-profile-pic" style="background-image: url('${profilePicUrl}')"></div>
+      <div class="player-seed">${player.seed}</div>
+      <div class="player-info">
+        <div class="player-name">${player.username}</div>
+        <div class="player-points">${player.points || 0} pts</div>
+      </div>
+    `;
+    
+    // Add status indicators
+    if (player.hasBye) {
+      const byeBadge = document.createElement('div');
+      byeBadge.className = 'player-status';
+      byeBadge.innerHTML = `<span class="bye-badge">BYE</span>`;
+      playerSlot.appendChild(byeBadge);
+    }
+    
+    if (winnerId === player.position) {
+      const winnerIcon = document.createElement('div');
+      winnerIcon.className = 'player-status winner-icon';
+      winnerIcon.innerHTML = `<i class="fas fa-check-circle"></i>`;
+      playerSlot.appendChild(winnerIcon);
+    }
+    
+    // Add click handler to show picks
+    playerSlot.addEventListener('click', () => {
+      showPlayerPicks(player, poolName);
+    });
+    
+    return playerSlot;
+  }
+  
+  // Helper for empty slots
+  function createEmptySlot() {
+    const emptySlot = document.createElement('div');
+    emptySlot.className = 'empty-slot';
+    emptySlot.textContent = 'TBD';
+    return emptySlot;
+  }
+
+  // Updated renderBracket function with position mapping fix
+function renderBracket(bracketData, container, poolName) {
+    console.log('Starting to render bracket with data:', bracketData);
+    
+    // Clear the bracket container
+    container.innerHTML = '';
+    
+    // Get the member count and player data
+    const memberCount = bracketData.members ? bracketData.members.length : 0;
+    const members = bracketData.members || [];
+    
+    // Debug - log positions for all members
+    console.log('Member positions:');
+    members.forEach(member => {
+      console.log(`${member.username}: position=${member.position}, isAdvancing=${member.isAdvancing}, eliminated=${member.eliminated}`);
+    });
+    
+    // Add a class to the container based on player count
+    container.classList.add(`bracket-size-${memberCount}`);
+    
+    // Create round headers
+    const roundHeadersDiv = document.createElement('div');
+    roundHeadersDiv.className = 'playoff-round-headers';
+    
+    bracketData.rounds.forEach((round) => {
+      const headerDiv = document.createElement('div');
+      headerDiv.className = `round-header ${round.week === bracketData.currentWeek ? 'current-round' : ''}`;
+      headerDiv.innerHTML = `
+        <h3>${round.name}</h3>
+        <div class="round-week">Week ${round.week}</div>
+      `;
+      roundHeadersDiv.appendChild(headerDiv);
+    });
+    
+    container.appendChild(roundHeadersDiv);
+    
+    // Create bracket rounds
+    const bracketRoundsDiv = document.createElement('div');
+    bracketRoundsDiv.className = 'playoff-rounds';
+    
+    // Group matches by round/week
+    const roundGroups = {};
+    bracketData.rounds.forEach(round => {
+      roundGroups[round.week] = {
+        name: round.name,
+        week: round.week,
+        matches: []
+      };
+    });
+    
+    // Add matches to their respective rounds
+    bracketData.matches.forEach(match => {
+      if (roundGroups[match.week]) {
+        // Create a deep copy of the match to avoid modifying the original
+        const matchCopy = { ...match };
+        
+        // Check if we need to find the correct players for this match's positions
+        // This is crucial for ensuring advancing players appear in the right spots
+        if (!matchCopy.player1 || !matchCopy.player2) {
+          // Look for players in these positions in the members array
+          const p1 = members.find(m => m.position === match.player1Position);
+          const p2 = members.find(m => m.position === match.player2Position);
+          
+          // Update the match with the correct player data if found
+          if (p1 && !matchCopy.player1) {
+            matchCopy.player1 = {
+              id: p1.id,
+              username: p1.username,
+              seed: p1.seed,
+              points: p1.weeklyPoints || 0,
+              isAdvancing: p1.isAdvancing,
+              hasBye: p1.hasBye,
+              eliminated: !!p1.eliminatedInWeek,
+              position: p1.position
+            };
+          }
+          
+          if (p2 && !matchCopy.player2) {
+            matchCopy.player2 = {
+              id: p2.id,
+              username: p2.username,
+              seed: p2.seed,
+              points: p2.weeklyPoints || 0,
+              isAdvancing: p2.isAdvancing,
+              hasBye: p2.hasBye,
+              eliminated: !!p2.eliminatedInWeek,
+              position: p2.position
+            };
+          }
+          
+          // Log what we found
+          console.log(`Match ${match.id} at week ${match.week}:`, 
+            `position1=${match.player1Position}`, 
+            `position2=${match.player2Position}`, 
+            `player1=${matchCopy.player1?.username || 'TBD'}`, 
+            `player2=${matchCopy.player2?.username || 'TBD'}`);
+        }
+        
+        roundGroups[match.week].matches.push(matchCopy);
+      }
+    });
+    
+    // Create round elements in order
+    Object.values(roundGroups).sort((a, b) => a.week - b.week).forEach(roundGroup => {
+      const roundElement = document.createElement('div');
+      roundElement.className = 'bracket-round';
+      roundElement.setAttribute('data-week', roundGroup.week);
+      
+      // Sort matches by their position in the bracket for proper order
+      const sortedMatches = roundGroup.matches.sort((a, b) => {
+        const aPos = a.player1Position || a.player2Position || '';
+        const bPos = b.player1Position || b.player2Position || '';
+        return aPos.localeCompare(bPos);
+      });
+      
+      // Add matches to the round
+      sortedMatches.forEach(match => {
+        const matchElement = createMatchElement(match, poolName);
+        roundElement.appendChild(matchElement);
+      });
+      
+      bracketRoundsDiv.appendChild(roundElement);
+    });
+    
+    container.appendChild(bracketRoundsDiv);
+    
+    // Add bracket connectors in a second pass
+    createBracketConnectors(bracketData);
+    
+    console.log('Bracket rendered successfully with', memberCount, 'players');
+  }
+  
+  // Updated helper function to correctly handle players with byes
+  function createMatchElement(match, poolName) {
+    const matchContainer = document.createElement('div');
+    matchContainer.className = 'match-container';
+    matchContainer.dataset.matchId = match.id;
+    matchContainer.dataset.round = match.round;
+    matchContainer.dataset.week = match.week;
+    
+    const matchBracket = document.createElement('div');
+    matchBracket.className = 'match-bracket';
+    
+    // First player slot
+    if (match.player1) {
+      const player1Element = createPlayerSlot(match.player1, match.winner, poolName);
+      matchBracket.appendChild(player1Element);
+    } else {
+      matchBracket.appendChild(createEmptySlot());
+    }
+    
+    // Second player slot
+    if (match.player2) {
+      const player2Element = createPlayerSlot(match.player2, match.winner, poolName);
+      matchBracket.appendChild(player2Element);
+    } else {
+      matchBracket.appendChild(createEmptySlot());
+    }
+    
+    matchContainer.appendChild(matchBracket);
+    return matchContainer;
+  }
+  
+  // Updated getInitialPosition function for 6 players
+  function getInitialPosition(seed, totalPlayers) {
+    // 6-player bracket positions
+    if (totalPlayers === 6) {
+      switch(seed) {
+        case 1: return "R2_M1_P2"; // Seed 1 has a bye in Week 14
+        case 2: return "R2_M2_P2"; // Seed 2 has a bye in Week 14
+        case 3: return "R1_M1_P1"; // Seed 3 plays in Week 14 
+        case 4: return "R1_M2_P1"; // Seed 4 plays in Week 14
+        case 5: return "R1_M2_P2"; // Seed 5 plays in Week 14
+        case 6: return "R1_M1_P2"; // Seed 6 plays in Week 14
+        default: return "";
+      }
+    }
+    
+    // Other player count logic remains the same...
+    // (keep the existing code for 7, 8, 9, and 10 players)
+  
+    return "";
+  }
+  
+  // Additional debugging function that can help trace player positions
+  function debugPlayoffBracket(poolName) {
+    fetch(`/api/playoffs/${encodeURIComponent(poolName)}/bracket`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success && data.bracket) {
+          console.group('Playoff Bracket Debug');
+          console.log('Current Week:', data.bracket.currentWeek);
+          
+          // Check positions for all members
+          console.log('Members:');
+          data.bracket.members.forEach(member => {
+            console.log(`${member.username} (Seed ${member.seed}):`,
+                        `position=${member.position}`,
+                        `isAdvancing=${member.isAdvancing}`,
+                        `eliminated=${member.eliminated}`);
+          });
+          
+          // Log all matches 
+          console.log('Matches:');
+          data.bracket.matches.forEach(match => {
+            console.log(`Match ${match.id} (Week ${match.week}):`,
+                        `player1=${match.player1?.username || 'TBD'}`,
+                        `player2=${match.player2?.username || 'TBD'}`,
+                        `positions=${match.player1Position} vs ${match.player2Position}`,
+                        `winner=${match.winner || 'none'}`);
+          });
+          console.groupEnd();
+        }
+      })
+      .catch(error => console.error('Error debugging bracket:', error));
+  }
+
+
+  // Update the renderBracket function to include championship display
+// This can be added to your existing frontend JavaScript file
+
+// Updated renderBracket function
+function renderBracket(bracketData, container, poolName) {
+    console.log('Starting to render bracket with data:', bracketData);
+    
+    // Clear the bracket container
+    container.innerHTML = '';
+    
+    // Check if playoffs are completed and there's a champion
+    const isCompleted = bracketData.isCompleted;
+    const champion = bracketData.champion;
+    
+    // Get the member count to determine bracket style
+    const memberCount = bracketData.members ? bracketData.members.length : 0;
+    
+    // Add custom class based on player count for specific CSS styling
+    container.classList.add(`bracket-size-${memberCount}`);
+    
+    // If playoffs are completed, show champion banner
+    if (isCompleted && champion) {
+      const championBanner = document.createElement('div');
+      championBanner.className = 'playoff-champion-banner';
+      championBanner.innerHTML = `
+        <div class="champion-crown"></div>
+        <div class="champion-name">${champion.username} <i class="fas fa-crown"></i></div>
+        <div class="champion-title">PLAYOFF CHAMPION!</div>
+        <div class="champion-stats">
+          Record: ${champion.win}-${champion.loss}-${champion.push}
+          <br>
+          Seed: #${champion.seed}
+        </div>
+      `;
+      container.appendChild(championBanner);
+      
+
+    }
+    
+    // Create round headers
+    const roundHeadersDiv = document.createElement('div');
+    roundHeadersDiv.className = 'playoff-round-headers';
+    
+    bracketData.rounds.forEach((round, index) => {
+      const headerDiv = document.createElement('div');
+      headerDiv.className = `round-header ${round.week === bracketData.currentWeek ? 'current-round' : ''}`;
+      headerDiv.innerHTML = `
+        <h3>${round.name}</h3>
+        <div class="round-week">Week ${round.week}</div>
+      `;
+      roundHeadersDiv.appendChild(headerDiv);
+    });
+    
+    container.appendChild(roundHeadersDiv);
+    
+    // Create bracket rounds
+    const bracketRoundsDiv = document.createElement('div');
+    bracketRoundsDiv.className = 'playoff-rounds';
+    
+    // Filter matches to only include ones for the rounds we're showing
+    const visibleWeeks = bracketData.rounds.map(r => r.week);
+    const visibleMatches = bracketData.matches.filter(match => 
+      visibleWeeks.includes(match.week)
+    );
+    
+    // Group matches by round
+    const roundGroups = {};
+    bracketData.rounds.forEach(round => {
+      roundGroups[round.round] = {
+        name: round.name,
+        week: round.week,
+        matches: visibleMatches.filter(match => match.week === round.week)
+      };
+    });
+    
+    // Add rounds to the bracket
+    Object.values(roundGroups).sort((a, b) => a.week - b.week).forEach(roundGroup => {
+      const roundElement = document.createElement('div');
+      roundElement.className = 'bracket-round';
+      
+      // Set data attributes for easier styling
+      roundElement.dataset.round = roundGroup.week.toString();
+      roundElement.dataset.totalRounds = bracketData.rounds.length.toString();
+      roundElement.dataset.playerCount = memberCount.toString();
+      
+      // Sort matches by their position in the bracket
+      const sortedMatches = roundGroup.matches.sort((a, b) => {
+        const aPos = a.player1?.position || a.player2?.position || '';
+        const bPos = b.player1?.position || b.player2?.position || '';
+        return aPos.localeCompare(bPos);
+      });
+      
+      // Add matches to the round
+      sortedMatches.forEach(match => {
+        const matchElement = createMatchElement(match, poolName, champion);
+        roundElement.appendChild(matchElement);
+      });
+      
+      bracketRoundsDiv.appendChild(roundElement);
+    });
+    
+    container.appendChild(bracketRoundsDiv);
+    
+    // Add bracket connectors in a second pass
+    createBracketConnectors(bracketData, visibleMatches, bracketData.rounds.length);
+    
+    console.log('Bracket rendered successfully with', memberCount, 'players');
+  }
+  
+  // Modified createMatchElement function to highlight the champion
+  function createMatchElement(match, poolName, champion) {
+    const matchContainer = document.createElement('div');
+    matchContainer.className = 'match-container';
+    matchContainer.dataset.matchId = match.id;
+    
+    // Add a special class if this is the final match and we have a champion
+    if (match.nextMatch === "WINNER" && champion) {
+      matchContainer.classList.add('championship-match');
+    }
+    
+    const matchBracket = document.createElement('div');
+    matchBracket.className = 'match-bracket';
+    
+    // First player slot
+    if (match.player1) {
+      const isChampion = champion && match.player1.username === champion.username && match.nextMatch === "WINNER";
+      const player1Element = createPlayerSlot(match.player1, match.winner, poolName, isChampion);
+      matchBracket.appendChild(player1Element);
+    } else {
+      matchBracket.appendChild(createEmptySlot());
+    }
+    
+    // Second player slot
+    if (match.player2) {
+      const isChampion = champion && match.player2.username === champion.username && match.nextMatch === "WINNER";
+      const player2Element = createPlayerSlot(match.player2, match.winner, poolName, isChampion);
+      matchBracket.appendChild(player2Element);
+    } else {
+      matchBracket.appendChild(createEmptySlot());
+    }
+    
+    matchContainer.appendChild(matchBracket);
+    return matchContainer;
+  }
+  
+  // Modified createPlayerSlot function to highlight the champion
+  function createPlayerSlot(player, winnerId, poolName, isChampion) {
+    const playerSlot = document.createElement('div');
+    playerSlot.className = `player-slot ${player.isAdvancing ? 'advancing' : ''} ${player.eliminated ? 'eliminated' : ''} ${isChampion ? 'champion-slot' : ''}`;
+    playerSlot.dataset.playerId = player.id;
+    playerSlot.dataset.position = player.position;
+    playerSlot.dataset.poolName = poolName;
+    
+    // Get profile pic URL - fetch from server or use default
+    const profilePicUrl = player.profilePic || 'Default.png';
+    
+    // Add profile picture and player info
+    playerSlot.innerHTML = `
+      <div class="player-profile-pic" style="background-image: url('${profilePicUrl}')"></div>
+      <div class="player-seed">${player.seed}</div>
+      <div class="player-info">
+        <div class="player-name">${player.username}</div>
+        <div class="player-points">${player.points || 0} pts</div>
+      </div>
+    `;
+    
+    // Add status indicators
+    if (player.hasBye) {
+      const byeBadge = document.createElement('div');
+      byeBadge.className = 'player-status';
+      byeBadge.innerHTML = `<span class="bye-badge">BYE</span>`;
+      playerSlot.appendChild(byeBadge);
+    }
+    
+
+    // Add champion crown if this player is the champion
+    if (isChampion) {
+      const championIcon = document.createElement('div');
+      championIcon.className = 'player-status champion-icon';
+      championIcon.innerHTML = `<i class="fas fa-crown"></i>`;
+      playerSlot.appendChild(championIcon);
+    }
+    
+    // Add click handler to show picks
+    playerSlot.addEventListener('click', () => {
+      showPlayerPicks(player, poolName);
+    });
+    
+    return playerSlot;
+  }
+  
+  // Simple function to create empty slot
+  function createEmptySlot() {
+    const emptySlot = document.createElement('div');
+    emptySlot.className = 'empty-slot';
+    emptySlot.textContent = 'TBD';
+    return emptySlot;
+  }
+  
+
+  
+  // Show champion modal popup
+  function showChampionshipModal(champion, poolName) {
+    // First, check if there's already a modal
+    let modal = document.getElementById('championship-modal');
+    
+    // If not, create one
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'championship-modal';
+      modal.className = 'champion-modal';
+      
+      modal.innerHTML = `
+        <div class="champion-modal-content">
+          <button class="champion-modal-close">&times;</button>
+          <div class="champion-modal-crown"><i class="fas fa-crown"></i></div>
+          <div class="champion-modal-name">${champion.username}</div>
+          <div class="champion-modal-title">IS THE CHAMPION!</div>
+          <div class="champion-modal-details">
+            Pool: ${poolName}<br>
+            Seed: #${champion.seed}<br>
+            Record: ${champion.win}W-${champion.loss}L-${champion.push}P
+          </div>
+          <button class="champion-modal-button">CELEBRATE!</button>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Add event listeners
+      const closeBtn = modal.querySelector('.champion-modal-close');
+      const celebrateBtn = modal.querySelector('.champion-modal-button');
+      
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          modal.classList.remove('show');
+          setTimeout(() => {
+            if (window.confettiAnimationId) {
+              stopConfetti();
+            }
+          }, 500);
+        });
+      }
+      
+      if (celebrateBtn) {
+        celebrateBtn.addEventListener('click', () => {
+          if (window.confettiAnimationId) {
+            stopConfetti();
+          } else {
+            startConfetti();
+            setTimeout(() => {
+              if (window.confettiAnimationId) {
+                stopConfetti();
+              }
+            }, 10000); // Run confetti for 10 seconds
+          }
+        });
+      }
+    } else {
+      // Update existing modal with new champion data
+      const nameEl = modal.querySelector('.champion-modal-name');
+      const detailsEl = modal.querySelector('.champion-modal-details');
+      if (nameEl) {
+        nameEl.textContent = champion.username;
+      }
+      if (detailsEl) {
+        detailsEl.innerHTML = `
+          Pool: ${poolName}<br>
+          Seed: #${champion.seed}<br>
+          Record: ${champion.win}W-${champion.loss}L-${champion.push}P
+        `;
+      }
+    }
+    
+
+  }
+  

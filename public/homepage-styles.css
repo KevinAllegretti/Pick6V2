@@ -4748,3 +4748,237 @@ text-align: center;
   height: 100px;
   display: block;
 }
+
+
+/*meep*/
+
+/* Dynamic bracket styling based on player count */
+
+/* Base styling for all bracket sizes */
+.playoff-bracket-container {
+    padding: 15px;
+    overflow-x: auto;
+    background-color: #0a0f22;
+    min-height: 400px;
+    height: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #33d9ff rgba(10, 15, 34, 0.5);
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Round headers for different bracket sizes */
+  .bracket-size-6 .playoff-round-headers,
+  .bracket-size-7 .playoff-round-headers {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 rounds for 6-7 players */
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .bracket-size-8 .playoff-round-headers,
+  .bracket-size-9 .playoff-round-headers,
+  .bracket-size-10 .playoff-round-headers {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 rounds for 8-10 players */
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  
+  /* Match distribution for different bracket sizes */
+  .bracket-size-6 .playoff-rounds,
+  .bracket-size-7 .playoff-rounds {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 rounds for 6-7 players */
+    gap: 30px;
+    min-height: 350px;
+  }
+  
+  .bracket-size-8 .playoff-rounds,
+  .bracket-size-9 .playoff-rounds,
+  .bracket-size-10 .playoff-rounds {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 rounds for 8-10 players */
+    gap: 30px;
+    min-height: 450px;
+  }
+  
+  /* Match spacing - for small brackets, we need to space the matches better */
+  .bracket-size-6 .bracket-round[data-round="14"], /* First round in 6-player bracket */
+  .bracket-size-7 .bracket-round[data-round="14"] {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding-top: 40px; /* Push first round matches down to align with quarterfinals */
+    padding-bottom: 40px;
+  }
+  
+  /* For 6 player brackets, adjust matchups for proper vertical alignment */
+  .bracket-size-6 .bracket-round {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+  }
+  
+  /* Adjust the first round spacing for 8-player bracket */
+  .bracket-size-8 .bracket-round[data-round="14"] {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+  }
+  
+  /* Match spacing for 9-10 player brackets */
+  .bracket-size-9 .bracket-round[data-round="14"],
+  .bracket-size-10 .bracket-round[data-round="14"] {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+  }
+  
+  /* Connector lines for different bracket sizes */
+  .bracket-size-6 .match-container.has-connector::after,
+  .bracket-size-7 .match-container.has-connector::after {
+    content: '';
+    position: absolute;
+    right: -30px; /* Longer connector for smaller brackets */
+    top: 50%;
+    width: 30px;
+    height: 2px;
+    background-color: #33d9ff;
+    opacity: 0.5;
+  }
+  
+  /* BYE indicators with improved styling */
+  .bye-badge {
+    background-color: #33d9ff;
+    color: #0a0f22;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 5px;
+    box-shadow: 0 0 5px rgba(51, 217, 255, 0.4);
+    animation: glow 2s infinite alternate;
+  }
+  
+  @keyframes glow {
+    from {
+      box-shadow: 0 0 5px rgba(51, 217, 255, 0.4);
+    }
+    to {
+      box-shadow: 0 0 10px rgba(51, 217, 255, 0.7);
+    }
+  }
+  
+  /* Player slot highlighting based on status */
+  .player-slot.advancing {
+    background: linear-gradient(90deg, rgba(51, 217, 255, 0.1), rgba(51, 217, 255, 0.2));
+    border-left: 3px solid #33d9ff;
+  }
+  
+  .empty-slot {
+    background-color: rgba(10, 15, 34, 0.4);
+    color: rgba(255, 255, 255, 0.4);
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+  }
+  
+  /* Mobile responsiveness */
+  @media (max-width: 768px) {
+    .bracket-size-6 .playoff-round-headers,
+    .bracket-size-7 .playoff-round-headers,
+    .bracket-size-8 .playoff-round-headers,
+    .bracket-size-9 .playoff-round-headers,
+    .bracket-size-10 .playoff-round-headers {
+      gap: 10px;
+    }
+    
+    .bracket-size-6 .playoff-rounds,
+    .bracket-size-7 .playoff-rounds,
+    .bracket-size-8 .playoff-rounds,
+    .bracket-size-9 .playoff-rounds,
+    .bracket-size-10 .playoff-rounds {
+      gap: 15px;
+    }
+    
+    .bracket-size-6 .match-container.has-connector::after,
+    .bracket-size-7 .match-container.has-connector::after {
+      right: -15px;
+      width: 15px;
+    }
+  }
+
+  /* Enhanced styling for champion celebration effects */
+
+/* Canvas styles */
+.confetti-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+    border-radius: 8px; /* Match container border radius */
+    overflow: hidden;
+  }
+  
+  /* Champion highlight effect */
+  .championship-winner {
+    animation: championPulse 3s ease-in-out;
+    position: relative;
+    z-index: 11; /* Above confetti */
+  }
+  
+  @keyframes championPulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(51, 217, 255, 0.5); }
+    25% { box-shadow: 0 0 15px rgba(51, 217, 255, 0.8); }
+    50% { box-shadow: 0 0 25px rgba(51, 217, 255, 1); }
+    75% { box-shadow: 0 0 15px rgba(51, 217, 255, 0.8); }
+  }
+  
+  /* Additional trophy icon for champion */
+  .championship-winner::after {
+    content: '🏆';
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    animation: trophyBounce 1s ease-in-out 3 alternate;
+  }
+  
+  @keyframes trophyBounce {
+    0% { transform: translateY(-50%) scale(1); }
+    50% { transform: translateY(-60%) scale(1.2); }
+    100% { transform: translateY(-50%) scale(1); }
+  }
+  
+  /* Enhance champion text display */
+  .champion-text {
+    color: #33d9ff;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(51, 217, 255, 0.6);
+    animation: textGlow 3s infinite alternate;
+  }
+  
+  @keyframes textGlow {
+    from { text-shadow: 0 0 8px rgba(51, 217, 255, 0.6); }
+    to { text-shadow: 0 0 15px rgba(51, 217, 255, 0.9), 0 0 25px rgba(51, 217, 255, 0.5); }
+  }
+  
+  /* Change to a more contained celebration */
+  .playoff-bracket-container {
+    position: relative; /* Ensure proper positioning context */
+    overflow: hidden; /* Keep confetti within bounds */
+  }
+  
+  /* Add a subtle shine effect to the container when showing a champion */
+  .playoff-bracket-container.showing-champion {
+    border-color: #d4af37; /* Gold border */
+    box-shadow: 0 0 20px rgba(51, 217, 255, 0.4), 0 0 40px rgba(212, 175, 55, 0.2);
+    transition: all 3s ease-out;
+  }
