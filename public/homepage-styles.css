@@ -4084,6 +4084,7 @@ text-align: center;
   box-shadow: 0 0 10px rgba(51, 217, 255, 0.2);
   position: relative; /* Establish stacking context */
   z-index: 1; /* Lower z-index to avoid overlap issues */
+  overflow-x: scroll;
 }
 
 /* Title bar styling for neon look */
@@ -4132,7 +4133,7 @@ text-align: center;
 /* Bracket container - make it taller to avoid scrolling */
 .playoff-bracket-container {
   padding: 10px;
-  overflow-x: auto;
+  overflow-x: scroll;
   overflow-y: visible; /* Changed from auto to visible */
   background-color: #0a0f22;
   min-height: 400px; /* Increased minimum height */
