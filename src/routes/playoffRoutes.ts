@@ -1218,29 +1218,29 @@ function generateRoundsBasedOnPlayerCount(playerCount: number) {
     // 6 player brackets (3 rounds: weeks 14, 15, 16)
     return [
       { round: 1, week: 14, name: 'First Round' },
-      { round: 2, week: 15, name: 'Semifinals' },
+      { round: 2, week: 15, name: 'Semi finals' },
       { round: 3, week: 16, name: 'Finals' }
     ];
   } else if (playerCount === 7) {
     // 7 player brackets (3 rounds: weeks 14, 15, 16)
     return [
       { round: 1, week: 14, name: 'First Round' },
-      { round: 2, week: 15, name: 'Semifinals' },
+      { round: 2, week: 15, name: 'Semi finals' },
       { round: 3, week: 16, name: 'Finals' }
     ];
   } else if (playerCount === 8) {
     // 8 player brackets (3 rounds: weeks 14, 15, 16)
     return [
-      { round: 1, week: 14, name: 'Quarterfinals' },
-      { round: 2, week: 15, name: 'Semifinals' },
+      { round: 1, week: 14, name: 'Quarter finals' },
+      { round: 2, week: 15, name: 'Semi finals' },
       { round: 3, week: 16, name: 'Finals' }
     ];
   } else {
     // 9-10 player brackets (4 rounds: weeks 14, 15, 16, 17)
     return [
       { round: 1, week: 14, name: 'First Round' },
-      { round: 2, week: 15, name: 'Quarterfinals' },
-      { round: 3, week: 16, name: 'Semifinals' },
+      { round: 2, week: 15, name: 'Quarter finals' },
+      { round: 3, week: 16, name: 'Semi finals' },
       { round: 4, week: 17, name: 'Finals' }
     ];
   }
