@@ -1165,6 +1165,8 @@ function updatePoolActionsList() {
         poolActionsList.appendChild(actionItem);
     });
 }
+
+
 async function movePool(poolName, direction) {
     const username = localStorage.getItem('username');
     if (!username) {
@@ -1533,6 +1535,8 @@ function checkIfThursdayGame(commenceTime) {
     console.log(`Day (Local): ${dayLocal}`);
     return dayLocal === 4; // Return true for Thursday in local timezone
 }
+
+/*
 async function fetchPicks(username, poolName, playerRow, teamLogos, isSurvivorPool = false) {
     const encodedUsername = encodeURIComponent(username);
     const encodedPoolName = encodeURIComponent(poolName);
@@ -1543,7 +1547,7 @@ async function fetchPicks(username, poolName, playerRow, teamLogos, isSurvivorPo
         const picksResponse = await fetch(url);
         /*if (!picksResponse.ok) {
             throw new Error(`HTTP error! status: ${picksResponse.status}`);
-        }*/
+        }
         const picksData = await picksResponse.json();
         
         const picksContainer = playerRow.querySelector(isSurvivorPool ? '.survivor-player-picks' : '.player-picks');
@@ -1666,7 +1670,7 @@ async function fetchPicks(username, poolName, playerRow, teamLogos, isSurvivorPo
         console.error('Error fetching picks:', error);
         handleFetchError(playerRow);
     }
-}
+}*/
 
 async function displaySurvivorPick(pick, container, teamLogos) {
     const pickDiv = document.createElement('div');
@@ -1832,7 +1836,7 @@ async function fetchPicksData(username, poolName) {
     }
 }
 
-
+/*
 function displayNewPoolContainer(pool) {
     if (pool.mode === 'survivor') {
         displaySurvivorPool(pool);
@@ -2085,7 +2089,7 @@ function displayNewPoolContainer(pool) {
     }).catch(error => {
         console.error('Error fetching member data:', error);
     });
-}
+}*/
 
 
 function redirectToDashboard(poolName) {
@@ -2095,6 +2099,8 @@ function redirectToDashboard(poolName) {
 function redirectToNFLSchedule(source) {
     window.location.href = `scheduler.html?source=${encodeURIComponent(source)}`;
 }
+
+/*
 async function loadAndDisplayUserPools() {
     const currentUsername = localStorage.getItem('username');
     if (!currentUsername) {
@@ -2164,7 +2170,7 @@ async function loadAndDisplayUserPools() {
         console.error('Error fetching or processing pools:', error);
     }
 }
-
+*/
 
 
 // Helper function to get the ordered index of a pool
@@ -3357,219 +3363,6 @@ async function fetchPlayoffBracket(poolName) {
     }
 }
 
-function renderBracket(bracketData, container, poolName) {
-    console.log('Starting to render bracket with data:', bracketData);
-    
-    // Clear the bracket container
-    container.innerHTML = '';
-    
-    // Get the member count to determine bracket style
-    const memberCount = bracketData.members ? bracketData.members.length : 0;
-    
-    // Determine actual rounds based on member count
-    let roundsToShow = [];
-    const allRounds = [...bracketData.rounds];
-    
-    // Modify rounds based on player count
-    if (memberCount <= 6) {
-      // 6 player bracket has 3 rounds: First Round, Semifinals, Finals
-      // But we need to adjust weeks: 14, 15, 16 (instead of 15, 16, 17)
-      roundsToShow = [
-        { round: 1, week: 14, name: "First Round" },
-        { round: 2, week: 15, name: "Semifinals" },
-        { round: 3, week: 16, name: "Finals" }
-      ];
-    } else if (memberCount <= 8) {
-      // 8 player bracket runs in weeks 14-16
-      roundsToShow = [
-        { round: 1, week: 14, name: "Quarterfinals" },
-        { round: 2, week: 15, name: "Semifinals" },
-        { round: 3, week: 16, name: "Finals" }
-      ];
-    } else {
-      // 9-10 player bracket uses all 4 rounds (weeks 14-17)
-      roundsToShow = allRounds;
-    }
-    
-    // Create round headers
-    const roundHeadersDiv = document.createElement('div');
-    roundHeadersDiv.className = 'playoff-round-headers';
-    
-    roundsToShow.forEach((round, index) => {
-      const headerDiv = document.createElement('div');
-      headerDiv.className = `round-header ${round.week === bracketData.currentWeek ? 'current-round' : ''}`;
-      headerDiv.innerHTML = `
-        <h3>${round.name}</h3>
-        <div class="round-week">Week ${round.week}</div>
-      `;
-      roundHeadersDiv.appendChild(headerDiv);
-    });
-    
-    container.appendChild(roundHeadersDiv);
-    
-    // Create bracket rounds
-    const bracketRoundsDiv = document.createElement('div');
-    bracketRoundsDiv.className = 'playoff-rounds';
-    
-    // Filter matches to only include ones for the rounds we're showing
-    const visibleWeeks = roundsToShow.map(r => r.week);
-    const visibleMatches = bracketData.matches.filter(match => 
-      visibleWeeks.includes(match.week)
-    );
-    
-    // Group matches by round
-    const roundGroups = {};
-    roundsToShow.forEach(round => {
-      roundGroups[round.round] = {
-        name: round.name,
-        week: round.week,
-        matches: visibleMatches.filter(match => match.week === round.week)
-      };
-    });
-    
-    // Add rounds to the bracket
-    Object.values(roundGroups).forEach((roundGroup, roundIndex) => {
-      const roundElement = document.createElement('div');
-      roundElement.className = 'bracket-round';
-      
-      // Set data attributes for easier styling
-      roundElement.dataset.round = roundGroup.week;
-      roundElement.dataset.totalRounds = roundsToShow.length;
-      roundElement.dataset.playerCount = memberCount;
-      
-      // Sort matches by their position in the bracket
-      const sortedMatches = roundGroup.matches.sort((a, b) => {
-        const aPos = a.player1?.position || a.player2?.position || '';
-        const bPos = b.player1?.position || b.player2?.position || '';
-        return aPos.localeCompare(bPos);
-      });
-      
-      // Add matches to the round
-      sortedMatches.forEach(match => {
-        const matchElement = createMatchElement(match, poolName);
-        roundElement.appendChild(matchElement);
-      });
-      
-      bracketRoundsDiv.appendChild(roundElement);
-    });
-    
-    container.appendChild(bracketRoundsDiv);
-    
-    // Add custom class based on player count for specific CSS styling
-    container.classList.add(`bracket-size-${memberCount}`);
-    
-    // Add bracket connectors in a second pass
-    createBracketConnectors(bracketData, visibleMatches, roundsToShow.length);
-    
-    console.log('Bracket rendered successfully with', memberCount, 'players');
-  }
-  
-  // Modified createBracketConnectors to handle different bracket sizes
-  function createBracketConnectors(bracketData, visibleMatches, roundCount) {
-    // For each match, add a visual indicator of connections
-    const matchContainers = document.querySelectorAll('.match-container');
-    
-    matchContainers.forEach(matchContainer => {
-      const matchId = matchContainer.dataset.matchId;
-      const match = visibleMatches.find(m => m.id === matchId);
-      
-      if (match && match.nextMatch !== "WINNER") {
-        matchContainer.classList.add('has-connector');
-        
-        // Add data attribute for round-specific connector styling
-        const round = match.round;
-        matchContainer.dataset.connectorRound = round;
-        matchContainer.dataset.totalRounds = roundCount;
-      }
-    });
-  }
-
-// Function to create match elements
-function createMatchElement(match, poolName) {
-    const matchContainer = document.createElement('div');
-    matchContainer.className = 'match-container';
-    matchContainer.dataset.matchId = match.id;
-    
-    const matchBracket = document.createElement('div');
-    matchBracket.className = 'match-bracket';
-    
-    // First player slot
-    if (match.player1) {
-        const player1Element = createPlayerSlot(match.player1, match.winner, poolName);
-        matchBracket.appendChild(player1Element);
-    } else {
-        matchBracket.appendChild(createEmptySlot());
-    }
-    
-    // Second player slot
-    if (match.player2) {
-        const player2Element = createPlayerSlot(match.player2, match.winner, poolName);
-        matchBracket.appendChild(player2Element);
-    } else {
-        matchBracket.appendChild(createEmptySlot());
-    }
-    
-    matchContainer.appendChild(matchBracket);
-    return matchContainer;
-}
-
-// Function to create player slots
-function createPlayerSlot(player, winnerId, poolName) {
-    const playerSlot = document.createElement('div');
-    playerSlot.className = `player-slot ${player.isAdvancing ? 'advancing' : ''} ${player.eliminated ? 'eliminated' : ''}`;
-    playerSlot.dataset.playerId = player.id;
-    playerSlot.dataset.position = player.position;
-    playerSlot.dataset.poolName = poolName;
-    
-    // Get profile pic URL - fetch from server or use default
-    const profilePicUrl = player.profilePic || 'Default.png';
-    
-    // Add profile picture and player info
-    playerSlot.innerHTML = `
-        <div class="player-profile-pic" style="background-image: url('${profilePicUrl}')"></div>
-        <div class="player-seed">${player.seed}</div>
-        <div class="player-info">
-            <div class="player-name">${player.username}</div>
-            <div class="player-points">${player.points || 0} pts</div>
-        </div>
-    `;
-    
-    // Add status indicators
-    if (player.hasBye) {
-        const byeBadge = document.createElement('div');
-        byeBadge.className = 'player-status';
-        byeBadge.innerHTML = `<span class="bye-badge">BYE</span>`;
-        playerSlot.appendChild(byeBadge);
-    }
-    
-    if (winnerId === player.position) {
-        const winnerIcon = document.createElement('div');
-        winnerIcon.className = 'player-status';
-
-        playerSlot.appendChild(winnerIcon);
-    }
-    
-    // Add click handler to show picks
-    playerSlot.addEventListener('click', () => {
-        showPlayerPicks(player, poolName);
-    });
-    
-    return playerSlot;
-}
-
-// Function to create empty slots
-function createEmptySlot() {
-    const emptySlot = document.createElement('div');
-    emptySlot.className = 'empty-slot';
-    emptySlot.textContent = 'TBD';
-    return emptySlot;
-}
-
-// Function to create bracket connectors
-
-
-
-
 // Helper function to get team logos
 function getTeamLogos() {
     return {
@@ -4576,116 +4369,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 //neeehehehehe
 
-// Frontend function to render brackets dynamically based on player count
-function renderBracket(bracketData, container, poolName) {
-    console.log('Starting to render bracket with data:', bracketData);
-    
-    // Clear the bracket container
-    container.innerHTML = '';
-    
-    // Get the member count to determine bracket style
-    const memberCount = bracketData.members ? bracketData.members.length : 0;
-    
-    // Add a class to the container based on player count
-    container.classList.add(`bracket-size-${memberCount}`);
-    
-    // Create round headers
-    const roundHeadersDiv = document.createElement('div');
-    roundHeadersDiv.className = 'playoff-round-headers';
-    
-    bracketData.rounds.forEach((round) => {
-      const headerDiv = document.createElement('div');
-      headerDiv.className = `round-header ${round.week === bracketData.currentWeek ? 'current-round' : ''}`;
-      headerDiv.innerHTML = `
-        <h3>${round.name}</h3>
-        <div class="round-week">Week ${round.week}</div>
-      `;
-      roundHeadersDiv.appendChild(headerDiv);
-    });
-    
-    container.appendChild(roundHeadersDiv);
-    
-    // Create bracket rounds
-    const bracketRoundsDiv = document.createElement('div');
-    bracketRoundsDiv.className = 'playoff-rounds';
-    
-    // Group matches by round
-    const roundGroups = {};
-    bracketData.rounds.forEach(round => {
-      roundGroups[round.week] = {
-        name: round.name,
-        week: round.week,
-        matches: []
-      };
-    });
-    
-    // Add matches to their respective rounds
-    bracketData.matches.forEach(match => {
-      if (roundGroups[match.week]) {
-        roundGroups[match.week].matches.push(match);
-      }
-    });
-    
-    // Create round elements in order
-    Object.values(roundGroups).sort((a, b) => a.week - b.week).forEach(roundGroup => {
-      const roundElement = document.createElement('div');
-      roundElement.className = 'bracket-round';
-      roundElement.setAttribute('data-week', roundGroup.week);
-      
-      // Sort matches by their position in the bracket for proper order
-      const sortedMatches = roundGroup.matches.sort((a, b) => {
-        const aPos = a.player1?.position || a.player2?.position || '';
-        const bPos = b.player1?.position || b.player2?.position || '';
-        return aPos.localeCompare(bPos);
-      });
-      
-      // Add matches to the round
-      sortedMatches.forEach(match => {
-        const matchElement = createMatchElement(match, poolName);
-        roundElement.appendChild(matchElement);
-      });
-      
-      bracketRoundsDiv.appendChild(roundElement);
-    });
-    
-    container.appendChild(bracketRoundsDiv);
-    
-    // Add bracket connectors in a second pass
-    createBracketConnectors(bracketData);
-    
-    console.log('Bracket rendered successfully with', memberCount, 'players and', Object.keys(roundGroups).length, 'rounds');
-  }
-  
-  // Helper function to create a match element
-  function createMatchElement(match, poolName) {
-    const matchContainer = document.createElement('div');
-    matchContainer.className = 'match-container';
-    matchContainer.dataset.matchId = match.id;
-    matchContainer.dataset.round = match.round;
-    matchContainer.dataset.week = match.week;
-    
-    const matchBracket = document.createElement('div');
-    matchBracket.className = 'match-bracket';
-    
-    // First player slot
-    if (match.player1) {
-      const player1Element = createPlayerSlot(match.player1, match.winner, poolName);
-      matchBracket.appendChild(player1Element);
-    } else {
-      matchBracket.appendChild(createEmptySlot());
-    }
-    
-    // Second player slot
-    if (match.player2) {
-      const player2Element = createPlayerSlot(match.player2, match.winner, poolName);
-      matchBracket.appendChild(player2Element);
-    } else {
-      matchBracket.appendChild(createEmptySlot());
-    }
-    
-    matchContainer.appendChild(matchBracket);
-    return matchContainer;
-  }
+
   
   // Helper function to create bracket connectors
   function createBracketConnectors(bracketData) {
@@ -4702,221 +4386,10 @@ function renderBracket(bracketData, container, poolName) {
     });
   }
   
-  // Helper to create player slots
-  function createPlayerSlot(player, winnerId, poolName) {
-    const playerSlot = document.createElement('div');
-    playerSlot.className = `player-slot ${player.isAdvancing ? 'advancing' : ''} ${player.eliminated ? 'eliminated' : ''}`;
-    playerSlot.dataset.playerId = player.id;
-    playerSlot.dataset.position = player.position;
-    playerSlot.dataset.poolName = poolName;
-    
-    // Get profile pic URL - fetch from server or use default
-    const profilePicUrl = player.profilePic || 'Default.png';
-    
-    // Add profile picture and player info
-    playerSlot.innerHTML = `
-      <div class="player-profile-pic" style="background-image: url('${profilePicUrl}')"></div>
-      <div class="player-seed">${player.seed}</div>
-      <div class="player-info">
-        <div class="player-name">${player.username}</div>
-        <div class="player-points">${player.points || 0} pts</div>
-      </div>
-    `;
-    
-    // Add status indicators
-    if (player.hasBye) {
-      const byeBadge = document.createElement('div');
-      byeBadge.className = 'player-status';
-      byeBadge.innerHTML = `<span class="bye-badge">BYE</span>`;
-      playerSlot.appendChild(byeBadge);
-    }
-    
-    if (winnerId === player.position) {
-      const winnerIcon = document.createElement('div');
-      winnerIcon.className = 'player-status winner-icon';
-      winnerIcon.innerHTML = `<i class="fas fa-check-circle"></i>`;
-      playerSlot.appendChild(winnerIcon);
-    }
-    
-    // Add click handler to show picks
-    playerSlot.addEventListener('click', () => {
-      showPlayerPicks(player, poolName);
-    });
-    
-    return playerSlot;
-  }
-  
-  // Helper for empty slots
-  function createEmptySlot() {
-    const emptySlot = document.createElement('div');
-    emptySlot.className = 'empty-slot';
-    emptySlot.textContent = 'TBD';
-    return emptySlot;
-  }
 
-  // Updated renderBracket function with position mapping fix
-function renderBracket(bracketData, container, poolName) {
-    console.log('Starting to render bracket with data:', bracketData);
-    
-    // Clear the bracket container
-    container.innerHTML = '';
-    
-    // Get the member count and player data
-    const memberCount = bracketData.members ? bracketData.members.length : 0;
-    const members = bracketData.members || [];
-    
-    // Debug - log positions for all members
-    console.log('Member positions:');
-    members.forEach(member => {
-      console.log(`${member.username}: position=${member.position}, isAdvancing=${member.isAdvancing}, eliminated=${member.eliminated}`);
-    });
-    
-    // Add a class to the container based on player count
-    container.classList.add(`bracket-size-${memberCount}`);
-    
-    // Create round headers
-    const roundHeadersDiv = document.createElement('div');
-    roundHeadersDiv.className = 'playoff-round-headers';
-    
-    bracketData.rounds.forEach((round) => {
-      const headerDiv = document.createElement('div');
-      headerDiv.className = `round-header ${round.week === bracketData.currentWeek ? 'current-round' : ''}`;
-      headerDiv.innerHTML = `
-        <h3>${round.name}</h3>
-        <div class="round-week">Week ${round.week}</div>
-      `;
-      roundHeadersDiv.appendChild(headerDiv);
-    });
-    
-    container.appendChild(roundHeadersDiv);
-    
-    // Create bracket rounds
-    const bracketRoundsDiv = document.createElement('div');
-    bracketRoundsDiv.className = 'playoff-rounds';
-    
-    // Group matches by round/week
-    const roundGroups = {};
-    bracketData.rounds.forEach(round => {
-      roundGroups[round.week] = {
-        name: round.name,
-        week: round.week,
-        matches: []
-      };
-    });
-    
-    // Add matches to their respective rounds
-    bracketData.matches.forEach(match => {
-      if (roundGroups[match.week]) {
-        // Create a deep copy of the match to avoid modifying the original
-        const matchCopy = { ...match };
-        
-        // Check if we need to find the correct players for this match's positions
-        // This is crucial for ensuring advancing players appear in the right spots
-        if (!matchCopy.player1 || !matchCopy.player2) {
-          // Look for players in these positions in the members array
-          const p1 = members.find(m => m.position === match.player1Position);
-          const p2 = members.find(m => m.position === match.player2Position);
-          
-          // Update the match with the correct player data if found
-          if (p1 && !matchCopy.player1) {
-            matchCopy.player1 = {
-              id: p1.id,
-              username: p1.username,
-              seed: p1.seed,
-              points: p1.weeklyPoints || 0,
-              isAdvancing: p1.isAdvancing,
-              hasBye: p1.hasBye,
-              eliminated: !!p1.eliminatedInWeek,
-              position: p1.position
-            };
-          }
-          
-          if (p2 && !matchCopy.player2) {
-            matchCopy.player2 = {
-              id: p2.id,
-              username: p2.username,
-              seed: p2.seed,
-              points: p2.weeklyPoints || 0,
-              isAdvancing: p2.isAdvancing,
-              hasBye: p2.hasBye,
-              eliminated: !!p2.eliminatedInWeek,
-              position: p2.position
-            };
-          }
-          
-          // Log what we found
-          console.log(`Match ${match.id} at week ${match.week}:`, 
-            `position1=${match.player1Position}`, 
-            `position2=${match.player2Position}`, 
-            `player1=${matchCopy.player1?.username || 'TBD'}`, 
-            `player2=${matchCopy.player2?.username || 'TBD'}`);
-        }
-        
-        roundGroups[match.week].matches.push(matchCopy);
-      }
-    });
-    
-    // Create round elements in order
-    Object.values(roundGroups).sort((a, b) => a.week - b.week).forEach(roundGroup => {
-      const roundElement = document.createElement('div');
-      roundElement.className = 'bracket-round';
-      roundElement.setAttribute('data-week', roundGroup.week);
-      
-      // Sort matches by their position in the bracket for proper order
-      const sortedMatches = roundGroup.matches.sort((a, b) => {
-        const aPos = a.player1Position || a.player2Position || '';
-        const bPos = b.player1Position || b.player2Position || '';
-        return aPos.localeCompare(bPos);
-      });
-      
-      // Add matches to the round
-      sortedMatches.forEach(match => {
-        const matchElement = createMatchElement(match, poolName);
-        roundElement.appendChild(matchElement);
-      });
-      
-      bracketRoundsDiv.appendChild(roundElement);
-    });
-    
-    container.appendChild(bracketRoundsDiv);
-    
-    // Add bracket connectors in a second pass
-    createBracketConnectors(bracketData);
-    
-    console.log('Bracket rendered successfully with', memberCount, 'players');
-  }
-  
-  // Updated helper function to correctly handle players with byes
-  function createMatchElement(match, poolName) {
-    const matchContainer = document.createElement('div');
-    matchContainer.className = 'match-container';
-    matchContainer.dataset.matchId = match.id;
-    matchContainer.dataset.round = match.round;
-    matchContainer.dataset.week = match.week;
-    
-    const matchBracket = document.createElement('div');
-    matchBracket.className = 'match-bracket';
-    
-    // First player slot
-    if (match.player1) {
-      const player1Element = createPlayerSlot(match.player1, match.winner, poolName);
-      matchBracket.appendChild(player1Element);
-    } else {
-      matchBracket.appendChild(createEmptySlot());
-    }
-    
-    // Second player slot
-    if (match.player2) {
-      const player2Element = createPlayerSlot(match.player2, match.winner, poolName);
-      matchBracket.appendChild(player2Element);
-    } else {
-      matchBracket.appendChild(createEmptySlot());
-    }
-    
-    matchContainer.appendChild(matchBracket);
-    return matchContainer;
-  }
-  
+
+
+
   // Updated getInitialPosition function for 6 players
   function getInitialPosition(seed, totalPlayers) {
     // 6-player bracket positions
@@ -4997,7 +4470,7 @@ function renderBracket(bracketData, container, poolName) {
       const championBanner = document.createElement('div');
       championBanner.className = 'playoff-champion-banner';
       championBanner.innerHTML = `
-        <div class="champion-crown"></div>
+
         <div class="champion-name">${champion.username} <i class="fas fa-crown"></i></div>
         <div class="champion-title">PLAYOFF CHAMPION!</div>
         <div class="champion-stats">
@@ -5245,7 +4718,383 @@ function renderBracket(bracketData, container, poolName) {
         `;
       }
     }
-    
+    }
 
-  }
+    
   
+/*
+
+    // Playoff Bracket JavaScript - Compact Version
+
+// Helper function to create bracket connectors
+function createBracketConnectors(bracketData, matches, totalRounds) {
+  // Wait for DOM to be ready
+  setTimeout(() => {
+    const rounds = document.querySelectorAll(".round-column")
+    if (!rounds.length) return
+
+    // Create connector container
+    const connectorContainer = document.createElement("div")
+    connectorContainer.className = "bracket-connectors"
+    document.querySelector(".bracket-content").appendChild(connectorContainer)
+
+    // Process each match to create connectors
+    matches.forEach((match) => {
+      if (match.nextMatch && match.nextMatch !== "WINNER") {
+        // Find the current match element
+        const currentMatchEl = document.querySelector(`[data-match-id="${match.id}"]`)
+        if (!currentMatchEl) return
+
+        // Find the next match element
+        const nextMatchEl = document.querySelector(`[data-match-id="${match.nextMatch}"]`)
+        if (!nextMatchEl) return
+
+        // Get positions
+        const currentRect = currentMatchEl.getBoundingClientRect()
+        const nextRect = nextMatchEl.getBoundingClientRect()
+        const containerRect = document.querySelector(".bracket-content").getBoundingClientRect()
+
+        // Create horizontal line
+        const horizontalLine = document.createElement("div")
+        horizontalLine.className = "connector horizontal"
+
+        // Calculate positions relative to container
+        const startX = currentRect.right - containerRect.left
+        const startY = currentRect.top + currentRect.height / 2 - containerRect.top
+        const endX = nextRect.left - containerRect.left
+        const endY = nextRect.top + nextRect.height / 2 - containerRect.top
+
+        // Position horizontal line
+        horizontalLine.style.left = `${startX}px`
+        horizontalLine.style.top = `${startY}px`
+        horizontalLine.style.width = `${(endX - startX) / 2}px`
+
+        // Create vertical line if needed
+        if (Math.abs(startY - endY) > 5) {
+          const verticalLine = document.createElement("div")
+          verticalLine.className = "connector vertical"
+
+          verticalLine.style.left = `${startX + (endX - startX) / 2}px`
+          verticalLine.style.top = startY < endY ? `${startY}px` : `${endY}px`
+          verticalLine.style.height = `${Math.abs(endY - startY)}px`
+
+          connectorContainer.appendChild(verticalLine)
+        }
+
+        connectorContainer.appendChild(horizontalLine)
+      }
+    })
+  }, 100)
+}
+
+// Updated renderBracket function with more compact structure
+function renderBracket(bracketData, container, poolName) {
+  console.log("Rendering compact bracket with data:", bracketData)
+
+  // Clear the bracket container
+  container.innerHTML = ""
+
+  // Add main bracket container with improved styling
+  const bracketContainer = document.createElement("div")
+  bracketContainer.className = "playoff-bracket-container"
+
+  // Add playoff title
+  const playoffTitle = document.createElement("div")
+  playoffTitle.className = "playoff-title"
+  playoffTitle.innerHTML = `
+    <div class="playoff-name">PICK ${bracketData.members.length}</div>
+    <div class="playoff-week">Playoff Week ${bracketData.currentWeek - 13}</div>
+  `
+  bracketContainer.appendChild(playoffTitle)
+
+  // Create round headers
+  const roundHeadersDiv = document.createElement("div")
+  roundHeadersDiv.className = "round-headers"
+
+  bracketData.rounds.forEach((round) => {
+    const headerDiv = document.createElement("div")
+    headerDiv.className = `round-header ${round.week === bracketData.currentWeek ? "current" : ""}`
+    headerDiv.innerHTML = `
+      <div class="round-title">${round.name}</div>
+      <div class="round-week">Week ${round.week}</div>
+    `
+    roundHeadersDiv.appendChild(headerDiv)
+  })
+
+  bracketContainer.appendChild(roundHeadersDiv)
+
+  // Create bracket content
+  const bracketContent = document.createElement("div")
+  bracketContent.className = "bracket-content"
+
+  // Filter matches to only include ones for the rounds we're showing
+  const visibleWeeks = bracketData.rounds.map((r) => r.week)
+  const visibleMatches = bracketData.matches.filter((match) => visibleWeeks.includes(match.week))
+
+  // Group matches by round
+  const roundGroups = {}
+  bracketData.rounds.forEach((round) => {
+    roundGroups[round.round] = {
+      name: round.name,
+      week: round.week,
+      matches: visibleMatches.filter((match) => match.week === round.week),
+    }
+  })
+
+  // Add rounds to the bracket
+  Object.values(roundGroups)
+    .sort((a, b) => a.week - b.week)
+    .forEach((roundGroup) => {
+      const roundColumn = document.createElement("div")
+      roundColumn.className = "round-column"
+      roundColumn.dataset.round = roundGroup.week.toString()
+
+      // Sort matches by their position in the bracket
+      const sortedMatches = roundGroup.matches.sort((a, b) => {
+        const aPos = a.player1?.position || a.player2?.position || ""
+        const bPos = b.player1?.position || b.player2?.position || ""
+        return aPos.localeCompare(bPos)
+      })
+
+      // Add matches to the round
+      sortedMatches.forEach((match) => {
+        const matchCard = createMatchCard(match, poolName)
+        roundColumn.appendChild(matchCard)
+      })
+
+      bracketContent.appendChild(roundColumn)
+    })
+
+  bracketContainer.appendChild(bracketContent)
+  container.appendChild(bracketContainer)
+
+  // Add bracket connectors in a second pass
+  createBracketConnectors(bracketData, visibleMatches, bracketData.rounds.length)
+
+  console.log("Compact bracket rendered successfully")
+}
+
+// Create a match card with compact styling
+function createMatchCard(match, poolName) {
+  const matchCard = document.createElement("div")
+  matchCard.className = "matchup-card"
+  matchCard.dataset.matchId = match.id
+
+  const matchup = document.createElement("div")
+  matchup.className = "matchup"
+
+  // First player slot
+  if (match.player1) {
+    const player1Element = createPlayerSlot(match.player1, match.winner, poolName)
+    matchup.appendChild(player1Element)
+  } else {
+    matchup.appendChild(createEmptySlot())
+  }
+
+  // Second player slot
+  if (match.player2) {
+    const player2Element = createPlayerSlot(match.player2, match.winner, poolName)
+    matchup.appendChild(player2Element)
+  } else {
+    matchup.appendChild(createEmptySlot())
+  }
+
+  matchCard.appendChild(matchup)
+  return matchCard
+}
+
+// Create a player slot with compact styling
+function createPlayerSlot(player, winnerId, poolName) {
+  const playerSlot = document.createElement("div")
+  playerSlot.className = `player-slot ${player.isAdvancing ? "advancing" : ""}`
+  playerSlot.dataset.playerId = player.id
+  playerSlot.dataset.username = player.username
+
+  // Create seed number
+  const seedNumber = document.createElement("div")
+  seedNumber.className = "seed-number"
+  seedNumber.textContent = player.seed
+
+  // Create player name
+  const playerName = document.createElement("div")
+  playerName.className = "player-name"
+  playerName.textContent = player.username
+
+  // Create player record
+  const playerRecord = document.createElement("div")
+  playerRecord.className = "player-record"
+  playerRecord.textContent = `${player.win || 0}-${player.loss || 0}`
+
+  // Add elements to player slot
+  playerSlot.appendChild(seedNumber)
+  playerSlot.appendChild(playerName)
+  playerSlot.appendChild(playerRecord)
+
+  // Add click handler to show picks
+  playerSlot.addEventListener("click", () => {
+    showPlayerPicks(player, poolName)
+  })
+
+  return playerSlot
+}
+
+// Create an empty TBD slot
+function createEmptySlot() {
+  const emptySlot = document.createElement("div")
+  emptySlot.className = "tbd-slot"
+  emptySlot.textContent = "TBD"
+  return emptySlot
+}
+
+// Show player picks panel
+function showPlayerPicks(player, poolName) {
+  console.log(`Showing picks for ${player.username} in ${poolName}`)
+
+  // Check if panel exists, create if not
+  let picksPanel = document.getElementById("player-picks-panel")
+  if (!picksPanel) {
+    picksPanel = document.createElement("div")
+    picksPanel.id = "player-picks-panel"
+    picksPanel.className = "player-picks-panel"
+
+    picksPanel.innerHTML = `
+      <div class="panel-header">
+        <h3 class="panel-title"><span id="selected-player-name">${player.username}</span>'s Picks</h3>
+        <button class="close-btn">&times;</button>
+      </div>
+      <div class="player-record">
+        <div class="record-item"><span>W:</span> <span id="player-wins">0</span></div>
+        <div class="record-item"><span>L:</span> <span id="player-losses">0</span></div>
+        <div class="record-item"><span>P:</span> <span id="player-pushes">0</span></div>
+      </div>
+      <div class="picks-container"></div>
+    `
+
+    document.body.appendChild(picksPanel)
+
+    // Add close button event listener
+    picksPanel.querySelector(".close-btn").addEventListener("click", () => {
+      picksPanel.classList.remove("open")
+    })
+  } else {
+    // Update player name
+    document.getElementById("selected-player-name").textContent = player.username
+  }
+
+  // Clear existing picks
+  const picksContainer = picksPanel.querySelector(".picks-container")
+  picksContainer.innerHTML = '<div class="loading-spinner"></div>'
+
+  // Fetch player picks and update panel
+  fetchPicksForPlayoffPlayer(player.username, poolName)
+    .then((picksData) => {
+      picksContainer.innerHTML = ""
+
+      // Update record
+      document.getElementById("player-wins").textContent = player.win || "0"
+      document.getElementById("player-losses").textContent = player.loss || "0"
+      document.getElementById("player-pushes").textContent = player.push || "0"
+
+      // Display picks
+      if (picksData.picks && picksData.picks.length > 0) {
+        picksData.picks.forEach((pick) => {
+          const pickItem = document.createElement("div")
+          pickItem.className = "pick-item"
+
+          pickItem.innerHTML = `
+            <img src="${pick.teamLogo || "/images/teams/Default.png"}" alt="${pick.teamName}" class="team-logo">
+            <div class="pick-details">
+              <div class="team-name">${pick.teamName}</div>
+              <div class="line-value">${pick.value}</div>
+            </div>
+          `
+
+          picksContainer.appendChild(pickItem)
+        })
+      } else {
+        // No picks message
+        const noPicks = document.createElement("div")
+        noPicks.className = "no-picks-message"
+        noPicks.textContent = "No picks available for this player"
+        picksContainer.appendChild(noPicks)
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching picks:", error)
+      picksContainer.innerHTML = `
+        <div class="error-message">Failed to load picks</div>
+        <button class="retry-button">Retry</button>
+      `
+
+      // Add retry button event listener
+      picksContainer.querySelector(".retry-button").addEventListener("click", () => {
+        showPlayerPicks(player, poolName)
+      })
+    })
+
+  // Show the panel
+  picksPanel.classList.add("open")
+}
+
+// Fetch picks for playoff player
+async function fetchPicksForPlayoffPlayer(username, poolName) {
+  try {
+    const encodedUsername = encodeURIComponent(username)
+    const encodedPoolName = encodeURIComponent(`playoff_${poolName}`)
+    const url = `/api/getPicks/${encodedUsername}/${encodedPoolName}`
+
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error("Error fetching playoff picks:", error)
+    return { picks: [], immortalLock: [] }
+  }
+}
+
+// Initialize bracket when DOM is loaded
+document.addEventListener("DOMContentLoaded", () => {
+  const bracketContainer = document.querySelector(".playoff-bracket-container")
+  if (bracketContainer) {
+    const poolName = bracketContainer.dataset.poolName
+    if (poolName) {
+      // Show loading state
+      bracketContainer.innerHTML = `
+        <div class="loading-container">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">Loading bracket...</div>
+        </div>
+      `
+
+      // Fetch bracket data
+      fetch(`/api/playoffs/${encodeURIComponent(poolName)}/bracket`)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success && data.bracket) {
+            renderBracket(data.bracket, bracketContainer, poolName)
+          } else {
+            throw new Error(data.message || "Failed to load bracket data")
+          }
+        })
+        .catch((error) => {
+          console.error("Error loading bracket:", error)
+          bracketContainer.innerHTML = `
+            <div class="error-container">
+              <div class="error-message">Failed to load bracket</div>
+              <button class="retry-button">Retry</button>
+            </div>
+          `
+
+          // Add retry button event listener
+          bracketContainer.querySelector(".retry-button").addEventListener("click", () => {
+            location.reload()
+          })
+        })
+    }
+  }
+})
+
+*/

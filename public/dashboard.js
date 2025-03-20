@@ -2666,30 +2666,7 @@ function addPlayoffIndicator() {
             poolSelectorContainer.insertAdjacentElement('afterend', indicator);
         }
         
-        // Add styles if not already in CSS
-        if (!document.getElementById('playoff-styles')) {
-            const styles = document.createElement('style');
-            styles.id = 'playoff-styles';
-            styles.textContent = `
-                .playoff-indicator {
-                    background-color: #FFD700;
-                    color: #000;
-                    padding: 8px 12px;
-                    border-radius: 4px;
-                    margin: 8px 0;
-                    font-weight: bold;
-                    text-align: center;
-                    animation: pulse 2s infinite;
-                }
-                
-                @keyframes pulse {
-                    0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
-                    70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
-                    100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
-                }
-            `;
-            document.head.appendChild(styles);
-        }
+        
     }
 }
 
@@ -3347,35 +3324,41 @@ function setupEventListeners() {
 // Add this CSS to your page to style playoff elements
 const playoffStyles = `
 .playoffs-badge {
-    background-color: gold;
+    background-color: #00e9fa;
     color: black;
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 0.7em;
     margin-left: 6px;
     font-weight: bold;
+    max-width: 400px;
 }
 
 option[data-playoff="true"] {
-    background-color: rgba(255, 215, 0, 0.2);
+    background-color: rgba(0, 174, 255, 0.2);
     font-weight: bold;
 }
 
 .playoff-indicator {
-    background-color: #FFD700;
+    background-color:rgb(0, 192, 250);
     color: #000;
     padding: 8px 12px;
     border-radius: 4px;
-    margin: 8px 0;
+    margin: 8px auto; /* Changed from "8px 0" to "8px auto" */
     font-weight: bold;
     text-align: center;
     animation: pulse 2s infinite;
+    max-width: 400px;
+    
+    /* Center the content inside the indicator */
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
 }
-
 @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+    0% { box-shadow: 0 0 0 0 rgba(0, 217, 255, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(0, 255, 234, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 204, 255, 0); }
 }
 `;
 
@@ -3388,3 +3371,4 @@ document.addEventListener('DOMContentLoaded', function() {
     
 
 });
+
