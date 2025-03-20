@@ -5174,3 +5174,132 @@ text-align: center;
   max-width: 100% !important;
 }
 
+/* CSS for the fixed champion banner */
+.fixed-champion-container {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  padding: 0;
+  margin: 0;
+  background: #0a0f22;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced styling for the champion banner */
+.fixed-champion-container .playoff-champion-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0;
+  background: linear-gradient(to right, rgba(10, 15, 34, 0.9), rgba(51, 217, 255, 0.1), rgba(10, 15, 34, 0.9));
+  border-bottom: 2px solid #d4af37;
+  min-height: 80px;
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+}
+
+/* Add subtle animated background */
+.fixed-champion-container .playoff-champion-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(212, 175, 55, 0.1) 0%,
+    transparent 50%,
+    rgba(212, 175, 55, 0.1) 100%
+  );
+  animation: shimmer 3s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Title styling */
+.fixed-champion-container .champion-name {
+  font-size: 24px;
+  color: #d4af37;
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.7);
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-family: 'Montserrat', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Crown icon styling */
+.fixed-champion-container .champion-name i {
+  font-size: 20px;
+  color: #d4af37;
+  animation: crownBounce 2s ease-in-out infinite;
+}
+
+@keyframes crownBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+/* Trophy icon styling */
+.fixed-champion-container .champion-title {
+  font-size: 16px;
+  color: #33d9ff;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  text-shadow: 0 0 8px rgba(51, 217, 255, 0.5);
+}
+
+.fixed-champion-container .champion-stats {
+  font-size: 12px;
+  color: #ffffff;
+  opacity: 0.9;
+  line-height: 1.5;
+}
+
+/* Make the banner content stay centered when scrolling */
+.playoff-round-headers {
+  margin-top: 15px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .fixed-champion-container .champion-name {
+    font-size: 18px;
+  }
+  
+  .fixed-champion-container .champion-title {
+    font-size: 14px;
+  }
+  
+  .fixed-champion-container .champion-stats {
+    font-size: 10px;
+  }
+}
+
+/* Fix for other header elements to align with this new structure */
+.playoff-bracket-container {
+  margin-top: 0 !important;
+  padding-top: 10px !important;
+}
+
+/* Also fix the header title and player count to be sticky */
+.playoff-title-bar {
+  position: sticky;
+  left: 0;
+  z-index: 99;
+  width: 100%;
+  background-color: rgba(10, 15, 34, 0.95);
+}

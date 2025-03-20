@@ -4792,6 +4792,46 @@ document.addEventListener('DOMContentLoaded', function() {
   function fixNewBrackets() {
     applyPlayoffBracketFixes();
   }
+
+  // JavaScript to create a fixed champion banner
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to apply the fix to playoff brackets
+    function fixPlayoffChampionBanner() {
+      // Find all playoff champion banners
+      const championBanners = document.querySelectorAll('.playoff-champion-banner');
+      
+      if (!championBanners.length) return;
+      
+      championBanners.forEach(banner => {
+        // Create a fixed container for the banner
+        const fixedContainer = document.createElement('div');
+        fixedContainer.className = 'fixed-champion-container';
+        
+        // Clone the banner and add it to the fixed container
+        const clonedBanner = banner.cloneNode(true);
+        fixedContainer.appendChild(clonedBanner);
+        
+        // Find the parent playoff bracket container
+        const bracketContainer = banner.closest('.playoff-bracket-container');
+        
+        // Insert the fixed container before the bracket container
+        if (bracketContainer && bracketContainer.parentNode) {
+          bracketContainer.parentNode.insertBefore(fixedContainer, bracketContainer);
+          
+          // Remove the original banner
+          banner.remove();
+        }
+      });
+    }
+    
+    // Call the function
+    fixPlayoffChampionBanner();
+    
+    // Apply the fix again if content is loaded dynamically
+    // This is a fallback in case the brackets are loaded after initial page load
+    setTimeout(fixPlayoffChampionBanner, 1000);
+    setTimeout(fixPlayoffChampionBanner, 3000);
+  });
 /*
 
     // Playoff Bracket JavaScript - Compact Version
