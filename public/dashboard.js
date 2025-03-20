@@ -2632,14 +2632,7 @@ async function checkIfPlayoffPool(poolName) {
         playoffCurrentWeek = data.playoffCurrentWeek;
         
         console.log(`Pool ${poolName} playoff status:`, isPlayoffMode ? 'In Playoff Mode' : 'Regular Season');
-        if (isPlayoffMode) {
-            console.log(`Playoff Week: ${playoffCurrentWeek}`);
-            // Add playoff indicator to UI if needed
-            addPlayoffIndicator();
-        } else {
-            // Remove playoff indicator if exists
-            removePlayoffIndicator();
-        }
+
         
         return data.isPlayoffPool;
     } catch (error) {
@@ -2648,27 +2641,7 @@ async function checkIfPlayoffPool(poolName) {
     }
 }
 
-// Add a visual indicator when in playoff mode
-function addPlayoffIndicator() {
-    // Check if the indicator already exists
-    if (!document.getElementById('playoff-indicator')) {
-        const indicator = document.createElement('div');
-        indicator.id = 'playoff-indicator';
-        indicator.className = 'playoff-indicator';
-        indicator.innerHTML = `
-            <i class="fas fa-trophy"></i> 
-            PLAYOFF MODE - WEEK ${playoffCurrentWeek}
-        `;
-        
-        // Add to the page near the pool selector
-        const poolSelectorContainer = document.querySelector('.pool-selector-container');
-        if (poolSelectorContainer) {
-            poolSelectorContainer.insertAdjacentElement('afterend', indicator);
-        }
-        
-        
-    }
-}
+
 
 // Remove playoff indicator when not in playoff mode
 function removePlayoffIndicator() {

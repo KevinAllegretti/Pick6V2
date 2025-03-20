@@ -4793,45 +4793,264 @@ document.addEventListener('DOMContentLoaded', function() {
     applyPlayoffBracketFixes();
   }
 
-  // JavaScript to create a fixed champion banner
-document.addEventListener('DOMContentLoaded', function() {
-    // Function to apply the fix to playoff brackets
-    function fixPlayoffChampionBanner() {
-      // Find all playoff champion banners
-      const championBanners = document.querySelectorAll('.playoff-champion-banner');
-      
-      if (!championBanners.length) return;
-      
-      championBanners.forEach(banner => {
-        // Create a fixed container for the banner
-        const fixedContainer = document.createElement('div');
-        fixedContainer.className = 'fixed-champion-container';
-        
-        // Clone the banner and add it to the fixed container
-        const clonedBanner = banner.cloneNode(true);
-        fixedContainer.appendChild(clonedBanner);
-        
-        // Find the parent playoff bracket container
-        const bracketContainer = banner.closest('.playoff-bracket-container');
-        
-        // Insert the fixed container before the bracket container
-        if (bracketContainer && bracketContainer.parentNode) {
-          bracketContainer.parentNode.insertBefore(fixedContainer, bracketContainer);
-          
-          // Remove the original banner
-          banner.remove();
-        }
-      });
+  // Updated createPlayerSlot function that avoids using conflicting class names
+function createPlayerSlot(player, winnerId, poolName, isChampion) {
+    const playerSlot = document.createElement('div');
+    playerSlot.className = `player-slot ${player.isAdvancing ? 'advancing' : ''} ${player.eliminated ? 'eliminated' : ''} ${isChampion ? 'championship-winner' : ''}`;
+    playerSlot.dataset.playerId = player.id;
+    playerSlot.dataset.position = player.position;
+    playerSlot.dataset.poolName = poolName;
+    
+    // Get profile pic URL - fetch from server or use default
+    const profilePicUrl = player.profilePic || 'Default.png';
+    
+    // Create the player seed element
+    const seedElement = document.createElement('div');
+    seedElement.className = 'player-seed';
+    seedElement.textContent = player.seed;
+    playerSlot.appendChild(seedElement);
+    
+    // Create profile pic element with UNIQUE CLASS NAME
+    const profilePicElement = document.createElement('div');
+    profilePicElement.className = 'playoff-profile-pic'; // Changed class name
+    profilePicElement.style.backgroundImage = `url('${profilePicUrl}')`;
+    playerSlot.appendChild(profilePicElement);
+    
+    // Create player info container
+    const playerInfoElement = document.createElement('div');
+    playerInfoElement.className = 'playoff-player-info'; // Changed class name
+    
+    // Create player name element with UNIQUE CLASS NAME
+    const playerNameElement = document.createElement('div');
+    playerNameElement.className = 'playoff-player-username'; // Changed class name
+    playerNameElement.textContent = player.username;
+    playerInfoElement.appendChild(playerNameElement);
+    
+    // Create player points element with UNIQUE CLASS NAME
+    const playerPointsElement = document.createElement('div');
+    playerPointsElement.className = 'playoff-player-score'; // Changed class name
+    playerPointsElement.textContent = `${player.points || 0} pts`;
+    playerInfoElement.appendChild(playerPointsElement);
+    
+    playerSlot.appendChild(playerInfoElement);
+    
+    // Add status indicators
+    if (player.hasBye) {
+      const byeBadge = document.createElement('div');
+      byeBadge.className = 'player-status';
+      byeBadge.innerHTML = `<span class="bye-badge">BYE</span>`;
+      playerSlot.appendChild(byeBadge);
     }
     
-    // Call the function
-    fixPlayoffChampionBanner();
+    // Add champion crown if this player is the champion
+    if (isChampion) {
+      const championIcon = document.createElement('div');
+      championIcon.className = 'player-status champion-icon';
+      championIcon.innerHTML = `<i class="fas fa-crown"></i>`;
+      playerSlot.appendChild(championIcon);
+    }
     
-    // Apply the fix again if content is loaded dynamically
-    // This is a fallback in case the brackets are loaded after initial page load
-    setTimeout(fixPlayoffChampionBanner, 1000);
-    setTimeout(fixPlayoffChampionBanner, 3000);
-  });
+    // Add click handler to show picks
+    playerSlot.addEventListener('click', () => {
+      showPlayerPicks(player, poolName);
+    });
+    
+    return playerSlot;
+}
+
+// Corresponding CSS to add to your stylesheet
+// This needs to be added to your CSS file for the new class names
+function addStylesForNewClassNames() {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+        /* New unique class names for playoff elements */
+        .playoff-profile-pic {
+            width: 20px !important;
+            height: 20px !important;
+            border-radius: 50% !important;
+            margin-right: 5px !important;
+            flex-shrink: 0 !important;
+            border: 1px solid #33d9ff !important;
+            background-size: cover !important;
+            background-position: center !important;
+            display: inline-block !important;
+            vertical-align: middle !important;
+        }
+        
+        .playoff-player-username {
+            font-size: 11px !important;
+            line-height: 1.2 !important;
+            color: #ffffff !important;
+            font-family: 'Montserrat', sans-serif !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            max-width: 70px !important;
+            display: block !important;
+        }
+        
+        .playoff-player-score {
+            font-size: 9px !important;
+            color: #33d9ff !important;
+            font-family: 'Quantico', sans-serif !important;
+            display: block !important;
+            margin-top: 2px !important;
+        }
+        
+        .playoff-player-info {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            flex: 1 !important;
+            min-width: 0 !important;
+            padding-left: 3px !important;
+        }
+    `;
+    document.head.appendChild(styleElement);
+}
+
+// Call this function when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Add the new styles
+    addStylesForNewClassNames();
+});
+
+// Updated rebuildUIWithResults function to work with new class names
+function rebuildUIWithResults(results) {
+    // Get regular pool picks
+    const regularPicks = document.querySelectorAll('.player-picks .pick, .immortal-lock');
+    
+    // Get playoff picks with the new class names
+    const playoffPicks = document.querySelectorAll('.playoff-bracket-container .pick-item');
+    
+    // Process regular picks
+    regularPicks.forEach(pickElement => {
+        const teamLogo = pickElement.querySelector('.team-logo');
+        const displayedBetValue = pickElement.querySelector('span')?.textContent.trim();
+        
+        if (!teamLogo || !displayedBetValue) {
+            return; // Skip if no logo or value is found
+        }
+        
+        const teamName = teamLogo.alt;
+        
+        // Find matching result for regular picks
+        const matchingResult = results.find(r => 
+            r.teamName === teamName && 
+            r.betValue.toString().trim() === displayedBetValue && 
+            !r.isPlayoffPick
+        );
+        
+        if (matchingResult) {
+            // Apply color based on the result
+            let color;
+            if (matchingResult.result === "hit") {
+                color = "#39FF14"; // Green for a win
+            } else if (matchingResult.result === "miss") {
+                color = "red"; // Red for a loss
+            } else if (matchingResult.result === "push") {
+                color = "yellow"; // Yellow for a push
+            } else {
+                color = "gray"; // Gray for any unknown result
+            }
+            
+            // Apply the color to the pick element
+            const valueSpan = pickElement.querySelector('span');
+            if (valueSpan) {
+                valueSpan.style.setProperty('color', color, 'important');
+            }
+        }
+    });
+    
+    // Process playoff picks
+    playoffPicks.forEach(pickElement => {
+        const teamLogo = pickElement.querySelector('.team-logo');
+        const displayedBetValue = pickElement.querySelector('.pick-value')?.textContent.trim();
+        
+        if (!teamLogo || !displayedBetValue) {
+            return; // Skip if no logo or value is found
+        }
+        
+        const teamName = teamLogo.alt;
+        
+        // Find matching result for playoff picks
+        const matchingResult = results.find(r => 
+            r.teamName === teamName && 
+            r.betValue.toString().trim() === displayedBetValue && 
+            r.isPlayoffPick === true
+        );
+        
+        if (matchingResult) {
+            // Apply color based on the result
+            let color;
+            if (matchingResult.result === "hit") {
+                color = "#39FF14"; // Green for a win
+            } else if (matchingResult.result === "miss") {
+                color = "red"; // Red for a loss
+            } else if (matchingResult.result === "push") {
+                color = "yellow"; // Yellow for a push
+            } else {
+                color = "gray"; // Gray for any unknown result
+            }
+            
+            // Apply the color to the pick element
+            const valueElement = pickElement.querySelector('.pick-value');
+            if (valueElement) {
+                valueElement.style.setProperty('color', color, 'important');
+            }
+        }
+    });
+}
+
+// Use this function to initialize your playoff player picks panel
+function initializePlayoffPicksPanel() {
+    if (!document.getElementById('playoff-player-picks-panel')) {
+        const picksPanel = document.createElement('div');
+        picksPanel.id = 'playoff-player-picks-panel';
+        picksPanel.className = 'player-picks-panel';
+        picksPanel.innerHTML = `
+            <div class="panel-header">
+                <h3 id="selected-player-name">Player Name</h3>
+                <button id="close-picks-panel-btn" class="close-panel-btn">&times;</button>
+            </div>
+            <div class="player-record">
+                <div class="record-item"><span>W:</span> <span id="player-wins">0</span></div>
+                <div class="record-item"><span>L:</span> <span id="player-losses">0</span></div>
+                <div class="record-item"><span>P:</span> <span id="player-pushes">0</span></div>
+            </div>
+            <div class="player-picks-container">
+                <!-- This will be populated by JavaScript -->
+            </div>
+        `;
+        document.body.appendChild(picksPanel);
+        
+        // Add event listener to close button
+        document.getElementById('close-picks-panel-btn').addEventListener('click', () => {
+            picksPanel.classList.remove('open');
+        });
+    }
+}
+
+// Call this function when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the playoff picks panel
+    initializePlayoffPicksPanel();
+    
+    // Add the new styles
+    addStylesForNewClassNames();
+    
+    // Process results for any picks on the page
+    setTimeout(() => {
+        fetch('/api/getResults')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.results) {
+                    rebuildUIWithResults(data.results);
+                }
+            })
+            .catch(error => console.error('Failed to fetch results:', error));
+    }, 1000);
+});
 /*
 
     // Playoff Bracket JavaScript - Compact Version
