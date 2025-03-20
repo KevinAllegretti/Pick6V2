@@ -5174,9 +5174,3 @@ text-align: center;
   max-width: 100% !important;
 }
 
-/* Ensure the scrollable container allows the inner content to scroll */
-.pool-scrollable-container {
-  overflow: hidden !important;
-  max-width: 100% !important;
-  width: 100% !important;
-}
