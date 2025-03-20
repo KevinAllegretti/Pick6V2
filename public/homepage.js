@@ -4552,6 +4552,7 @@ function renderBracket(bracketData, container, poolName) {
     createBracketConnectors(bracketData, visibleMatches, bracketData.rounds.length);
     
     console.log('Bracket rendered successfully with', memberCount, 'players');
+    
   }
   
   // Modified createMatchElement function to highlight the champion
@@ -4721,7 +4722,76 @@ function renderBracket(bracketData, container, poolName) {
     }
 
     
+  // Add this code to fix the playoff bracket scrolling
+// You can add this directly to your page or include it in a script tag
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Apply immediate fixes to all playoff brackets
+    applyPlayoffBracketFixes();
+    
+    // Also run this after a short delay to catch dynamically created elements
+    setTimeout(applyPlayoffBracketFixes, 1000);
+    setTimeout(applyPlayoffBracketFixes, 3000);
+  });
   
+  function applyPlayoffBracketFixes() {
+    // Target all playoff bracket containers
+    const bracketContainers = document.querySelectorAll('.playoff-bracket-container');
+    
+    bracketContainers.forEach(container => {
+      // Set critical styles directly
+      container.style.overflowX = 'scroll';
+      container.style.overflowY = 'visible';
+      container.style.maxWidth = '100%';
+      container.style.width = '100%';
+      container.style.whiteSpace = 'nowrap';
+      
+      // Fix round headers and rounds
+      const roundHeaders = container.querySelector('.playoff-round-headers');
+      const rounds = container.querySelector('.playoff-rounds');
+      
+      if (roundHeaders) {
+        roundHeaders.style.display = 'flex';
+        roundHeaders.style.flexWrap = 'nowrap';
+        roundHeaders.style.minWidth = 'max-content';
+        roundHeaders.style.width = 'max-content';
+        roundHeaders.style.gap = '50px';
+        
+        // Fix individual round headers
+        const headers = roundHeaders.querySelectorAll('.round-header');
+        headers.forEach(header => {
+          header.style.minWidth = '150px';
+          header.style.flex = '0 0 auto';
+        });
+      }
+      
+      if (rounds) {
+        rounds.style.display = 'flex';
+        rounds.style.flexWrap = 'nowrap';
+        rounds.style.minWidth = 'max-content';
+        rounds.style.width = 'max-content';
+        rounds.style.gap = '50px';
+        
+        // Fix bracket rounds
+        const bracketRounds = rounds.querySelectorAll('.bracket-round');
+        bracketRounds.forEach(round => {
+          round.style.minWidth = '150px';
+          round.style.flex = '0 0 auto';
+        });
+      }
+      
+      // Add a class to indicate this bracket has been fixed
+      container.classList.add('bracket-fixed');
+      
+      // Log success
+      console.log('Playoff bracket fixed for scrolling:', container);
+    });
+  }
+  
+  // Call this function if you dynamically load brackets
+  function fixNewBrackets() {
+    applyPlayoffBracketFixes();
+  }
 /*
 
     // Playoff Bracket JavaScript - Compact Version

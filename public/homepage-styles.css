@@ -4976,3 +4976,207 @@ text-align: center;
     opacity: 0.9;
   }
 
+/* Enhanced styling for bracket connectors to work with horizontal scrolling */
+
+/* Base connector styling */
+.match-container.has-connector {
+  position: relative;
+}
+
+/* Horizontal connector line */
+.match-container.has-connector::after {
+  content: '';
+  position: absolute;
+  right: -30px;
+  top: 50%;
+  width: 30px;
+  height: 2px;
+  background-color: #33d9ff;
+  opacity: 0.5;
+  z-index: 0;
+}
+
+/* Vertical connector for matches that don't align horizontally */
+.match-container.vertical-connector::after {
+  width: 15px; /* Shorter horizontal line */
+}
+
+/* Add a vertical line for non-aligned matches */
+.match-container.vertical-connector::before {
+  content: '';
+  position: absolute;
+  right: -15px;
+  top: 50%;
+  width: 2px;
+  height: var(--connector-height, 50px);
+  background-color: #33d9ff;
+  opacity: 0.5;
+  z-index: 0;
+}
+
+/* Position the vertical line appropriately */
+.match-container.vertical-connector[data-position="top"]::before {
+  top: 50%;
+  height: var(--connector-height, 50px);
+}
+
+.match-container.vertical-connector[data-position="bottom"]::before {
+  top: calc(50% - var(--connector-height, 50px));
+  height: var(--connector-height, 50px);
+}
+
+/* Adjust connector position based on bracket sizes */
+.bracket-size-6 .match-container.has-connector::after,
+.bracket-size-7 .match-container.has-connector::after {
+  right: -30px;
+  width: 30px;
+}
+
+.bracket-size-8 .match-container.has-connector::after,
+.bracket-size-9 .match-container.has-connector::after,
+.bracket-size-10 .match-container.has-connector::after {
+  right: -25px;
+  width: 25px;
+}
+
+/* Mobile adjustments for connectors */
+@media (max-width: 768px) {
+  .match-container.has-connector::after {
+    right: -15px;
+    width: 15px;
+  }
+  
+  .match-container.vertical-connector::after {
+    width: 8px;
+  }
+  
+  .match-container.vertical-connector::before {
+    right: -8px;
+  }
+}
+
+/* Fix spacing between rounds for better connector visualization */
+.playoff-rounds {
+  gap: 50px !important; /* Increased gap to ensure connectors have space */
+}
+
+@media (max-width: 768px) {
+  .playoff-rounds {
+    gap: 25px !important;
+  }
+}
+
+/* Make sure round headers align with the rounds below */
+.playoff-round-headers {
+  gap: 50px !important;
+}
+
+@media (max-width: 768px) {
+  .playoff-round-headers {
+    gap: 25px !important;
+  }
+}
+
+/* Add a hover effect to matches to better see connections */
+.match-container:hover {
+  z-index: 5;
+}
+
+.match-container:hover::after,
+.match-container:hover::before {
+  opacity: 1;
+  background-color: #33d9ff;
+  box-shadow: 0 0 5px rgba(51, 217, 255, 0.5);
+}
+
+/* Direct fix for playoff bracket horizontal scrolling */
+
+/* Force the bracket container to scroll horizontally */
+.playoff-bracket-container {
+  overflow-x: scroll !important; /* Force scrolling */
+  overflow-y: visible !important;
+  min-width: 100% !important;
+  white-space: nowrap !important;
+  padding: 15px !important;
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+/* Force the rounds to display inline with no wrapping */
+.playoff-rounds {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  min-width: max-content !important;
+  gap: 50px !important;
+  width: max-content !important;
+}
+
+/* Match the header spacing to the rounds */
+.playoff-round-headers {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  min-width: max-content !important;
+  gap: 50px !important;
+  width: max-content !important;
+}
+
+/* Ensure minimum width for each round */
+.bracket-round {
+  min-width: 150px !important;
+  flex: 0 0 auto !important;
+}
+
+/* Match header width to round width */
+.round-header {
+  min-width: 150px !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+}
+
+/* Override any grid layouts in bracket size classes */
+.bracket-size-6 .playoff-rounds,
+.bracket-size-7 .playoff-rounds,
+.bracket-size-8 .playoff-rounds,
+.bracket-size-9 .playoff-rounds,
+.bracket-size-10 .playoff-rounds {
+  display: flex !important;
+  grid-template-columns: none !important;
+}
+
+.bracket-size-6 .playoff-round-headers,
+.bracket-size-7 .playoff-round-headers,
+.bracket-size-8 .playoff-round-headers,
+.bracket-size-9 .playoff-round-headers,
+.bracket-size-10 .playoff-round-headers {
+  display: flex !important;
+  grid-template-columns: none !important;
+}
+
+/* Custom scrollbar styling */
+.playoff-bracket-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.playoff-bracket-container::-webkit-scrollbar-track {
+  background: rgba(10, 15, 34, 0.5);
+  border-radius: 4px;
+}
+
+.playoff-bracket-container::-webkit-scrollbar-thumb {
+  background-color: #33d9ff;
+  border-radius: 4px;
+}
+
+/* Make sure the whole container is visible */
+.playoff-bracket-section {
+  width: 100% !important;
+  overflow: hidden !important;
+  max-width: 100% !important;
+}
+
+/* Ensure the scrollable container allows the inner content to scroll */
+.pool-scrollable-container {
+  overflow: hidden !important;
+  max-width: 100% !important;
+  width: 100% !important;
+}
