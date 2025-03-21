@@ -19,6 +19,66 @@ document.addEventListener('DOMContentLoaded', function() {
 })
 
 
+// JavaScript to toggle the playoffs checkbox based on selected mode
+document.addEventListener('DOMContentLoaded', function() {
+    const modeCards = document.querySelectorAll('.mode-card');
+    const playoffsToggle = document.getElementById('playoffs-toggle');
+    
+    // Show/hide based on initial mode
+    const activeMode = document.querySelector('.mode-card.active');
+    if (activeMode && activeMode.dataset.mode === 'classic') {
+        playoffsToggle.classList.remove('hidden');
+    } else {
+        playoffsToggle.classList.add('hidden');
+    }
+    
+    // Update when mode changes
+    modeCards.forEach(card => {
+        card.addEventListener('click', () => {
+            if (card.dataset.mode === 'classic') {
+                playoffsToggle.classList.remove('hidden');
+            } else {
+                playoffsToggle.classList.add('hidden');
+                // Reset checkbox when switching away from classic
+                const checkbox = document.getElementById('hasPlayoffs');
+                if (checkbox) checkbox.checked = false;
+            }
+        });
+    });
+});
+
+function updateCurrentWeekDisplay() {
+    const weekDisplay = document.getElementById('currentWeekDisplay');
+    if (!weekDisplay) return;
+    
+    fetch('/getCurrentWeek')
+        .then(response => response.json())
+        .then(data => {
+            // Simply display the week number without any special formatting
+            const weekNumber = parseInt(data.week);
+            weekDisplay.textContent = `Week ${weekNumber}`;
+        })
+        .catch(error => {
+            console.error('Error fetching current week:', error);
+            weekDisplay.textContent = 'Week';
+        });
+}
+
+// Then modify your DOMContentLoaded event listener to include a call to this function
+document.addEventListener('DOMContentLoaded', function() {
+    // Your existing code...
+    
+    const loggedInUsername = localStorage.getItem('username');
+    console.log("Logged in user:", loggedInUsername);
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+    updateNavUsername();
+    
+    // Add this line to call our new function
+    updateCurrentWeekDisplay();
+    
+    // Rest of your existing code...
+});
 function rebuildUIWithResults(results) {
     const allPicks = document.querySelectorAll('.player-picks .pick, .immortal-lock');
 
@@ -4136,33 +4196,107 @@ function rebuildUIWithResults(results) {
     });
 }
 
+
+
+// Initialize the playoff player picks panel 
+// This function creates the panel if it doesn't exist
+function initializePlayerPicksPanel() {
+    // Check if the panel already exists
+    if (!document.getElementById('playoff-player-picks-panel')) {
+        console.log('Creating player picks panel');
+        
+        // Create the panel element
+        const picksPanel = document.createElement('div');
+        picksPanel.id = 'playoff-player-picks-panel';
+        picksPanel.className = 'player-picks-panel';
+        
+        // Create panel HTML structure
+        picksPanel.innerHTML = `
+            <div class="panel-header">
+                <h3 id="selected-player-name">Player Name</h3>
+                <button id="close-picks-panel-btn" class="close-panel-btn">&times;</button>
+            </div>
+            <div class="player-record">
+                <div class="record-item"><span>W:</span> <span id="player-wins">0</span></div>
+                <div class="record-item"><span>L:</span> <span id="player-losses">0</span></div>
+                <div class="record-item"><span>P:</span> <span id="player-pushes">0</span></div>
+            </div>
+            <div class="player-picks-container">
+                <!-- This will be populated by JavaScript -->
+            </div>
+        `;
+        
+        // Append the panel to the document body
+        document.body.appendChild(picksPanel);
+        
+        // Add event listener to close button
+        const closeBtn = picksPanel.querySelector('#close-picks-panel-btn');
+        closeBtn.addEventListener('click', () => {
+            picksPanel.classList.remove('open');
+        });
+        
+        // Also close when clicking outside the panel
+        document.addEventListener('click', function(event) {
+            const panel = document.getElementById('playoff-player-picks-panel');
+            
+            // Only proceed if panel exists and is open
+            if (panel && panel.classList.contains('open')) {
+                // Check if click was inside the panel
+                if (!panel.contains(event.target)) {
+                    // Make sure we're not clicking on a player slot
+                    if (!event.target.closest('.player-slot')) {
+                        panel.classList.remove('open');
+                    }
+                }
+            }
+        });
+    }
+    
+    return document.getElementById('playoff-player-picks-panel');
+}
+
+// Function to show player picks when a player is clicked in the bracket
 async function showPlayerPicks(player, poolName) {
     console.log(`Showing picks for player ${player.username} in pool ${poolName}`);
     
+    // Always ensure the panel exists first
+    initializePlayerPicksPanel();
+    
+    // Now we can safely get the panel
     const picksPanel = document.getElementById('playoff-player-picks-panel');
-    if (!picksPanel) {
-        console.error('Player picks panel not found');
-        return;
-    }
     
     // Update player name in panel
     document.getElementById('selected-player-name').textContent = player.username;
     
     // Clear existing picks
     const picksContainer = picksPanel.querySelector('.player-picks-container');
-    picksContainer.innerHTML = '';
+    picksContainer.innerHTML = '<div class="loading-spinner"></div>';
     
     try {
-        // First, fetch the player's playoff stats from the new API endpoint
+        // Fetch the player's playoff stats from the API endpoint
         const encodedPoolName = encodeURIComponent(poolName);
         const encodedUsername = encodeURIComponent(player.username);
         const statsUrl = `/api/playoffs/${encodedPoolName}/member/${encodedUsername}`;
         
         console.log(`Fetching player playoff stats from: ${statsUrl}`);
-        const statsResponse = await fetch(statsUrl);
-        
-        if (!statsResponse.ok) {
-            throw new Error(`HTTP error fetching stats! status: ${statsResponse.status}`);
+        let statsResponse;
+        try {
+            statsResponse = await fetch(statsUrl);
+            
+            if (!statsResponse.ok) {
+                console.warn(`Stats API returned status: ${statsResponse.status}`);
+                // Continue with default values if stats API fails
+                throw new Error('Stats not available');
+            }
+        } catch (statsError) {
+            console.warn('Could not fetch player stats:', statsError);
+            // Use player object values as fallback
+            document.getElementById('player-wins').textContent = player.win || 0;
+            document.getElementById('player-losses').textContent = player.loss || 0;
+            document.getElementById('player-pushes').textContent = player.push || 0;
+            
+            // Continue with picks fetch
+            statsResponse = { ok: false };
         }
         
         const statsData = await statsResponse.json();
@@ -4172,17 +4306,15 @@ async function showPlayerPicks(player, poolName) {
             document.getElementById('player-wins').textContent = statsData.member.win || 0;
             document.getElementById('player-losses').textContent = statsData.member.loss || 0;
             document.getElementById('player-pushes').textContent = statsData.member.push || 0;
-            
-            // Could also display additional stats like position, seed, etc. if needed
         } else {
             console.warn('Stats data not found or invalid format', statsData);
             // Set default values if stats not found
-            document.getElementById('player-wins').textContent = 0;
-            document.getElementById('player-losses').textContent = 0;
-            document.getElementById('player-pushes').textContent = 0;
+            document.getElementById('player-wins').textContent = player.win || 0;
+            document.getElementById('player-losses').textContent = player.loss || 0;
+            document.getElementById('player-pushes').textContent = player.push || 0;
         }
         
-        // Get team logos
+        // Get team logos map for displaying team logos
         const teamLogos = getTeamLogos();
         
         // Fetch player picks using playoff_ prefix
@@ -4190,18 +4322,54 @@ async function showPlayerPicks(player, poolName) {
         const picksUrl = `/api/getPicks/${encodedUsername}/${encodedPlayoffPoolName}`;
         
         console.log(`Fetching playoff picks from: ${picksUrl}`);
-        const picksResponse = await fetch(picksUrl);
-        
-        if (!picksResponse.ok) {
-            throw new Error(`HTTP error fetching picks! status: ${picksResponse.status}`);
+        let picksResponse;
+        try {
+            picksResponse = await fetch(picksUrl);
+            
+            if (!picksResponse.ok) {
+                console.warn(`Picks API returned status: ${picksResponse.status}`);
+                // Show a user-friendly message in the panel
+                picksContainer.innerHTML = `
+                    <div class="no-picks-message">No picks available yet</div>
+                `;
+                
+                // Show the panel even without picks
+                picksPanel.classList.add('open');
+                return; // Exit the function early
+            }
+        } catch (picksError) {
+            console.warn('Could not fetch player picks:', picksError);
+            picksContainer.innerHTML = `
+                <div class="picks-error-message">Unable to load picks at this time</div>
+                <button class="playoff-retry-btn" onclick="showPlayerPicks(${JSON.stringify(player)}, '${poolName}')">
+                    Retry
+                </button>
+            `;
+            
+            // Show the panel with the error
+            picksPanel.classList.add('open');
+            return; // Exit the function early
         }
         
         const picksData = await picksResponse.json();
         
         // Fetch results to color the picks
-        const resultsResponse = await fetch('/api/getResults');
-        const resultsData = await resultsResponse.json();
-        const results = resultsData.results || [];
+        let results = [];
+        try {
+            const resultsResponse = await fetch('/api/getResults');
+            if (resultsResponse.ok) {
+                const resultsData = await resultsResponse.json();
+                results = resultsData.success ? resultsData.results || [] : [];
+            } else {
+                console.warn('Could not fetch results, will show picks without coloring');
+            }
+        } catch (resultsError) {
+            console.warn('Error fetching results:', resultsError);
+            // Continue without results - picks will be shown without color coding
+        }
+        
+        // Clear loading spinner
+        picksContainer.innerHTML = '';
         
         if (picksData && picksData.picks && picksData.picks.length > 0) {
             // Render picks
@@ -4211,7 +4379,7 @@ async function showPlayerPicks(player, poolName) {
                 
                 // Find matching result for playoff picks
                 const matchingResult = results.find(r => 
-                    r.username.toLowerCase() === player.username.toLowerCase() &&
+                    r.username?.toLowerCase() === player.username.toLowerCase() &&
                     r.teamName === pick.teamName &&
                     r.betValue === pick.value &&
                     r.poolName === `playoff_${poolName}`
@@ -4229,9 +4397,11 @@ async function showPlayerPicks(player, poolName) {
                 }
                 
                 pickElement.innerHTML = `
-                    <img src="${teamLogos[pick.teamName] || 'Default.png'}" alt="${pick.teamName}" class="team-logo">
-                    <div class="pick-team">${pick.teamName}</div>
-                    <div class="pick-value" style="color: ${color} !important">${pick.value}</div>
+                    <img src="${teamLogos[pick.teamName] || '/Default.png'}" alt="${pick.teamName}" class="team-logo">
+                    <div class="pick-details">
+                        <div class="pick-team">${pick.teamName}</div>
+                        <div class="pick-value" style="color: ${color} !important">${pick.value}</div>
+                    </div>
                 `;
                 
                 picksContainer.appendChild(pickElement);
@@ -4245,7 +4415,7 @@ async function showPlayerPicks(player, poolName) {
                 
                 // Find matching result for playoff immortal lock
                 const matchingResult = results.find(r => 
-                    r.username.toLowerCase() === player.username.toLowerCase() &&
+                    r.username?.toLowerCase() === player.username.toLowerCase() &&
                     r.teamName === immortalPick.teamName &&
                     r.betValue === immortalPick.value &&
                     r.poolName === `playoff_${poolName}` &&
@@ -4264,9 +4434,11 @@ async function showPlayerPicks(player, poolName) {
                 }
                 
                 pickElement.innerHTML = `
-                    <img src="${teamLogos[immortalPick.teamName] || 'Default.png'}" alt="${immortalPick.teamName}" class="team-logo">
-                    <div class="pick-team">${immortalPick.teamName}</div>
-                    <div class="pick-value" style="color: ${color} !important">${immortalPick.value}</div>
+                    <img src="${teamLogos[immortalPick.teamName] || '/Default.png'}" alt="${immortalPick.teamName}" class="team-logo">
+                    <div class="pick-details">
+                        <div class="pick-team">${immortalPick.teamName}</div>
+                        <div class="pick-value" style="color: ${color} !important">${immortalPick.value}</div>
+                    </div>
                     <span class="immortal-lock-badge">LOCK</span>
                 `;
                 
@@ -4287,38 +4459,241 @@ async function showPlayerPicks(player, poolName) {
         console.error('Error showing player picks:', error);
         
         // Show error message
-        const errorMsg = document.createElement('div');
-        errorMsg.className = 'picks-error-message';
-        errorMsg.textContent = 'Failed to load player picks or stats';
-        picksContainer.appendChild(errorMsg);
+        picksContainer.innerHTML = `
+            <div class="picks-error-message">Failed to load player picks or stats</div>
+            <button class="playoff-retry-btn" onclick="showPlayerPicks(${JSON.stringify(player)}, '${poolName}')">
+                Retry
+            </button>
+        `;
         
         // Still show the panel with the error
         picksPanel.classList.add('open');
     }
 }
 
-// Add this event listener to trigger rebuildUIWithResults after results are loaded
+// Add CSS styles specifically for the player picks panel
+function addPlayerPicksPanelStyles() {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+        /* Player picks panel styling */
+        .player-picks-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #0a0f22;
+            border: 2px solid #33d9ff;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(51, 217, 255, 0.3);
+            width: 300px;
+            max-width: 90vw;
+            max-height: 80vh;
+            overflow: hidden;
+            display: none;
+            z-index: 1000;
+        }
+        
+        .player-picks-panel.open {
+            display: block;
+        }
+        
+        .panel-header {
+            background-color: rgba(0, 10, 30, 0.8);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #33d9ff;
+        }
+        
+        .panel-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #ffffff;
+            text-shadow: 0 0 5px #33d9ff;
+        }
+        
+        .close-panel-btn {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            transition: color 0.2s ease;
+        }
+        
+        .close-panel-btn:hover {
+            color: #33d9ff;
+        }
+        
+        .player-record {
+            display: flex;
+            background: rgba(0, 10, 25, 0.5);
+            padding: 8px;
+            border-bottom: 1px solid rgba(51, 217, 255, 0.3);
+        }
+        
+        .record-item {
+            flex: 1;
+            text-align: center;
+            font-family: 'quantico', sans-serif;
+            color: #ffffff;
+            font-size: 12px;
+        }
+        
+        .record-item span:first-child {
+            color: #33d9ff;
+            margin-right: 3px;
+        }
+        
+        .player-picks-container {
+            padding: 10px;
+            overflow-y: auto;
+            max-height: calc(80vh - 90px);
+        }
+        
+        .loading-spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(51, 217, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: #33d9ff;
+            margin: 20px auto;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .pick-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid rgba(51, 217, 255, 0.2);
+            position: relative;
+        }
+        
+        .pick-item:last-child {
+            border-bottom: none;
+        }
+        
+        .pick-item img {
+            height: 30px;
+            width: 30px;
+            margin-right: 10px;
+            object-fit: contain;
+        }
+        
+        .pick-details {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .pick-team {
+            font-size: 12px;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .pick-value {
+            font-weight: bold;
+            font-size: 12px;
+            color: #33d9ff;
+            font-family: 'quantico', sans-serif;
+        }
+        
+        .immortal-lock-pick {
+            background-color: rgba(51, 217, 255, 0.1);
+        }
+        
+        .immortal-lock-badge {
+            position: absolute;
+            right: 8px;
+            background-color: #33d9ff;
+            color: #0a0f22;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        .no-picks-message, .picks-error-message {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 15px;
+            font-style: italic;
+            font-size: 12px;
+        }
+        
+        .playoff-retry-btn {
+            display: block;
+            margin: 10px auto;
+            background-color: rgba(51, 217, 255, 0.1);
+            color: #33d9ff;
+            border: 1px solid #33d9ff;
+            padding: 5px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .playoff-retry-btn:hover {
+            background-color: rgba(51, 217, 255, 0.2);
+            box-shadow: 0 0 10px rgba(51, 217, 255, 0.3);
+        }
+        
+        /* Mobile responsive adjustments */
+        @media (max-width: 480px) {
+            .player-picks-panel {
+                width: 90vw;
+                max-height: 70vh;
+            }
+            
+            .panel-header h3 {
+                font-size: 14px;
+            }
+            
+            .pick-team {
+                font-size: 11px;
+            }
+            
+            .pick-value {
+                font-size: 11px;
+            }
+            
+            .player-picks-container {
+                max-height: calc(70vh - 90px);
+            }
+        }
+    `;
+    document.head.appendChild(styleElement);
+}
+
+// Initialize everything on page load
 document.addEventListener('DOMContentLoaded', function() {
-    // If we're in a playoff bracket view, fetch results and apply colors
-    if (document.querySelector('.playoff-bracket-container')) {
-        setTimeout(() => {
-            fetch('/api/getResults')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success && data.results) {
-                        rebuildUIWithResults(data.results);
-                    } else {
-                        console.error('No results found or unable to fetch results:', data.message);
-                    }
-                })
-                .catch(error => console.error('Failed to fetch results:', error));
-        }, 1000); // Delay to ensure DOM is fully loaded
-    }
+    // Add the CSS styles immediately
+    addPlayerPicksPanelStyles();
+    
+    // Initialize the panel but don't create it right away
+    // It will be created on first click and then reused
+    console.log('Player picks panel styles initialized');
+    
+    // Add a global error handler for fetch operations
+    window.addEventListener('unhandledrejection', function(event) {
+        if (event.reason && event.reason.message && 
+            event.reason.message.includes('HTTP error')) {
+            console.warn('Caught fetch error:', event.reason);
+            // Prevent the error from appearing in the console
+            event.preventDefault();
+        }
+    });
 });
 
 
