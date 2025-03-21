@@ -4224,19 +4224,6 @@ text-align: center;
   position: relative;
 }
 
-/* The connecting lines between rounds */
-.playoff-bracket-container .match-container.has-connector::after {
-  content: '';
-  position: absolute;
-  right: -15px;
-  top: 50%;
-  width: 15px;
-  height: 2px;
-  background-color: #33d9ff;
-  opacity: 0.5;
-  z-index: 0; /* Keep line behind any overlapping elements */
-}
-
 .match-bracket {
   border: 1px solid #33d9ff;
   border-radius: 5px;
@@ -4552,11 +4539,7 @@ text-align: center;
     font-size: 10px;
   }
   
-  /* Ensure connector lines don't cause overflow */
-  .playoff-bracket-container .match-container.has-connector::after {
-    width: 10px;
-    right: -10px;
-  }
+
 }
 
 /* Very small screens - further adjustments */
@@ -4608,11 +4591,7 @@ text-align: center;
     padding: 1px 3px;
   }
   
-  /* Ensure connector lines are minimal */
-  .match-container.has-connector::after {
-    width: 5px;
-    right: -5px;
-  }
+
 }
 
 /* Special bracket layout fixes for very small heights */
@@ -4752,18 +4731,7 @@ text-align: center;
     justify-content: space-around;
   }
   
-  /* Connector lines for different bracket sizes */
-  .bracket-size-6 .match-container.has-connector::after,
-  .bracket-size-7 .match-container.has-connector::after {
-    content: '';
-    position: absolute;
-    right: -30px; /* Longer connector for smaller brackets */
-    top: 50%;
-    width: 30px;
-    height: 2px;
-    background-color: #33d9ff;
-    opacity: 0.5;
-  }
+
   
   /* BYE indicators with improved styling */
   .bye-badge {
@@ -4821,11 +4789,7 @@ text-align: center;
       gap: 15px;
     }
     
-    .bracket-size-6 .match-container.has-connector::after,
-    .bracket-size-7 .match-container.has-connector::after {
-      right: -15px;
-      width: 15px;
-    }
+
   }
 
   /* Enhanced styling for champion celebration effects */
@@ -4939,12 +4903,9 @@ text-align: center;
 
 /* Enhanced styling for bracket connectors to work with horizontal scrolling */
 
-/* Base connector styling */
-.match-container.has-connector {
-  position: relative;
-}
 
-/* Horizontal connector line */
+
+/* Horizontal connector line 
 .match-container.has-connector::after {
   content: '';
   position: absolute;
@@ -4955,52 +4916,25 @@ text-align: center;
   background-color: #33d9ff;
   opacity: 0.5;
   z-index: 0;
-}
+}*/
 
-/* Vertical connector for matches that don't align horizontally */
-.match-container.vertical-connector::after {
-  width: 15px; /* Shorter horizontal line */
-}
 
-/* Add a vertical line for non-aligned matches */
-.match-container.vertical-connector::before {
-  content: '';
-  position: absolute;
-  right: -15px;
-  top: 50%;
-  width: 2px;
-  height: var(--connector-height, 50px);
-  background-color: #33d9ff;
-  opacity: 0.5;
-  z-index: 0;
-}
 
-/* Position the vertical line appropriately */
-.match-container.vertical-connector[data-position="top"]::before {
-  top: 50%;
-  height: var(--connector-height, 50px);
-}
-
-.match-container.vertical-connector[data-position="bottom"]::before {
-  top: calc(50% - var(--connector-height, 50px));
-  height: var(--connector-height, 50px);
-}
-
-/* Adjust connector position based on bracket sizes */
+/* Adjust connector position based on bracket sizes 
 .bracket-size-6 .match-container.has-connector::after,
 .bracket-size-7 .match-container.has-connector::after {
   right: -30px;
   width: 30px;
-}
-
+}*/
+/*
 .bracket-size-8 .match-container.has-connector::after,
 .bracket-size-9 .match-container.has-connector::after,
 .bracket-size-10 .match-container.has-connector::after {
   right: -25px;
   width: 25px;
-}
+}*/
 
-/* Mobile adjustments for connectors */
+/* Mobile adjustments for connectors 
 @media (max-width: 768px) {
   .match-container.has-connector::after {
     right: -15px;
@@ -5014,7 +4948,7 @@ text-align: center;
   .match-container.vertical-connector::before {
     right: -8px;
   }
-}
+}*/
 
 /* Fix spacing between rounds for better connector visualization */
 .playoff-rounds {
@@ -5699,7 +5633,7 @@ text-align: center;
   font-family: 'quantico', sans-serif;
 }
 
-/* Styling for bracket connectors */
+/* Styling for bracket connectors 
 .match-container.has-connector::after {
   content: '';
   position: absolute;
@@ -5710,26 +5644,5 @@ text-align: center;
   background-color: #33d9ff;
   opacity: 0.5;
   z-index: 0;
-}
+}*/
 
-/* Vertical connector */
-.match-container.vertical-connector::before {
-  content: '';
-  position: absolute;
-  right: -15px;
-  top: 50%;
-  width: 2px;
-  height: var(--connector-height, 50px);
-  background-color: #33d9ff;
-  opacity: 0.5;
-  z-index: 0;
-}
-
-/* Position the vertical line appropriately */
-.match-container.vertical-connector[data-position="top"]::before {
-  top: 50%;
-}
-
-.match-container.vertical-connector[data-position="bottom"]::before {
-  top: calc(50% - var(--connector-height, 50px));
-}
