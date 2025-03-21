@@ -2631,7 +2631,6 @@ async function checkIfPlayoffPool(poolName) {
         isPlayoffMode = data.isPlayoffPool;
         playoffCurrentWeek = data.playoffCurrentWeek;
         
-        console.log(`Pool ${poolName} playoff status:`, isPlayoffMode ? 'In Playoff Mode' : 'Regular Season');
 
         
         return data.isPlayoffPool;
@@ -3345,3 +3344,238 @@ document.addEventListener('DOMContentLoaded', function() {
 
 });
 
+// Add this function to check if the current user is eligible to submit playoff picks
+async function checkPlayoffEligibility(username, poolName) {
+    try {
+        // First, check if this is a playoff pool
+        const playoffResponse = await fetch(`/api/playoffs/isPlayoff/${encodeURIComponent(poolName)}`);
+        if (!playoffResponse.ok) return { eligible: true }; // Default to eligible if not a playoff pool
+        
+        const playoffData = await playoffResponse.json();
+        
+        // If not in playoff mode, everyone can submit
+        if (!playoffData.isPlayoffMode) return { eligible: true };
+        
+        // If in playoff mode, check if the user is in the playoff bracket
+        const bracketResponse = await fetch(`/api/playoffs/${encodeURIComponent(poolName)}/bracket`);
+        if (!bracketResponse.ok) return { eligible: false, reason: "Couldn't verify playoff status" };
+        
+        const bracketData = await bracketResponse.json();
+        
+        if (!bracketData.success || !bracketData.bracket) {
+            return { eligible: false, reason: "Couldn't retrieve playoff bracket" };
+        }
+        
+        // Check if user is in playoff members list
+        const member = bracketData.bracket.members.find(m => 
+            m.username.toLowerCase() === username.toLowerCase()
+        );
+        
+        // If not in members list at all
+        if (!member) {
+            return { eligible: false, reason: "Not in playoff bracket" };
+        }
+        
+        // If eliminated
+        if (member.eliminated) {
+            return { eligible: false, reason: "Eliminated in week " + member.eliminatedInWeek };
+        }
+        
+        // If has bye this week
+        if (member.hasBye) {
+            return { eligible: false, reason: "You have a bye this week" };
+        }
+        
+        // All checks passed
+        return { eligible: true };
+    } catch (error) {
+        console.error('Error checking playoff eligibility:', error);
+        return { eligible: true }; // Default to eligible on error
+    }
+}
+
+// Update the setupEventListeners function to include playoff eligibility checks
+function setupEventListeners() {
+    // Pool selector change handler remains the same
+    const poolSelector = document.getElementById('poolSelector');
+    if (poolSelector) {
+        poolSelector.addEventListener('change', handlePoolChange);
+    }
+
+    // Modified submit picks button handler
+    const submitPicksButton = document.getElementById('submitPicks');
+    if (submitPicksButton) {
+        submitPicksButton.addEventListener('click', async function(e) {
+            // If we're in playoff mode, check eligibility before allowing submission
+            if (isPlayoffMode) {
+                const eligibility = await checkPlayoffEligibility(storedUsername, selectedPool);
+                if (!eligibility.eligible) {
+                    e.preventDefault();
+                    alert(`Cannot submit picks: ${eligibility.reason}`);
+                    return;
+                }
+            }
+            
+            // Continue with normal submission if eligible
+            submitUserPicks();
+        });
+    }
+
+    // Modified reset picks button handler
+    const resetPicksButton = document.getElementById('resetPicks');
+    if (resetPicksButton) {
+        resetPicksButton.addEventListener('click', async function(e) {
+            // If we're in playoff mode, check eligibility before allowing reset
+            if (isPlayoffMode) {
+                const eligibility = await checkPlayoffEligibility(storedUsername, selectedPool);
+                if (!eligibility.eligible) {
+                    e.preventDefault();
+                    alert(`Cannot reset picks: ${eligibility.reason}`);
+                    return;
+                }
+            }
+            
+            // Continue with normal reset if eligible
+            resetPicks();
+        });
+    }
+    
+    // Other event listeners remain the same
+    document.getElementById('displayInjuriesBtn')?.addEventListener('click', handleDisplayInjuries);
+}
+
+// Add a function to visually update the UI based on playoff eligibility
+async function updatePlayoffUIState() {
+    if (!isPlayoffMode) return;
+    
+    try {
+        const eligibility = await checkPlayoffEligibility(storedUsername, selectedPool);
+        const submitBtn = document.getElementById('submitPicks');
+        const resetBtn = document.getElementById('resetPicks');
+        
+        if (!eligibility.eligible) {
+            // Disable buttons
+            if (submitBtn) {
+                submitBtn.classList.add('disabled');
+                submitBtn.disabled = true;
+                submitBtn.title = eligibility.reason;
+            }
+            
+            if (resetBtn) {
+                resetBtn.classList.add('disabled');
+                resetBtn.disabled = true;
+                resetBtn.title = eligibility.reason;
+            }
+            
+            // Add visual indicator
+            const picksContainer = document.getElementById('picksContainer');
+            if (picksContainer) {
+                // Remove any existing message
+                const existingMsg = document.getElementById('playoff-eligibility-message');
+                if (existingMsg) existingMsg.remove();
+  
+            }
+        } else {
+            // Enable buttons
+            if (submitBtn) {
+                submitBtn.classList.remove('disabled');
+                submitBtn.disabled = false;
+                submitBtn.title = '';
+            }
+            
+            if (resetBtn) {
+                resetBtn.classList.remove('disabled');
+                resetBtn.disabled = false; 
+                resetBtn.title = '';
+            }
+            
+            // Remove any status message
+            const existingMsg = document.getElementById('playoff-eligibility-message');
+            if (existingMsg) existingMsg.remove();
+        }
+    } catch (error) {
+        console.error('Error updating playoff UI state:', error);
+    }
+}
+
+// Modify fetchUserPicksAndRender to call updatePlayoffUIState at the end
+async function fetchUserPicksAndRender(username, poolSelection) {
+    console.log('\n=== Fetching User Picks ===');
+    console.log('Username:', username);
+    console.log('Pool Selection:', poolSelection);
+
+    try {
+        // Reset state and ensure betOptions are loaded
+        await initializeState();
+
+        // Check if the selected pool is in playoff mode
+        if (poolSelection !== 'all') {
+            isPlayoffMode = await checkIfPlayoffPool(poolSelection);
+        }
+
+        if (poolSelection === 'all') {
+            await handleAllPoolsView(username);
+        } else {
+            await handleSinglePoolView(username, poolSelection);
+        }
+
+        // After rendering picks, recalculate total picks count using Set for deduplication
+        picksCount = new Set([
+            ...userPicks.map(pick => `${pick.teamName}-${pick.type}`),
+            ...lockedPicks.map(pick => `${pick.teamName}-${pick.type}`)
+        ]).size;
+
+        console.log('Updated Pick Count:', picksCount);
+        logPickState();
+
+        // After rendering picks, apply blackout
+        await blackOutPreviousBets();
+        
+        // Add this line to update UI based on playoff eligibility
+        if (isPlayoffMode) {
+            await updatePlayoffUIState();
+        }
+    } catch (error) {
+        console.error('Error fetching user picks:', error);
+        clearAllSelections();
+    }
+}
+
+// Add to your handlePoolChange function
+async function handlePoolChange(e) {
+    console.log('Pool changed to:', e.target.value);
+    selectedPool = e.target.value;
+    
+    try {
+        // Check if we're in Thursday game time
+        const timeResponse = await fetch('/api/timewindows');
+        if (timeResponse.ok) {
+            const { thursdayDeadline, sundayDeadline } = await timeResponse.json();
+            const now = getCurrentTimeInUTC4();
+            const thursdayTime = new Date(thursdayDeadline);
+            const sundayTime = new Date(sundayDeadline);
+            
+            const isThursdayGameTime = now > thursdayTime && now < sundayTime;
+
+            // Clear current state and re-render
+            await fetchUserPicksAndRender(storedUsername, selectedPool);
+
+            // If it's Thursday game time, wait for DOM update then apply features
+            if (isThursdayGameTime) {
+                // Wait for DOM to be fully updated
+                await new Promise(resolve => setTimeout(resolve, 500));
+                enableThursdayGameFeatures();
+            }
+            
+            // Check if this is a playoff pool and update UI accordingly
+            if (selectedPool !== 'all') {
+                isPlayoffMode = await checkIfPlayoffPool(selectedPool);
+                if (isPlayoffMode) {
+                    await updatePlayoffUIState();
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error handling pool change:', error);
+    }
+}

@@ -3176,26 +3176,6 @@ function displayPlayoffPool(pool) {
     const chatTemplate = document.getElementById('chat-template').content.cloneNode(true);
     poolWrapper.appendChild(chatTemplate);
 
-    // Add player picks panel if it doesn't exist
-    if (!document.getElementById('playoff-player-picks-panel')) {
-        const picksPanel = document.createElement('div');
-        picksPanel.id = 'playoff-player-picks-panel';
-        picksPanel.className = 'player-picks-panel';
-        picksPanel.innerHTML = `
-            <div class="panel-header">
-                <h3 id="selected-player-name">Player Name</h3>
-                <button id="close-picks-panel-btn" class="close-panel-btn">&times;</button>
-            </div>
-            <div class="player-record">
-                <div class="record-item"><span>W:</span> <span id="player-wins">0</span></div>
-                <div class="record-item"><span>L:</span> <span id="player-losses">0</span></div>
-                <div class="record-item"><span>P:</span> <span id="player-pushes">0</span></div>
-            </div>
-            <div class="player-picks-container">
-                <!-- This will be populated by JavaScript -->
-            </div>
-        `;
-        document.body.appendChild(picksPanel);
         
         // Add event listener to close button
         document.getElementById('close-picks-panel-btn').addEventListener('click', () => {
@@ -3210,7 +3190,7 @@ function displayPlayoffPool(pool) {
     setTimeout(() => {
         updatePoolActionsList();
     }, 100);
-}
+
 
 // Add this code to initialize the playoffs checkbox visibility
 // 1. Make sure this code is in your DOMContentLoaded event listener
@@ -3747,32 +3727,7 @@ async function displayNewPoolContainer(pool, includePlayoffBracket = false) {
 
         // If we have a playoff bracket, fetch the data now
         if (includePlayoffBracket) {
-            // Add player picks panel if it doesn't exist
-            if (!document.getElementById('playoff-player-picks-panel')) {
-                const picksPanel = document.createElement('div');
-                picksPanel.id = 'playoff-player-picks-panel';
-                picksPanel.className = 'player-picks-panel';
-                picksPanel.innerHTML = `
-                    <div class="panel-header">
-                        <h3 id="selected-player-name">Player Name</h3>
-                        <button id="close-picks-panel-btn" class="close-panel-btn">&times;</button>
-                    </div>
-                    <div class="player-record">
-                        <div class="record-item"><span>W:</span> <span id="player-wins">0</span></div>
-                        <div class="record-item"><span>L:</span> <span id="player-losses">0</span></div>
-                        <div class="record-item"><span>P:</span> <span id="player-pushes">0</span></div>
-                    </div>
-                    <div class="player-picks-container">
-                        <!-- This will be populated by JavaScript -->
-                    </div>
-                `;
-                document.body.appendChild(picksPanel);
-                
-                // Add event listener to close button
-                document.getElementById('close-picks-panel-btn').addEventListener('click', () => {
-                    picksPanel.classList.remove('open');
-                });
-            }
+            
             
             // Fetch and display bracket data
             fetchPlayoffBracket(pool.name);
@@ -5051,6 +5006,223 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Failed to fetch results:', error));
     }, 1000);
 });
+
+// Modified createMatchElement function to pass currentWeek to createPlayerSlot
+function createMatchElement(match, poolName, champion, currentWeek, isLastWeek) {
+    const matchContainer = document.createElement('div');
+    matchContainer.className = 'match-container';
+    matchContainer.dataset.matchId = match.id;
+    
+    // Add a special class if this is the final match and we have a champion
+    if (match.nextMatch === "WINNER" && champion) {
+      matchContainer.classList.add('championship-match');
+    }
+    
+    const matchBracket = document.createElement('div');
+    matchBracket.className = 'match-bracket';
+    
+    // First player slot
+    if (match.player1) {
+      const isChampion = champion && match.player1.username === champion.username && match.nextMatch === "WINNER";
+      const player1Element = createPlayerSlot(match.player1, match.winner, poolName, isChampion, currentWeek, isLastWeek);
+      matchBracket.appendChild(player1Element);
+    } else {
+      matchBracket.appendChild(createEmptySlot());
+    }
+    
+    // Second player slot
+    if (match.player2) {
+      const isChampion = champion && match.player2.username === champion.username && match.nextMatch === "WINNER";
+      const player2Element = createPlayerSlot(match.player2, match.winner, poolName, isChampion, currentWeek, isLastWeek);
+      matchBracket.appendChild(player2Element);
+    } else {
+      matchBracket.appendChild(createEmptySlot());
+    }
+    
+    matchContainer.appendChild(matchBracket);
+    return matchContainer;
+}
+
+// Modified createPlayerSlot function to consider currentWeek and isLastWeek
+function createPlayerSlot(player, winnerId, poolName, isChampion, currentWeek, isLastWeek) {
+    const playerSlot = document.createElement('div');
+    playerSlot.className = `player-slot ${player.isAdvancing ? 'advancing' : ''} ${player.eliminated ? 'eliminated' : ''} ${isChampion ? 'championship-winner' : ''}`;
+    playerSlot.dataset.playerId = player.id;
+    playerSlot.dataset.position = player.position;
+    playerSlot.dataset.poolName = poolName;
+    
+    // Get profile pic URL - fetch from server or use default
+    const profilePicUrl = player.profilePic || 'Default.png';
+    
+    // Create the player seed element
+    const seedElement = document.createElement('div');
+    seedElement.className = 'player-seed';
+    seedElement.textContent = player.seed;
+    playerSlot.appendChild(seedElement);
+    
+    // Create profile pic element with UNIQUE CLASS NAME
+    const profilePicElement = document.createElement('div');
+    profilePicElement.className = 'playoff-profile-pic'; // Changed class name
+    profilePicElement.style.backgroundImage = `url('${profilePicUrl}')`;
+    playerSlot.appendChild(profilePicElement);
+    
+    // Create player info container
+    const playerInfoElement = document.createElement('div');
+    playerInfoElement.className = 'playoff-player-info'; // Changed class name
+    
+    // Create player name element with UNIQUE CLASS NAME
+    const playerNameElement = document.createElement('div');
+    playerNameElement.className = 'playoff-player-username'; // Changed class name
+    playerNameElement.textContent = player.username;
+    playerInfoElement.appendChild(playerNameElement);
+    
+    // Create player points element with UNIQUE CLASS NAME
+    const playerPointsElement = document.createElement('div');
+    playerPointsElement.className = 'playoff-player-score'; // Changed class name
+    playerPointsElement.textContent = `${player.points || 0} pts`;
+    playerInfoElement.appendChild(playerPointsElement);
+    
+    playerSlot.appendChild(playerInfoElement);
+    
+    // Add status indicators - Only show bye badge if:
+    // 1. Player has a bye
+    // 2. It's not the current week
+    // 3. It's not the final week of playoffs
+    if (player.hasBye && player.position && player.position.startsWith('R2_') && currentWeek !== 14 && !isLastWeek) {
+      const byeBadge = document.createElement('div');
+      byeBadge.className = 'player-status';
+      byeBadge.innerHTML = `<span class="bye-badge">BYE</span>`;
+      playerSlot.appendChild(byeBadge);
+    }
+    
+
+    
+    // Add click handler to show picks
+    playerSlot.addEventListener('click', () => {
+      showPlayerPicks(player, poolName);
+    });
+    
+    return playerSlot;
+}
+
+// Updated renderBracket function to pass currentWeek and isLastWeek to createMatchElement
+function renderBracket(bracketData, container, poolName) {
+    console.log('Starting to render bracket with data:', bracketData);
+    
+    // Clear the bracket container
+    container.innerHTML = '';
+    
+    // Check if playoffs are completed and there's a champion
+    const isCompleted = bracketData.isCompleted;
+    const champion = bracketData.champion;
+    const currentWeek = bracketData.currentWeek; // Extract current week from bracket data
+    
+    // Determine if it's the last week of playoffs
+    const rounds = bracketData.rounds || [];
+    const lastWeek = rounds.length > 0 ? Math.max(...rounds.map(r => r.week)) : 0;
+    const isLastWeek = currentWeek === lastWeek;
+    
+    // Get the member count to determine bracket style
+    const memberCount = bracketData.members ? bracketData.members.length : 0;
+    
+    // Add custom class based on player count for specific CSS styling
+    container.classList.add(`bracket-size-${memberCount}`);
+    
+    // If playoffs are completed, show champion banner
+    if (isCompleted && champion) {
+      const championBanner = document.createElement('div');
+      championBanner.className = 'playoff-champion-banner';
+      championBanner.innerHTML = `
+        <div class="champion-name">${champion.username} <i class="fas fa-crown"></i></div>
+        <div class="champion-title">PLAYOFF CHAMPION!</div>
+        <div class="champion-stats">
+          Record: ${champion.win}-${champion.loss}-${champion.push}
+          <br>
+          Seed: #${champion.seed}
+        </div>
+      `;
+      container.appendChild(championBanner);
+    }
+    
+    // Create round headers
+    const roundHeadersDiv = document.createElement('div');
+    roundHeadersDiv.className = 'playoff-round-headers';
+    
+    bracketData.rounds.forEach((round, index) => {
+      const headerDiv = document.createElement('div');
+      headerDiv.className = `round-header ${round.week === bracketData.currentWeek ? 'current-round' : ''}`;
+      headerDiv.innerHTML = `
+        <h3>${round.name}</h3>
+        <div class="round-week">Week ${round.week}</div>
+      `;
+      roundHeadersDiv.appendChild(headerDiv);
+    });
+    
+    container.appendChild(roundHeadersDiv);
+    
+    // Create bracket rounds
+    const bracketRoundsDiv = document.createElement('div');
+    bracketRoundsDiv.className = 'playoff-rounds';
+    
+    // Filter matches to only include ones for the rounds we're showing
+    const visibleWeeks = bracketData.rounds.map(r => r.week);
+    const visibleMatches = bracketData.matches.filter(match => 
+      visibleWeeks.includes(match.week)
+    );
+    
+    // Group matches by round
+    const roundGroups = {};
+    bracketData.rounds.forEach(round => {
+      roundGroups[round.round] = {
+        name: round.name,
+        week: round.week,
+        matches: visibleMatches.filter(match => match.week === round.week)
+      };
+    });
+    
+    // Add rounds to the bracket
+    Object.values(roundGroups).sort((a, b) => a.week - b.week).forEach(roundGroup => {
+      const roundElement = document.createElement('div');
+      roundElement.className = 'bracket-round';
+      
+      // Set data attributes for easier styling
+      roundElement.dataset.round = roundGroup.week.toString();
+      roundElement.dataset.totalRounds = bracketData.rounds.length.toString();
+      roundElement.dataset.playerCount = memberCount.toString();
+      
+      // Sort matches by their position in the bracket
+      const sortedMatches = roundGroup.matches.sort((a, b) => {
+        const aPos = a.player1?.position || a.player2?.position || '';
+        const bPos = b.player1?.position || b.player2?.position || '';
+        return aPos.localeCompare(bPos);
+      });
+      
+      // Add matches to the round
+      sortedMatches.forEach(match => {
+        // Pass currentWeek and isLastWeek to createMatchElement
+        const matchElement = createMatchElement(match, poolName, champion, currentWeek, isLastWeek);
+        roundElement.appendChild(matchElement);
+      });
+      
+      bracketRoundsDiv.appendChild(roundElement);
+    });
+    
+    container.appendChild(bracketRoundsDiv);
+    
+    // Add bracket connectors in a second pass
+    createBracketConnectors(bracketData, visibleMatches, bracketData.rounds.length);
+    
+    console.log('Bracket rendered successfully with', memberCount, 'players');
+}
+
+// Simple function to create empty slot
+function createEmptySlot() {
+    const emptySlot = document.createElement('div');
+    emptySlot.className = 'empty-slot';
+    emptySlot.textContent = 'TBD';
+    return emptySlot;
+}
+
 /*
 
     // Playoff Bracket JavaScript - Compact Version

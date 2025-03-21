@@ -1125,7 +1125,7 @@ function createBracketForPlayerCount(playerCount: number): BracketMatch[] {
     // First round (Week 14) - 2 matches with 2 players getting byes
     bracket.push(
       { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M1_P1" },
-      { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M2_P1" } // FIXED: Winner goes to R2_M2_P1
+      { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M2_P1" }
     );
     
     // Semifinals (Week 15) - 2 matches
@@ -1139,16 +1139,16 @@ function createBracketForPlayerCount(playerCount: number): BracketMatch[] {
       { matchId: "R3_M1", round: 3, week: 16, player1Position: "R3_M1_P1", player2Position: "R3_M1_P2", nextMatchPosition: "WINNER" }
     );
   }
+  // Create bracket structure for 7 players
   else if (playerCount === 7) {
-    // 7 player bracket (3 weeks: 14, 15, 16)
-    // First round (Week 14) - 3 matches with one player getting a bye
+    // First round (Week 14) - 3 matches with seed 1 getting a bye
     bracket.push(
-      { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M1_P1" },
-      { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M1_P2" },
-      { matchId: "R1_M3", round: 1, week: 14, player1Position: "R1_M3_P1", player2Position: "R1_M3_P2", nextMatchPosition: "R2_M2_P1" }
+      { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M1_P2" },
+      { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M2_P1" },
+      { matchId: "R1_M3", round: 1, week: 14, player1Position: "R1_M3_P1", player2Position: "R1_M3_P2", nextMatchPosition: "R2_M2_P2" }
     );
     
-    // Semifinals (Week 15) - 2 matches
+    // Semifinals (Week 15) - 2 matches (seed 1 enters here)
     bracket.push(
       { matchId: "R2_M1", round: 2, week: 15, player1Position: "R2_M1_P1", player2Position: "R2_M1_P2", nextMatchPosition: "R3_M1_P1" },
       { matchId: "R2_M2", round: 2, week: 15, player1Position: "R2_M2_P1", player2Position: "R2_M2_P2", nextMatchPosition: "R3_M1_P2" }
@@ -1180,15 +1180,14 @@ function createBracketForPlayerCount(playerCount: number): BracketMatch[] {
       { matchId: "R3_M1", round: 3, week: 16, player1Position: "R3_M1_P1", player2Position: "R3_M1_P2", nextMatchPosition: "WINNER" }
     );
   }
-  else if (playerCount >= 9) {
-    // 9-10 player bracket (Full 4 weeks: 14, 15, 16, 17)
-    // First round (Week 14) - 2 matches
+  else if (playerCount === 9) {
+    // 9 player bracket (4 weeks: 14, 15, 16, 17)
+    // First round (Week 14) - Only 1 match (seeds 8 vs 9)
     bracket.push(
-      { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M1_P2" },
-      { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M4_P2" }
+      { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M1_P2" }
     );
     
-    // Second round (Week 15) - 4 matches (Quarterfinals)
+    // Quarterfinals (Week 15) - 4 matches
     bracket.push(
       { matchId: "R2_M1", round: 2, week: 15, player1Position: "R2_M1_P1", player2Position: "R2_M1_P2", nextMatchPosition: "R3_M1_P1" },
       { matchId: "R2_M2", round: 2, week: 15, player1Position: "R2_M2_P1", player2Position: "R2_M2_P2", nextMatchPosition: "R3_M1_P2" },
@@ -1196,13 +1195,40 @@ function createBracketForPlayerCount(playerCount: number): BracketMatch[] {
       { matchId: "R2_M4", round: 2, week: 15, player1Position: "R2_M4_P1", player2Position: "R2_M4_P2", nextMatchPosition: "R3_M2_P2" }
     );
     
-    // Semifinals (Week 16)
+    // Semifinals (Week 16) - 2 matches
     bracket.push(
       { matchId: "R3_M1", round: 3, week: 16, player1Position: "R3_M1_P1", player2Position: "R3_M1_P2", nextMatchPosition: "R4_M1_P1" },
       { matchId: "R3_M2", round: 3, week: 16, player1Position: "R3_M2_P1", player2Position: "R3_M2_P2", nextMatchPosition: "R4_M1_P2" }
     );
     
-    // Finals (Week 17)
+    // Finals (Week 17) - 1 match
+    bracket.push(
+      { matchId: "R4_M1", round: 4, week: 17, player1Position: "R4_M1_P1", player2Position: "R4_M1_P2", nextMatchPosition: "WINNER" }
+    );
+  }
+  else if (playerCount === 10) {
+    // 10 player bracket (4 weeks: 14, 15, 16, 17)
+    // First round (Week 14) - 2 matches (seeds 7-10 play in first round)
+    bracket.push(
+      { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M1_P2" },
+      { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M4_P2" }
+    );
+    
+    // Quarterfinals (Week 15) - 4 matches
+    bracket.push(
+      { matchId: "R2_M1", round: 2, week: 15, player1Position: "R2_M1_P1", player2Position: "R2_M1_P2", nextMatchPosition: "R3_M1_P1" },
+      { matchId: "R2_M2", round: 2, week: 15, player1Position: "R2_M2_P1", player2Position: "R2_M2_P2", nextMatchPosition: "R3_M1_P2" },
+      { matchId: "R2_M3", round: 2, week: 15, player1Position: "R2_M3_P1", player2Position: "R2_M3_P2", nextMatchPosition: "R3_M2_P1" },
+      { matchId: "R2_M4", round: 2, week: 15, player1Position: "R2_M4_P1", player2Position: "R2_M4_P2", nextMatchPosition: "R3_M2_P2" }
+    );
+    
+    // Semifinals (Week 16) - 2 matches
+    bracket.push(
+      { matchId: "R3_M1", round: 3, week: 16, player1Position: "R3_M1_P1", player2Position: "R3_M1_P2", nextMatchPosition: "R4_M1_P1" },
+      { matchId: "R3_M2", round: 3, week: 16, player1Position: "R3_M2_P1", player2Position: "R3_M2_P2", nextMatchPosition: "R4_M1_P2" }
+    );
+    
+    // Finals (Week 17) - 1 match
     bracket.push(
       { matchId: "R4_M1", round: 4, week: 17, player1Position: "R4_M1_P1", player2Position: "R4_M1_P2", nextMatchPosition: "WINNER" }
     );
@@ -1286,18 +1312,18 @@ function getInitialPosition(seed: number, totalPlayers: number): string {
   }
 
   // 7-player bracket positions
-  if (totalPlayers === 7) {
-    switch(seed) {
-      case 1: return "R2_M1_P2"; // Seed 1 has a bye in Week 14
-      case 2: return "R2_M2_P2"; // Seed 2 has a bye in Week 14
-      case 3: return "R1_M1_P1"; // Seed 3 plays in Week 14
-      case 4: return "R1_M2_P1"; // Seed 4 plays in Week 14
-      case 5: return "R1_M2_P2"; // Seed 5 plays in Week 14
-      case 6: return "R1_M3_P1"; // Seed 6 plays in Week 14
-      case 7: return "R1_M3_P2"; // Seed 7 plays in Week 14
-      default: return "";
-    }
+if (totalPlayers === 7) {
+  switch(seed) {
+    case 1: return "R2_M1_P1"; // Seed 1 has a bye in Week 14
+    case 2: return "R1_M1_P1"; // Seed 2 plays in Week 14
+    case 3: return "R1_M3_P1"; // Seed 3 plays in Week 14
+    case 4: return "R1_M2_P1"; // Seed 4 plays in Week 14
+    case 5: return "R1_M2_P2"; // Seed 5 plays in Week 14
+    case 6: return "R1_M3_P2"; // Seed 6 plays in Week 14
+    case 7: return "R1_M1_P2"; // Seed 7 plays in Week 14
+    default: return "";
   }
+}
 
   // 8-player bracket positions (quarterfinals)
   if (totalPlayers === 8) {
@@ -1354,12 +1380,12 @@ function getInitialPosition(seed: number, totalPlayers: number): string {
 function hasByeForSeed(seed: number, totalPlayers: number): boolean {
   // For 10 players: Seeds 1-6 have byes in Week 14
   if (totalPlayers === 10) {
-    return seed <= 4;
+    return seed <= 6;
   }
   
-  // For 9 players: Seeds 1-4 have byes
+  // For 9 players: Seeds 1-7 have byes
   if (totalPlayers === 9) {
-    return seed <= 4;
+    return seed <= 7;
   }
   
   // For 8 players: No byes - all play in quarterfinals
@@ -1367,9 +1393,9 @@ function hasByeForSeed(seed: number, totalPlayers: number): boolean {
     return false;
   }
   
-  // For 7 players: Seeds 1-2 have byes
+  // For 7 players: Only seed 1 has a bye
   if (totalPlayers === 7) {
-    return seed <= 2;
+    return seed === 1;
   }
   
   // For 6 players: Seeds 1-2 have byes

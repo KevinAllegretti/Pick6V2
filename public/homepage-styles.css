@@ -5634,7 +5634,7 @@ text-align: center;
   display: flex !important;
   flex-wrap: nowrap !important;
   min-width: max-content !important;
-  gap: 50px !important;
+  gap: 20px !important;
   width: max-content !important;
 }
 
@@ -5643,7 +5643,7 @@ text-align: center;
   display: flex !important;
   flex-wrap: nowrap !important;
   min-width: max-content !important;
-  gap: 50px !important;
+  gap: 5px !important;
   width: max-content !important;
 }
 
