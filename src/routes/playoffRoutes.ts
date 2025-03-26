@@ -1462,12 +1462,12 @@ function createBracketForPlayerCount(playerCount: number): BracketMatch[] {
   // Create bracket structure for 7 players
   else if (playerCount === 7) {
     // First round (Week 14) - 3 matches with seed 1 getting a bye
-    bracket.push(
-      { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M1_P2" },
-      { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M2_P1" },
-      { matchId: "R1_M3", round: 1, week: 14, player1Position: "R1_M3_P1", player2Position: "R1_M3_P2", nextMatchPosition: "R2_M2_P2" }
-    );
-    
+// First round (Week 14) - 3 matches with seed 1 getting a bye
+bracket.push(
+  { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M2_P1" },
+  { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M2_P2" },
+  { matchId: "R1_M3", round: 1, week: 14, player1Position: "R1_M3_P1", player2Position: "R1_M3_P2", nextMatchPosition: "R2_M1_P2" }
+);
     // Semifinals (Week 15) - 2 matches (seed 1 enters here)
     bracket.push(
       { matchId: "R2_M1", round: 2, week: 15, player1Position: "R2_M1_P1", player2Position: "R2_M1_P2", nextMatchPosition: "R3_M1_P1" },
@@ -1482,12 +1482,13 @@ function createBracketForPlayerCount(playerCount: number): BracketMatch[] {
   else if (playerCount === 8) {
     // 8 player bracket (3 weeks: 14, 15, 16)
     // First round (Week 14) - Quarterfinals - 4 matches
-    bracket.push(
-      { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M1_P1" },
-      { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M1_P2" },
-      { matchId: "R1_M3", round: 1, week: 14, player1Position: "R1_M3_P1", player2Position: "R1_M3_P2", nextMatchPosition: "R2_M2_P1" },
-      { matchId: "R1_M4", round: 1, week: 14, player1Position: "R1_M4_P1", player2Position: "R1_M4_P2", nextMatchPosition: "R2_M2_P2" }
-    );
+// First round (Week 14) - Quarterfinals - 4 matches
+bracket.push(
+  { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M1_P1" },
+  { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M1_P2" },
+  { matchId: "R1_M3", round: 1, week: 14, player1Position: "R1_M3_P1", player2Position: "R1_M3_P2", nextMatchPosition: "R2_M2_P1" },
+  { matchId: "R1_M4", round: 1, week: 14, player1Position: "R1_M4_P1", player2Position: "R1_M4_P2", nextMatchPosition: "R2_M2_P2" }
+);
     
     // Semifinals (Week 15) - 2 matches
     bracket.push(
@@ -1503,17 +1504,18 @@ function createBracketForPlayerCount(playerCount: number): BracketMatch[] {
   else if (playerCount === 9) {
     // 9 player bracket (4 weeks: 14, 15, 16, 17)
     // First round (Week 14) - Only 1 match (seeds 8 vs 9)
-    bracket.push(
-      { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M1_P2" }
-    );
-    
-    // Quarterfinals (Week 15) - 4 matches
-    bracket.push(
-      { matchId: "R2_M1", round: 2, week: 15, player1Position: "R2_M1_P1", player2Position: "R2_M1_P2", nextMatchPosition: "R3_M1_P1" },
-      { matchId: "R2_M2", round: 2, week: 15, player1Position: "R2_M2_P1", player2Position: "R2_M2_P2", nextMatchPosition: "R3_M1_P2" },
-      { matchId: "R2_M3", round: 2, week: 15, player1Position: "R2_M3_P1", player2Position: "R2_M3_P2", nextMatchPosition: "R3_M2_P1" },
-      { matchId: "R2_M4", round: 2, week: 15, player1Position: "R2_M4_P1", player2Position: "R2_M4_P2", nextMatchPosition: "R3_M2_P2" }
-    );
+  // First round (Week 14) - Only 1 match (seeds 8 vs 9)
+bracket.push(
+  { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M1_P2" }
+);
+
+// Quarterfinals (Week 15) - 4 matches
+bracket.push(
+  { matchId: "R2_M1", round: 2, week: 15, player1Position: "R2_M1_P1", player2Position: "R2_M1_P2", nextMatchPosition: "R3_M1_P1" },
+  { matchId: "R2_M2", round: 2, week: 15, player1Position: "R2_M2_P1", player2Position: "R2_M2_P2", nextMatchPosition: "R3_M1_P2" },
+  { matchId: "R2_M3", round: 2, week: 15, player1Position: "R2_M3_P1", player2Position: "R2_M3_P2", nextMatchPosition: "R3_M2_P1" },
+  { matchId: "R2_M4", round: 2, week: 15, player1Position: "R2_M4_P1", player2Position: "R2_M4_P2", nextMatchPosition: "R3_M2_P2" }
+);
     
     // Semifinals (Week 16) - 2 matches
     bracket.push(
@@ -1529,10 +1531,11 @@ function createBracketForPlayerCount(playerCount: number): BracketMatch[] {
   else if (playerCount === 10) {
     // 10 player bracket (4 weeks: 14, 15, 16, 17)
     // First round (Week 14) - 2 matches (seeds 7-10 play in first round)
-    bracket.push(
-      { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M1_P2" },
-      { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M4_P2" }
-    );
+   // First round (Week 14) - 2 matches (seeds 7-10 play in first round)
+bracket.push(
+  { matchId: "R1_M1", round: 1, week: 14, player1Position: "R1_M1_P1", player2Position: "R1_M1_P2", nextMatchPosition: "R2_M1_P2" },
+  { matchId: "R1_M2", round: 1, week: 14, player1Position: "R1_M2_P1", player2Position: "R1_M2_P2", nextMatchPosition: "R2_M4_P2" }
+);
     
     // Quarterfinals (Week 15) - 4 matches
     bracket.push(
@@ -1632,66 +1635,71 @@ function getInitialPosition(seed: number, totalPlayers: number): string {
   }
 
   // 7-player bracket positions
+// 7-player bracket positions
+// 7-player bracket positions
 if (totalPlayers === 7) {
   switch(seed) {
     case 1: return "R2_M1_P1"; // Seed 1 has a bye in Week 14
-    case 2: return "R1_M1_P1"; // Seed 2 plays in Week 14
-    case 3: return "R1_M3_P1"; // Seed 3 plays in Week 14
-    case 4: return "R1_M2_P1"; // Seed 4 plays in Week 14
-    case 5: return "R1_M2_P2"; // Seed 5 plays in Week 14
-    case 6: return "R1_M3_P2"; // Seed 6 plays in Week 14
-    case 7: return "R1_M1_P2"; // Seed 7 plays in Week 14
+    case 2: return "R1_M1_P1"; // Seed 2 plays Seed 7
+    case 7: return "R1_M1_P2"; // Seed 7 plays Seed 2
+    case 3: return "R1_M2_P1"; // Seed 3 plays Seed 6
+    case 6: return "R1_M2_P2"; // Seed 6 plays Seed 3
+    case 4: return "R1_M3_P1"; // Seed 4 plays Seed 5
+    case 5: return "R1_M3_P2"; // Seed 5 plays Seed 4
     default: return "";
   }
 }
 
   // 8-player bracket positions (quarterfinals)
-  if (totalPlayers === 8) {
-    switch(seed) {
-      case 1: return "R1_M1_P1"; // Seed 1 plays in Week 14
-      case 2: return "R1_M4_P1"; // Seed 2 plays in Week 14
-      case 3: return "R1_M2_P1"; // Seed 3 plays in Week 14
-      case 4: return "R1_M3_P1"; // Seed 4 plays in Week 14
-      case 5: return "R1_M3_P2"; // Seed 5 plays in Week 14
-      case 6: return "R1_M2_P2"; // Seed 6 plays in Week 14
-      case 7: return "R1_M4_P2"; // Seed 7 plays in Week 14
-      case 8: return "R1_M1_P2"; // Seed 8 plays in Week 14
-      default: return "";
-    }
+// 8-player bracket positions
+if (totalPlayers === 8) {
+  switch(seed) {
+    case 1: return "R1_M1_P1"; // Seed 1 plays seed 8 in Week 14
+    case 8: return "R1_M1_P2"; // Seed 8 plays seed 1 in Week 14
+    case 4: return "R1_M2_P1"; // Seed 4 plays seed 5 in Week 14
+    case 5: return "R1_M2_P2"; // Seed 5 plays seed 4 in Week 14
+    case 3: return "R1_M3_P1"; // Seed 3 plays seed 6 in Week 14
+    case 6: return "R1_M3_P2"; // Seed 6 plays seed 3 in Week 14
+    case 2: return "R1_M4_P1"; // Seed 2 plays seed 7 in Week 14
+    case 7: return "R1_M4_P2"; // Seed 7 plays seed 2 in Week 14
+    default: return "";
   }
+}
 
   // 9-10 player bracket (follow original logic)
   // More complex seeding with First Round and Quarterfinals
-  if (totalPlayers === 9) {
-    switch(seed) {
-      case 1: return "R2_M1_P1"; // Seed 1 has a bye in Week 14
-      case 2: return "R2_M4_P1"; // Seed 2 has a bye in Week 14
-      case 3: return "R2_M2_P1"; // Seed 3 has a bye in Week 14
-      case 4: return "R2_M3_P1"; // Seed 4 has a bye in Week 14
-      case 5: return "R2_M3_P2"; // Seed 5 plays Seed 4 in Week 15
-      case 6: return "R2_M2_P2"; // Seed 6 plays Seed 3 in Week 15
-      case 7: return "R1_M1_P1"; // Seed 7 plays Week 14 vs 8
-      case 8: return "R1_M1_P2"; // Seed 8 plays Week 14 vs 7
-      case 9: return "R1_M2_P1"; // Seed 9 plays Week 14 (gets a bye in second match)
-      default: return "";
-    }
+ // 9-player bracket positions
+if (totalPlayers === 9) {
+  switch(seed) {
+    case 1: return "R2_M1_P1"; // Seed 1 has a bye in Week 14
+    case 8: return "R1_M1_P1"; // Seed 8 plays in Week 14 vs 9
+    case 9: return "R1_M1_P2"; // Seed 9 plays in Week 14 vs 8
+    case 4: return "R2_M2_P1"; // Seed 4 has a bye in Week 14
+    case 5: return "R2_M2_P2"; // Seed 5 has a bye in Week 14
+    case 2: return "R2_M3_P1"; // Seed 2 has a bye in Week 14
+    case 7: return "R2_M3_P2"; // Seed 7 has a bye in Week 14
+    case 3: return "R2_M4_P1"; // Seed 3 has a bye in Week 14
+    case 6: return "R2_M4_P2"; // Seed 6 has a bye in Week 14
+    default: return "";
   }
+}
 
-  if (totalPlayers === 10) {
-    switch(seed) {
-      case 1: return "R2_M1_P1"; // Seed 1 has a bye in Week 14
-      case 2: return "R2_M4_P1"; // Seed 2 has a bye in Week 14
-      case 3: return "R2_M2_P1"; // Seed 3 has a bye in Week 14
-      case 4: return "R2_M3_P1"; // Seed 4 has a bye in Week 14
-      case 5: return "R2_M3_P2"; // Seed 5 plays Seed 4 in Week 15
-      case 6: return "R2_M2_P2"; // Seed 6 plays Seed 3 in Week 15
-      case 7: return "R1_M2_P1"; // Seed 7 plays in Week 14 vs 10
-      case 8: return "R1_M1_P1"; // Seed 8 plays in Week 14 vs 9
-      case 9: return "R1_M1_P2"; // Seed 9 plays in Week 14 vs 8
-      case 10: return "R1_M2_P2"; // Seed 10 plays in Week 14 vs 7
-      default: return "";
-    }
+// 10-player bracket positions
+if (totalPlayers === 10) {
+  switch(seed) {
+    case 1: return "R2_M1_P1"; // Seed 1 has a bye in Week 14
+    case 8: return "R1_M1_P1"; // Seed 8 plays in Week 14 vs 9
+    case 9: return "R1_M1_P2"; // Seed 9 plays in Week 14 vs 8
+    case 4: return "R2_M2_P1"; // Seed 4 has a bye in Week 14
+    case 5: return "R2_M2_P2"; // Seed 5 has a bye in Week 14
+    case 3: return "R2_M3_P1"; // Seed 3 has a bye in Week 14
+    case 6: return "R2_M3_P2"; // Seed 6 has a bye in Week 14
+    case 2: return "R2_M4_P1"; // Seed 2 has a bye in Week 14
+    case 7: return "R1_M2_P1"; // Seed 7 plays in Week 14 vs 10
+    case 10: return "R1_M2_P2"; // Seed 10 plays in Week 14 vs 7
+    default: return "";
   }
+}
 
   return "";
 }

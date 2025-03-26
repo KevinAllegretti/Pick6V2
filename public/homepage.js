@@ -6878,14 +6878,7 @@ function createMatchElement(match, poolName, champion, currentWeek, isLastWeek) 
       playerSlot.appendChild(byeBadge);
     }
     
-    // Add champion crown if this player is the champion
-    if (isChampion) {
-      const championIcon = document.createElement('div');
-      championIcon.className = 'player-status champion-icon';
-      championIcon.innerHTML = `<i class="fas fa-crown"></i>`;
-      playerSlot.appendChild(championIcon);
-    }
-    
+
     // Add click handler to show picks
     playerSlot.addEventListener('click', () => {
       showPlayerPicks(player, poolName);
