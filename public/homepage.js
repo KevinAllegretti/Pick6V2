@@ -17,8 +17,344 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Failed to fetch results:', error));
     }, 3000); // Delay for load time
 })
+// Add this script at the end of your homepage.html file (right before the closing </body> tag)
+// This code is guaranteed to run after the page loads
 
-
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM fully loaded, attaching pool form fix...');
+    
+    // Handle tab switching between create and join pool forms
+    setupTabSwitching();
+    
+    // Get the create pool form
+    const createPoolForm = document.getElementById('create-pool-form');
+    
+    if (createPoolForm) {
+      console.log('Found create pool form, attaching submit handler...');
+      
+      // Prevent default submission
+      createPoolForm.setAttribute('onsubmit', 'return false;');
+      
+      // Clear any existing event handlers
+      const newForm = createPoolForm.cloneNode(true);
+      createPoolForm.parentNode.replaceChild(newForm, createPoolForm);
+      
+      // Get the submit button
+      const submitBtn = newForm.querySelector('.submit-btn');
+      if (submitBtn) {
+        console.log('Found submit button, attaching click handler...');
+        
+        // Add click handler to the submit button
+        submitBtn.addEventListener('click', async function(e) {
+          console.log('Submit button clicked, processing form...');
+          e.preventDefault();
+          
+          // Get form values
+          const poolName = newForm.querySelector('input[type="text"]').value.trim();
+          const poolPassword = newForm.querySelector('input[type="password"]')?.value;
+          
+          // Validation
+          if (!poolName) {
+            alert('Please enter a pool name');
+            return;
+          }
+          
+          console.log('Form data valid, preparing submission...');
+          
+          // Get privacy setting
+          const privacyBtn = document.getElementById('privacy-btn');
+          const isPrivate = privacyBtn && privacyBtn.classList.contains('private');
+          
+          // Get mode setting
+          const activeMode = document.querySelector('.mode-card.active');
+          const selectedMode = activeMode ? activeMode.dataset.mode : 'classic';
+          
+          // Get hasPlayoffs setting (only applicable for classic mode)
+          const hasPlayoffsCheckbox = document.getElementById('hasPlayoffs');
+          const hasPlayoffs = hasPlayoffsCheckbox && hasPlayoffsCheckbox.checked;
+          
+          // Get username from local storage
+          const username = localStorage.getItem('username');
+          if (!username) {
+            alert('Username not found. Please log in again.');
+            return;
+          }
+          
+          console.log('Submitting pool data:', {
+            name: poolName,
+            isPrivate,
+            mode: selectedMode,
+            hasPlayoffs: selectedMode === 'classic' ? hasPlayoffs : false
+          });
+          
+          // Prepare request payload
+          const payload = {
+            name: poolName,
+            isPrivate,
+            adminUsername: username.toLowerCase(),
+            mode: selectedMode,
+            hasPlayoffs: selectedMode === 'classic' ? hasPlayoffs : false
+          };
+          
+          // Add password if private
+          if (isPrivate && poolPassword) {
+            payload.password = poolPassword;
+          }
+          
+          try {
+            console.log('Sending fetch request to create pool...');
+            const response = await fetch('/pools/create', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(payload)
+            });
+            
+            console.log('Received response:', response.status);
+            
+            // Check for HTTP error responses
+            if (!response.ok) {
+              if (response.status === 409) {
+                throw new Error('The pool name is already taken. Please choose another name.');
+              }
+              throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('Response data:', data);
+            
+            if (data.message && data.pool) {
+              // Show success message
+              console.log('Pool created successfully!');
+              alert('Pool created successfully!');
+              
+              // Force page reload AFTER the alert is closed
+              window.location.reload();
+            } else {
+              alert('Unexpected response from server.');
+            }
+          } catch (error) {
+            console.error('Error creating pool:', error);
+            alert(error.message || 'An error occurred while creating the pool.');
+          }
+        });
+        
+        console.log('Submit handler attached successfully!');
+      } else {
+        console.error('Submit button not found in form');
+      }
+    } else {
+      console.error('Create pool form not found in DOM');
+    }
+    
+    // Get the join pool form
+    const joinPoolForm = document.getElementById('join-pool-form');
+    if (joinPoolForm) {
+      // Handle join pool form submission
+      joinPoolForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const poolNameInput = joinPoolForm.querySelector('input[type="text"]');
+        const passwordInput = joinPoolForm.querySelector('input[type="password"]');
+        const poolName = poolNameInput.value.trim();
+        const poolPassword = passwordInput ? passwordInput.value : '';
+        
+        if (!poolName) {
+          alert('Please enter a pool name');
+          return;
+        }
+        
+        const currentUsername = localStorage.getItem('username');
+        if (!currentUsername) {
+          alert('You must be logged in to join a pool.');
+          return;
+        }
+        
+        const joinPayload = {
+          poolName: poolName,
+          username: currentUsername.toLowerCase(),
+          poolPassword: poolPassword
+        };
+        
+        try {
+          const response = await fetch('/pools/joinByName', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(joinPayload)
+          });
+          
+          if (!response.ok) {
+            if (response.status === 404) {
+              throw new Error('Pool not found');
+            } else if (response.status === 401) {
+              throw new Error('Incorrect password');
+            } else {
+              throw new Error(`Network response was not ok ${response.statusText}`);
+            }
+          }
+          
+          const data = await response.json();
+          alert('You have joined the pool successfully!');
+          window.location.reload();
+        } catch (error) {
+          console.error('Error joining pool:', error);
+          alert(`Error: ${error.message || 'An error occurred while attempting to join the pool.'}`);
+        }
+      });
+    }
+    
+    // Also set up privacy toggle and mode selection
+    setupFormInteractivity();
+  });
+  
+  // Set up tab switching between create pool and join pool
+  function setupTabSwitching() {
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        // Remove active class from all tab buttons
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        
+        // Hide all tab contents
+        tabContents.forEach(content => content.classList.add('hidden'));
+        
+        // Add active class to clicked button
+        button.classList.add('active');
+        
+        // Show corresponding tab content
+        const tabId = button.dataset.tab;
+        const tabContent = document.getElementById(`${tabId}-pool-content`);
+        if (tabContent) {
+          tabContent.classList.remove('hidden');
+        }
+      });
+    });
+  }
+  
+  // Set up interactive elements for the form
+  function setupFormInteractivity() {
+    // Privacy toggle
+    const privacyBtn = document.getElementById('privacy-btn');
+    const passwordGroup = document.querySelector('.password-group');
+    
+    if (privacyBtn && passwordGroup) {
+      privacyBtn.addEventListener('click', () => {
+        const isPrivate = privacyBtn.classList.contains('private');
+        
+        if (isPrivate) {
+          // Currently private, switching to public
+          privacyBtn.classList.remove('private');
+          passwordGroup.classList.add('hidden');
+          
+          const icon = privacyBtn.querySelector('i');
+          const text = privacyBtn.querySelector('span');
+          
+          if (icon) icon.className = 'icon-unlock';
+          if (text) text.textContent = 'Public';
+        } else {
+          // Currently public, switching to private
+          privacyBtn.classList.add('private');
+          passwordGroup.classList.remove('hidden');
+          
+          const icon = privacyBtn.querySelector('i');
+          const text = privacyBtn.querySelector('span');
+          
+          if (icon) icon.className = 'icon-lock';
+          if (text) text.textContent = 'Private';
+        }
+      });
+    }
+    
+    // Mode selection
+    const modeCards = document.querySelectorAll('.mode-card');
+    const playoffsToggle = document.getElementById('playoffs-toggle');
+    
+    if (modeCards.length && playoffsToggle) {
+      modeCards.forEach(card => {
+        card.addEventListener('click', () => {
+          // Remove active class from all cards
+          modeCards.forEach(c => c.classList.remove('active'));
+          
+          // Add active class to clicked card
+          card.classList.add('active');
+          
+          // Show/hide playoffs toggle based on mode
+          if (card.dataset.mode === 'classic') {
+            playoffsToggle.classList.remove('hidden');
+          } else {
+            playoffsToggle.classList.add('hidden');
+            // Reset checkbox when switching away from classic
+            const checkbox = document.getElementById('hasPlayoffs');
+            if (checkbox) checkbox.checked = false;
+          }
+        });
+      });
+    }
+  }
+// This standalone script fixes the privacy toggle to properly show/hide the password field
+(function() {
+    // Function runs immediately when added to the page
+    function fixPrivacyToggle() {
+      // Get required elements
+      const privacyBtn = document.getElementById('privacy-btn');
+      const passwordGroup = document.querySelector('.password-group');
+      
+      if (!privacyBtn || !passwordGroup) {
+        console.error('Privacy button or password group not found');
+        return;
+      }
+      
+      // Replace the existing click handler completely
+      privacyBtn.onclick = function(e) {
+        e.preventDefault();
+        
+        // Toggle the private class
+        const wasPrivate = privacyBtn.classList.contains('private');
+        
+        if (wasPrivate) {
+          // Switching from private to public
+          privacyBtn.classList.remove('private');
+          passwordGroup.classList.add('hidden');
+          
+          // Update icon and text
+          const icon = privacyBtn.querySelector('i');
+          const text = privacyBtn.querySelector('span');
+          
+          if (icon) icon.className = 'icon-unlock';
+          if (text) text.textContent = 'Public';
+        } else {
+          // Switching from public to private
+          privacyBtn.classList.add('private');
+          passwordGroup.classList.remove('hidden');
+          
+          // Update icon and text
+          const icon = privacyBtn.querySelector('i');
+          const text = privacyBtn.querySelector('span');
+          
+          if (icon) icon.className = 'icon-lock';
+          if (text) text.textContent = 'Private';
+        }
+      };
+    }
+    
+    // Run the fix when DOM is loaded
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fixPrivacyToggle);
+    } else {
+      // DOM is already loaded, run immediately
+      fixPrivacyToggle();
+    }
+  })();
+  // Also run it immediately in case the DOM is already loaded
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    console.log('Document already loaded, fixing privacy toggle immediately...');
+    fixPrivacyToggle();
+  }
 // JavaScript to toggle the playoffs checkbox based on selected mode
 document.addEventListener('DOMContentLoaded', function() {
     const modeCards = document.querySelectorAll('.mode-card');
@@ -46,6 +382,444 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// =============================================
+// ========== POOL MANAGEMENT =================
+// =============================================
+
+/**
+ * Set up pool form listeners
+ */
+function setupPoolFormListeners() {
+    // Join pool form
+    setupJoinPoolForm();
+    
+    // Create pool form
+    setupCreatePoolForm();
+  }
+  
+  /**
+   * Set up join pool form
+   */
+  function setupJoinPoolForm() {
+    const joinPoolForm = document.getElementById('join-pool-form-container');
+    const toggleJoinFormButton = document.getElementById('show-join-pool-form');
+    
+    if (joinPoolForm && toggleJoinFormButton) {
+      // Initially hide the join pool form
+      joinPoolForm.style.display = 'none';
+      
+      // Toggle the form display on button click
+      toggleJoinFormButton.addEventListener('click', function() {
+        if (joinPoolForm.style.display === 'none') {
+          joinPoolForm.style.display = 'block';
+          this.textContent = 'Go Back';
+        } else {
+          joinPoolForm.style.display = 'none';
+          this.textContent = 'Join Pool';
+        }
+      });
+      
+      // Join pool form submission
+      joinPoolForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        const poolNameInput = document.getElementById('pool-name2');
+        const passwordInput = document.getElementById('join-password');
+        const poolName = poolNameInput.value;
+        const poolPassword = passwordInput.value;
+        const currentUsername = localStorage.getItem('username').toLowerCase();
+        
+        if (!currentUsername) {
+          alert('You must be logged in to join a pool.');
+          return;
+        }
+        
+        const joinPayload = {
+          poolName: poolName,
+          username: currentUsername,
+          poolPassword: poolPassword
+        };
+        
+        // Make API request to join pool
+        fetch('/pools/joinByName', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(joinPayload)
+        })
+        .then(response => {
+          console.log(`Received response with status: ${response.status}`);
+          if (!response.ok) {
+            if (response.status === 404) {
+              throw new Error('Pool not found');
+            } else if (response.status === 401) {
+              throw new Error('Incorrect password');
+            } else {
+              throw new Error(`Network response was not ok ${response.statusText}`);
+            }
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Server response:', data);
+          alert('You have joined the pool successfully!');
+          window.location.reload();
+        })
+        .catch(error => {
+          console.error('Error joining pool:', error);
+          alert(`Error: ${error.message || 'An error occurred while attempting to join the pool.'}`);
+        });
+      });
+    }
+  }
+  
+// Replace your existing setupCreatePoolForm function with this enhanced version
+function setupCreatePoolForm() {
+    console.log('Setting up create pool form...');
+    const createPoolForm = document.getElementById('create-pool-form');
+    
+    if (!createPoolForm) {
+      console.error('Create pool form not found in the DOM');
+      return;
+    }
+    
+    console.log('Create pool form found, attaching event listener');
+    
+    // Remove any existing event listeners first
+    const newForm = createPoolForm.cloneNode(true);
+    createPoolForm.parentNode.replaceChild(newForm, createPoolForm);
+    
+    // Add event listener to the new form clone
+    newForm.addEventListener('submit', async function(e) {
+      console.log('Form submit event triggered');
+      e.preventDefault();
+      console.log('Default form submission prevented');
+      
+      try {
+        // Get form values
+        const poolName = this.querySelector('input[type="text"]').value.trim();
+        const poolPasswordInput = this.querySelector('input[type="password"]');
+        const poolPassword = poolPasswordInput ? poolPasswordInput.value : '';
+        
+        console.log('Form values: ', { poolName, hasPassword: !!poolPassword });
+        
+        // Get privacy setting
+        const privacyBtn = document.getElementById('privacy-btn');
+        const isPrivate = privacyBtn && privacyBtn.classList.contains('private');
+        console.log('Privacy setting:', isPrivate);
+        
+        // Get mode setting
+        const activeMode = document.querySelector('.mode-card.active');
+        const selectedMode = activeMode ? activeMode.dataset.mode : 'classic';
+        console.log('Selected mode:', selectedMode);
+        
+        // Get hasPlayoffs setting (only applicable for classic mode)
+        const hasPlayoffsCheckbox = document.getElementById('hasPlayoffs');
+        const hasPlayoffs = hasPlayoffsCheckbox && hasPlayoffsCheckbox.checked;
+        console.log('Has playoffs:', hasPlayoffs);
+        
+        // Get username from local storage
+        const username = localStorage.getItem('username');
+        if (!username) {
+          console.error('Username not found in localStorage');
+          alert('Username not found. Please log in again.');
+          return;
+        }
+        console.log('Username from localStorage:', username);
+        
+        // Prepare request payload
+        const payload = {
+          name: poolName,
+          isPrivate,
+          adminUsername: username.toLowerCase(),
+          mode: selectedMode,
+          hasPlayoffs: selectedMode === 'classic' ? hasPlayoffs : false
+        };
+        
+        // Add password if private
+        if (isPrivate && poolPassword) {
+          payload.password = poolPassword;
+        }
+        
+        console.log('Preparing to send request with payload:', JSON.stringify(payload));
+        
+        console.log('Sending POST request to /pools/create');
+        const response = await fetch('/pools/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+        
+        console.log('Response received, status:', response.status);
+        
+        // Check for HTTP error responses
+        if (!response.ok) {
+          if (response.status === 409) {
+            console.error('Pool name conflict (409)');
+            throw new Error('The pool name is already taken. Please choose another name.');
+          }
+          console.error('HTTP error:', response.status);
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        console.log('Parsing response JSON');
+        const data = await response.json();
+        console.log('Response data:', data);
+        
+        if (data.message && data.pool) {
+          // Show success message
+          console.log('Pool created successfully:', data.pool);
+          alert('Pool created successfully!');
+          
+          // Force page reload
+          console.log('Reloading page...');
+          window.location.reload();
+        } else {
+          console.error('Unexpected response structure:', data);
+          alert('Unexpected response from server.');
+        }
+      } catch (error) {
+        console.error('Error in form submission:', error);
+        alert(error.message || 'An error occurred while creating the pool.');
+      }
+    });
+    
+    console.log('Create pool form setup complete');
+    
+    // IMPORTANT: Call this function to fix the standalone button
+    fixCreatePoolButton();
+  }
+  
+  // Function to fix the standalone create pool button if it exists separately
+  function fixCreatePoolButton() {
+    const createPoolButton = document.querySelector('#create-pool-button');
+    if (createPoolButton) {
+      console.log('Found standalone create pool button, fixing it');
+      
+      // Remove existing listeners
+      const newButton = createPoolButton.cloneNode(true);
+      createPoolButton.parentNode.replaceChild(newButton, createPoolButton);
+      
+      // Add click handler that triggers form submission
+      newButton.addEventListener('click', function(e) {
+        console.log('Create pool button clicked');
+        e.preventDefault();
+        
+        const form = document.getElementById('create-pool-form');
+        if (form) {
+          console.log('Triggering form submission programmatically');
+          
+          // Create and dispatch a submit event
+          const submitEvent = new Event('submit', {
+            bubbles: true,
+            cancelable: true
+          });
+          
+          form.dispatchEvent(submitEvent);
+        } else {
+          console.error('Create pool form not found');
+        }
+      });
+    }
+  }
+  
+  // Add this function to your code to check the DOM structure
+  // Call this to diagnose what might be wrong with the form
+  function diagnoseDOMStructure() {
+    console.group('DOM Structure Diagnosis');
+    
+    // Check if the form exists
+    const form = document.getElementById('create-pool-form');
+    console.log('Create pool form exists:', !!form);
+    
+    if (form) {
+      // Log the form's HTML structure
+      console.log('Form HTML:', form.outerHTML);
+      
+      // Check if the form has an action attribute that might override our JS
+      console.log('Form action:', form.getAttribute('action'));
+      console.log('Form method:', form.getAttribute('method'));
+      
+      // Check for any submit buttons inside the form
+      const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+      console.log('Submit buttons in form:', submitButtons.length);
+      
+      submitButtons.forEach((btn, i) => {
+        console.log(`Submit button ${i+1}:`, btn.outerHTML);
+      });
+    }
+    
+    // Check for other elements with the same ID (which would be invalid HTML)
+    const allFormsWithId = document.querySelectorAll('[id="create-pool-form"]');
+    console.log('Number of elements with id="create-pool-form":', allFormsWithId.length);
+    
+    console.groupEnd();
+  }
+  
+  // Initialize the diagnostics when the page loads
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+    console.log('DOM fully loaded, running diagnostics');
+    diagnoseDOMStructure();
+    setupCreatePoolForm();
+    }, 500)
+  });
+  
+  // For immediate testing in the console
+  setTimeout(() => { console.log('Debug script loaded') }, 500);
+
+  // Wait for the DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the form element
+    const createPoolForm = document.getElementById('create-pool-form');
+    
+    if (createPoolForm) {
+      // Important: Add this line to ensure the form doesn't have an action attribute
+      createPoolForm.setAttribute('action', 'javascript:void(0);');
+      
+      // Add the submit event listener
+      createPoolForm.addEventListener('submit', function(e) {
+        // Prevent the default form submission behavior
+        e.preventDefault();
+        
+        // Get form values
+        const poolName = this.querySelector('input[type="text"]').value.trim();
+        const poolPasswordInput = this.querySelector('input[type="password"]');
+        const poolPassword = poolPasswordInput ? poolPasswordInput.value : '';
+        
+        // Get privacy setting
+        const privacyBtn = document.getElementById('privacy-btn');
+        const isPrivate = privacyBtn && privacyBtn.classList.contains('private');
+        
+        // Get mode setting
+        const activeMode = document.querySelector('.mode-card.active');
+        const selectedMode = activeMode ? activeMode.dataset.mode : 'classic';
+        
+        // Get hasPlayoffs setting (only applicable for classic mode)
+        const hasPlayoffsCheckbox = document.getElementById('hasPlayoffs');
+        const hasPlayoffs = hasPlayoffsCheckbox && hasPlayoffsCheckbox.checked;
+        
+        // Get username from local storage
+        const username = localStorage.getItem('username');
+        if (!username) {
+          alert('Username not found. Please log in again.');
+          return;
+        }
+        
+        // Prepare request payload
+        const payload = {
+          name: poolName,
+          isPrivate,
+          adminUsername: username.toLowerCase(),
+          mode: selectedMode,
+          hasPlayoffs: selectedMode === 'classic' ? hasPlayoffs : false
+        };
+        
+        // Add password if private
+        if (isPrivate && poolPassword) {
+          payload.password = poolPassword;
+        }
+        
+        // Send the fetch request
+        fetch('/pools/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        })
+        .then(response => {
+          if (!response.ok) {
+            if (response.status === 409) {
+              throw new Error('The pool name is already taken. Please choose another name.');
+            }
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.message && data.pool) {
+            // Show success message
+            alert('Pool created successfully!');
+            
+            // Force page reload AFTER the alert is closed
+            window.location.reload();
+          } else {
+            alert('Unexpected response from server.');
+          }
+        })
+        .catch(error => {
+          console.error('Error creating pool:', error);
+          alert(error.message || 'An error occurred while creating the pool.');
+        });
+      });
+    }
+    
+    // Add this code to address the tab switching
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.add('hidden'));
+        
+        button.classList.add('active');
+        const tabId = button.dataset.tab;
+        document.getElementById(`${tabId}-pool-content`).classList.remove('hidden');
+      });
+    });
+    
+    // Mode Selection
+    const modeCards = document.querySelectorAll('.mode-card');
+    modeCards.forEach(card => {
+      card.addEventListener('click', () => {
+        modeCards.forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        
+        // Update playoffs toggle visibility
+        const playoffsToggle = document.getElementById('playoffs-toggle');
+        if (playoffsToggle) {
+          if (card.dataset.mode === 'classic') {
+            playoffsToggle.classList.remove('hidden');
+          } else {
+            playoffsToggle.classList.add('hidden');
+            // Reset checkbox when switching away from classic
+            const checkbox = document.getElementById('hasPlayoffs');
+            if (checkbox) checkbox.checked = false;
+          }
+        }
+      });
+    });
+    
+    // Privacy Toggle
+    const privacyBtn = document.getElementById('privacy-btn');
+    const passwordGroup = document.querySelector('.password-group');
+    
+    if (privacyBtn && passwordGroup) {
+      privacyBtn.addEventListener('click', () => {
+        const isPrivate = privacyBtn.classList.contains('private');
+        
+        privacyBtn.classList.toggle('private');
+        passwordGroup.classList.toggle('hidden');
+        
+        const icon = privacyBtn.querySelector('i');
+        const text = privacyBtn.querySelector('span');
+        
+        if (!isPrivate) { // Toggling TO private
+          icon.className = 'icon-lock';
+          text.textContent = 'Private';
+        } else { // Toggling TO public
+          icon.className = 'icon-unlock';
+          text.textContent = 'Public';
+        }
+      });
+    }
+  });
 
 function updateCurrentWeekDisplay() {
     const weekDisplay = document.getElementById('currentWeekDisplay');
@@ -3252,101 +4026,14 @@ function displayPlayoffPool(pool) {
     }, 100);
 
 
-// Add this code to initialize the playoffs checkbox visibility
-// 1. Make sure this code is in your DOMContentLoaded event listener
-document.addEventListener('DOMContentLoaded', function() {
-    // Add event listener for the form submission
-    const createPoolForm = document.getElementById('create-pool-form');
-    
-    if (createPoolForm) {
-        createPoolForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            // Get form values
-            const poolName = this.querySelector('input[type="text"]').value.trim();
-            const poolPassword = this.querySelector('input[type="password"]')?.value;
-            
-            // Get privacy setting
-            const privacyBtn = document.getElementById('privacy-btn');
-            const isPrivate = privacyBtn.classList.contains('private');
-            
-            // Get mode setting
-            const activeMode = document.querySelector('.mode-card.active');
-            const selectedMode = activeMode ? activeMode.dataset.mode : 'classic';
-            
-            // Get hasPlayoffs setting (only applicable for classic mode)
-            const hasPlayoffsCheckbox = document.getElementById('hasPlayoffs');
-            const hasPlayoffs = hasPlayoffsCheckbox && hasPlayoffsCheckbox.checked;
-            
-            // Get username from local storage
-            const username = localStorage.getItem('username');
-            if (!username) {
-                alert('Username not found. Please log in again.');
-                return;
-            }
-            
-            // Log what we're about to send
-            console.log('Creating pool with:', {
-                name: poolName,
-                isPrivate,
-                mode: selectedMode,
-                hasPlayoffs: hasPlayoffs,
-                adminUsername: username
-            });
-            
-            // Prepare request payload
-            const payload = {
-                name: poolName,
-                isPrivate,
-                adminUsername: username.toLowerCase(),
-                mode: selectedMode,
-                hasPlayoffs: selectedMode === 'classic' ? hasPlayoffs : false
-            };
-            
-            // Add password if private
-            if (isPrivate && poolPassword) {
-                payload.password = poolPassword;
-            }
-            
-            try {
-                const response = await fetch('/pools/create', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                // Check for HTTP error responses
-                if (!response.ok) {
-                    if (response.status === 409) {
-                        throw new Error('The pool name is already taken. Please choose another name.');
-                    }
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                // Log the response
-                console.log('Server response:', data);
-                
-                if (data.message && data.pool) {
-                    // Show success message
-                    alert('Pool created successfully!');
-                    
-                    // Force page reload
-                    window.location.reload();
-                } else {
-                    alert('Unexpected response from server.');
-                }
-            } catch (error) {
-                console.error('Error creating pool:', error);
-                alert(error.message || 'An error occurred while creating the pool.');
-            }
-        });
-    } else {
-        console.warn('Create pool form not found in the DOM');
-    }
-});
-
+    document.addEventListener('DOMContentLoaded', function() {
+        // Existing code...
+        
+        // Add this line to initialize the form listeners
+        setupPoolFormListeners();
+        
+        // Rest of your existing code...
+    });
 // Enhanced fetchPlayoffBracket function with better error handling
 async function fetchPlayoffBracket(poolName) {
     console.log(`Fetching playoff bracket for pool: ${poolName}`);
@@ -4197,7 +4884,7 @@ function rebuildUIWithResults(results) {
 }
 
 
-
+/*
 // Initialize the playoff player picks panel 
 // This function creates the panel if it doesn't exist
 function initializePlayerPicksPanel() {
@@ -4253,8 +4940,8 @@ function initializePlayerPicksPanel() {
     }
     
     return document.getElementById('playoff-player-picks-panel');
-}
-
+}*/
+/*
 // Function to show player picks when a player is clicked in the bracket
 async function showPlayerPicks(player, poolName) {
     console.log(`Showing picks for player ${player.username} in pool ${poolName}`);
@@ -4469,13 +5156,12 @@ async function showPlayerPicks(player, poolName) {
         // Still show the panel with the error
         picksPanel.classList.add('open');
     }
-}
-
-// Add CSS styles specifically for the player picks panel
+}*/
+/*
 function addPlayerPicksPanelStyles() {
     const styleElement = document.createElement('style');
     styleElement.textContent = `
-        /* Player picks panel styling */
+
         .player-picks-panel {
             position: fixed;
             top: 50%;
@@ -4649,7 +5335,6 @@ function addPlayerPicksPanelStyles() {
             box-shadow: 0 0 10px rgba(51, 217, 255, 0.3);
         }
         
-        /* Mobile responsive adjustments */
         @media (max-width: 480px) {
             .player-picks-panel {
                 width: 90vw;
@@ -4674,12 +5359,12 @@ function addPlayerPicksPanelStyles() {
         }
     `;
     document.head.appendChild(styleElement);
-}
+}*/
 
 // Initialize everything on page load
 document.addEventListener('DOMContentLoaded', function() {
     // Add the CSS styles immediately
-    addPlayerPicksPanelStyles();
+   // addPlayerPicksPanelStyles();
     
     // Initialize the panel but don't create it right away
     // It will be created on first click and then reused
@@ -4885,6 +5570,7 @@ function renderBracket(bracketData, container, poolName) {
     
   }
   
+  /*
   // Modified createMatchElement function to highlight the champion
   function createMatchElement(match, poolName, champion) {
     const matchContainer = document.createElement('div');
@@ -4919,8 +5605,8 @@ function renderBracket(bracketData, container, poolName) {
     
     matchContainer.appendChild(matchBracket);
     return matchContainer;
-  }
-  
+  }*/
+  /*
   // Modified createPlayerSlot function to highlight the champion
   function createPlayerSlot(player, winnerId, poolName, isChampion) {
     const playerSlot = document.createElement('div');
@@ -4965,7 +5651,7 @@ function renderBracket(bracketData, container, poolName) {
     });
     
     return playerSlot;
-  }
+  }*/
   
   // Simple function to create empty slot
   function createEmptySlot() {
@@ -5122,7 +5808,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function fixNewBrackets() {
     applyPlayoffBracketFixes();
   }
-
+/*
   // Updated createPlayerSlot function that avoids using conflicting class names
 function createPlayerSlot(player, winnerId, poolName, isChampion) {
     const playerSlot = document.createElement('div');
@@ -5186,7 +5872,7 @@ function createPlayerSlot(player, winnerId, poolName, isChampion) {
     });
     
     return playerSlot;
-}
+}*/
 
 // Corresponding CSS to add to your stylesheet
 // This needs to be added to your CSS file for the new class names
@@ -5366,6 +6052,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize the playoff picks panel
     initializePlayoffPicksPanel();
     
+    setupCreatePoolForm();
     // Add the new styles
     addStylesForNewClassNames();
     
@@ -5382,6 +6069,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 1000);
 });
 
+/*
 // Modified createMatchElement function to pass currentWeek to createPlayerSlot
 function createMatchElement(match, poolName, champion, currentWeek, isLastWeek) {
     const matchContainer = document.createElement('div');
@@ -5416,69 +6104,8 @@ function createMatchElement(match, poolName, champion, currentWeek, isLastWeek) 
     
     matchContainer.appendChild(matchBracket);
     return matchContainer;
-}
+}*/
 
-// Modified createPlayerSlot function to consider currentWeek and isLastWeek
-function createPlayerSlot(player, winnerId, poolName, isChampion, currentWeek, isLastWeek) {
-    const playerSlot = document.createElement('div');
-    playerSlot.className = `player-slot ${player.isAdvancing ? 'advancing' : ''} ${player.eliminated ? 'eliminated' : ''} ${isChampion ? 'championship-winner' : ''}`;
-    playerSlot.dataset.playerId = player.id;
-    playerSlot.dataset.position = player.position;
-    playerSlot.dataset.poolName = poolName;
-    
-    // Get profile pic URL - fetch from server or use default
-    const profilePicUrl = player.profilePic || 'Default.png';
-    
-    // Create the player seed element
-    const seedElement = document.createElement('div');
-    seedElement.className = 'player-seed';
-    seedElement.textContent = player.seed;
-    playerSlot.appendChild(seedElement);
-    
-    // Create profile pic element with UNIQUE CLASS NAME
-    const profilePicElement = document.createElement('div');
-    profilePicElement.className = 'playoff-profile-pic'; // Changed class name
-    profilePicElement.style.backgroundImage = `url('${profilePicUrl}')`;
-    playerSlot.appendChild(profilePicElement);
-    
-    // Create player info container
-    const playerInfoElement = document.createElement('div');
-    playerInfoElement.className = 'playoff-player-info'; // Changed class name
-    
-    // Create player name element with UNIQUE CLASS NAME
-    const playerNameElement = document.createElement('div');
-    playerNameElement.className = 'playoff-player-username'; // Changed class name
-    playerNameElement.textContent = player.username;
-    playerInfoElement.appendChild(playerNameElement);
-    
-    // Create player points element with UNIQUE CLASS NAME
-    const playerPointsElement = document.createElement('div');
-    playerPointsElement.className = 'playoff-player-score'; // Changed class name
-    playerPointsElement.textContent = `${player.points || 0} pts`;
-    playerInfoElement.appendChild(playerPointsElement);
-    
-    playerSlot.appendChild(playerInfoElement);
-    
-    // Add status indicators - Only show bye badge if:
-    // 1. Player has a bye
-    // 2. It's not the current week
-    // 3. It's not the final week of playoffs
-    if (player.hasBye && player.position && player.position.startsWith('R2_') && currentWeek !== 14 && !isLastWeek) {
-      const byeBadge = document.createElement('div');
-      byeBadge.className = 'player-status';
-      byeBadge.innerHTML = `<span class="bye-badge">BYE</span>`;
-      playerSlot.appendChild(byeBadge);
-    }
-    
-
-    
-    // Add click handler to show picks
-    playerSlot.addEventListener('click', () => {
-      showPlayerPicks(player, poolName);
-    });
-    
-    return playerSlot;
-}
 
 // Updated renderBracket function to pass currentWeek and isLastWeek to createMatchElement
 function renderBracket(bracketData, container, poolName) {
@@ -5598,379 +6225,982 @@ function createEmptySlot() {
     return emptySlot;
 }
 
-/*
 
-    // Playoff Bracket JavaScript - Compact Version
-
-// Helper function to create bracket connectors
-function createBracketConnectors(bracketData, matches, totalRounds) {
-  // Wait for DOM to be ready
-  setTimeout(() => {
-    const rounds = document.querySelectorAll(".round-column")
-    if (!rounds.length) return
-
-    // Create connector container
-    const connectorContainer = document.createElement("div")
-    connectorContainer.className = "bracket-connectors"
-    document.querySelector(".bracket-content").appendChild(connectorContainer)
-
-    // Process each match to create connectors
-    matches.forEach((match) => {
-      if (match.nextMatch && match.nextMatch !== "WINNER") {
-        // Find the current match element
-        const currentMatchEl = document.querySelector(`[data-match-id="${match.id}"]`)
-        if (!currentMatchEl) return
-
-        // Find the next match element
-        const nextMatchEl = document.querySelector(`[data-match-id="${match.nextMatch}"]`)
-        if (!nextMatchEl) return
-
-        // Get positions
-        const currentRect = currentMatchEl.getBoundingClientRect()
-        const nextRect = nextMatchEl.getBoundingClientRect()
-        const containerRect = document.querySelector(".bracket-content").getBoundingClientRect()
-
-        // Create horizontal line
-        const horizontalLine = document.createElement("div")
-        horizontalLine.className = "connector horizontal"
-
-        // Calculate positions relative to container
-        const startX = currentRect.right - containerRect.left
-        const startY = currentRect.top + currentRect.height / 2 - containerRect.top
-        const endX = nextRect.left - containerRect.left
-        const endY = nextRect.top + nextRect.height / 2 - containerRect.top
-
-        // Position horizontal line
-        horizontalLine.style.left = `${startX}px`
-        horizontalLine.style.top = `${startY}px`
-        horizontalLine.style.width = `${(endX - startX) / 2}px`
-
-        // Create vertical line if needed
-        if (Math.abs(startY - endY) > 5) {
-          const verticalLine = document.createElement("div")
-          verticalLine.className = "connector vertical"
-
-          verticalLine.style.left = `${startX + (endX - startX) / 2}px`
-          verticalLine.style.top = startY < endY ? `${startY}px` : `${endY}px`
-          verticalLine.style.height = `${Math.abs(endY - startY)}px`
-
-          connectorContainer.appendChild(verticalLine)
+  /*
+function processMatchHistory(bracketData) {
+    // Make a deep copy to avoid modifying the original data
+    const processedData = JSON.parse(JSON.stringify(bracketData));
+    const currentWeek = processedData.currentWeek;
+    
+    // For each completed match (from previous weeks), add history data
+    processedData.matches.forEach(match => {
+        // Only process matches from previous weeks that have a winner
+        if (match.week < currentWeek && match.winner) {
+            // Find the players from the members array for this match
+            const winnerMember = processedData.members.find(m => m.position === match.winner);
+            const loserMember = processedData.members.find(m => {
+                // The loser is the other player in the match
+                if (match.player1Position === match.winner) {
+                    return m.position === match.player2Position || 
+                           (m.eliminatedInWeek === match.week && 
+                            m.history && m.history.some(h => h.position === match.player2Position));
+                } else {
+                    return m.position === match.player1Position || 
+                           (m.eliminatedInWeek === match.week && 
+                            m.history && m.history.some(h => h.position === match.player1Position));
+                }
+            });
+            
+            // Find the historical data for this match from both players' history
+            let matchHistory = null;
+            
+            if (winnerMember && loserMember) {
+                // Find winner's history entry for this match
+                const winnerHistory = winnerMember.history?.find(h => 
+                    h.week === match.week && h.matchId === match.id
+                );
+                
+                // Find loser's history entry for this match
+                const loserHistory = loserMember.history?.find(h => 
+                    h.week === match.week && h.matchId === match.id
+                );
+                
+                if (winnerHistory && loserHistory) {
+                    matchHistory = {
+                        week: match.week,
+                        round: match.round,
+                        matchId: match.id,
+                        winner: {
+                            username: winnerMember.username,
+                            seed: winnerMember.seed,
+                            points: winnerHistory.points,
+                            position: winnerHistory.position
+                        },
+                        loser: {
+                            username: loserMember.username,
+                            seed: loserMember.seed,
+                            points: loserHistory.points,
+                            position: loserHistory.position
+                        }
+                    };
+                }
+            }
+            
+            // Attach history to the match
+            match.history = matchHistory;
         }
+    });
+    
+    return processedData;
+}*/
 
-        connectorContainer.appendChild(horizontalLine)
-      }
-    })
-  }, 100)
-}
 
-// Updated renderBracket function with more compact structure
-function renderBracket(bracketData, container, poolName) {
-  console.log("Rendering compact bracket with data:", bracketData)
-
-  // Clear the bracket container
-  container.innerHTML = ""
-
-  // Add main bracket container with improved styling
-  const bracketContainer = document.createElement("div")
-  bracketContainer.className = "playoff-bracket-container"
-
-  // Add playoff title
-  const playoffTitle = document.createElement("div")
-  playoffTitle.className = "playoff-title"
-  playoffTitle.innerHTML = `
-    <div class="playoff-name">PICK ${bracketData.members.length}</div>
-    <div class="playoff-week">Playoff Week ${bracketData.currentWeek - 13}</div>
-  `
-  bracketContainer.appendChild(playoffTitle)
-
-  // Create round headers
-  const roundHeadersDiv = document.createElement("div")
-  roundHeadersDiv.className = "round-headers"
-
-  bracketData.rounds.forEach((round) => {
-    const headerDiv = document.createElement("div")
-    headerDiv.className = `round-header ${round.week === bracketData.currentWeek ? "current" : ""}`
-    headerDiv.innerHTML = `
-      <div class="round-title">${round.name}</div>
-      <div class="round-week">Week ${round.week}</div>
-    `
-    roundHeadersDiv.appendChild(headerDiv)
-  })
-
-  bracketContainer.appendChild(roundHeadersDiv)
-
-  // Create bracket content
-  const bracketContent = document.createElement("div")
-  bracketContent.className = "bracket-content"
-
-  // Filter matches to only include ones for the rounds we're showing
-  const visibleWeeks = bracketData.rounds.map((r) => r.week)
-  const visibleMatches = bracketData.matches.filter((match) => visibleWeeks.includes(match.week))
-
-  // Group matches by round
-  const roundGroups = {}
-  bracketData.rounds.forEach((round) => {
-    roundGroups[round.round] = {
-      name: round.name,
-      week: round.week,
-      matches: visibleMatches.filter((match) => match.week === round.week),
-    }
-  })
-
-  // Add rounds to the bracket
-  Object.values(roundGroups)
-    .sort((a, b) => a.week - b.week)
-    .forEach((roundGroup) => {
-      const roundColumn = document.createElement("div")
-      roundColumn.className = "round-column"
-      roundColumn.dataset.round = roundGroup.week.toString()
-
-      // Sort matches by their position in the bracket
-      const sortedMatches = roundGroup.matches.sort((a, b) => {
-        const aPos = a.player1?.position || a.player2?.position || ""
-        const bPos = b.player1?.position || b.player2?.position || ""
-        return aPos.localeCompare(bPos)
-      })
-
-      // Add matches to the round
-      sortedMatches.forEach((match) => {
-        const matchCard = createMatchCard(match, poolName)
-        roundColumn.appendChild(matchCard)
-      })
-
-      bracketContent.appendChild(roundColumn)
-    })
-
-  bracketContainer.appendChild(bracketContent)
-  container.appendChild(bracketContainer)
-
-  // Add bracket connectors in a second pass
-  createBracketConnectors(bracketData, visibleMatches, bracketData.rounds.length)
-
-  console.log("Compact bracket rendered successfully")
-}
-
-// Create a match card with compact styling
-function createMatchCard(match, poolName) {
-  const matchCard = document.createElement("div")
-  matchCard.className = "matchup-card"
-  matchCard.dataset.matchId = match.id
-
-  const matchup = document.createElement("div")
-  matchup.className = "matchup"
-
-  // First player slot
-  if (match.player1) {
-    const player1Element = createPlayerSlot(match.player1, match.winner, poolName)
-    matchup.appendChild(player1Element)
-  } else {
-    matchup.appendChild(createEmptySlot())
-  }
-
-  // Second player slot
-  if (match.player2) {
-    const player2Element = createPlayerSlot(match.player2, match.winner, poolName)
-    matchup.appendChild(player2Element)
-  } else {
-    matchup.appendChild(createEmptySlot())
-  }
-
-  matchCard.appendChild(matchup)
-  return matchCard
-}
-
-// Create a player slot with compact styling
-function createPlayerSlot(player, winnerId, poolName) {
-  const playerSlot = document.createElement("div")
-  playerSlot.className = `player-slot ${player.isAdvancing ? "advancing" : ""}`
-  playerSlot.dataset.playerId = player.id
-  playerSlot.dataset.username = player.username
-
-  // Create seed number
-  const seedNumber = document.createElement("div")
-  seedNumber.className = "seed-number"
-  seedNumber.textContent = player.seed
-
-  // Create player name
-  const playerName = document.createElement("div")
-  playerName.className = "player-name"
-  playerName.textContent = player.username
-
-  // Create player record
-  const playerRecord = document.createElement("div")
-  playerRecord.className = "player-record"
-  playerRecord.textContent = `${player.win || 0}-${player.loss || 0}`
-
-  // Add elements to player slot
-  playerSlot.appendChild(seedNumber)
-  playerSlot.appendChild(playerName)
-  playerSlot.appendChild(playerRecord)
-
-  // Add click handler to show picks
-  playerSlot.addEventListener("click", () => {
-    showPlayerPicks(player, poolName)
-  })
-
-  return playerSlot
-}
-
-// Create an empty TBD slot
-function createEmptySlot() {
-  const emptySlot = document.createElement("div")
-  emptySlot.className = "tbd-slot"
-  emptySlot.textContent = "TBD"
-  return emptySlot
-}
-
-// Show player picks panel
-function showPlayerPicks(player, poolName) {
-  console.log(`Showing picks for ${player.username} in ${poolName}`)
-
-  // Check if panel exists, create if not
-  let picksPanel = document.getElementById("player-picks-panel")
-  if (!picksPanel) {
-    picksPanel = document.createElement("div")
-    picksPanel.id = "player-picks-panel"
-    picksPanel.className = "player-picks-panel"
-
-    picksPanel.innerHTML = `
-      <div class="panel-header">
-        <h3 class="panel-title"><span id="selected-player-name">${player.username}</span>'s Picks</h3>
-        <button class="close-btn">&times;</button>
-      </div>
-      <div class="player-record">
-        <div class="record-item"><span>W:</span> <span id="player-wins">0</span></div>
-        <div class="record-item"><span>L:</span> <span id="player-losses">0</span></div>
-        <div class="record-item"><span>P:</span> <span id="player-pushes">0</span></div>
-      </div>
-      <div class="picks-container"></div>
-    `
-
-    document.body.appendChild(picksPanel)
-
-    // Add close button event listener
-    picksPanel.querySelector(".close-btn").addEventListener("click", () => {
-      picksPanel.classList.remove("open")
-    })
-  } else {
-    // Update player name
-    document.getElementById("selected-player-name").textContent = player.username
-  }
-
-  // Clear existing picks
-  const picksContainer = picksPanel.querySelector(".picks-container")
-  picksContainer.innerHTML = '<div class="loading-spinner"></div>'
-
-  // Fetch player picks and update panel
-  fetchPicksForPlayoffPlayer(player.username, poolName)
-    .then((picksData) => {
-      picksContainer.innerHTML = ""
-
-      // Update record
-      document.getElementById("player-wins").textContent = player.win || "0"
-      document.getElementById("player-losses").textContent = player.loss || "0"
-      document.getElementById("player-pushes").textContent = player.push || "0"
-
-      // Display picks
-      if (picksData.picks && picksData.picks.length > 0) {
-        picksData.picks.forEach((pick) => {
-          const pickItem = document.createElement("div")
-          pickItem.className = "pick-item"
-
-          pickItem.innerHTML = `
-            <img src="${pick.teamLogo || "/images/teams/Default.png"}" alt="${pick.teamName}" class="team-logo">
-            <div class="pick-details">
-              <div class="team-name">${pick.teamName}</div>
-              <div class="line-value">${pick.value}</div>
-            </div>
-          `
-
-          picksContainer.appendChild(pickItem)
-        })
-      } else {
-        // No picks message
-        const noPicks = document.createElement("div")
-        noPicks.className = "no-picks-message"
-        noPicks.textContent = "No picks available for this player"
-        picksContainer.appendChild(noPicks)
-      }
-    })
-    .catch((error) => {
-      console.error("Error fetching picks:", error)
-      picksContainer.innerHTML = `
-        <div class="error-message">Failed to load picks</div>
-        <button class="retry-button">Retry</button>
-      `
-
-      // Add retry button event listener
-      picksContainer.querySelector(".retry-button").addEventListener("click", () => {
-        showPlayerPicks(player, poolName)
-      })
-    })
-
-  // Show the panel
-  picksPanel.classList.add("open")
-}
-
-// Fetch picks for playoff player
-async function fetchPicksForPlayoffPlayer(username, poolName) {
-  try {
-    const encodedUsername = encodeURIComponent(username)
-    const encodedPoolName = encodeURIComponent(`playoff_${poolName}`)
-    const url = `/api/getPicks/${encodedUsername}/${encodedPoolName}`
-
-    const response = await fetch(url)
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
-    return await response.json()
-  } catch (error) {
-    console.error("Error fetching playoff picks:", error)
-    return { picks: [], immortalLock: [] }
-  }
-}
-
-// Initialize bracket when DOM is loaded
-document.addEventListener("DOMContentLoaded", () => {
-  const bracketContainer = document.querySelector(".playoff-bracket-container")
-  if (bracketContainer) {
-    const poolName = bracketContainer.dataset.poolName
-    if (poolName) {
-      // Show loading state
-      bracketContainer.innerHTML = `
-        <div class="loading-container">
-          <div class="loading-spinner"></div>
-          <div class="loading-text">Loading bracket...</div>
+function createMatchHistoryElement(match) {
+    // Only create history display for completed matches
+    if (!match.history) return null;
+    
+    const historyElement = document.createElement('div');
+    historyElement.className = 'match-history';
+    
+    historyElement.innerHTML = `
+      <div class="match-history-title">Week ${match.week} Results</div>
+      <div class="match-history-score">
+        <div class="history-player ${match.history.winner.username === match.player1.username ? 'winner' : 'loser'}">
+          ${match.player1.username}: ${match.history.winner.username === match.player1.username ? 
+            match.history.winner.points : match.history.loser.points} pts
         </div>
-      `
+        <div class="match-separator">vs</div>
+        <div class="history-player ${match.history.winner.username === match.player2.username ? 'winner' : 'loser'}">
+          ${match.player2.username}: ${match.history.winner.username === match.player2.username ? 
+            match.history.winner.points : match.history.loser.points} pts
+        </div>
+      </div>
+    `;
+    
+    return historyElement;
+  }
 
-      // Fetch bracket data
-      fetch(`/api/playoffs/${encodeURIComponent(poolName)}/bracket`)
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.success && data.bracket) {
-            renderBracket(data.bracket, bracketContainer, poolName)
+  /*
+// Modified createMatchElement function to include match history
+function createMatchElement(match, poolName, champion, currentWeek, isLastWeek) {
+    const matchContainer = document.createElement('div');
+    matchContainer.className = 'match-container';
+    matchContainer.dataset.matchId = match.id;
+    
+    // Add a special class if this is the final match and we have a champion
+    if (match.nextMatch === "WINNER" && champion) {
+      matchContainer.classList.add('championship-match');
+    }
+    
+    // Add a completed match class if the match has history
+    if (match.history) {
+      matchContainer.classList.add('completed-match');
+    }
+    
+    const matchBracket = document.createElement('div');
+    matchBracket.className = 'match-bracket';
+    
+    // First player slot
+    if (match.player1) {
+      const isChampion = champion && match.player1.username === champion.username && match.nextMatch === "WINNER";
+      const player1Element = createPlayerSlot(match.player1, match.winner, poolName, isChampion, match.week);
+      matchBracket.appendChild(player1Element);
+    } else {
+      matchBracket.appendChild(createEmptySlot());
+    }
+    
+    // Second player slot
+    if (match.player2) {
+      const isChampion = champion && match.player2.username === champion.username && match.nextMatch === "WINNER";
+      const player2Element = createPlayerSlot(match.player2, match.winner, poolName, isChampion, match.week);
+      matchBracket.appendChild(player2Element);
+    } else {
+      matchBracket.appendChild(createEmptySlot());
+    }
+    
+    matchContainer.appendChild(matchBracket);
+    
+    // Add match history element if match is complete (has history)
+    // Only show history for completed matches from previous weeks
+    if (match.history && match.week < currentWeek) {
+      const historyElement = createMatchHistoryElement(match);
+      if (historyElement) {
+        matchContainer.appendChild(historyElement);
+      }
+    }
+    
+    return matchContainer;
+  }*/
+  
+  // Helper function to create the match history element
+  function createMatchHistoryElement(match) {
+    // Only create history display for completed matches
+    if (!match.history) return null;
+    
+    const historyElement = document.createElement('div');
+    historyElement.className = 'match-history';
+    
+    // Calculate which player was the winner/loser
+    const player1IsWinner = match.history.winner.position === match.player1.position;
+    const player1Score = player1IsWinner ? match.history.winner.points : match.history.loser.points;
+    const player2Score = player1IsWinner ? match.history.loser.points : match.history.winner.points;
+    
+    historyElement.innerHTML = `
+      <div class="match-history-title">Week ${match.week} Results</div>
+      <div class="match-history-score">
+        <div class="history-player ${player1IsWinner ? 'winner' : 'loser'}">
+          ${player1Score} pts
+        </div>
+        <div class="match-separator">vs</div>
+        <div class="history-player ${!player1IsWinner ? 'winner' : 'loser'}">
+          ${player2Score} pts
+        </div>
+      </div>
+    `;
+    
+    return historyElement;
+  }
+  /*
+  function processMatchHistory(bracketData) {
+    // Make a deep copy to avoid modifying the original data
+    const processedData = JSON.parse(JSON.stringify(bracketData));
+    const currentWeek = processedData.currentWeek;
+    
+    // For each completed match (from previous weeks), add history data
+    processedData.matches.forEach(match => {
+      // Only process matches from previous weeks that have a winner
+      if (match.week < currentWeek && match.winner) {
+        // Find the players from the members array for this match
+        const winnerMember = processedData.members.find(m => m.position === match.winner);
+        const loserMember = processedData.members.find(m => {
+          // The loser is the other player in the match
+          if (match.player1Position === match.winner) {
+            return m.position === match.player2Position || 
+                   (m.eliminatedInWeek === match.week && 
+                    m.history && m.history.some(h => h.position === match.player2Position));
           } else {
-            throw new Error(data.message || "Failed to load bracket data")
+            return m.position === match.player1Position || 
+                   (m.eliminatedInWeek === match.week && 
+                    m.history && m.history.some(h => h.position === match.player1Position));
           }
-        })
-        .catch((error) => {
-          console.error("Error loading bracket:", error)
-          bracketContainer.innerHTML = `
-            <div class="error-container">
-              <div class="error-message">Failed to load bracket</div>
-              <button class="retry-button">Retry</button>
-            </div>
-          `
+        });
+        
+        // Find the historical data for this match from both players' history
+        if (winnerMember && loserMember) {
+          // Find winner's history entry for this match
+          const winnerHistory = winnerMember.history?.find(h => 
+            h.week === match.week && h.matchId === match.id
+          );
+          
+          // Find loser's history entry for this match
+          const loserHistory = loserMember.history?.find(h => 
+            h.week === match.week && h.matchId === match.id
+          );
+          
+          if (winnerHistory && loserHistory) {
+            match.history = {
+              week: match.week,
+              round: match.round,
+              matchId: match.id,
+              winner: {
+                username: winnerMember.username,
+                seed: winnerMember.seed,
+                points: winnerHistory.points,
+                position: winnerHistory.position
+              },
+              loser: {
+                username: loserMember.username,
+                seed: loserMember.seed,
+                points: loserHistory.points,
+                position: loserHistory.position
+              }
+            };
+          }
+        }
+      }
+    });
+    
+    return processedData;
+  }*/
 
-          // Add retry button event listener
-          bracketContainer.querySelector(".retry-button").addEventListener("click", () => {
-            location.reload()
-          })
-        })
+
+  async function fetchPlayoffBracket(poolName) {
+    try {
+      const response = await fetch(`/api/playoffs/${encodeURIComponent(poolName)}/bracket`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch bracket data: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      if (data.success && data.bracket) {
+        // Process the data to include match history
+        const processedData = processMatchHistory(data.bracket);
+        
+        // Render the bracket with history
+        renderBracket(processedData, document.getElementById(`playoff-bracket-${poolName.replace(/\s+/g, '-')}`), poolName);
+        
+        // Update member count
+        const memberCountElement = document.getElementById(`playoffMemberCount-${poolName}`);
+        if (memberCountElement && data.bracket.members) {
+          const activeMemberCount = data.bracket.members.filter(m => !m.eliminated).length;
+          memberCountElement.textContent = `${activeMemberCount} Players Remaining`;
+        }
+      } else {
+        console.error('API returned success: false or missing bracket data');
+      }
+    } catch (error) {
+      console.error('Error fetching bracket data:', error);
     }
   }
-})
 
-*/
+  /*
+  function createPlayerSlot(player, winnerId, poolName, isChampion, week) {
+    const playerSlot = document.createElement('div');
+    playerSlot.className = `player-slot ${player.isAdvancing ? 'advancing' : ''} ${player.eliminated ? 'eliminated' : ''} ${isChampion ? 'championship-winner' : ''}`;
+    
+    // Get the points - either access points property or fall back to 0
+    const playerPoints = player.points !== undefined ? player.points : 0;
+    
+    playerSlot.innerHTML = `
+      <div class="playoff-profile-pic" style="background-image: url('${player.profilePic || 'Default.png'}')"></div>
+      <div class="player-seed">${player.seed}</div>
+      <div class="playoff-player-info">
+        <div class="playoff-player-username">${player.username}</div>
+        <div class="playoff-player-score">${playerPoints} pts</div>
+      </div>
+    `;
+    
+    // Add click handler to show picks
+    playerSlot.addEventListener('click', () => {
+      showPlayerPicks(player, poolName);
+    });
+    
+    return playerSlot;
+  }*/
+
+
+  //for historical matchups
+
+  /*
+  // Updated function to create match element with historical player information
+function createMatchElement(match, poolName, champion, currentWeek, isLastWeek) {
+    const matchContainer = document.createElement('div');
+    matchContainer.className = 'match-container';
+    matchContainer.dataset.matchId = match.id;
+    
+    // Add a special class if this is the final match and we have a champion
+    if (match.nextMatch === "WINNER" && champion) {
+      matchContainer.classList.add('championship-match');
+    }
+    
+    // Add a completed match class if the match has history
+    if (match.history) {
+      matchContainer.classList.add('completed-match');
+    }
+    
+    const matchBracket = document.createElement('div');
+    matchBracket.className = 'match-bracket';
+    
+    // First player slot
+    if (match.player1) {
+      const isChampion = champion && match.player1.username === champion.username && match.nextMatch === "WINNER";
+      
+      // For completed matches in previous weeks, try to get the historical data
+      let historicalData = null;
+      if (match.week < currentWeek && match.history) {
+        // If this player was the winner, use winner data from history
+        if (match.history.winner.position === match.player1.position) {
+          historicalData = {
+            points: match.history.winner.points
+          };
+        } else {
+          // Otherwise use loser data
+          historicalData = {
+            points: match.history.loser.points
+          };
+        }
+      }
+      
+      // Create the player slot with historical data if available
+      const player1Element = createPlayerSlot(
+        match.player1, 
+        match.winner, 
+        poolName, 
+        isChampion, 
+        match.week,
+        historicalData // Pass historical data
+      );
+      
+      matchBracket.appendChild(player1Element);
+    } else {
+      matchBracket.appendChild(createEmptySlot());
+    }
+    
+    // Second player slot (similar logic as player1)
+    if (match.player2) {
+      const isChampion = champion && match.player2.username === champion.username && match.nextMatch === "WINNER";
+      
+      // For completed matches in previous weeks, try to get the historical data
+      let historicalData = null;
+      if (match.week < currentWeek && match.history) {
+        // If this player was the winner, use winner data from history
+        if (match.history.winner.position === match.player2.position) {
+          historicalData = {
+            points: match.history.winner.points
+          };
+        } else {
+          // Otherwise use loser data
+          historicalData = {
+            points: match.history.loser.points
+          };
+        }
+      }
+      
+      const player2Element = createPlayerSlot(
+        match.player2, 
+        match.winner, 
+        poolName, 
+        isChampion, 
+        match.week,
+        historicalData // Pass historical data
+      );
+      
+      matchBracket.appendChild(player2Element);
+    } else {
+      matchBracket.appendChild(createEmptySlot());
+    }
+    
+    matchContainer.appendChild(matchBracket);
+    
+    // Add match history element if match is complete
+    if (match.history && match.week < currentWeek) {
+      const historyElement = createMatchHistoryElement(match);
+      if (historyElement) {
+        matchContainer.appendChild(historyElement);
+      }
+    }
+    
+    return matchContainer;
+  }*/
+  /*
+  // Updated createPlayerSlot function to use historical data when available
+  function createPlayerSlot(player, winnerId, poolName, isChampion, week, historicalData) {
+    const playerSlot = document.createElement('div');
+    playerSlot.className = `player-slot ${player.isAdvancing ? 'advancing' : ''} ${player.eliminated ? 'eliminated' : ''} ${isChampion ? 'championship-winner' : ''}`;
+    
+    // Determine which points value to show - prefer historical data if available
+    let displayPoints = 0;
+    
+    if (historicalData && historicalData.points !== undefined) {
+      // Use historical points if we have it
+      displayPoints = historicalData.points;
+    } else if (player.points !== undefined) {
+      // Fall back to current points
+      displayPoints = player.points;
+    } else if (player.weeklyPoints !== undefined) {
+      // Try weeklyPoints as last resort
+      displayPoints = player.weeklyPoints;
+    }
+    
+    // Format the points with one decimal place if needed
+    const formattedPoints = Number.isInteger(displayPoints) 
+      ? displayPoints 
+      : parseFloat(displayPoints).toFixed(1);
+    
+    playerSlot.innerHTML = `
+      <div class="playoff-profile-pic" style="background-image: url('${player.profilePic || 'Default.png'}')"></div>
+      <div class="player-seed">${player.seed}</div>
+      <div class="playoff-player-info">
+        <div class="playoff-player-username">${player.username}</div>
+        <div class="playoff-player-score">${formattedPoints} pts</div>
+      </div>
+    `;
+    
+    // Add click handler to show picks
+    playerSlot.addEventListener('click', () => {
+      showPlayerPicks(player, poolName);
+    });
+    
+    return playerSlot;
+  }*/
+
+  function processMatchHistory(bracketData) {
+    // Make a deep copy to avoid modifying the original data
+    const processedData = JSON.parse(JSON.stringify(bracketData));
+    const currentWeek = processedData.currentWeek;
+    
+    // For each completed match (from previous weeks), add history data
+    processedData.matches.forEach(match => {
+      // Only process matches from previous weeks
+      if (match.week < currentWeek && match.winner) {
+        // Find the players from the members array for this match
+        const player1 = processedData.members.find(m => m.position === match.player1Position);
+        const player2 = processedData.members.find(m => m.position === match.player2Position);
+        
+        if (!player1 || !player2) return;
+        
+        // Determine winner and loser
+        const winnerPosition = match.winner;
+        const winnerMember = winnerPosition === player1.position ? player1 : player2;
+        const loserMember = winnerPosition === player1.position ? player2 : player1;
+        
+        // Find historical points data for both players
+        let winnerPoints = winnerMember.points || winnerMember.weeklyPoints || 0;
+        let loserPoints = loserMember.points || loserMember.weeklyPoints || 0;
+        
+        // Try to get more accurate historical data from history arrays if available
+        if (winnerMember.history) {
+          const historyEntry = winnerMember.history.find(h => h.week === match.week && h.matchId === match.id);
+          if (historyEntry) {
+            winnerPoints = historyEntry.points;
+          }
+        }
+        
+        if (loserMember.history) {
+          const historyEntry = loserMember.history.find(h => h.week === match.week && h.matchId === match.id);
+          if (historyEntry) {
+            loserPoints = historyEntry.points;
+          }
+        }
+        
+        // Create and attach history data to the match
+        match.history = {
+          week: match.week,
+          round: match.round,
+          matchId: match.id,
+          winner: {
+            username: winnerMember.username,
+            seed: winnerMember.seed,
+            points: winnerPoints,
+            position: winnerMember.position
+          },
+          loser: {
+            username: loserMember.username,
+            seed: loserMember.seed,
+            points: loserPoints,
+            position: loserMember.position
+          }
+        };
+      }
+    });
+    
+    return processedData;
+  }
+
+  // Function to create match element without the extra results display
+function createMatchElement(match, poolName, champion, currentWeek, isLastWeek) {
+    const matchContainer = document.createElement('div');
+    matchContainer.className = 'match-container';
+    matchContainer.dataset.matchId = match.id;
+    
+    // Add a special class if this is the final match and we have a champion
+    if (match.nextMatch === "WINNER" && champion) {
+      matchContainer.classList.add('championship-match');
+    }
+    
+    // Add a completed match class if the match has history
+    if (match.history) {
+      matchContainer.classList.add('completed-match');
+    }
+    
+    const matchBracket = document.createElement('div');
+    matchBracket.className = 'match-bracket';
+    
+    // First player slot
+    if (match.player1) {
+      const isChampion = champion && match.player1.username === champion.username && match.nextMatch === "WINNER";
+      
+      // For completed matches in previous weeks, try to get the historical data
+      let historicalData = null;
+      if (match.week < currentWeek && match.history) {
+        // If this player was the winner, use winner data from history
+        if (match.history.winner.position === match.player1.position) {
+          historicalData = {
+            points: match.history.winner.points
+          };
+        } else {
+          // Otherwise use loser data
+          historicalData = {
+            points: match.history.loser.points
+          };
+        }
+      }
+      
+      // Create the player slot with historical data if available
+      const player1Element = createPlayerSlot(
+        match.player1, 
+        match.winner, 
+        poolName, 
+        isChampion, 
+        match.week,
+        historicalData // Pass historical data
+      );
+      
+      matchBracket.appendChild(player1Element);
+    } else {
+      matchBracket.appendChild(createEmptySlot());
+    }
+    
+    // Second player slot (similar logic as player1)
+    if (match.player2) {
+      const isChampion = champion && match.player2.username === champion.username && match.nextMatch === "WINNER";
+      
+      // For completed matches in previous weeks, try to get the historical data
+      let historicalData = null;
+      if (match.week < currentWeek && match.history) {
+        // If this player was the winner, use winner data from history
+        if (match.history.winner.position === match.player2.position) {
+          historicalData = {
+            points: match.history.winner.points
+          };
+        } else {
+          // Otherwise use loser data
+          historicalData = {
+            points: match.history.loser.points
+          };
+        }
+      }
+      
+      const player2Element = createPlayerSlot(
+        match.player2, 
+        match.winner, 
+        poolName, 
+        isChampion, 
+        match.week,
+        historicalData // Pass historical data
+      );
+      
+      matchBracket.appendChild(player2Element);
+    } else {
+      matchBracket.appendChild(createEmptySlot());
+    }
+    
+    matchContainer.appendChild(matchBracket);
+    
+    // Add subtle historical indicator without the full results display
+    if (match.history && match.week < currentWeek) {
+      const historyIndicator = document.createElement('div');
+      historyIndicator.className = 'match-history-indicator';
+      matchContainer.appendChild(historyIndicator);
+    }
+    
+    return matchContainer;
+  }
+  
+  // Updated createPlayerSlot function to use historical data when available
+  function createPlayerSlot(player, winnerId, poolName, isChampion, week, historicalData) {
+    const playerSlot = document.createElement('div');
+    
+    // Add base classes
+    playerSlot.className = 'player-slot';
+    
+    // Add conditional classes
+    if (player.isAdvancing) playerSlot.classList.add('advancing');
+    if (player.eliminated) playerSlot.classList.add('eliminated');
+    if (isChampion) playerSlot.classList.add('championship-winner');
+    
+    // Add winner class if this player is the winner
+    if (winnerId && player.position === winnerId) playerSlot.classList.add('winner');
+    
+    // Determine which points value to show - prefer historical data if available
+    let displayPoints = 0;
+    
+    if (historicalData && historicalData.points !== undefined) {
+      // Use historical points if we have it
+      displayPoints = historicalData.points;
+    } else if (player.points !== undefined) {
+      // Fall back to current points
+      displayPoints = player.points;
+    } else if (player.weeklyPoints !== undefined) {
+      // Try weeklyPoints as last resort
+      displayPoints = player.weeklyPoints;
+    }
+    
+    // Format the points with one decimal place if needed
+    const formattedPoints = Number.isInteger(displayPoints) 
+      ? displayPoints 
+      : parseFloat(displayPoints).toFixed(1);
+    
+    playerSlot.innerHTML = `
+      <div class="playoff-profile-pic" style="background-image: url('${player.profilePic || 'Default.png'}')"></div>
+      <div class="player-seed">${player.seed}</div>
+      <div class="playoff-player-info">
+        <div class="playoff-player-username">${player.username}</div>
+        <div class="playoff-player-score">${formattedPoints} pts</div>
+      </div>
+    `;
+    
+    // Add status indicators if needed
+    if (player.hasBye) {
+      const byeBadge = document.createElement('span');
+      byeBadge.className = 'bye-badge';
+      byeBadge.textContent = 'BYE';
+      playerSlot.appendChild(byeBadge);
+    }
+    
+    // Add champion crown if this player is the champion
+    if (isChampion) {
+      const championIcon = document.createElement('div');
+      championIcon.className = 'player-status champion-icon';
+      championIcon.innerHTML = `<i class="fas fa-crown"></i>`;
+      playerSlot.appendChild(championIcon);
+    }
+    
+    // Add click handler to show picks
+    playerSlot.addEventListener('click', () => {
+      showPlayerPicks(player, poolName);
+    });
+    
+    return playerSlot;
+  }
+  
+
+  // 1. Unified function to initialize the player picks panel (KEEP THIS ONE)
+function initializePlayerPicksPanel() {
+    if (!document.getElementById('playoff-player-picks-panel')) {
+        console.log('Creating player picks panel');
+        
+        const picksPanel = document.createElement('div');
+        picksPanel.id = 'playoff-player-picks-panel';
+        picksPanel.className = 'player-picks-panel';
+        
+        picksPanel.innerHTML = `
+            <div class="panel-header">
+                <h3 id="selected-player-name">Player Name</h3>
+                <button id="close-picks-panel-btn" class="close-panel-btn">&times;</button>
+            </div>
+            <div class="player-record">
+                <div class="record-item"><span>W:</span> <span id="player-wins">0</span></div>
+                <div class="record-item"><span>L:</span> <span id="player-losses">0</span></div>
+                <div class="record-item"><span>P:</span> <span id="player-pushes">0</span></div>
+            </div>
+            <div class="player-picks-container">
+                <!-- This will be populated by JavaScript -->
+            </div>
+        `;
+        
+        document.body.appendChild(picksPanel);
+        
+        const closeBtn = picksPanel.querySelector('#close-picks-panel-btn');
+        closeBtn.addEventListener('click', () => {
+            picksPanel.classList.remove('open');
+        });
+        
+        // Close panel when clicking outside
+        document.addEventListener('click', function(event) {
+            const panel = document.getElementById('playoff-player-picks-panel');
+            if (panel && panel.classList.contains('open')) {
+                if (!panel.contains(event.target) && !event.target.closest('.player-slot')) {
+                    panel.classList.remove('open');
+                }
+            }
+        });
+    }
+    
+    return document.getElementById('playoff-player-picks-panel');
+}
+/*
+// 2. Corrected function to fetch playoff picks (KEEP THIS ONE)
+async function fetchPlayoffPicks(username, poolName) {
+    try {
+        const encodedUsername = encodeURIComponent(username);
+        const encodedPoolName = encodeURIComponent(poolName);
+        
+        // Use the correct endpoint from your server-side routes
+        const url = `/api/playoffs/${encodedPoolName}/picks/${encodedUsername}`;
+        
+        console.log(`Fetching playoff picks from: ${url}`);
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            console.warn(`Picks API returned status: ${response.status}`);
+            throw new Error(`Failed to fetch picks: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching playoff picks:', error);
+        return { picks: [], immortalLock: [] };
+    }
+}*/
+
+async function showPlayerPicks(player, poolName) {
+    console.log('Player data received:', player);
+    
+    // Get the current week first
+    let currentPlayoffWeek = null;
+    try {
+        const weekResponse = await fetch(`/api/playoffs/isPlayoff/${poolName}`);
+        if (weekResponse.ok) {
+            const weekData = await weekResponse.json();
+            if (weekData.success) {
+                currentPlayoffWeek = weekData.playoffCurrentWeek;
+                console.log('Current playoff week from API:', currentPlayoffWeek);
+            }
+        }
+    } catch (error) {
+        console.warn('Error fetching current playoff week:', error);
+    }
+    
+    // Initialize panel
+    initializePlayerPicksPanel();
+    const picksPanel = document.getElementById('playoff-player-picks-panel');
+    
+    // Update player name in panel
+    document.getElementById('selected-player-name').textContent = player.username;
+    
+    // Clear existing picks
+    const picksContainer = picksPanel.querySelector('.player-picks-container');
+    picksContainer.innerHTML = '<div class="loading-spinner"></div>';
+    
+    try {
+        // First fetch the full bracket data to get complete player stats and match info
+        let playerStats = { win: 0, loss: 0, push: 0 };
+        let bracketData = null;
+        let isCurrentWeekPlayer = false;
+        
+        try {
+            const bracketResponse = await fetch(`/api/playoffs/${poolName}/bracket`);
+            if (bracketResponse.ok) {
+                bracketData = await bracketResponse.json();
+                if (bracketData.success && bracketData.bracket && bracketData.bracket.members) {
+                    // Find this player in the members array to get their stats
+                    const fullPlayerData = bracketData.bracket.members.find(
+                        m => m.username.toLowerCase() === player.username.toLowerCase()
+                    );
+                    
+                    if (fullPlayerData) {
+                        console.log('Found full player data:', fullPlayerData);
+                        // Get stats either from stats object or directly from player
+                        playerStats.win = fullPlayerData.stats?.win || fullPlayerData.win || 0;
+                        playerStats.loss = fullPlayerData.stats?.loss || fullPlayerData.loss || 0;
+                        playerStats.push = fullPlayerData.stats?.push || fullPlayerData.push || 0;
+                        
+                        // The most important check - is this player in the current week's matches?
+                        isCurrentWeekPlayer = fullPlayerData.inCurrentWeekMatch === true;
+                        
+                        if (!isCurrentWeekPlayer) {
+                            console.log(`Player ${player.username} is not in a current week match`);
+                            alert(`Picks viewing is only available for players in current week (Week ${currentPlayoffWeek}) matchups.`);
+                            picksPanel.classList.remove('open');
+                            return;
+                        }
+                        
+                        // Next, find the specific match the user clicked on to verify it's current
+                        if (player.position) {
+                            // Try to find the match containing this position
+                            const clickedMatch = bracketData.bracket.matches.find(match => 
+                                (match.player1?.position === player.position || 
+                                 match.player2?.position === player.position)
+                            );
+                            
+                            if (clickedMatch && clickedMatch.week !== currentPlayoffWeek) {
+                                console.log(`Player clicked from week ${clickedMatch.week}, not current week ${currentPlayoffWeek}`);
+                                alert(`Picks viewing is only available for current week (Week ${currentPlayoffWeek}) matchups.`);
+                                picksPanel.classList.remove('open');
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.warn('Error fetching bracket data:', error);
+        }
+        
+        console.log('Using player stats:', playerStats);
+        
+        // Update the record in the UI
+        const recordContainer = picksPanel.querySelector('.player-record');
+        if (recordContainer) {
+            const recordItems = recordContainer.querySelectorAll('.record-item');
+            
+            // Directly set the HTML of the record items for more reliable updating
+            if (recordItems.length >= 1) recordItems[0].innerHTML = `<span>W:</span> <span>${playerStats.win}</span>`;
+            if (recordItems.length >= 2) recordItems[1].innerHTML = `<span>L:</span> <span>${playerStats.loss}</span>`;
+            if (recordItems.length >= 3) recordItems[2].innerHTML = `<span>P:</span> <span>${playerStats.push}</span>`;
+        }
+        
+        // Get team logos map for displaying team logos
+        const teamLogos = getTeamLogos();
+        
+        // Fetch player picks
+        const picksData = await fetchPlayoffPicks(player.username, poolName);
+        
+        // Fetch results to color the picks
+        let results = [];
+        try {
+            const resultsResponse = await fetch('/api/getResults');
+            if (resultsResponse.ok) {
+                const resultsData = await resultsResponse.json();
+                results = resultsData.success ? resultsData.results || [] : [];
+            }
+        } catch (error) {
+            console.warn('Error fetching results:', error);
+        }
+        
+        // Clear loading spinner
+        picksContainer.innerHTML = '';
+        
+        if (picksData && picksData.picks && picksData.picks.length > 0) {
+            // Render picks
+            picksData.picks.forEach(pick => {
+                const pickElement = document.createElement('div');
+                pickElement.className = 'pick-item';
+                
+                // Find matching result for playoff picks
+                const matchingResult = results.find(r => 
+                    r.username?.toLowerCase() === player.username.toLowerCase() &&
+                    r.teamName === pick.teamName &&
+                    r.betValue === pick.value &&
+                    r.poolName === `playoff_${poolName}`
+                );
+                
+                let color = '';
+                if (matchingResult) {
+                    if (matchingResult.result === 'hit') {
+                        color = '#39FF14'; // Green
+                    } else if (matchingResult.result === 'miss') {
+                        color = 'red';
+                    } else if (matchingResult.result === 'push') {
+                        color = 'yellow';
+                    }
+                }
+                
+                pickElement.innerHTML = `
+                    <img src="${teamLogos[pick.teamName] || '/Default.png'}" alt="${pick.teamName}" class="team-logo">
+                    <div class="pick-details">
+                        <div class="pick-team">${pick.teamName}</div>
+                        <div class="pick-value" style="color: ${color} !important">${pick.value}</div>
+                    </div>
+                `;
+                
+                picksContainer.appendChild(pickElement);
+            });
+            
+            // Add immortal lock if exists
+            if (picksData.immortalLock && picksData.immortalLock.length > 0) {
+                const immortalPick = picksData.immortalLock[0];
+                const pickElement = document.createElement('div');
+                pickElement.className = 'pick-item immortal-lock-pick';
+                
+                // Find matching result for playoff immortal lock
+                const matchingResult = results.find(r => 
+                    r.username?.toLowerCase() === player.username.toLowerCase() &&
+                    r.teamName === immortalPick.teamName &&
+                    r.betValue === immortalPick.value &&
+                    r.poolName === `playoff_${poolName}` &&
+                    r.isImmortalLock
+                );
+                
+                let color = '';
+                if (matchingResult) {
+                    if (matchingResult.result === 'hit') {
+                        color = '#39FF14'; // Green
+                    } else if (matchingResult.result === 'miss') {
+                        color = 'red';
+                    } else if (matchingResult.result === 'push') {
+                        color = 'yellow';
+                    }
+                }
+                
+                pickElement.innerHTML = `
+                    <img src="${teamLogos[immortalPick.teamName] || '/Default.png'}" alt="${immortalPick.teamName}" class="team-logo">
+                    <div class="pick-details">
+                        <div class="pick-team">${immortalPick.teamName}</div>
+                        <div class="pick-value" style="color: ${color} !important">${immortalPick.value}</div>
+                    </div>
+                    <span class="immortal-lock-badge">LOCK</span>
+                `;
+                
+                picksContainer.appendChild(pickElement);
+            }
+        } else {
+            // No picks message
+            const noPicks = document.createElement('div');
+            noPicks.className = 'no-picks-message';
+            noPicks.textContent = 'No picks available for this player';
+            picksContainer.appendChild(noPicks);
+        }
+        
+        // Show the panel
+        picksPanel.classList.add('open');
+        
+    } catch (error) {
+        console.error('Error showing player picks:', error);
+        
+        // Show error message
+        picksContainer.innerHTML = `
+            <div class="picks-error-message">Failed to load player picks</div>
+            <button class="playoff-retry-btn" onclick="showPlayerPicks(${JSON.stringify(player)}, '${poolName}')">
+                Retry
+            </button>
+        `;
+        
+        // Still show the panel with the error
+        picksPanel.classList.add('open');
+    }
+}
+// Add this function to your code - it's missing in your implementation
+async function fetchPlayoffPicks(username, poolName) {
+    try {
+        const encodedUsername = encodeURIComponent(username);
+        const encodedPoolName = encodeURIComponent(poolName);
+        
+        // Use the correct endpoint from your server-side routes
+        const url = `/api/playoffs/${encodedPoolName}/picks/${encodedUsername}`;
+        
+        console.log(`Fetching playoff picks from: ${url}`);
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            console.warn(`Picks API returned status: ${response.status}`);
+            throw new Error(`Failed to fetch picks: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching playoff picks:', error);
+        return { picks: [], immortalLock: [] };
+    }
+}

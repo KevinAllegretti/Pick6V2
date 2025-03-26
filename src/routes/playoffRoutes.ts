@@ -126,63 +126,91 @@ router.post('/api/playoffs/initialize', async (req, res) => {
   }
 });
 
+// First, define proper interfaces for our data structures
+interface PlayoffPlayerHistory {
+  week: number;
+  points: number;
+  position: string;
+  opponent?: string;
+  opponentPoints?: number;
+  matchId?: string;
+  roundNumber?: number;
+  advanced?: boolean;
+}
+// Add these to your existing interfaces in the routes file
 
-router.get('/api/playoffs/:poolName/member/:username', async (req, res) => {
-    try {
-        const { poolName, username } = req.params;
-        
-        const database = await connectToDatabase();
-        const poolsCollection = database.collection('pools');
-        
-        const pool = await poolsCollection.findOne({ 
-            name: poolName,
-            hasPlayoffs: true
-        });
-        
-        if (!pool) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'Playoff pool not found' 
-            });
-        }
-        
-        // Find the member in the playoff members array
-        const member = pool.playoffMembers.find(m => 
-            m.username.toLowerCase() === username.toLowerCase()
-        );
-        
-        if (!member) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'Member not found in playoff pool' 
-            });
-        }
-        
-        // Return the member's playoff stats
-        res.json({
-            success: true,
-            poolName,
-            member: {
-                username: member.username,
-                seed: member.seed,
-                position: member.position,
-                win: member.win || 0,
-                loss: member.loss || 0,
-                push: member.push || 0,
-                weeklyPoints: member.weeklyPoints || 0,
-                isAdvancing: member.isAdvancing
-            }
-        });
-    } catch (error) {
-        console.error('Error fetching playoff member:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: error instanceof Error ? error.message : 'Unknown error'
-        });
-    }
-});
-// Get playoff bracket for a specific pool
-// Updated bracket API endpoint to include championship information
+// Update HistoricalPlayer interface
+interface HistoricalPlayer {
+  username: string;
+  seed: number;
+  points: number;
+  position: string;
+  isAdvancing: boolean;
+  eliminated: boolean;
+  // Add this line:
+  inCurrentWeekMatch?: boolean; // Flag to indicate if player is in a current week match
+}
+
+// Update CurrentPlayer interface
+interface CurrentPlayer {
+  id: any;
+  username: string;
+  seed: number;
+  points: number;
+  isAdvancing: boolean;
+  hasBye: boolean;
+  eliminated: boolean;
+  position: string;
+  // Add this line:
+  inCurrentWeekMatch?: boolean; // Flag to indicate if player is in a current week match
+}
+
+// Update ProcessedMatch interface if needed
+interface ProcessedMatch {
+  id: string;
+  round: number;
+  week: number;
+  player1: HistoricalPlayer | CurrentPlayer | null;
+  player2: HistoricalPlayer | CurrentPlayer | null;
+  winner: string | null;
+  nextMatch: string;
+  history: MatchHistoryData | null;
+}
+
+interface MatchHistoryData {
+  week: number;
+  round: number;
+  matchId: string;
+  winner: {
+    username: string;
+    seed: number;
+    points: number;
+    position: string;
+  };
+  loser: {
+    username: string;
+    seed: number;
+    points: number;
+    position: string;
+  };
+}
+
+interface ProcessedMatch {
+  id: string;
+  round: number;
+  week: number;
+  player1: HistoricalPlayer | CurrentPlayer | null;
+  player2: HistoricalPlayer | CurrentPlayer | null;
+  winner: string | null;
+  nextMatch: string;
+  history: MatchHistoryData | null;
+}
+
+
+// Modify the router.get('/api/playoffs/:poolName/bracket') function
+
+// Modify the router.get('/api/playoffs/:poolName/bracket') function
+
 router.get('/api/playoffs/:poolName/bracket', async (req, res) => {
   try {
     const { poolName } = req.params;
@@ -202,68 +230,193 @@ router.get('/api/playoffs/:poolName/bracket', async (req, res) => {
     // Get the player count for this bracket
     const playerCount = pool.playoffMembers ? pool.playoffMembers.length : 0;
     
-    // Format the bracket data for the frontend
+    // Process matches to include historical data
+    const processedMatches = pool.playoffBracket.map(match => {
+      // Find current players in this position
+      const player1 = pool.playoffMembers?.find(m => m.position === match.player1Position);
+      const player2 = pool.playoffMembers?.find(m => m.position === match.player2Position);
+      
+      // Look up historical data for this match
+      const historyFromPlayer1 = findHistoryForMatch(pool.playoffMembers, match.matchId, match.week, match.player1Position);
+      const historyFromPlayer2 = findHistoryForMatch(pool.playoffMembers, match.matchId, match.week, match.player2Position);
+      
+      // Create the processed match object with defaults
+      const processedMatch: ProcessedMatch = {
+        id: match.matchId || '',
+        round: match.round || 0,
+        week: match.week || 0,
+        player1: null,
+        player2: null,
+        winner: match.winner || null,
+        nextMatch: match.nextMatchPosition || '',
+        history: null
+      };
+      
+      // Create match history for completed matches
+      if (match.winner && match.week < currentWeek && historyFromPlayer1 && historyFromPlayer2) {
+        // Determine winner and loser history
+        const winnerHistory = match.winner === match.player1Position ? historyFromPlayer1 : historyFromPlayer2;
+        const loserHistory = match.winner === match.player1Position ? historyFromPlayer2 : historyFromPlayer1;
+        
+        // Find the members these histories belong to
+        const winnerMember = findMemberByHistory(pool.playoffMembers, winnerHistory);
+        const loserMember = findMemberByHistory(pool.playoffMembers, loserHistory);
+        
+        if (winnerMember && loserMember) {
+          processedMatch.history = {
+            week: match.week,
+            round: match.round,
+            matchId: match.matchId,
+            winner: {
+              username: winnerMember.username || '',
+              seed: winnerMember.seed || 0,
+              points: winnerHistory.points || 0,
+              position: winnerHistory.position || ''
+            },
+            loser: {
+              username: loserMember.username || '',
+              seed: loserMember.seed || 0,
+              points: loserHistory.points || 0,
+              position: loserHistory.position || ''
+            }
+          };
+        }
+      }
+      
+      // Set player data for this match
+      if (match.week < currentWeek) {
+        // Use historical data for past weeks
+        if (historyFromPlayer1) {
+          const member = findMemberByHistory(pool.playoffMembers, historyFromPlayer1);
+          if (member) {
+            // Check if this member is also in a current week match
+            const isInCurrentWeekMatch = pool.playoffBracket
+              .filter(m => m.week === currentWeek)
+              .some(m => 
+                (m.player1Position === member.position || m.player2Position === member.position)
+              );
+              
+            processedMatch.player1 = {
+              username: member.username || '',
+              seed: member.seed || 0,
+              points: historyFromPlayer1.points || 0,
+              position: historyFromPlayer1.position || '',
+              isAdvancing: !!historyFromPlayer1.advanced,
+              eliminated: !historyFromPlayer1.advanced,
+              inCurrentWeekMatch: isInCurrentWeekMatch
+            };
+          }
+        }
+        
+        if (historyFromPlayer2) {
+          const member = findMemberByHistory(pool.playoffMembers, historyFromPlayer2);
+          if (member) {
+            // Check if this member is also in a current week match
+            const isInCurrentWeekMatch = pool.playoffBracket
+              .filter(m => m.week === currentWeek)
+              .some(m => 
+                (m.player1Position === member.position || m.player2Position === member.position)
+              );
+              
+            processedMatch.player2 = {
+              username: member.username || '',
+              seed: member.seed || 0,
+              points: historyFromPlayer2.points || 0,
+              position: historyFromPlayer2.position || '',
+              isAdvancing: !!historyFromPlayer2.advanced,
+              eliminated: !historyFromPlayer2.advanced,
+              inCurrentWeekMatch: isInCurrentWeekMatch
+            };
+          }
+        }
+      } else {
+        // Use current data for current week
+        if (player1) {
+          processedMatch.player1 = {
+            id: player1.user,
+            username: player1.username || '',
+            seed: player1.seed || 0,
+            points: player1.weeklyPoints || 0,
+            isAdvancing: !!player1.isAdvancing,
+            hasBye: !!player1.hasBye,
+            eliminated: !!player1.eliminatedInWeek,
+            position: player1.position || '',
+            inCurrentWeekMatch: match.week === currentWeek
+          };
+        }
+        
+        if (player2) {
+          processedMatch.player2 = {
+            id: player2.user,
+            username: player2.username || '',
+            seed: player2.seed || 0,
+            points: player2.weeklyPoints || 0,
+            isAdvancing: !!player2.isAdvancing,
+            hasBye: !!player2.hasBye,
+            eliminated: !!player2.eliminatedInWeek,
+            position: player2.position || '',
+            inCurrentWeekMatch: match.week === currentWeek
+          };
+        }
+      }
+      
+      return processedMatch;
+    });
+    
+    // When building members data, identify if the member is in a current week match
+    const membersWithCurrentWeekFlag = (pool.playoffMembers || []).map(member => {
+      // Check if this member is in any current week match
+      const isInCurrentWeekMatch = pool.playoffBracket
+        .filter(match => match.week === currentWeek)
+        .some(match => 
+          match.player1Position === member.position || 
+          match.player2Position === member.position
+        );
+      
+      return {
+        id: member.user,
+        username: member.username || '',
+        seed: member.seed || 0,
+        position: member.position || '',
+        weeklyPoints: member.weeklyPoints || 0,
+        isAdvancing: !!member.isAdvancing,
+        hasBye: !!member.hasBye,
+        eliminated: !!member.eliminatedInWeek,
+        eliminatedInWeek: member.eliminatedInWeek,
+        inCurrentWeekMatch: isInCurrentWeekMatch,
+        stats: {
+          win: member.win || 0,
+          loss: member.loss || 0,
+          push: member.push || 0
+        },
+        history: (member.pointsHistory || []).map(h => ({
+          week: h.week || 0,
+          points: h.points || 0,
+          position: h.position || '',
+          opponent: h.opponent || '',
+          opponentPoints: h.opponentPoints || 0,
+          matchId: h.matchId || '',
+          roundNumber: h.roundNumber || 0,
+          advanced: !!h.advanced
+        }))
+      };
+    });
+    
+    // Build the final response
     const bracketData = {
       currentWeek,
       rounds: generateRoundsBasedOnPlayerCount(playerCount),
-      matches: pool.playoffBracket.map(match => {
-        const player1 = pool.playoffMembers.find(m => m.position === match.player1Position);
-        const player2 = pool.playoffMembers.find(m => m.position === match.player2Position);
-        
-        return {
-          id: match.matchId,
-          round: match.round,
-          week: match.week,
-          player1: player1 ? {
-            id: player1.user,
-            username: player1.username,
-            seed: player1.seed,
-            points: player1.weeklyPoints,
-            isAdvancing: player1.isAdvancing,
-            hasBye: player1.hasBye,
-            eliminated: !!player1.eliminatedInWeek,
-            position: player1.position
-          } : null,
-          player2: player2 ? {
-            id: player2.user,
-            username: player2.username,
-            seed: player2.seed,
-            points: player2.weeklyPoints,
-            isAdvancing: player2.isAdvancing,
-            hasBye: player2.hasBye,
-            eliminated: !!player2.eliminatedInWeek,
-            position: player2.position
-          } : null,
-          winner: match.winner,
-          nextMatch: match.nextMatchPosition
-        };
-      }),
-      members: pool.playoffMembers.map(member => ({
-        id: member.user,
-        username: member.username,
-        seed: member.seed,
-        position: member.position,
-        weeklyPoints: member.weeklyPoints,
-        isAdvancing: member.isAdvancing,
-        hasBye: member.hasBye,
-        eliminated: !!member.eliminatedInWeek,
-        eliminatedInWeek: member.eliminatedInWeek,
-        stats: {
-          win: member.win,
-          loss: member.loss,
-          push: member.push
-        }
-      })),
-      // Add completion status and champion information
+      matches: processedMatches,
+      members: membersWithCurrentWeekFlag,
       isCompleted: !!pool.playoffCompleted,
       champion: pool.playoffChampion ? {
-        username: pool.playoffChampion.username,
-        seed: pool.playoffChampion.seed,
-        winningPoints: pool.playoffChampion.winningPoints,
-        dateWon: pool.playoffChampion.dateWon,
-        win: pool.playoffChampion.win,
-        loss: pool.playoffChampion.loss,
-        push: pool.playoffChampion.push
+        username: pool.playoffChampion.username || '',
+        seed: pool.playoffChampion.seed || 0,
+        winningPoints: pool.playoffChampion.winningPoints || 0,
+        dateWon: pool.playoffChampion.dateWon || new Date(),
+        win: pool.playoffChampion.win || 0,
+        loss: pool.playoffChampion.loss || 0,
+        push: pool.playoffChampion.push || 0
       } : null
     };
     
@@ -276,6 +429,43 @@ router.get('/api/playoffs/:poolName/bracket', async (req, res) => {
     });
   }
 });
+
+
+
+// Helper function to find history entry for a specific match
+function findHistoryForMatch(members, matchId, week, position) {
+  if (!members || !matchId || !week) return null;
+  
+  for (const member of members) {
+    if (member.pointsHistory && member.pointsHistory.length > 0) {
+      const historyEntry = member.pointsHistory.find(h => 
+        h.matchId === matchId && 
+        h.week === week && 
+        h.position === position
+      );
+      
+      if (historyEntry) {
+        return historyEntry;
+      }
+    }
+  }
+  
+  return null;
+}
+
+// Helper function to find a member by their history entry
+function findMemberByHistory(members, historyEntry) {
+  if (!members || !historyEntry) return null;
+  
+  return members.find(member => 
+    member.pointsHistory && 
+    member.pointsHistory.some(h => 
+      h.matchId === historyEntry.matchId && 
+      h.week === historyEntry.week && 
+      h.position === historyEntry.position
+    )
+  );
+}
 
 
 
@@ -355,195 +545,6 @@ router.post('/api/playoffs/:poolName/picks', async (req, res) => {
   }
 });
 
-// Process playoff results at the end of the week
-router.post('/api/playoffs/processResults', async (req, res) => {
-    try {
-      const currentWeek = await getCurrentWeek();
-      
-      // Only allow processing during playoff weeks
-      if (currentWeek < 14 || currentWeek > 17) {
-        return res.status(400).json({ 
-          success: false, 
-          message: `Cannot process playoff results - current week is ${currentWeek}, playoffs are weeks 14-17` 
-        });
-      }
-      
-      const database = await connectToDatabase();
-      const poolsCollection = database.collection('pools');
-      const userPicksCollection = database.collection('userPicks');
-      const resultsCollection = database.collection('betResultsGlobal');
-      
-      // Get all playoff pools for the current week
-      const pools = await poolsCollection.find({ 
-        hasPlayoffs: true,
-        playoffCurrentWeek: currentWeek
-      }).toArray();
-      
-      interface PoolResult {
-        poolName: string; 
-        success: boolean;
-        message?: string;
-        memberCount?: number;
-        advancedToWeek?: number;
-        processedMembers?: number;
-      }
-        
-      const results: PoolResult[] = [];
-      
-      for (const pool of pools) {
-        console.log(`Processing playoff results for pool: ${pool.name}`);
-        
-        // Process results for all active playoff members
-        for (const member of pool.playoffMembers) {
-          if (!member.eliminatedInWeek && !member.hasBye) {
-            let weeklyPoints = 0;
-            
-            // Get the user's picks from userPicks collection
-            // Important: Use the playoff_ prefix for poolName
-            const userPicks = await userPicksCollection.findOne({
-              username: member.username.toLowerCase(),
-              poolName: `playoff_${pool.name}`,
-              week: currentWeek
-            });
-            
-            if (userPicks && userPicks.picks && userPicks.picks.length > 0) {
-              console.log(`Found picks for ${member.username} in playoff_${pool.name}`);
-              
-              // Get the latest results from betResultsGlobal
-              const resultsDoc = await resultsCollection.findOne({ identifier: 'currentResults' });
-              
-              if (resultsDoc && resultsDoc.results) {
-                // Calculate points for each pick
-                for (const pick of userPicks.picks) {
-                  // Look for results that match this player's pick and the playoff poolName
-                  const matchingResult = resultsDoc.results.find(r => 
-                    r.username.toLowerCase() === member.username.toLowerCase() &&
-                    r.teamName === pick.teamName &&
-                    r.betValue === pick.value &&
-                    r.poolName === `playoff_${pool.name}`  // Make sure we're matching playoff results
-                  );
-                  
-                  if (matchingResult) {
-                    console.log(`Found matching result for ${member.username}'s pick on ${pick.teamName}: ${matchingResult.points || 0} points`);
-                    weeklyPoints += matchingResult.points || 0;
-                  }
-                }
-              }
-            }
-            
-            // Update member's weekly points
-            member.weeklyPoints = weeklyPoints;
-            console.log(`Updated weekly points for ${member.username}: ${weeklyPoints}`);
-          }
-        }
-        
-        // Save the updated pool
-        await poolsCollection.updateOne(
-          { _id: pool._id },
-          { 
-            $set: { 
-              playoffMembers: pool.playoffMembers 
-            }  
-          }
-        );
-        
-        results.push({ 
-          poolName: pool.name, 
-          success: true,
-          processedMembers: pool.playoffMembers.filter(m => !m.eliminatedInWeek && !m.hasBye).length
-        });
-      }
-      
-      res.json({ 
-        success: true, 
-        message: `Processed results for ${pools.length} playoff pools`, 
-        results 
-      });
-    } catch (error) {
-      console.error('Error processing playoff results:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
-
-  router.post('/api/playoffs/:poolName/picks', async (req, res) => {
-    try {
-      const { poolName } = req.params;
-      const { picks } = req.body;
-      const username = req.headers['x-username'] as string;
-      
-      if (!username) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
-      
-      const database = await connectToDatabase();
-      const poolsCollection = database.collection('pools');
-      const userPicksCollection = database.collection('userPicks');
-      const timeWindowCollection = database.collection('timewindows');
-      
-      const pool = await poolsCollection.findOne({ name: poolName, hasPlayoffs: true });
-      
-      if (!pool) {
-        return res.status(404).json({ success: false, message: 'Playoff pool not found' });
-      }
-      
-      // Check if picks can be submitted (before Thursday deadline)
-      const timeWindow = await timeWindowCollection.findOne({});
-      
-      if (!timeWindow) {
-        return res.status(404).json({ success: false, message: 'Time window not found' });
-      }
-      
-      const now = new Date();
-      const thursdayDeadline = new Date(timeWindow.thursdayDeadline);
-      
-      if (now > thursdayDeadline) {
-        return res.status(400).json({ success: false, message: 'Picks submission deadline has passed' });
-      }
-      
-      // Find the member in the playoff pool
-      const member = pool.playoffMembers.find(m => 
-        m.username.toLowerCase() === username.toLowerCase() && 
-        !m.eliminatedInWeek &&
-        !m.hasBye
-      );
-      
-      if (!member) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'User not found in playoff pool or not eligible to submit picks' 
-        });
-      }
-      
-      console.log(`Saving playoff picks for ${username} in playoff_${poolName}`);
-      
-      // Save picks to userPicks collection with the playoff_ prefix
-      await userPicksCollection.updateOne(
-        { 
-          username: username.toLowerCase(),
-          poolName: `playoff_${poolName}`,
-          week: pool.playoffCurrentWeek
-        },
-        {
-          $set: {
-            picks,
-            immortalLock: []  // No immortal locks in playoffs
-          }
-        },
-        { upsert: true }
-      );
-      
-      res.json({ success: true, message: 'Playoff picks saved successfully' });
-    } catch (error) {
-      console.error('Error saving playoff picks:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
   
   // Add a new API endpoint to check if a pool is in playoff mode
 router.get('/api/playoffs/isPlayoff/:poolName', async (req, res) => {
@@ -636,6 +637,8 @@ function canAdvancePlayoffs(playerCount: number, currentWeek: number): boolean {
 }
 
 // Updated advance playoffs route to handle the final week correctly
+// In playoffRoutes.ts
+/*
 router.post('/api/playoffs/advance', async (req, res) => {
   try {
     const currentWeek = await getCurrentWeek();
@@ -696,6 +699,34 @@ router.post('/api/playoffs/advance', async (req, res) => {
           continue; 
         }
         
+        // Before determining the winner, save the current match data to history for both players
+        // Initialize pointsHistory array if it doesn't exist
+        if (!player1.pointsHistory) player1.pointsHistory = [];
+        if (!player2.pointsHistory) player2.pointsHistory = [];
+        
+        // Add current week's data to history
+        player1.pointsHistory.push({
+          week: currentWeek,
+          points: player1.weeklyPoints || 0,
+          position: player1.position,
+          opponent: player2.username,
+          opponentPoints: player2.weeklyPoints || 0,
+          matchId: match.matchId,
+          roundNumber: match.round,
+          advanced: false // Will update this after determining the winner
+        });
+        
+        player2.pointsHistory.push({
+          week: currentWeek,
+          points: player2.weeklyPoints || 0,
+          position: player2.position,
+          opponent: player1.username,
+          opponentPoints: player1.weeklyPoints || 0,
+          matchId: match.matchId,
+          roundNumber: match.round,
+          advanced: false // Will update this after determining the winner
+        });
+        
         // Determine winner based on points or seed tiebreaker
         let winner;
         if (player1.weeklyPoints > player2.weeklyPoints) {
@@ -715,6 +746,21 @@ router.post('/api/playoffs/advance', async (req, res) => {
         // Update player advancing status
         player1.isAdvancing = player1.position === winner.position;
         player2.isAdvancing = player2.position === winner.position;
+        
+        // Update the advanced flag in the history entries
+        const player1HistoryEntry = player1.pointsHistory.find(
+          h => h.week === currentWeek && h.matchId === match.matchId
+        );
+        if (player1HistoryEntry) {
+          player1HistoryEntry.advanced = player1.isAdvancing;
+        }
+        
+        const player2HistoryEntry = player2.pointsHistory.find(
+          h => h.week === currentWeek && h.matchId === match.matchId
+        );
+        if (player2HistoryEntry) {
+          player2HistoryEntry.advanced = player2.isAdvancing;
+        }
         
         // Mark players as eliminated if not advancing
         if (!player1.isAdvancing) {
@@ -776,9 +822,283 @@ router.post('/api/playoffs/advance', async (req, res) => {
         console.log(`${member.username} (Seed ${member.seed}): position=${member.position}, isAdvancing=${member.isAdvancing}, eliminated=${!!member.eliminatedInWeek}`);
       });
       
-      // Reset weekly points for all members
+      // Reset weekly points ONLY for advancing players who will play in the next round
       pool.playoffMembers.forEach(member => {
-        member.weeklyPoints = 0;
+        // Only reset points for players who are advancing to the next round 
+        // and are not the champion (if this is the final week)
+        if (member.isAdvancing && !isFinalWeek) {
+          member.weeklyPoints = 0;
+        }
+      });
+      
+      // Special handling for the final week
+      if (isFinalWeek) {
+        // Mark the playoffs as completed instead of advancing the week
+        await poolsCollection.updateOne(
+          { _id: pool._id },
+          { 
+            $set: { 
+              playoffMembers: pool.playoffMembers,
+              playoffBracket: pool.playoffBracket,
+              playoffWinner: pool.playoffWinner || undefined,
+              playoffChampion: pool.playoffChampion || undefined,
+              playoffCompleted: true
+            }
+          }
+        );
+        
+        results.push({ 
+          poolName: pool.name, 
+          success: true, 
+          message: `Playoffs completed! Champion: ${pool.playoffChampion ? pool.playoffChampion.username : 'Unknown'}`,
+          advancedToWeek: 'completed',
+          playoffWinner: pool.playoffChampion ? pool.playoffChampion.username : undefined
+        });
+      } else {
+        // Normal case - advance to next week
+        const nextWeek = currentWeek + 1;
+        
+        await poolsCollection.updateOne(
+          { _id: pool._id },
+          { 
+            $set: { 
+              playoffMembers: pool.playoffMembers,
+              playoffBracket: pool.playoffBracket,
+              playoffCurrentWeek: nextWeek,
+              playoffWinner: pool.playoffWinner || undefined
+            } 
+          }
+        );
+        
+        results.push({ 
+          poolName: pool.name, 
+          success: true, 
+          advancedToWeek: nextWeek
+        }); 
+      }
+    }
+    
+    res.json({ 
+      success: true, 
+      message: `Processed ${pools.length} playoff pools from week ${currentWeek}`, 
+      results 
+    });
+  } catch (error) {
+    console.error('Error advancing playoffs:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});*/
+
+// POST route to advance playoffs to the next round
+router.post('/api/playoffs/advance', async (req, res) => {
+  try {
+    const currentWeek = await getCurrentWeek();
+    
+    const database = await connectToDatabase();
+    const poolsCollection = database.collection('pools');
+    
+    // Get all playoff pools for the current week
+    const pools = await poolsCollection.find({ 
+      hasPlayoffs: true,
+      playoffCurrentWeek: currentWeek
+    }).toArray();
+    
+    interface PoolResult {
+      poolName: string; 
+      success: boolean;
+      message?: string;
+      memberCount?: number;
+      advancedToWeek?: number | string;
+      playoffWinner?: string;
+    }
+      
+    const results: PoolResult[] = [];
+    
+    for (const pool of pools) {
+      // Determine if we can advance based on player count
+      const playerCount = pool.playoffMembers ? pool.playoffMembers.length : 0;
+      
+      // Check if this is the final week for this bracket size
+      const isFinalWeek = (playerCount <= 8 && currentWeek === 16) || 
+                         (playerCount > 8 && currentWeek === 17);
+      
+      if (!canAdvancePlayoffs(playerCount, currentWeek)) {
+        results.push({ 
+          poolName: pool.name, 
+          success: false, 
+          message: `Cannot advance playoffs - current week is ${currentWeek}, final playoff week for this bracket size is ${getFinalWeekNumber(playerCount)}` 
+        });
+        continue;
+      }
+      
+      // Process each match in the current week
+      const currentMatches = pool.playoffBracket.filter(match => match.week === currentWeek);
+      
+      // Debug log - before processing
+      console.log(`Processing week ${currentWeek} for pool ${pool.name} with ${currentMatches.length} matches`);
+      console.log('Player positions before advancing:');
+      pool.playoffMembers.forEach(member => {
+        console.log(`${member.username} (Seed ${member.seed}): position=${member.position}, isAdvancing=${member.isAdvancing}`);
+      });
+      
+      for (const match of currentMatches) {
+        const player1 = pool.playoffMembers.find(m => m.position === match.player1Position);
+        const player2 = pool.playoffMembers.find(m => m.position === match.player2Position);
+        
+        if (!player1 || !player2) {
+          console.log(`Match ${match.matchId} has missing player(s): player1=${player1?.username || 'missing'}, player2=${player2?.username || 'missing'}`);
+          continue; 
+        }
+        
+        // Before determining the winner, save the current match data to history for both players
+        // Initialize pointsHistory array if it doesn't exist
+        if (!player1.pointsHistory) player1.pointsHistory = [];
+        if (!player2.pointsHistory) player2.pointsHistory = [];
+        
+        // Add current week's data to history
+        player1.pointsHistory.push({
+          week: currentWeek,
+          points: player1.weeklyPoints || 0,
+          position: player1.position,
+          opponent: player2.username,
+          opponentPoints: player2.weeklyPoints || 0,
+          matchId: match.matchId,
+          roundNumber: match.round,
+          advanced: false // Will update this after determining the winner
+        });
+        
+        player2.pointsHistory.push({
+          week: currentWeek,
+          points: player2.weeklyPoints || 0,
+          position: player2.position,
+          opponent: player1.username,
+          opponentPoints: player1.weeklyPoints || 0,
+          matchId: match.matchId,
+          roundNumber: match.round,
+          advanced: false // Will update this after determining the winner
+        });
+        
+        // Determine winner based on points or seed tiebreaker
+        let winner;
+        if (player1.weeklyPoints > player2.weeklyPoints) {
+          winner = player1;
+        } else if (player2.weeklyPoints > player1.weeklyPoints) {
+          winner = player2;
+        } else {
+          // In case of a tie, higher seed advances
+          winner = player1.seed < player2.seed ? player1 : player2;
+        }
+        
+        console.log(`Match ${match.matchId} winner: ${winner.username} (${winner.position})`);
+        
+        // Update match with winner position
+        match.winner = winner.position;
+        
+        // Update player advancing status
+        player1.isAdvancing = player1.position === winner.position;
+        player2.isAdvancing = player2.position === winner.position;
+        
+        // Update the advanced flag in the history entries
+        const player1HistoryEntry = player1.pointsHistory.find(
+          h => h.week === currentWeek && h.matchId === match.matchId
+        );
+        if (player1HistoryEntry) {
+          player1HistoryEntry.advanced = player1.isAdvancing;
+        }
+        
+        const player2HistoryEntry = player2.pointsHistory.find(
+          h => h.week === currentWeek && h.matchId === match.matchId
+        );
+        if (player2HistoryEntry) {
+          player2HistoryEntry.advanced = player2.isAdvancing;
+        }
+        
+        // Store original position before advancing to next match
+        const originalWinnerPosition = winner.position;
+        
+        // Mark players as eliminated if not advancing
+        if (!player1.isAdvancing) {
+          player1.eliminatedInWeek = currentWeek;
+        }
+        if (!player2.isAdvancing) {
+          player2.eliminatedInWeek = currentWeek;
+        }
+        
+        // Check if this is the finals match (has nextMatchPosition === "WINNER")
+        const isFinalMatch = match.nextMatchPosition === "WINNER";
+        
+        if (isFinalMatch) {
+          // This was the final match - set the playoff winner and championship details
+          pool.playoffWinner = winner.user;
+          pool.playoffChampion = {
+            username: winner.username,
+            seed: winner.seed,
+            winningPoints: winner.weeklyPoints || 0,
+            dateWon: new Date(),
+            win: winner.win || 0,
+            loss: winner.loss || 0,
+            push: winner.push || 0
+          };
+          console.log(`Setting playoff winner to ${winner.username}`);
+        } else if (match.nextMatchPosition !== "WINNER") {
+          // Only move advancing player if not the finals
+          // Find the next match
+          const nextMatch = pool.playoffBracket.find(m => 
+            m.player1Position === match.nextMatchPosition || 
+            m.player2Position === match.nextMatchPosition
+          );
+          
+          if (nextMatch) {
+            console.log(`Moving ${winner.username} to next position: ${match.nextMatchPosition}`);
+            
+            // Store position history for reference
+            if (!winner.positionHistory) winner.positionHistory = [];
+            winner.positionHistory.push({
+              week: currentWeek,
+              originalPosition: originalWinnerPosition,
+              newPosition: match.nextMatchPosition,
+              matchId: match.matchId
+            });
+            
+            // Update winner's position for next week
+            const oldPosition = winner.position;
+            winner.position = match.nextMatchPosition;
+            
+            // Important: Log the position change to help debugging
+            console.log(`Changed ${winner.username}'s position from ${oldPosition} to ${match.nextMatchPosition}`);
+            
+            // Set player ID in next match
+            if (nextMatch.player1Position === match.nextMatchPosition) {
+              nextMatch.player1Id = winner.user;
+            } else {
+              nextMatch.player2Id = winner.user;
+            }
+          } else {
+            console.error(`Could not find next match for position ${match.nextMatchPosition}`);
+          }
+        }
+      }
+      
+      // Debug log - after processing
+      console.log('Player positions after advancing:');
+      pool.playoffMembers.forEach(member => {
+        console.log(`${member.username} (Seed ${member.seed}): position=${member.position}, isAdvancing=${member.isAdvancing}, eliminated=${!!member.eliminatedInWeek}`);
+      });
+      
+      // Reset weekly points ONLY for advancing players who will play in the next round
+      pool.playoffMembers.forEach(member => {
+        // Only reset points for players who are advancing to the next round 
+        // and are not the champion (if this is the final week)
+        if (member.isAdvancing && !isFinalWeek) {
+          // Store the current points in history before resetting
+          if (!member.pointsHistory) member.pointsHistory = [];
+          
+          // Reset weekly points
+          member.weeklyPoints = 0;
+        }
       });
       
       // Special handling for the final week

@@ -195,14 +195,17 @@ async function fetchMLBScores() {
     }
 
 
-// Add this new function to serverUtils.js to handle playoff stats specifically
 
+// In your cron job file
 export async function updatePlayoffStats(username, originalPoolName, winIncrement = 0, lossIncrement = 0, pushIncrement = 0, pointsIncrement = 0) {
   try {
       console.log(`Updating playoff stats for ${username} in ${originalPoolName}: W:${winIncrement} L:${lossIncrement} P:${pushIncrement} Pts:${pointsIncrement}`);
       
       const database = await connectToDatabase();
       const poolsCollection = database.collection('pools');
+      
+      // Get the current week
+      const currentWeek = await getCurrentWeek();
       
       // Find the pool document and update the specific player's stats in the playoffMembers array
       const result = await poolsCollection.updateOne(
@@ -271,6 +274,25 @@ async function processPick(username, poolName, pickEntry, gameScores, allResults
   }
 
   try {
+      // For playoff picks, check if the pick's week matches the current week
+      if (isPlayoffPick) {
+          // Get the current week
+          const currentWeek = await getCurrentWeek();
+          
+          // Get the pick's week from the pick object or from the database
+          const database = await connectToDatabase();
+          const userPicksCollection = database.collection('userPicks');
+          const pickData = await userPicksCollection.findOne({
+              username: username,
+              poolName: poolName
+          });
+          
+          if (pickData && pickData.week !== currentWeek) {
+              console.log(`Skipping playoff pick for ${username} in ${poolName} - wrong week (pick week: ${pickData.week}, current week: ${currentWeek})`);
+              return;
+          }
+      }
+      
       // Check if the result is already in the database
       const existingResult = await resultsCollection.findOne({
           identifier: 'currentResults',
@@ -404,7 +426,8 @@ async function processPick(username, poolName, pickEntry, gameScores, allResults
           } else {
               // For regular pools (not survivor), update points
               if (points !== 0) {
-                  await updateUserPoints(username, poolName, String(points));
+                  //await updateUserPoints(username, poolName, String(points));
+                  await updateUserPoints(username, points, poolName);
               }
           }
       }
@@ -594,7 +617,7 @@ const mockNFLGames = [
     away_team: "Buffalo Bills",
     scores: [
       { name: "Kansas City Chiefs", score: "34" },
-      { name: "Buffalo Bills", score: "27" }
+      { name: "Buffalo Bills", score: "34" }
     ]
   },
   {
@@ -825,14 +848,14 @@ cron.schedule('58 23 * * 1', () => {
 
 
 
-cron.schedule('07 14 * * 3', () => {
+cron.schedule('24 20 * * 2', () => {
   console.log("It's Thursday 4:00 PM");
   mockFetchNFLScores();
 });
 
 // Initialize playoffs at week 14
 const url6= 'http://localhost:3000';
-cron.schedule('07 13 * * 3', async () => {
+cron.schedule('51 13 * * 1', async () => {
   const currentWeek = await getCurrentWeek();
   
   if (currentWeek === 14) {
@@ -857,7 +880,7 @@ cron.schedule('07 13 * * 3', async () => {
 
 
 // Advance playoffs to next round (Monday morning)
-cron.schedule('11 14 * * 3', async () => {
+cron.schedule('53 20 * * 1', async () => {
   const currentWeek = await getCurrentWeek();
   
   if (currentWeek >= 14 && currentWeek <= 17) {

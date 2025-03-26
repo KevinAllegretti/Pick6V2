@@ -4,6 +4,7 @@ import { connectToDatabase } from '../microservices/connectDB';
 const baseUrl = 'https://www.pick6.club'; 
 //test
 // Function to update user points
+/*
 export async function updateUserPoints(username: string, additionalPoints: number, poolName: string): Promise<void> {
     if (additionalPoints === 0) {
         console.log('No points to update for:', username);
@@ -16,6 +17,34 @@ export async function updateUserPoints(username: string, additionalPoints: numbe
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, additionalPoints, poolName })
+        });
+        const updateData = await response.json();
+        if (response.ok && updateData.success) {
+            console.log('User points updated successfully:', updateData.message);
+        } else {
+            throw new Error(updateData.message || 'Failed to update points');
+        }
+    } catch (error) {
+        console.error('Error during the update process:', error);
+        throw error;
+    }
+}*/
+
+export async function updateUserPoints(username: string, additionalPoints: number | string, poolName: string): Promise<void> {
+    // Convert additionalPoints to a number if it's a string
+    const pointsValue = typeof additionalPoints === 'string' ? parseFloat(additionalPoints) : additionalPoints;
+    
+    if (isNaN(pointsValue) || pointsValue === 0) {
+        console.log('No valid points to update for:', username);
+        return;
+    }
+
+    try {
+        console.log(`Updating points for ${username}: ${pointsValue} points in pool ${poolName}`);
+        const response = await fetch(`${baseUrl}/pools/updateUserPointsInPoolByName`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, additionalPoints: pointsValue, poolName })
         });
         const updateData = await response.json();
         if (response.ok && updateData.success) {
@@ -239,6 +268,12 @@ export function getBetResult(pick: any, homeTeamScore: number, awayTeamScore: nu
 
             // Determine if the bet was on the home or away team
             const isHomeTeamBet = teamName === homeTeam;
+
+            // Check for a tie game first
+            if (homeTeamScore === awayTeamScore) {
+                console.log('Game ended in a tie, moneyline push.');
+                return { result: "push", odds: numericValue };
+            }
 
             // Moneyline logic for a "hit"
             const didWin = (isHomeTeamBet && homeTeamScore > awayTeamScore) || (!isHomeTeamBet && awayTeamScore > homeTeamScore);

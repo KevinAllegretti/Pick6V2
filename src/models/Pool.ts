@@ -19,7 +19,14 @@ interface IPlayoffMember {
   username: string;
   seed: number;
   position: string;
-  weeklyPoints: number;
+  weeklyPoints: number; // Current week's points
+  pointsHistory: {     // New field to track historical points
+    week: number;
+    points: number;
+    position: string;  // Track the position they were in during that week
+    opponent?: string; // Store the opponent they faced (username)
+    opponentPoints?: number; // Points their opponent had
+  }[];
   eliminatedInWeek?: number;
   hasBye: boolean;
   isAdvancing: boolean;
@@ -28,6 +35,7 @@ interface IPlayoffMember {
   loss?: number;
   push?: number;
 }
+
 
 interface IPlayoffMatch {
   matchId: string;
@@ -139,6 +147,16 @@ const poolSchema = new mongoose.Schema({
         type: Number,
         default: 0
       },
+      pointsHistory: [{
+        week: Number,
+        points: Number,
+        position: String,
+        opponent: String,
+        opponentPoints: Number,
+        matchId: String,
+        roundNumber: Number,
+        advanced: Boolean
+      }],
       eliminatedInWeek: {
         type: Number
       },
@@ -171,6 +189,7 @@ const poolSchema = new mongoose.Schema({
         type: Number, 
         default: 0 
       }
+      
     }],
     default: []
   },

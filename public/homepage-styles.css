@@ -2037,11 +2037,16 @@ label {
     white-space: normal; /* Allow text to wrap */
     margin-left: 55px;
     margin-bottom: -8px;
-    max-width: 120px; /* Control the width before wrapping */
+    max-width: 80px; /* Control the width before wrapping */
     line-height: 1.1; /* Tighter line spacing for wrapped text */
     display: flex;
     flex-direction: column;
     text-align: left;
+    overflow-x: auto;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    scrollbar-width: thin; /* For Firefox */
+    scrollbar-color: #66ccff transparent; /* Light blue color for Firefox */
 }
 .nav-center {
     flex: 1 1 auto;
@@ -4977,12 +4982,6 @@ text-align: center;
   z-index: 5;
 }
 
-.match-container:hover::after,
-.match-container:hover::before {
-  opacity: 1;
-  background-color: #33d9ff;
-  box-shadow: 0 0 5px rgba(51, 217, 255, 0.5);
-}
 
 /* Direct fix for playoff bracket horizontal scrolling */
 
@@ -5723,4 +5722,190 @@ text-align: center;
   font-size: 14px;
   margin: 0;
   line-height: 1.4;
+}
+
+.match-history-container {
+  margin: 0 auto;
+  width: 90%;
+  max-width: 170px;
+}
+
+.match-history-card {
+  background: rgba(0, 10, 30, 0.7);
+  border: 1px solid #33d9ff;
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 10px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 10px rgba(51, 217, 255, 0.2);
+}
+
+.match-history-card:hover {
+  box-shadow: 0 0 15px rgba(51, 217, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.history-week-label {
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0a0f22;
+  color: #33d9ff;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: bold;
+  border: 1px solid #33d9ff;
+}
+
+.history-player {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 5px;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  position: relative;
+}
+
+.history-player.winner {
+  background: rgba(57, 255, 20, 0.1);
+  border-left: 3px solid #39FF14;
+}
+
+.history-player.loser {
+  background: rgba(255, 0, 0, 0.1);
+  border-left: 3px solid red;
+}
+
+.history-player-seed {
+  flex: 0 0 20px;
+  font-size: 10px;
+  color: #33d9ff;
+  font-weight: bold;
+}
+
+.history-player-name {
+  flex: 1;
+  font-size: 11px;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+}
+
+.history-player-points {
+  flex: 0 0 40px;
+  text-align: right;
+  font-size: 11px;
+  color: #33d9ff;
+  font-family: 'Quantico', sans-serif;
+}
+
+.history-result-badge {
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: bold;
+}
+
+.winner .history-result-badge {
+  background: #39FF14;
+  color: black;
+}
+
+.loser .history-result-badge {
+  background: red;
+  color: white;
+}
+
+/* Compact layout for smaller screens */
+@media (max-width: 480px) {
+  .match-history-card {
+      padding: 6px;
+  }
+  
+  .history-player {
+      padding: 3px;
+  }
+  
+  .history-player-name {
+      font-size: 10px;
+  }
+  
+  .history-player-points {
+      font-size: 10px;
+  }
+};
+
+/* Match history styling */
+.match-history {
+  margin-top: 5px;
+  padding: 8px;
+  background-color: rgba(10, 15, 34, 0.7);
+  border: 1px solid rgba(51, 217, 255, 0.3);
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.match-history-title {
+  font-size: 10px;
+  color: #33d9ff;
+  margin-bottom: 3px;
+  text-align: center;
+}
+
+.match-history-score {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-player {
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+
+.history-player.winner {
+  background-color: rgba(57, 255, 20, 0.2);
+  border: 1px solid rgba(57, 255, 20, 0.5);
+  font-weight: bold;
+}
+
+.history-player.loser {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.match-separator {
+  margin: 0 2px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Style for completed matches */
+.completed-match {
+  position: relative;
+}
+
+.completed-match::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px solid rgba(51, 217, 255, 0.3);
+  border-radius: 6px;
+  pointer-events: none;
 }
