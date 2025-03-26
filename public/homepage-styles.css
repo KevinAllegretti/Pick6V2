@@ -1673,7 +1673,7 @@ label {
     align-items: flex-start;
     padding: 2rem;
     min-height: 100vh;
-    background-color: #0A0B14;
+    /*background-color: #0A0B14;*/
 }
 
 .pool-manager {
