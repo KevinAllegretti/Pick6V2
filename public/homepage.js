@@ -7197,3 +7197,228 @@ async function fetchPlayoffPicks(username, poolName) {
         return { picks: [], immortalLock: [] };
     }
 }
+
+function renderBracket(bracketData, container, poolName) {
+    console.log('Starting to render bracket with data:', bracketData);
+    
+    // Clear the bracket container
+    container.innerHTML = '';
+    
+    // Check if playoffs are completed and there's a champion
+    const isCompleted = bracketData.isCompleted;
+    const champion = bracketData.champion;
+    const currentWeek = bracketData.currentWeek; // Extract current week from bracket data
+    
+    // Determine if it's the last week of playoffs
+    const rounds = bracketData.rounds || [];
+    const lastWeek = rounds.length > 0 ? Math.max(...rounds.map(r => r.week)) : 0;
+    const isLastWeek = currentWeek === lastWeek;
+    
+    // Get the member count to determine bracket style
+    const memberCount = bracketData.members ? bracketData.members.length : 0;
+    
+    // Add custom class based on player count for specific CSS styling
+    container.classList.add(`bracket-size-${memberCount}`);
+    
+    // If playoffs are completed, show champion banner
+    if (isCompleted && champion) {
+      const championBanner = document.createElement('div');
+      championBanner.className = 'playoff-champion-banner';
+      championBanner.innerHTML = `
+        <div class="champion-name">${champion.username} <i class="fas fa-crown"></i></div>
+        <div class="champion-title">PLAYOFF CHAMPION!</div>
+        <div class="champion-stats">
+          Record: ${champion.win}-${champion.loss}-${champion.push}
+          <br>
+          Seed: #${champion.seed}
+        </div>
+      `;
+      container.appendChild(championBanner);
+    }
+    
+    // Create round headers
+    const roundHeadersDiv = document.createElement('div');
+    roundHeadersDiv.className = 'playoff-round-headers';
+    
+    bracketData.rounds.forEach((round, index) => {
+      const headerDiv = document.createElement('div');
+      headerDiv.className = `round-header ${round.week === bracketData.currentWeek ? 'current-round' : ''}`;
+      headerDiv.innerHTML = `
+        <h3>${round.name}</h3>
+        <div class="round-week">Week ${round.week}</div>
+      `;
+      roundHeadersDiv.appendChild(headerDiv);
+    });
+    
+    container.appendChild(roundHeadersDiv);
+    
+    // Create bracket rounds
+    const bracketRoundsDiv = document.createElement('div');
+    bracketRoundsDiv.className = 'playoff-rounds';
+    
+    // Filter matches to only include ones for the rounds we're showing
+    const visibleWeeks = bracketData.rounds.map(r => r.week);
+    const visibleMatches = bracketData.matches.filter(match => 
+      visibleWeeks.includes(match.week)
+    );
+    
+    // Group matches by round
+    const roundGroups = {};
+    bracketData.rounds.forEach(round => {
+      roundGroups[round.round] = {
+        name: round.name,
+        week: round.week,
+        matches: visibleMatches.filter(match => match.week === round.week)
+      };
+    });
+    
+    // Custom sort function that considers tournament structure
+    function customSortMatches(a, b, memberCount) {
+      // Special case for 7-player brackets
+      if (memberCount === 7) {
+        // For the semifinal round (week 15)
+        if (a.round === 2 && b.round === 2) {
+          // Ensure seed 1's match is always first (at the top)
+          const aHasSeed1 = 
+            (a.player1 && a.player1.seed === 1) || 
+            (a.player2 && a.player2.seed === 1);
+          const bHasSeed1 = 
+            (b.player1 && b.player1.seed === 1) || 
+            (b.player2 && b.player2.seed === 1);
+          
+          if (aHasSeed1 && !bHasSeed1) return -1;
+          if (!aHasSeed1 && bHasSeed1) return 1;
+        }
+        
+        // For the first round (week 14)
+        if (a.round === 1 && b.round === 1) {
+          // Put the 4/5 matchup first (at the top)
+          const aHas4or5 = 
+            (a.player1 && (a.player1.seed === 4 || a.player1.seed === 5)) || 
+            (a.player2 && (a.player2.seed === 4 || a.player2.seed === 5));
+          const bHas4or5 = 
+            (b.player1 && (b.player1.seed === 4 || b.player1.seed === 5)) || 
+            (b.player2 && (b.player2.seed === 4 || b.player2.seed === 5));
+          
+          if (aHas4or5 && !bHas4or5) return -1;
+          if (!aHas4or5 && bHas4or5) return 1;
+        }
+      }
+      
+      // Special case for 8-player brackets
+      if (memberCount === 8) {
+        // Put 1/8 match at the top, followed by 4/5, then 3/6, then 2/7
+        const getMatchPriority = (match) => {
+          const seeds = [
+            match.player1 ? match.player1.seed : 999,
+            match.player2 ? match.player2.seed : 999
+          ].sort((x, y) => x - y);
+          
+          // Priority based on lowest seed in match
+          if (seeds[0] === 1) return 0; // 1/8 match
+          if (seeds[0] === 4) return 1; // 4/5 match
+          if (seeds[0] === 3) return 2; // 3/6 match
+          if (seeds[0] === 2) return 3; // 2/7 match
+          return 4; // Any other match
+        };
+        
+        const aPriority = getMatchPriority(a);
+        const bPriority = getMatchPriority(b);
+        
+        if (aPriority !== bPriority) {
+          return aPriority - bPriority;
+        }
+      }
+      
+      // Special case for 9-player brackets
+      if (memberCount === 9) {
+        // For the quarterfinal round
+        if (a.round === 2 && b.round === 2) {
+          // Order: 1 vs 8/9 winner, 4 vs 5, 3 vs 6, 2 vs 7
+          const getMatchPriority = (match) => {
+            const seeds = [
+              match.player1 ? match.player1.seed : 999,
+              match.player2 ? match.player2.seed : 999
+            ].sort((x, y) => x - y);
+            
+            if (seeds[0] === 1) return 0;
+            if (seeds[0] === 4) return 1;
+            if (seeds[0] === 3) return 2;
+            if (seeds[0] === 2) return 3;
+            return 4;
+          };
+          
+          const aPriority = getMatchPriority(a);
+          const bPriority = getMatchPriority(b);
+          
+          if (aPriority !== bPriority) {
+            return aPriority - bPriority;
+          }
+        }
+      }
+      
+      // Special case for 10-player brackets
+      if (memberCount === 10) {
+        // Similar to 9-player bracket but with two play-in games
+        if (a.round === 2 && b.round === 2) {
+          // Order: 1 vs 8/9 winner, 4 vs 5, 3 vs 6, 2 vs 7/10 winner
+          const getMatchPriority = (match) => {
+            const seeds = [
+              match.player1 ? match.player1.seed : 999,
+              match.player2 ? match.player2.seed : 999
+            ].sort((x, y) => x - y);
+            
+            if (seeds[0] === 1) return 0;
+            if (seeds[0] === 4) return 1;
+            if (seeds[0] === 3) return 2;
+            if (seeds[0] === 2) return 3;
+            return 4;
+          };
+          
+          const aPriority = getMatchPriority(a);
+          const bPriority = getMatchPriority(b);
+          
+          if (aPriority !== bPriority) {
+            return aPriority - bPriority;
+          }
+        }
+      }
+      
+      // Default to comparing positions
+      const aPos = a.player1?.position || a.player2?.position || '';
+      const bPos = b.player1?.position || b.player2?.position || '';
+      return aPos.localeCompare(bPos);
+    }
+    
+    // Add rounds to the bracket
+    Object.values(roundGroups).sort((a, b) => a.week - b.week).forEach(roundGroup => {
+      const roundElement = document.createElement('div');
+      roundElement.className = 'bracket-round';
+      
+      // Set data attributes for easier styling
+      roundElement.dataset.round = roundGroup.week.toString();
+      roundElement.dataset.totalRounds = bracketData.rounds.length.toString();
+      roundElement.dataset.playerCount = memberCount.toString();
+      
+      // Sort matches using our custom sort function
+      const sortedMatches = roundGroup.matches.sort((a, b) => {
+        return customSortMatches(a, b, memberCount);
+      });
+      
+      // Add matches to the round
+      sortedMatches.forEach(match => {
+        // Pass currentWeek and isLastWeek to createMatchElement
+        const matchElement = createMatchElement(match, poolName, champion, currentWeek, isLastWeek);
+        roundElement.appendChild(matchElement);
+      });
+      
+      bracketRoundsDiv.appendChild(roundElement);
+    });
+    
+    container.appendChild(bracketRoundsDiv);
+    
+    // Add bracket connectors in a second pass
+    createBracketConnectors(bracketData, visibleMatches, bracketData.rounds.length);
+    
+    console.log('Bracket rendered successfully with', memberCount, 'players');
+}
