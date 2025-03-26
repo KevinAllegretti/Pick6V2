@@ -3068,7 +3068,7 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
      // Check for special backgrounds
      let playerUserStyle = '';
      const username = memberData.username.toLowerCase();
-     
+     /*
      if (username === 'huh') {
          playerUserStyle = `style="background-image: url('Immaculate Week.gif'); background-size: cover; background-position: center;Color: White; text-shadow: 
                -1px -1px 0 black,  
@@ -3152,7 +3152,7 @@ function createPlayerRow(memberData, isAdmin, totalMembers) {
                  1px -1px 0 black,
                 -1px  1px 0 black,
                  1px  1px 0 black;"`;
-                }
+                }*/
      playerRow.innerHTML = `
          <div class="player-user" ${playerUserStyle}>
              <div class="player-profile-pic" style="background-image: url('${memberData.profilePic}')"></div>
@@ -6960,7 +6960,7 @@ async function fetchPlayoffPicks(username, poolName) {
         return await response.json();
     } catch (error) {
         console.error('Error fetching playoff picks:', error);
-        return { picks: [], immortalLock: [] };
+        return { picks: [], immortalLock: [] 
     }
 }*/
 
