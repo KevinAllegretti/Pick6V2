@@ -5450,7 +5450,6 @@ text-align: center;
   z-index: 1;
 }
 
-/* Reset any inherited styles for the playoff container */
 .playoff-bracket-container {
   padding: 15px !important;
   overflow-x: auto !important;
@@ -5898,9 +5897,7 @@ text-align: center;
   to { opacity: 0.9; box-shadow: 0 0 8px rgba(51, 217, 255, 0.7); }
 }
 
-.playoff-bracket-container {
-  position: relative !important; 
-}
+
 
 .simple-connector {
   box-shadow: 0 0 8px #33d9ff;
@@ -5980,11 +5977,6 @@ text-align: center;
   z-index: 0;
 }
 
-/* Make sure the playoff bracket container has position relative */
-.playoff-bracket-container {
-  position: relative !important;
-  overflow: visible !important; /* Prevent clipping connectors */
-}
 
 /* Connector line styling with glow effect */
 .connector-line,
@@ -6091,4 +6083,18 @@ text-align: center;
 /* 9-player bracket specific adjustments */
 .bracket-size-9 .bracket-round[data-round="1"] .match-container:nth-child(1) {
   margin-top: 5px !important;
+}
+
+.playoff-bracket-container {
+  padding: 15px !important;
+  overflow-x: scroll !important;
+  overflow-y: visible !important;
+  background-color: #0a0f22 !important;
+  min-height: 400px !important;
+  height: auto !important;
+  max-height: none !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #33d9ff rgba(10, 15, 34, 0.5) !important;
+  position: relative !important;
+  z-index: 1 !important;
 }

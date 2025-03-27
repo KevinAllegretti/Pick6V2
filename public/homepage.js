@@ -6578,9 +6578,6 @@ function createBracketConnectors() {
       width: 2px;
     }
     
-    /* Make sure the bracket container has position relative */
-    .playoff-bracket-container {
-      position: relative !important;
-    }
+
   `;
   document.head.appendChild(connectorStyles);
