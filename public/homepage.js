@@ -6417,167 +6417,358 @@ function renderBracket(bracketData, container, poolName) {
       }, 500); // 500ms delay
     console.log('Bracket rendered successfully with', memberCount, 'players');
 }
-
-// Hard-coded bracket connectors for 7-player bracket
-// Updated bracket connectors function that only applies to 7-player brackets
+// Bracket connectors for 6, 7, 8, 9, and 10-player brackets
+// Bracket connectors for 6, 7, 8, 9, and 10-player brackets
 function createBracketConnectors() {
+    console.log("Starting createBracketConnectors function...");
+    
     // Wait for DOM to be fully loaded
     setTimeout(() => {
-      // Get the bracket container
-      const bracketContainer = document.querySelector('.playoff-bracket-container');
-      if (!bracketContainer) return;
+      // Find ALL bracket containers (not just the first one)
+      const bracketContainers = document.querySelectorAll('.playoff-bracket-container');
+      console.log(`Found ${bracketContainers.length} bracket containers on the page`);
       
-      // Check if this is a 7-player bracket - IMPORTANT NEW CHECK
-      const playerCount = parseInt(bracketContainer.querySelector('.bracket-round')?.dataset.playerCount || '0');
-      if (playerCount !== 7) {
-        console.log("Not a 7-player bracket, skipping connector creation");
-        return; // Exit if not a 7-player bracket
-      }
-      
-      console.log("Creating connectors for 7-player bracket");
-      
-      // Make sure the container has position relative
-      bracketContainer.style.position = 'relative';
-      
-      // Get all rounds
-      const rounds = bracketContainer.querySelectorAll('.bracket-round');
-      if (rounds.length < 3) return; // Need all 3 rounds
-      
-      // Get matches from each round
-      const firstRoundMatches = rounds[0].querySelectorAll('.match-container');
-      const semiFinalMatches = rounds[1].querySelectorAll('.match-container');
-      const finalMatch = rounds[2].querySelector('.match-container');
-      
-      // Clear any existing connectors
-      const existingConnectors = bracketContainer.querySelectorAll('.bracket-connector');
-      existingConnectors.forEach(conn => conn.remove());
-      
-      // Create connectors for first round to semi-finals
-      // Top match to bottom slot of top semi-final (TBD spot)
-      createConnector(bracketContainer, firstRoundMatches[0], semiFinalMatches[0], 'bottom');
-      
-      // Second match to top slot of bottom semi-final
-      createConnector(bracketContainer, firstRoundMatches[1], semiFinalMatches[1], 'top');
-      
-      // Third match to bottom slot of bottom semi-final
-      createConnector(bracketContainer, firstRoundMatches[2], semiFinalMatches[1], 'bottom');
-      
-      // Create connectors for semi-finals to final
-      // Top semi-final to final
-      createConnector(bracketContainer, semiFinalMatches[0], finalMatch, 'top');
-      
-      // Bottom semi-final to final
-      createConnector(bracketContainer, semiFinalMatches[1], finalMatch, 'bottom');
-      
-      console.log("7-player bracket connectors created successfully");
+      // Process each bracket container separately
+      bracketContainers.forEach((bracketContainer, index) => {
+        console.log(`Processing bracket container ${index + 1}...`);
+        
+        // Check player count from data attribute or class
+        const playerCount = parseInt(bracketContainer.querySelector('.bracket-round')?.dataset.playerCount || '0');
+        const containerHas10PlayerClass = bracketContainer.classList.contains('bracket-size-10');
+        const containerHas9PlayerClass = bracketContainer.classList.contains('bracket-size-9');
+        const containerHas8PlayerClass = bracketContainer.classList.contains('bracket-size-8');
+        const containerHas7PlayerClass = bracketContainer.classList.contains('bracket-size-7');
+        const containerHas6PlayerClass = bracketContainer.classList.contains('bracket-size-6');
+        
+        // Get all rounds for this specific bracket
+        const rounds = bracketContainer.querySelectorAll('.bracket-round');
+        
+        // Determine bracket type
+        let bracketType = null;
+        
+        // 10-player brackets have 4 rounds with 2 matches in first round
+        if (playerCount === 10 || containerHas10PlayerClass || 
+            (rounds.length === 4 && rounds[0].querySelectorAll('.match-container').length === 2)) {
+          bracketType = 10;
+        }
+        // 9-player brackets have 4 rounds with 1 match in first round
+        else if (playerCount === 9 || containerHas9PlayerClass || 
+            (rounds.length === 4 && rounds[0].querySelectorAll('.match-container').length === 1)) {
+          bracketType = 9;
+        }
+        // 8-player brackets have exactly 4 matches in first round (or 3 rounds total)
+        else if (playerCount === 8 || containerHas8PlayerClass || 
+                (rounds.length === 3 && rounds[0].querySelectorAll('.match-container').length === 4)) {
+          bracketType = 8;
+        }
+        // 7-player brackets have exactly 3 matches in first round
+        else if (playerCount === 7 || containerHas7PlayerClass || 
+                (rounds.length === 3 && rounds[0].querySelectorAll('.match-container').length === 3)) {
+          bracketType = 7;
+        }
+        // 6-player brackets have exactly 2 matches in first round
+        else if (playerCount === 6 || containerHas6PlayerClass || 
+                (rounds.length === 3 && rounds[0].querySelectorAll('.match-container').length === 2)) {
+          bracketType = 6;
+        }
+        
+        if (!bracketType) {
+          console.log(`Bracket ${index + 1} is not a 6, 7, 8, 9, or 10-player bracket, skipping`);
+          return; // Skip this bracket container
+        }
+        
+        console.log(`Creating connectors for ${bracketType}-player bracket ${index + 1}`);
+        
+        // Make sure the container has position relative
+        bracketContainer.style.position = 'relative';
+        
+        // Clear any existing connectors for this specific bracket
+        const existingConnectors = bracketContainer.querySelectorAll('.bracket-connector');
+        existingConnectors.forEach(conn => conn.remove());
+        console.log(`Cleared ${existingConnectors.length} existing connectors from bracket ${index + 1}`);
+        
+        try {
+          if (bracketType === 10) {
+            // 10-player bracket connectors
+            if (rounds.length < 4) {
+              console.log(`Bracket ${index + 1} doesn't have enough rounds (${rounds.length}) for a 10-player bracket, skipping`);
+              return;
+            }
+            
+            // Get matches from each round
+            const firstRoundMatches = rounds[0].querySelectorAll('.match-container');
+            const quarterFinalMatches = rounds[1].querySelectorAll('.match-container');
+            const semiFinalMatches = rounds[2].querySelectorAll('.match-container');
+            const finalMatch = rounds[3].querySelector('.match-container');
+            
+            // Verify structure
+            if (firstRoundMatches.length !== 2 || quarterFinalMatches.length !== 4 || 
+                semiFinalMatches.length !== 2 || !finalMatch) {
+              console.log(`Bracket ${index + 1} does not have the correct match structure for a 10-player bracket`);
+              return;
+            }
+            
+            // Connect first round to quarter finals
+            // First match (top) to bottom slot of first quarter-final
+            createConnector(bracketContainer, firstRoundMatches[0], quarterFinalMatches[0], 'bottom');
+            
+            // Second match (bottom) to bottom slot of fourth quarter-final
+            createConnector(bracketContainer, firstRoundMatches[1], quarterFinalMatches[3], 'bottom');
+            
+            // Connect quarter finals to semi finals
+            createConnector(bracketContainer, quarterFinalMatches[0], semiFinalMatches[0], 'top');
+            createConnector(bracketContainer, quarterFinalMatches[1], semiFinalMatches[0], 'bottom');
+            createConnector(bracketContainer, quarterFinalMatches[2], semiFinalMatches[1], 'top');
+            createConnector(bracketContainer, quarterFinalMatches[3], semiFinalMatches[1], 'bottom');
+            
+            // Connect semi finals to finals
+            createConnector(bracketContainer, semiFinalMatches[0], finalMatch, 'top');
+            createConnector(bracketContainer, semiFinalMatches[1], finalMatch, 'bottom');
+            
+          } else if (bracketType === 9) {
+            // 9-player bracket connectors
+            if (rounds.length < 4) {
+              console.log(`Bracket ${index + 1} doesn't have enough rounds (${rounds.length}) for a 9-player bracket, skipping`);
+              return;
+            }
+            
+            // Get matches from each round
+            const firstRoundMatches = rounds[0].querySelectorAll('.match-container');
+            const quarterFinalMatches = rounds[1].querySelectorAll('.match-container');
+            const semiFinalMatches = rounds[2].querySelectorAll('.match-container');
+            const finalMatch = rounds[3].querySelector('.match-container');
+            
+            // Verify structure
+            if (firstRoundMatches.length !== 1 || quarterFinalMatches.length !== 4 || 
+                semiFinalMatches.length !== 2 || !finalMatch) {
+              console.log(`Bracket ${index + 1} does not have the correct match structure for a 9-player bracket`);
+              return;
+            }
+            
+            // Connect first round to quarter finals (first match, bottom slot - TBD spot)
+            createConnector(bracketContainer, firstRoundMatches[0], quarterFinalMatches[0], 'bottom');
+            
+            // Connect quarter finals to semi finals
+            createConnector(bracketContainer, quarterFinalMatches[0], semiFinalMatches[0], 'top');
+            createConnector(bracketContainer, quarterFinalMatches[1], semiFinalMatches[0], 'bottom');
+            createConnector(bracketContainer, quarterFinalMatches[2], semiFinalMatches[1], 'top');
+            createConnector(bracketContainer, quarterFinalMatches[3], semiFinalMatches[1], 'bottom');
+            
+            // Connect semi finals to finals
+            createConnector(bracketContainer, semiFinalMatches[0], finalMatch, 'top');
+            createConnector(bracketContainer, semiFinalMatches[1], finalMatch, 'bottom');
+            
+          } else if (bracketType === 8) {
+            // 8-player bracket connectors
+            if (rounds.length < 3) {
+              console.log(`Bracket ${index + 1} doesn't have enough rounds (${rounds.length}), skipping`);
+              return;
+            }
+            
+            const firstRoundMatches = rounds[0].querySelectorAll('.match-container');
+            const semiFinalMatches = rounds[1].querySelectorAll('.match-container');
+            const finalMatch = rounds[2].querySelector('.match-container');
+            
+            // Proceed only if we have the correct structure for an 8-player bracket
+            if (firstRoundMatches.length !== 4 || semiFinalMatches.length !== 2 || !finalMatch) {
+              console.log(`Bracket ${index + 1} does not have the correct match structure for an 8-player bracket`);
+              return;
+            }
+            
+            // Create connectors for quarter finals to semi-finals
+            // First match to top slot of first semi-final
+            createConnector(bracketContainer, firstRoundMatches[0], semiFinalMatches[0], 'top');
+            
+            // Second match to bottom slot of first semi-final
+            createConnector(bracketContainer, firstRoundMatches[1], semiFinalMatches[0], 'bottom');
+            
+            // Third match to top slot of second semi-final
+            createConnector(bracketContainer, firstRoundMatches[2], semiFinalMatches[1], 'top');
+            
+            // Fourth match to bottom slot of second semi-final
+            createConnector(bracketContainer, firstRoundMatches[3], semiFinalMatches[1], 'bottom');
+            
+            // Create connectors for semi-finals to final
+            createConnector(bracketContainer, semiFinalMatches[0], finalMatch, 'top');
+            createConnector(bracketContainer, semiFinalMatches[1], finalMatch, 'bottom');
+            
+          } else if (bracketType === 7) {
+            // 7-player bracket connectors
+            if (rounds.length < 3) {
+              console.log(`Bracket ${index + 1} doesn't have enough rounds (${rounds.length}), skipping`);
+              return;
+            }
+            
+            const firstRoundMatches = rounds[0].querySelectorAll('.match-container');
+            const semiFinalMatches = rounds[1].querySelectorAll('.match-container');
+            const finalMatch = rounds[2].querySelector('.match-container');
+            
+            // Proceed only if we have the correct structure for a 7-player bracket
+            if (firstRoundMatches.length !== 3 || semiFinalMatches.length !== 2 || !finalMatch) {
+              console.log(`Bracket ${index + 1} does not have the correct match structure for a 7-player bracket`);
+              return;
+            }
+            
+            // Create connectors for first round to semi-finals
+            // Top match to bottom slot of top semi-final (TBD spot)
+            createConnector(bracketContainer, firstRoundMatches[0], semiFinalMatches[0], 'bottom');
+            
+            // Second match to top slot of bottom semi-final
+            createConnector(bracketContainer, firstRoundMatches[1], semiFinalMatches[1], 'top');
+            
+            // Third match to bottom slot of bottom semi-final
+            createConnector(bracketContainer, firstRoundMatches[2], semiFinalMatches[1], 'bottom');
+            
+            // Create connectors for semi-finals to final
+            createConnector(bracketContainer, semiFinalMatches[0], finalMatch, 'top');
+            createConnector(bracketContainer, semiFinalMatches[1], finalMatch, 'bottom');
+            
+          } else if (bracketType === 6) {
+            // 6-player bracket connectors
+            if (rounds.length < 3) {
+              console.log(`Bracket ${index + 1} doesn't have enough rounds (${rounds.length}), skipping`);
+              return;
+            }
+            
+            const firstRoundMatches = rounds[0].querySelectorAll('.match-container');
+            const semiFinalMatches = rounds[1].querySelectorAll('.match-container');
+            const finalMatch = rounds[2].querySelector('.match-container');
+            
+            // Proceed only if we have the correct structure for a 6-player bracket
+            if (firstRoundMatches.length !== 2 || semiFinalMatches.length !== 2 || !finalMatch) {
+              console.log(`Bracket ${index + 1} does not have the correct match structure for a 6-player bracket`);
+              return;
+            }
+            
+            // Create connectors for first round to semi-finals
+            // Top match to top slot of top semi-final (TBD spot)
+            createConnector(bracketContainer, firstRoundMatches[0], semiFinalMatches[0], 'top');
+            
+            // Bottom match to top slot of bottom semi-final (TBD spot)
+            createConnector(bracketContainer, firstRoundMatches[1], semiFinalMatches[1], 'top');
+            
+            // Create connectors for semi-finals to final
+            createConnector(bracketContainer, semiFinalMatches[0], finalMatch, 'top');
+            createConnector(bracketContainer, semiFinalMatches[1], finalMatch, 'bottom');
+          }
+          
+          console.log(`Successfully created connectors for ${bracketType}-player bracket ${index + 1}`);
+        } catch (error) {
+          console.error(`Error creating connectors for bracket ${index + 1}:`, error);
+        }
+      });
     }, 1000); // Delay to ensure all elements are rendered
 }
-  // Function to create a single connector
-  function createConnector(container, fromMatch, toMatch, position) {
-    if (!fromMatch || !toMatch) return;
-    
-    // Get positions
-    const containerRect = container.getBoundingClientRect();
-    const fromRect = fromMatch.getBoundingClientRect();
-    const toRect = toMatch.getBoundingClientRect();
-    
-    // Calculate relative positions
-    const startX = fromRect.right - containerRect.left;
-    const startY = fromRect.top + (fromRect.height / 2) - containerRect.top;
-    const endX = toRect.left - containerRect.left;
-    const endY = toRect.top + (position === 'top' ? 0.25 : 0.75) * toRect.height - containerRect.top;
-    
-    // Calculate the midpoint X (horizontal distance / 2)
-    const midX = startX + (endX - startX) * 0.5;
-    
-    // Create horizontal connector from match
-    const horizontalConnector1 = document.createElement('div');
-    horizontalConnector1.className = 'bracket-connector horizontal-connector';
-    horizontalConnector1.style.position = 'absolute';
-    horizontalConnector1.style.left = `${startX}px`;
-    horizontalConnector1.style.top = `${startY}px`;
-    horizontalConnector1.style.width = `${midX - startX}px`;
-    horizontalConnector1.style.height = '2px';
-    horizontalConnector1.style.backgroundColor = '#33d9ff';
-    horizontalConnector1.style.boxShadow = '0 0 8px #33d9ff, 0 0 16px #33d9ff';
-    horizontalConnector1.style.zIndex = '5';
-    
-    // Create vertical connector
-    const verticalConnector = document.createElement('div');
-    verticalConnector.className = 'bracket-connector vertical-connector';
-    verticalConnector.style.position = 'absolute';
-    verticalConnector.style.left = `${midX}px`;
-    verticalConnector.style.top = `${Math.min(startY, endY)}px`;
-    verticalConnector.style.width = '2px';
-    verticalConnector.style.height = `${Math.abs(endY - startY)}px`;
-    verticalConnector.style.backgroundColor = '#33d9ff';
-    verticalConnector.style.boxShadow = '0 0 8px #33d9ff, 0 0 16px #33d9ff';
-    verticalConnector.style.zIndex = '5';
-    
-    // Create horizontal connector to next match
-    const horizontalConnector2 = document.createElement('div');
-    horizontalConnector2.className = 'bracket-connector horizontal-connector';
-    horizontalConnector2.style.position = 'absolute';
-    horizontalConnector2.style.left = `${midX}px`;
-    horizontalConnector2.style.top = `${endY}px`;
-    horizontalConnector2.style.width = `${endX - midX}px`;
-    horizontalConnector2.style.height = '2px';
-    horizontalConnector2.style.backgroundColor = '#33d9ff';
-    horizontalConnector2.style.boxShadow = '0 0 8px #33d9ff, 0 0 16px #33d9ff';
-    horizontalConnector2.style.zIndex = '5';
-    
-    // Add connectors to container
-    container.appendChild(horizontalConnector1);
-    container.appendChild(verticalConnector);
-    container.appendChild(horizontalConnector2);
-  }
+
+// Function to create a single connector
+function createConnector(container, fromMatch, toMatch, position) {
+  if (!fromMatch || !toMatch) return;
   
-  // Function to handle window resize
-  function handleResize() {
-    // Remove existing connectors
-    const existingConnectors = document.querySelectorAll('.bracket-connector');
-    existingConnectors.forEach(conn => conn.remove());
-    
-    // Recreate connectors
-    createBracketConnectors();
-  }
+  // Get positions
+  const containerRect = container.getBoundingClientRect();
+  const fromRect = fromMatch.getBoundingClientRect();
+  const toRect = toMatch.getBoundingClientRect();
   
-  // Initialize connectors
-  document.addEventListener('DOMContentLoaded', function() {
-    // Create connectors initially
-    createBracketConnectors();
-    
-    // Add resize event listener
-    window.addEventListener('resize', function() {
-      // Debounce resize event
-      clearTimeout(window.resizeTimer);
-      window.resizeTimer = setTimeout(handleResize, 250);
-    });
-    
-    // Also run after a longer delay to catch any late-loading brackets
-    setTimeout(createBracketConnectors, 2000);
-    setTimeout(createBracketConnectors, 3000);
+  // Calculate relative positions
+  const startX = fromRect.right - containerRect.left;
+  const startY = fromRect.top + (fromRect.height / 2) - containerRect.top;
+  const endX = toRect.left - containerRect.left;
+  const endY = toRect.top + (position === 'top' ? 0.25 : 0.75) * toRect.height - containerRect.top;
+  
+  // Calculate the midpoint X (horizontal distance / 2)
+  const midX = startX + (endX - startX) * 0.5;
+  
+  // Create horizontal connector from match
+  const horizontalConnector1 = document.createElement('div');
+  horizontalConnector1.className = 'bracket-connector horizontal-connector';
+  horizontalConnector1.style.position = 'absolute';
+  horizontalConnector1.style.left = `${startX}px`;
+  horizontalConnector1.style.top = `${startY}px`;
+  horizontalConnector1.style.width = `${midX - startX}px`;
+  horizontalConnector1.style.height = '2px';
+  horizontalConnector1.style.backgroundColor = '#33d9ff';
+  horizontalConnector1.style.boxShadow = '0 0 8px #33d9ff, 0 0 16px #33d9ff';
+  horizontalConnector1.style.zIndex = '5';
+  
+  // Create vertical connector
+  const verticalConnector = document.createElement('div');
+  verticalConnector.className = 'bracket-connector vertical-connector';
+  verticalConnector.style.position = 'absolute';
+  verticalConnector.style.left = `${midX}px`;
+  verticalConnector.style.top = `${Math.min(startY, endY)}px`;
+  verticalConnector.style.width = '2px';
+  verticalConnector.style.height = `${Math.abs(endY - startY)}px`;
+  verticalConnector.style.backgroundColor = '#33d9ff';
+  verticalConnector.style.boxShadow = '0 0 8px #33d9ff, 0 0 16px #33d9ff';
+  verticalConnector.style.zIndex = '5';
+  
+  // Create horizontal connector to next match
+  const horizontalConnector2 = document.createElement('div');
+  horizontalConnector2.className = 'bracket-connector horizontal-connector';
+  horizontalConnector2.style.position = 'absolute';
+  horizontalConnector2.style.left = `${midX}px`;
+  horizontalConnector2.style.top = `${endY}px`;
+  horizontalConnector2.style.width = `${endX - midX}px`;
+  horizontalConnector2.style.height = '2px';
+  horizontalConnector2.style.backgroundColor = '#33d9ff';
+  horizontalConnector2.style.boxShadow = '0 0 8px #33d9ff, 0 0 16px #33d9ff';
+  horizontalConnector2.style.zIndex = '5';
+  
+  // Add connectors to container
+  container.appendChild(horizontalConnector1);
+  container.appendChild(verticalConnector);
+  container.appendChild(horizontalConnector2);
+}
+
+// Function to handle window resize
+function handleResize() {
+  // Remove existing connectors
+  const existingConnectors = document.querySelectorAll('.bracket-connector');
+  existingConnectors.forEach(conn => conn.remove());
+  
+  // Recreate connectors
+  createBracketConnectors();
+}
+
+// Initialize connectors
+document.addEventListener('DOMContentLoaded', function() {
+  // Create connectors initially
+  createBracketConnectors();
+  
+  // Add resize event listener
+  window.addEventListener('resize', function() {
+    // Debounce resize event
+    clearTimeout(window.resizeTimer);
+    window.resizeTimer = setTimeout(handleResize, 250);
   });
   
-  // Add CSS for connectors
-  const connectorStyles = document.createElement('style');
-  connectorStyles.textContent = `
-    .bracket-connector {
-      position: absolute;
-      background-color: #33d9ff;
-      box-shadow: 0 0 8px #33d9ff, 0 0 16px #33d9ff;
-      z-index: 5;
-      pointer-events: none;
-    }
-    
-    .horizontal-connector {
-      height: 2px;
-    }
-    
-    .vertical-connector {
-      width: 2px;
-    }
-    
+  // Also run after a longer delay to catch any late-loading brackets
+  setTimeout(createBracketConnectors, 2000);
+  setTimeout(createBracketConnectors, 3000);
+});
 
-  `;
-  document.head.appendChild(connectorStyles);
+// Add CSS for connectors
+const connectorStyles = document.createElement('style');
+connectorStyles.textContent = `
+  .bracket-connector {
+    position: absolute;
+    background-color: #33d9ff;
+    box-shadow: 0 0 8px #33d9ff, 0 0 16px #33d9ff;
+    z-index: 5;
+    pointer-events: none;
+  }
+  
+  .horizontal-connector {
+    height: 2px;
+  }
+  
+  .vertical-connector {
+    width: 2px;
+  }
+  
+  /* Make sure the bracket container has position relative */
+  .playoff-bracket-container {
+    position: relative !important;
+  }
+`;
+document.head.appendChild(connectorStyles);
