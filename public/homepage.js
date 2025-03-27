@@ -1179,7 +1179,7 @@ async function getCurrentTimePhase() {
         const sundayTime = new Date(sundayDeadline);
 
         if (now > tuesdayTime && now < thursdayTime) {
-            console.log("its pcik tioeeeee")
+            //console.log("its pcik tioeeeee")
             return 'pick';
         } else if (now > thursdayTime && now < sundayTime) {
             return 'thursday';
@@ -4884,482 +4884,7 @@ function rebuildUIWithResults(results) {
 }
 
 
-/*
-// Initialize the playoff player picks panel 
-// This function creates the panel if it doesn't exist
-function initializePlayerPicksPanel() {
-    // Check if the panel already exists
-    if (!document.getElementById('playoff-player-picks-panel')) {
-        console.log('Creating player picks panel');
-        
-        // Create the panel element
-        const picksPanel = document.createElement('div');
-        picksPanel.id = 'playoff-player-picks-panel';
-        picksPanel.className = 'player-picks-panel';
-        
-        // Create panel HTML structure
-        picksPanel.innerHTML = `
-            <div class="panel-header">
-                <h3 id="selected-player-name">Player Name</h3>
-                <button id="close-picks-panel-btn" class="close-panel-btn">&times;</button>
-            </div>
-            <div class="player-record">
-                <div class="record-item"><span>W:</span> <span id="player-wins">0</span></div>
-                <div class="record-item"><span>L:</span> <span id="player-losses">0</span></div>
-                <div class="record-item"><span>P:</span> <span id="player-pushes">0</span></div>
-            </div>
-            <div class="player-picks-container">
-                <!-- This will be populated by JavaScript -->
-            </div>
-        `;
-        
-        // Append the panel to the document body
-        document.body.appendChild(picksPanel);
-        
-        // Add event listener to close button
-        const closeBtn = picksPanel.querySelector('#close-picks-panel-btn');
-        closeBtn.addEventListener('click', () => {
-            picksPanel.classList.remove('open');
-        });
-        
-        // Also close when clicking outside the panel
-        document.addEventListener('click', function(event) {
-            const panel = document.getElementById('playoff-player-picks-panel');
-            
-            // Only proceed if panel exists and is open
-            if (panel && panel.classList.contains('open')) {
-                // Check if click was inside the panel
-                if (!panel.contains(event.target)) {
-                    // Make sure we're not clicking on a player slot
-                    if (!event.target.closest('.player-slot')) {
-                        panel.classList.remove('open');
-                    }
-                }
-            }
-        });
-    }
-    
-    return document.getElementById('playoff-player-picks-panel');
-}*/
-/*
-// Function to show player picks when a player is clicked in the bracket
-async function showPlayerPicks(player, poolName) {
-    console.log(`Showing picks for player ${player.username} in pool ${poolName}`);
-    
-    // Always ensure the panel exists first
-    initializePlayerPicksPanel();
-    
-    // Now we can safely get the panel
-    const picksPanel = document.getElementById('playoff-player-picks-panel');
-    
-    // Update player name in panel
-    document.getElementById('selected-player-name').textContent = player.username;
-    
-    // Clear existing picks
-    const picksContainer = picksPanel.querySelector('.player-picks-container');
-    picksContainer.innerHTML = '<div class="loading-spinner"></div>';
-    
-    try {
-        // Fetch the player's playoff stats from the API endpoint
-        const encodedPoolName = encodeURIComponent(poolName);
-        const encodedUsername = encodeURIComponent(player.username);
-        const statsUrl = `/api/playoffs/${encodedPoolName}/member/${encodedUsername}`;
-        
-        console.log(`Fetching player playoff stats from: ${statsUrl}`);
-        let statsResponse;
-        try {
-            statsResponse = await fetch(statsUrl);
-            
-            if (!statsResponse.ok) {
-                console.warn(`Stats API returned status: ${statsResponse.status}`);
-                // Continue with default values if stats API fails
-                throw new Error('Stats not available');
-            }
-        } catch (statsError) {
-            console.warn('Could not fetch player stats:', statsError);
-            // Use player object values as fallback
-            document.getElementById('player-wins').textContent = player.win || 0;
-            document.getElementById('player-losses').textContent = player.loss || 0;
-            document.getElementById('player-pushes').textContent = player.push || 0;
-            
-            // Continue with picks fetch
-            statsResponse = { ok: false };
-        }
-        
-        const statsData = await statsResponse.json();
-        
-        if (statsData.success && statsData.member) {
-            // Update player record with stats from API
-            document.getElementById('player-wins').textContent = statsData.member.win || 0;
-            document.getElementById('player-losses').textContent = statsData.member.loss || 0;
-            document.getElementById('player-pushes').textContent = statsData.member.push || 0;
-        } else {
-            console.warn('Stats data not found or invalid format', statsData);
-            // Set default values if stats not found
-            document.getElementById('player-wins').textContent = player.win || 0;
-            document.getElementById('player-losses').textContent = player.loss || 0;
-            document.getElementById('player-pushes').textContent = player.push || 0;
-        }
-        
-        // Get team logos map for displaying team logos
-        const teamLogos = getTeamLogos();
-        
-        // Fetch player picks using playoff_ prefix
-        const encodedPlayoffPoolName = encodeURIComponent(`playoff_${poolName}`);
-        const picksUrl = `/api/getPicks/${encodedUsername}/${encodedPlayoffPoolName}`;
-        
-        console.log(`Fetching playoff picks from: ${picksUrl}`);
-        let picksResponse;
-        try {
-            picksResponse = await fetch(picksUrl);
-            
-            if (!picksResponse.ok) {
-                console.warn(`Picks API returned status: ${picksResponse.status}`);
-                // Show a user-friendly message in the panel
-                picksContainer.innerHTML = `
-                    <div class="no-picks-message">No picks available yet</div>
-                `;
-                
-                // Show the panel even without picks
-                picksPanel.classList.add('open');
-                return; // Exit the function early
-            }
-        } catch (picksError) {
-            console.warn('Could not fetch player picks:', picksError);
-            picksContainer.innerHTML = `
-                <div class="picks-error-message">Unable to load picks at this time</div>
-                <button class="playoff-retry-btn" onclick="showPlayerPicks(${JSON.stringify(player)}, '${poolName}')">
-                    Retry
-                </button>
-            `;
-            
-            // Show the panel with the error
-            picksPanel.classList.add('open');
-            return; // Exit the function early
-        }
-        
-        const picksData = await picksResponse.json();
-        
-        // Fetch results to color the picks
-        let results = [];
-        try {
-            const resultsResponse = await fetch('/api/getResults');
-            if (resultsResponse.ok) {
-                const resultsData = await resultsResponse.json();
-                results = resultsData.success ? resultsData.results || [] : [];
-            } else {
-                console.warn('Could not fetch results, will show picks without coloring');
-            }
-        } catch (resultsError) {
-            console.warn('Error fetching results:', resultsError);
-            // Continue without results - picks will be shown without color coding
-        }
-        
-        // Clear loading spinner
-        picksContainer.innerHTML = '';
-        
-        if (picksData && picksData.picks && picksData.picks.length > 0) {
-            // Render picks
-            picksData.picks.forEach(pick => {
-                const pickElement = document.createElement('div');
-                pickElement.className = 'pick-item';
-                
-                // Find matching result for playoff picks
-                const matchingResult = results.find(r => 
-                    r.username?.toLowerCase() === player.username.toLowerCase() &&
-                    r.teamName === pick.teamName &&
-                    r.betValue === pick.value &&
-                    r.poolName === `playoff_${poolName}`
-                );
-                
-                let color = '';
-                if (matchingResult) {
-                    if (matchingResult.result === 'hit') {
-                        color = '#39FF14'; // Green
-                    } else if (matchingResult.result === 'miss') {
-                        color = 'red';
-                    } else if (matchingResult.result === 'push') {
-                        color = 'yellow';
-                    }
-                }
-                
-                pickElement.innerHTML = `
-                    <img src="${teamLogos[pick.teamName] || '/Default.png'}" alt="${pick.teamName}" class="team-logo">
-                    <div class="pick-details">
-                        <div class="pick-team">${pick.teamName}</div>
-                        <div class="pick-value" style="color: ${color} !important">${pick.value}</div>
-                    </div>
-                `;
-                
-                picksContainer.appendChild(pickElement);
-            });
-            
-            // Add immortal lock if exists
-            if (picksData.immortalLock && picksData.immortalLock.length > 0) {
-                const immortalPick = picksData.immortalLock[0];
-                const pickElement = document.createElement('div');
-                pickElement.className = 'pick-item immortal-lock-pick';
-                
-                // Find matching result for playoff immortal lock
-                const matchingResult = results.find(r => 
-                    r.username?.toLowerCase() === player.username.toLowerCase() &&
-                    r.teamName === immortalPick.teamName &&
-                    r.betValue === immortalPick.value &&
-                    r.poolName === `playoff_${poolName}` &&
-                    r.isImmortalLock
-                );
-                
-                let color = '';
-                if (matchingResult) {
-                    if (matchingResult.result === 'hit') {
-                        color = '#39FF14'; // Green
-                    } else if (matchingResult.result === 'miss') {
-                        color = 'red';
-                    } else if (matchingResult.result === 'push') {
-                        color = 'yellow';
-                    }
-                }
-                
-                pickElement.innerHTML = `
-                    <img src="${teamLogos[immortalPick.teamName] || '/Default.png'}" alt="${immortalPick.teamName}" class="team-logo">
-                    <div class="pick-details">
-                        <div class="pick-team">${immortalPick.teamName}</div>
-                        <div class="pick-value" style="color: ${color} !important">${immortalPick.value}</div>
-                    </div>
-                    <span class="immortal-lock-badge">LOCK</span>
-                `;
-                
-                picksContainer.appendChild(pickElement);
-            }
-        } else {
-            // No picks message
-            const noPicks = document.createElement('div');
-            noPicks.className = 'no-picks-message';
-            noPicks.textContent = 'No picks available for this player';
-            picksContainer.appendChild(noPicks);
-        }
-        
-        // Show the panel
-        picksPanel.classList.add('open');
-        
-    } catch (error) {
-        console.error('Error showing player picks:', error);
-        
-        // Show error message
-        picksContainer.innerHTML = `
-            <div class="picks-error-message">Failed to load player picks or stats</div>
-            <button class="playoff-retry-btn" onclick="showPlayerPicks(${JSON.stringify(player)}, '${poolName}')">
-                Retry
-            </button>
-        `;
-        
-        // Still show the panel with the error
-        picksPanel.classList.add('open');
-    }
-}*/
-/*
-function addPlayerPicksPanelStyles() {
-    const styleElement = document.createElement('style');
-    styleElement.textContent = `
 
-        .player-picks-panel {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #0a0f22;
-            border: 2px solid #33d9ff;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(51, 217, 255, 0.3);
-            width: 300px;
-            max-width: 90vw;
-            max-height: 80vh;
-            overflow: hidden;
-            display: none;
-            z-index: 1000;
-        }
-        
-        .player-picks-panel.open {
-            display: block;
-        }
-        
-        .panel-header {
-            background-color: rgba(0, 10, 30, 0.8);
-            padding: 10px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #33d9ff;
-        }
-        
-        .panel-header h3 {
-            margin: 0;
-            font-size: 16px;
-            color: #ffffff;
-            text-shadow: 0 0 5px #33d9ff;
-        }
-        
-        .close-panel-btn {
-            background: none;
-            border: none;
-            color: #ffffff;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 0;
-            line-height: 1;
-            transition: color 0.2s ease;
-        }
-        
-        .close-panel-btn:hover {
-            color: #33d9ff;
-        }
-        
-        .player-record {
-            display: flex;
-            background: rgba(0, 10, 25, 0.5);
-            padding: 8px;
-            border-bottom: 1px solid rgba(51, 217, 255, 0.3);
-        }
-        
-        .record-item {
-            flex: 1;
-            text-align: center;
-            font-family: 'quantico', sans-serif;
-            color: #ffffff;
-            font-size: 12px;
-        }
-        
-        .record-item span:first-child {
-            color: #33d9ff;
-            margin-right: 3px;
-        }
-        
-        .player-picks-container {
-            padding: 10px;
-            overflow-y: auto;
-            max-height: calc(80vh - 90px);
-        }
-        
-        .loading-spinner {
-            width: 30px;
-            height: 30px;
-            border: 3px solid rgba(51, 217, 255, 0.1);
-            border-radius: 50%;
-            border-top-color: #33d9ff;
-            margin: 20px auto;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .pick-item {
-            display: flex;
-            align-items: center;
-            padding: 8px;
-            border-bottom: 1px solid rgba(51, 217, 255, 0.2);
-            position: relative;
-        }
-        
-        .pick-item:last-child {
-            border-bottom: none;
-        }
-        
-        .pick-item img {
-            height: 30px;
-            width: 30px;
-            margin-right: 10px;
-            object-fit: contain;
-        }
-        
-        .pick-details {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .pick-team {
-            font-size: 12px;
-            color: #ffffff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .pick-value {
-            font-weight: bold;
-            font-size: 12px;
-            color: #33d9ff;
-            font-family: 'quantico', sans-serif;
-        }
-        
-        .immortal-lock-pick {
-            background-color: rgba(51, 217, 255, 0.1);
-        }
-        
-        .immortal-lock-badge {
-            position: absolute;
-            right: 8px;
-            background-color: #33d9ff;
-            color: #0a0f22;
-            font-size: 9px;
-            font-weight: bold;
-            padding: 2px 5px;
-            border-radius: 3px;
-        }
-        
-        .no-picks-message, .picks-error-message {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.7);
-            padding: 15px;
-            font-style: italic;
-            font-size: 12px;
-        }
-        
-        .playoff-retry-btn {
-            display: block;
-            margin: 10px auto;
-            background-color: rgba(51, 217, 255, 0.1);
-            color: #33d9ff;
-            border: 1px solid #33d9ff;
-            padding: 5px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s ease;
-        }
-        
-        .playoff-retry-btn:hover {
-            background-color: rgba(51, 217, 255, 0.2);
-            box-shadow: 0 0 10px rgba(51, 217, 255, 0.3);
-        }
-        
-        @media (max-width: 480px) {
-            .player-picks-panel {
-                width: 90vw;
-                max-height: 70vh;
-            }
-            
-            .panel-header h3 {
-                font-size: 14px;
-            }
-            
-            .pick-team {
-                font-size: 11px;
-            }
-            
-            .pick-value {
-                font-size: 11px;
-            }
-            
-            .player-picks-container {
-                max-height: calc(70vh - 90px);
-            }
-        }
-    `;
-    document.head.appendChild(styleElement);
-}*/
 
 // Initialize everything on page load
 document.addEventListener('DOMContentLoaded', function() {
@@ -5570,89 +5095,7 @@ function renderBracket(bracketData, container, poolName) {
     
   }
   
-  /*
-  // Modified createMatchElement function to highlight the champion
-  function createMatchElement(match, poolName, champion) {
-    const matchContainer = document.createElement('div');
-    matchContainer.className = 'match-container';
-    matchContainer.dataset.matchId = match.id;
-    
-    // Add a special class if this is the final match and we have a champion
-    if (match.nextMatch === "WINNER" && champion) {
-      matchContainer.classList.add('championship-match');
-    }
-    
-    const matchBracket = document.createElement('div');
-    matchBracket.className = 'match-bracket';
-    
-    // First player slot
-    if (match.player1) {
-      const isChampion = champion && match.player1.username === champion.username && match.nextMatch === "WINNER";
-      const player1Element = createPlayerSlot(match.player1, match.winner, poolName, isChampion);
-      matchBracket.appendChild(player1Element);
-    } else {
-      matchBracket.appendChild(createEmptySlot());
-    }
-    
-    // Second player slot
-    if (match.player2) {
-      const isChampion = champion && match.player2.username === champion.username && match.nextMatch === "WINNER";
-      const player2Element = createPlayerSlot(match.player2, match.winner, poolName, isChampion);
-      matchBracket.appendChild(player2Element);
-    } else {
-      matchBracket.appendChild(createEmptySlot());
-    }
-    
-    matchContainer.appendChild(matchBracket);
-    return matchContainer;
-  }*/
-  /*
-  // Modified createPlayerSlot function to highlight the champion
-  function createPlayerSlot(player, winnerId, poolName, isChampion) {
-    const playerSlot = document.createElement('div');
-    playerSlot.className = `player-slot ${player.isAdvancing ? 'advancing' : ''} ${player.eliminated ? 'eliminated' : ''} ${isChampion ? 'champion-slot' : ''}`;
-    playerSlot.dataset.playerId = player.id;
-    playerSlot.dataset.position = player.position;
-    playerSlot.dataset.poolName = poolName;
-    
-    // Get profile pic URL - fetch from server or use default
-    const profilePicUrl = player.profilePic || 'Default.png';
-    
-    // Add profile picture and player info
-    playerSlot.innerHTML = `
-      <div class="player-profile-pic" style="background-image: url('${profilePicUrl}')"></div>
-      <div class="player-seed">${player.seed}</div>
-      <div class="player-info">
-        <div class="player-name">${player.username}</div>
-        <div class="player-points">${player.points || 0} pts</div>
-      </div>
-    `;
-    
-    // Add status indicators
-    if (player.hasBye) {
-      const byeBadge = document.createElement('div');
-      byeBadge.className = 'player-status';
-      byeBadge.innerHTML = `<span class="bye-badge">BYE</span>`;
-      playerSlot.appendChild(byeBadge);
-    }
-    
 
-    // Add champion crown if this player is the champion
-    if (isChampion) {
-      const championIcon = document.createElement('div');
-      championIcon.className = 'player-status champion-icon';
-      championIcon.innerHTML = `<i class="fas fa-crown"></i>`;
-      playerSlot.appendChild(championIcon);
-    }
-    
-    // Add click handler to show picks
-    playerSlot.addEventListener('click', () => {
-      showPlayerPicks(player, poolName);
-    });
-    
-    return playerSlot;
-  }*/
-  
   // Simple function to create empty slot
   function createEmptySlot() {
     const emptySlot = document.createElement('div');
@@ -5808,71 +5251,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function fixNewBrackets() {
     applyPlayoffBracketFixes();
   }
-/*
-  // Updated createPlayerSlot function that avoids using conflicting class names
-function createPlayerSlot(player, winnerId, poolName, isChampion) {
-    const playerSlot = document.createElement('div');
-    playerSlot.className = `player-slot ${player.isAdvancing ? 'advancing' : ''} ${player.eliminated ? 'eliminated' : ''} ${isChampion ? 'championship-winner' : ''}`;
-    playerSlot.dataset.playerId = player.id;
-    playerSlot.dataset.position = player.position;
-    playerSlot.dataset.poolName = poolName;
-    
-    // Get profile pic URL - fetch from server or use default
-    const profilePicUrl = player.profilePic || 'Default.png';
-    
-    // Create the player seed element
-    const seedElement = document.createElement('div');
-    seedElement.className = 'player-seed';
-    seedElement.textContent = player.seed;
-    playerSlot.appendChild(seedElement);
-    
-    // Create profile pic element with UNIQUE CLASS NAME
-    const profilePicElement = document.createElement('div');
-    profilePicElement.className = 'playoff-profile-pic'; // Changed class name
-    profilePicElement.style.backgroundImage = `url('${profilePicUrl}')`;
-    playerSlot.appendChild(profilePicElement);
-    
-    // Create player info container
-    const playerInfoElement = document.createElement('div');
-    playerInfoElement.className = 'playoff-player-info'; // Changed class name
-    
-    // Create player name element with UNIQUE CLASS NAME
-    const playerNameElement = document.createElement('div');
-    playerNameElement.className = 'playoff-player-username'; // Changed class name
-    playerNameElement.textContent = player.username;
-    playerInfoElement.appendChild(playerNameElement);
-    
-    // Create player points element with UNIQUE CLASS NAME
-    const playerPointsElement = document.createElement('div');
-    playerPointsElement.className = 'playoff-player-score'; // Changed class name
-    playerPointsElement.textContent = `${player.points || 0} pts`;
-    playerInfoElement.appendChild(playerPointsElement);
-    
-    playerSlot.appendChild(playerInfoElement);
-    
-    // Add status indicators
-    if (player.hasBye) {
-      const byeBadge = document.createElement('div');
-      byeBadge.className = 'player-status';
-      byeBadge.innerHTML = `<span class="bye-badge">BYE</span>`;
-      playerSlot.appendChild(byeBadge);
-    }
-    
-    // Add champion crown if this player is the champion
-    if (isChampion) {
-      const championIcon = document.createElement('div');
-      championIcon.className = 'player-status champion-icon';
-      championIcon.innerHTML = `<i class="fas fa-crown"></i>`;
-      playerSlot.appendChild(championIcon);
-    }
-    
-    // Add click handler to show picks
-    playerSlot.addEventListener('click', () => {
-      showPlayerPicks(player, poolName);
-    });
-    
-    return playerSlot;
-}*/
+
 
 // Corresponding CSS to add to your stylesheet
 // This needs to be added to your CSS file for the new class names
@@ -6069,42 +5448,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 1000);
 });
 
-/*
-// Modified createMatchElement function to pass currentWeek to createPlayerSlot
-function createMatchElement(match, poolName, champion, currentWeek, isLastWeek) {
-    const matchContainer = document.createElement('div');
-    matchContainer.className = 'match-container';
-    matchContainer.dataset.matchId = match.id;
-    
-    // Add a special class if this is the final match and we have a champion
-    if (match.nextMatch === "WINNER" && champion) {
-      matchContainer.classList.add('championship-match');
-    }
-    
-    const matchBracket = document.createElement('div');
-    matchBracket.className = 'match-bracket';
-    
-    // First player slot
-    if (match.player1) {
-      const isChampion = champion && match.player1.username === champion.username && match.nextMatch === "WINNER";
-      const player1Element = createPlayerSlot(match.player1, match.winner, poolName, isChampion, currentWeek, isLastWeek);
-      matchBracket.appendChild(player1Element);
-    } else {
-      matchBracket.appendChild(createEmptySlot());
-    }
-    
-    // Second player slot
-    if (match.player2) {
-      const isChampion = champion && match.player2.username === champion.username && match.nextMatch === "WINNER";
-      const player2Element = createPlayerSlot(match.player2, match.winner, poolName, isChampion, currentWeek, isLastWeek);
-      matchBracket.appendChild(player2Element);
-    } else {
-      matchBracket.appendChild(createEmptySlot());
-    }
-    
-    matchContainer.appendChild(matchBracket);
-    return matchContainer;
-}*/
 
 
 // Updated renderBracket function to pass currentWeek and isLastWeek to createMatchElement
@@ -6226,73 +5569,6 @@ function createEmptySlot() {
 }
 
 
-  /*
-function processMatchHistory(bracketData) {
-    // Make a deep copy to avoid modifying the original data
-    const processedData = JSON.parse(JSON.stringify(bracketData));
-    const currentWeek = processedData.currentWeek;
-    
-    // For each completed match (from previous weeks), add history data
-    processedData.matches.forEach(match => {
-        // Only process matches from previous weeks that have a winner
-        if (match.week < currentWeek && match.winner) {
-            // Find the players from the members array for this match
-            const winnerMember = processedData.members.find(m => m.position === match.winner);
-            const loserMember = processedData.members.find(m => {
-                // The loser is the other player in the match
-                if (match.player1Position === match.winner) {
-                    return m.position === match.player2Position || 
-                           (m.eliminatedInWeek === match.week && 
-                            m.history && m.history.some(h => h.position === match.player2Position));
-                } else {
-                    return m.position === match.player1Position || 
-                           (m.eliminatedInWeek === match.week && 
-                            m.history && m.history.some(h => h.position === match.player1Position));
-                }
-            });
-            
-            // Find the historical data for this match from both players' history
-            let matchHistory = null;
-            
-            if (winnerMember && loserMember) {
-                // Find winner's history entry for this match
-                const winnerHistory = winnerMember.history?.find(h => 
-                    h.week === match.week && h.matchId === match.id
-                );
-                
-                // Find loser's history entry for this match
-                const loserHistory = loserMember.history?.find(h => 
-                    h.week === match.week && h.matchId === match.id
-                );
-                
-                if (winnerHistory && loserHistory) {
-                    matchHistory = {
-                        week: match.week,
-                        round: match.round,
-                        matchId: match.id,
-                        winner: {
-                            username: winnerMember.username,
-                            seed: winnerMember.seed,
-                            points: winnerHistory.points,
-                            position: winnerHistory.position
-                        },
-                        loser: {
-                            username: loserMember.username,
-                            seed: loserMember.seed,
-                            points: loserHistory.points,
-                            position: loserHistory.position
-                        }
-                    };
-                }
-            }
-            
-            // Attach history to the match
-            match.history = matchHistory;
-        }
-    });
-    
-    return processedData;
-}*/
 
 
 function createMatchHistoryElement(match) {
@@ -6320,58 +5596,7 @@ function createMatchHistoryElement(match) {
     return historyElement;
   }
 
-  /*
-// Modified createMatchElement function to include match history
-function createMatchElement(match, poolName, champion, currentWeek, isLastWeek) {
-    const matchContainer = document.createElement('div');
-    matchContainer.className = 'match-container';
-    matchContainer.dataset.matchId = match.id;
-    
-    // Add a special class if this is the final match and we have a champion
-    if (match.nextMatch === "WINNER" && champion) {
-      matchContainer.classList.add('championship-match');
-    }
-    
-    // Add a completed match class if the match has history
-    if (match.history) {
-      matchContainer.classList.add('completed-match');
-    }
-    
-    const matchBracket = document.createElement('div');
-    matchBracket.className = 'match-bracket';
-    
-    // First player slot
-    if (match.player1) {
-      const isChampion = champion && match.player1.username === champion.username && match.nextMatch === "WINNER";
-      const player1Element = createPlayerSlot(match.player1, match.winner, poolName, isChampion, match.week);
-      matchBracket.appendChild(player1Element);
-    } else {
-      matchBracket.appendChild(createEmptySlot());
-    }
-    
-    // Second player slot
-    if (match.player2) {
-      const isChampion = champion && match.player2.username === champion.username && match.nextMatch === "WINNER";
-      const player2Element = createPlayerSlot(match.player2, match.winner, poolName, isChampion, match.week);
-      matchBracket.appendChild(player2Element);
-    } else {
-      matchBracket.appendChild(createEmptySlot());
-    }
-    
-    matchContainer.appendChild(matchBracket);
-    
-    // Add match history element if match is complete (has history)
-    // Only show history for completed matches from previous weeks
-    if (match.history && match.week < currentWeek) {
-      const historyElement = createMatchHistoryElement(match);
-      if (historyElement) {
-        matchContainer.appendChild(historyElement);
-      }
-    }
-    
-    return matchContainer;
-  }*/
-  
+
   // Helper function to create the match history element
   function createMatchHistoryElement(match) {
     // Only create history display for completed matches
@@ -6400,68 +5625,6 @@ function createMatchElement(match, poolName, champion, currentWeek, isLastWeek) 
     
     return historyElement;
   }
-  /*
-  function processMatchHistory(bracketData) {
-    // Make a deep copy to avoid modifying the original data
-    const processedData = JSON.parse(JSON.stringify(bracketData));
-    const currentWeek = processedData.currentWeek;
-    
-    // For each completed match (from previous weeks), add history data
-    processedData.matches.forEach(match => {
-      // Only process matches from previous weeks that have a winner
-      if (match.week < currentWeek && match.winner) {
-        // Find the players from the members array for this match
-        const winnerMember = processedData.members.find(m => m.position === match.winner);
-        const loserMember = processedData.members.find(m => {
-          // The loser is the other player in the match
-          if (match.player1Position === match.winner) {
-            return m.position === match.player2Position || 
-                   (m.eliminatedInWeek === match.week && 
-                    m.history && m.history.some(h => h.position === match.player2Position));
-          } else {
-            return m.position === match.player1Position || 
-                   (m.eliminatedInWeek === match.week && 
-                    m.history && m.history.some(h => h.position === match.player1Position));
-          }
-        });
-        
-        // Find the historical data for this match from both players' history
-        if (winnerMember && loserMember) {
-          // Find winner's history entry for this match
-          const winnerHistory = winnerMember.history?.find(h => 
-            h.week === match.week && h.matchId === match.id
-          );
-          
-          // Find loser's history entry for this match
-          const loserHistory = loserMember.history?.find(h => 
-            h.week === match.week && h.matchId === match.id
-          );
-          
-          if (winnerHistory && loserHistory) {
-            match.history = {
-              week: match.week,
-              round: match.round,
-              matchId: match.id,
-              winner: {
-                username: winnerMember.username,
-                seed: winnerMember.seed,
-                points: winnerHistory.points,
-                position: winnerHistory.position
-              },
-              loser: {
-                username: loserMember.username,
-                seed: loserMember.seed,
-                points: loserHistory.points,
-                position: loserHistory.position
-              }
-            };
-          }
-        }
-      }
-    });
-    
-    return processedData;
-  }*/
 
 
   async function fetchPlayoffBracket(poolName) {
@@ -6493,176 +5656,7 @@ function createMatchElement(match, poolName, champion, currentWeek, isLastWeek) 
     }
   }
 
-  /*
-  function createPlayerSlot(player, winnerId, poolName, isChampion, week) {
-    const playerSlot = document.createElement('div');
-    playerSlot.className = `player-slot ${player.isAdvancing ? 'advancing' : ''} ${player.eliminated ? 'eliminated' : ''} ${isChampion ? 'championship-winner' : ''}`;
-    
-    // Get the points - either access points property or fall back to 0
-    const playerPoints = player.points !== undefined ? player.points : 0;
-    
-    playerSlot.innerHTML = `
-      <div class="playoff-profile-pic" style="background-image: url('${player.profilePic || 'Default.png'}')"></div>
-      <div class="player-seed">${player.seed}</div>
-      <div class="playoff-player-info">
-        <div class="playoff-player-username">${player.username}</div>
-        <div class="playoff-player-score">${playerPoints} pts</div>
-      </div>
-    `;
-    
-    // Add click handler to show picks
-    playerSlot.addEventListener('click', () => {
-      showPlayerPicks(player, poolName);
-    });
-    
-    return playerSlot;
-  }*/
 
-
-  //for historical matchups
-
-  /*
-  // Updated function to create match element with historical player information
-function createMatchElement(match, poolName, champion, currentWeek, isLastWeek) {
-    const matchContainer = document.createElement('div');
-    matchContainer.className = 'match-container';
-    matchContainer.dataset.matchId = match.id;
-    
-    // Add a special class if this is the final match and we have a champion
-    if (match.nextMatch === "WINNER" && champion) {
-      matchContainer.classList.add('championship-match');
-    }
-    
-    // Add a completed match class if the match has history
-    if (match.history) {
-      matchContainer.classList.add('completed-match');
-    }
-    
-    const matchBracket = document.createElement('div');
-    matchBracket.className = 'match-bracket';
-    
-    // First player slot
-    if (match.player1) {
-      const isChampion = champion && match.player1.username === champion.username && match.nextMatch === "WINNER";
-      
-      // For completed matches in previous weeks, try to get the historical data
-      let historicalData = null;
-      if (match.week < currentWeek && match.history) {
-        // If this player was the winner, use winner data from history
-        if (match.history.winner.position === match.player1.position) {
-          historicalData = {
-            points: match.history.winner.points
-          };
-        } else {
-          // Otherwise use loser data
-          historicalData = {
-            points: match.history.loser.points
-          };
-        }
-      }
-      
-      // Create the player slot with historical data if available
-      const player1Element = createPlayerSlot(
-        match.player1, 
-        match.winner, 
-        poolName, 
-        isChampion, 
-        match.week,
-        historicalData // Pass historical data
-      );
-      
-      matchBracket.appendChild(player1Element);
-    } else {
-      matchBracket.appendChild(createEmptySlot());
-    }
-    
-    // Second player slot (similar logic as player1)
-    if (match.player2) {
-      const isChampion = champion && match.player2.username === champion.username && match.nextMatch === "WINNER";
-      
-      // For completed matches in previous weeks, try to get the historical data
-      let historicalData = null;
-      if (match.week < currentWeek && match.history) {
-        // If this player was the winner, use winner data from history
-        if (match.history.winner.position === match.player2.position) {
-          historicalData = {
-            points: match.history.winner.points
-          };
-        } else {
-          // Otherwise use loser data
-          historicalData = {
-            points: match.history.loser.points
-          };
-        }
-      }
-      
-      const player2Element = createPlayerSlot(
-        match.player2, 
-        match.winner, 
-        poolName, 
-        isChampion, 
-        match.week,
-        historicalData // Pass historical data
-      );
-      
-      matchBracket.appendChild(player2Element);
-    } else {
-      matchBracket.appendChild(createEmptySlot());
-    }
-    
-    matchContainer.appendChild(matchBracket);
-    
-    // Add match history element if match is complete
-    if (match.history && match.week < currentWeek) {
-      const historyElement = createMatchHistoryElement(match);
-      if (historyElement) {
-        matchContainer.appendChild(historyElement);
-      }
-    }
-    
-    return matchContainer;
-  }*/
-  /*
-  // Updated createPlayerSlot function to use historical data when available
-  function createPlayerSlot(player, winnerId, poolName, isChampion, week, historicalData) {
-    const playerSlot = document.createElement('div');
-    playerSlot.className = `player-slot ${player.isAdvancing ? 'advancing' : ''} ${player.eliminated ? 'eliminated' : ''} ${isChampion ? 'championship-winner' : ''}`;
-    
-    // Determine which points value to show - prefer historical data if available
-    let displayPoints = 0;
-    
-    if (historicalData && historicalData.points !== undefined) {
-      // Use historical points if we have it
-      displayPoints = historicalData.points;
-    } else if (player.points !== undefined) {
-      // Fall back to current points
-      displayPoints = player.points;
-    } else if (player.weeklyPoints !== undefined) {
-      // Try weeklyPoints as last resort
-      displayPoints = player.weeklyPoints;
-    }
-    
-    // Format the points with one decimal place if needed
-    const formattedPoints = Number.isInteger(displayPoints) 
-      ? displayPoints 
-      : parseFloat(displayPoints).toFixed(1);
-    
-    playerSlot.innerHTML = `
-      <div class="playoff-profile-pic" style="background-image: url('${player.profilePic || 'Default.png'}')"></div>
-      <div class="player-seed">${player.seed}</div>
-      <div class="playoff-player-info">
-        <div class="playoff-player-username">${player.username}</div>
-        <div class="playoff-player-score">${formattedPoints} pts</div>
-      </div>
-    `;
-    
-    // Add click handler to show picks
-    playerSlot.addEventListener('click', () => {
-      showPlayerPicks(player, poolName);
-    });
-    
-    return playerSlot;
-  }*/
 
   function processMatchHistory(bracketData) {
     // Make a deep copy to avoid modifying the original data
@@ -7417,8 +6411,176 @@ function renderBracket(bracketData, container, poolName) {
     
     container.appendChild(bracketRoundsDiv);
     
-    // Add bracket connectors in a second pass
-    createBracketConnectors(bracketData, visibleMatches, bracketData.rounds.length);
-    
+    setTimeout(() => {
+        console.log("Delayed bracket connector creation starting...");
+        createBracketConnectors(bracketData, visibleMatches, bracketData.rounds.length);
+      }, 500); // 500ms delay
     console.log('Bracket rendered successfully with', memberCount, 'players');
 }
+
+// Hard-coded bracket connectors for 7-player bracket
+// Updated bracket connectors function that only applies to 7-player brackets
+function createBracketConnectors() {
+    // Wait for DOM to be fully loaded
+    setTimeout(() => {
+      // Get the bracket container
+      const bracketContainer = document.querySelector('.playoff-bracket-container');
+      if (!bracketContainer) return;
+      
+      // Check if this is a 7-player bracket - IMPORTANT NEW CHECK
+      const playerCount = parseInt(bracketContainer.querySelector('.bracket-round')?.dataset.playerCount || '0');
+      if (playerCount !== 7) {
+        console.log("Not a 7-player bracket, skipping connector creation");
+        return; // Exit if not a 7-player bracket
+      }
+      
+      console.log("Creating connectors for 7-player bracket");
+      
+      // Make sure the container has position relative
+      bracketContainer.style.position = 'relative';
+      
+      // Get all rounds
+      const rounds = bracketContainer.querySelectorAll('.bracket-round');
+      if (rounds.length < 3) return; // Need all 3 rounds
+      
+      // Get matches from each round
+      const firstRoundMatches = rounds[0].querySelectorAll('.match-container');
+      const semiFinalMatches = rounds[1].querySelectorAll('.match-container');
+      const finalMatch = rounds[2].querySelector('.match-container');
+      
+      // Clear any existing connectors
+      const existingConnectors = bracketContainer.querySelectorAll('.bracket-connector');
+      existingConnectors.forEach(conn => conn.remove());
+      
+      // Create connectors for first round to semi-finals
+      // Top match to bottom slot of top semi-final (TBD spot)
+      createConnector(bracketContainer, firstRoundMatches[0], semiFinalMatches[0], 'bottom');
+      
+      // Second match to top slot of bottom semi-final
+      createConnector(bracketContainer, firstRoundMatches[1], semiFinalMatches[1], 'top');
+      
+      // Third match to bottom slot of bottom semi-final
+      createConnector(bracketContainer, firstRoundMatches[2], semiFinalMatches[1], 'bottom');
+      
+      // Create connectors for semi-finals to final
+      // Top semi-final to final
+      createConnector(bracketContainer, semiFinalMatches[0], finalMatch, 'top');
+      
+      // Bottom semi-final to final
+      createConnector(bracketContainer, semiFinalMatches[1], finalMatch, 'bottom');
+      
+      console.log("7-player bracket connectors created successfully");
+    }, 1000); // Delay to ensure all elements are rendered
+}
+  // Function to create a single connector
+  function createConnector(container, fromMatch, toMatch, position) {
+    if (!fromMatch || !toMatch) return;
+    
+    // Get positions
+    const containerRect = container.getBoundingClientRect();
+    const fromRect = fromMatch.getBoundingClientRect();
+    const toRect = toMatch.getBoundingClientRect();
+    
+    // Calculate relative positions
+    const startX = fromRect.right - containerRect.left;
+    const startY = fromRect.top + (fromRect.height / 2) - containerRect.top;
+    const endX = toRect.left - containerRect.left;
+    const endY = toRect.top + (position === 'top' ? 0.25 : 0.75) * toRect.height - containerRect.top;
+    
+    // Calculate the midpoint X (horizontal distance / 2)
+    const midX = startX + (endX - startX) * 0.5;
+    
+    // Create horizontal connector from match
+    const horizontalConnector1 = document.createElement('div');
+    horizontalConnector1.className = 'bracket-connector horizontal-connector';
+    horizontalConnector1.style.position = 'absolute';
+    horizontalConnector1.style.left = `${startX}px`;
+    horizontalConnector1.style.top = `${startY}px`;
+    horizontalConnector1.style.width = `${midX - startX}px`;
+    horizontalConnector1.style.height = '2px';
+    horizontalConnector1.style.backgroundColor = '#33d9ff';
+    horizontalConnector1.style.boxShadow = '0 0 8px #33d9ff, 0 0 16px #33d9ff';
+    horizontalConnector1.style.zIndex = '5';
+    
+    // Create vertical connector
+    const verticalConnector = document.createElement('div');
+    verticalConnector.className = 'bracket-connector vertical-connector';
+    verticalConnector.style.position = 'absolute';
+    verticalConnector.style.left = `${midX}px`;
+    verticalConnector.style.top = `${Math.min(startY, endY)}px`;
+    verticalConnector.style.width = '2px';
+    verticalConnector.style.height = `${Math.abs(endY - startY)}px`;
+    verticalConnector.style.backgroundColor = '#33d9ff';
+    verticalConnector.style.boxShadow = '0 0 8px #33d9ff, 0 0 16px #33d9ff';
+    verticalConnector.style.zIndex = '5';
+    
+    // Create horizontal connector to next match
+    const horizontalConnector2 = document.createElement('div');
+    horizontalConnector2.className = 'bracket-connector horizontal-connector';
+    horizontalConnector2.style.position = 'absolute';
+    horizontalConnector2.style.left = `${midX}px`;
+    horizontalConnector2.style.top = `${endY}px`;
+    horizontalConnector2.style.width = `${endX - midX}px`;
+    horizontalConnector2.style.height = '2px';
+    horizontalConnector2.style.backgroundColor = '#33d9ff';
+    horizontalConnector2.style.boxShadow = '0 0 8px #33d9ff, 0 0 16px #33d9ff';
+    horizontalConnector2.style.zIndex = '5';
+    
+    // Add connectors to container
+    container.appendChild(horizontalConnector1);
+    container.appendChild(verticalConnector);
+    container.appendChild(horizontalConnector2);
+  }
+  
+  // Function to handle window resize
+  function handleResize() {
+    // Remove existing connectors
+    const existingConnectors = document.querySelectorAll('.bracket-connector');
+    existingConnectors.forEach(conn => conn.remove());
+    
+    // Recreate connectors
+    createBracketConnectors();
+  }
+  
+  // Initialize connectors
+  document.addEventListener('DOMContentLoaded', function() {
+    // Create connectors initially
+    createBracketConnectors();
+    
+    // Add resize event listener
+    window.addEventListener('resize', function() {
+      // Debounce resize event
+      clearTimeout(window.resizeTimer);
+      window.resizeTimer = setTimeout(handleResize, 250);
+    });
+    
+    // Also run after a longer delay to catch any late-loading brackets
+    setTimeout(createBracketConnectors, 2000);
+    setTimeout(createBracketConnectors, 3000);
+  });
+  
+  // Add CSS for connectors
+  const connectorStyles = document.createElement('style');
+  connectorStyles.textContent = `
+    .bracket-connector {
+      position: absolute;
+      background-color: #33d9ff;
+      box-shadow: 0 0 8px #33d9ff, 0 0 16px #33d9ff;
+      z-index: 5;
+      pointer-events: none;
+    }
+    
+    .horizontal-connector {
+      height: 2px;
+    }
+    
+    .vertical-connector {
+      width: 2px;
+    }
+    
+    /* Make sure the bracket container has position relative */
+    .playoff-bracket-container {
+      position: relative !important;
+    }
+  `;
+  document.head.appendChild(connectorStyles);

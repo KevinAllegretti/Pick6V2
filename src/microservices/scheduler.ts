@@ -848,14 +848,14 @@ cron.schedule('58 23 * * 1', () => {
 
 
 
-cron.schedule('24 20 * * 2', () => {
+cron.schedule('25 17 * * 3', () => {
   console.log("It's Thursday 4:00 PM");
   mockFetchNFLScores();
 });
 
 // Initialize playoffs at week 14
 const url6= 'http://localhost:3000';
-cron.schedule('24 15 * * 3', async () => {
+cron.schedule('36 14 * * 4', async () => {
   const currentWeek = await getCurrentWeek();
   
   if (currentWeek === 14) {
@@ -879,8 +879,8 @@ cron.schedule('24 15 * * 3', async () => {
 });
 
 
-// Advance playoffs to next round (Monday morning)
-cron.schedule('53 20 * * 1', async () => {
+// Advance playoffs to next round END OF SAME WEEK
+cron.schedule('27 17 * * 3', async () => {
   const currentWeek = await getCurrentWeek();
   
   if (currentWeek >= 14 && currentWeek <= 17) {

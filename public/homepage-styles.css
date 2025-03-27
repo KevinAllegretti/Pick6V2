@@ -2918,40 +2918,11 @@ body {
     transform: none;
 }
 
-.global-picks-button:disabled::before {
-    display: none;
-}
 
 .survivor-pool-container .view-selector-container {
     margin-left: 10px;
 }
 
-.survivor-pool-container .view-selector {
-    padding: 2px 30px 2px 8px;
-    background-color: #202124;
-    color: #39FF14;  /* Changed to match survivor theme */
-    border: 1px solid #39FF14;
-    border-radius: 12px;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 0.9em;
-    cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    box-shadow: 0 0 5px rgba(57, 255, 20, 0.3);
-}
-
-
-
-.survivor-pool-container .show-more-button:hover {
-    background-color: rgba(57, 255, 20, 0.1);
-    box-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
-}
-
-.survivor-stats-container {
-    display: flex;
-    align-items: center;
-}
 
 .survivor-stats-container {
     display: flex;
@@ -2971,15 +2942,8 @@ body {
     color: white !important;
 }
 
-.survivor-stats-container {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
 
 
-
-/* Add this to your CSS */
 .survivor-mode .team-logo {
     width: 35px;  /* Increased from default size */
     height: 35px; /* Increased from default size */
@@ -5908,4 +5872,223 @@ text-align: center;
   border: 2px solid rgba(51, 217, 255, 0.3);
   border-radius: 6px;
   pointer-events: none;
+}
+
+/* Connector styling */
+.bracket-connectors {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.connector-line {
+  background-color: #33d9ff;
+  box-shadow: 0 0 5px rgba(51, 217, 255, 0.5);
+  position: absolute;
+  opacity: 0.7;
+  animation: glowLine 2s infinite alternate;
+}
+
+@keyframes glowLine {
+  from { opacity: 0.5; box-shadow: 0 0 3px rgba(51, 217, 255, 0.3); }
+  to { opacity: 0.9; box-shadow: 0 0 8px rgba(51, 217, 255, 0.7); }
+}
+
+.playoff-bracket-container {
+  position: relative !important; 
+}
+
+.simple-connector {
+  box-shadow: 0 0 8px #33d9ff;
+  z-index: 99 !important;
+  pointer-events: none;
+}
+
+/* Make sure the connectors are visible and have correct z-index */
+.simple-connector {
+  box-shadow: 0 0 8px #33d9ff !important;
+  z-index: 50 !important; /* Higher z-index to ensure visibility */
+  pointer-events: none;
+}
+
+
+/* Make sure match containers have position relative for proper positioning reference */
+.match-container {
+  position: relative !important;
+  z-index: 10 !important; /* Lower than connectors but higher than other elements */
+}
+
+/* Critical connector visibility fixes */
+.simple-connector {
+  box-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff !important;
+  z-index: 999 !important;
+  pointer-events: none !important;
+  background-color: #33d9ff !important;
+  position: absolute !important;
+  opacity: 1 !important;
+}
+
+
+
+/* Fix z-index for all potential overlapping elements */
+.match-container, .bracket-round, .match-bracket, .player-slot {
+  z-index: 1 !important; /* Lower than connectors */
+}
+
+/* Critical visibility fixes - use !important on everything */
+.simple-connector {
+  position: absolute !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 9999 !important;
+  pointer-events: none !important;
+}
+
+.vertical-connector {
+  background-color: #33d9ff !important;
+  width: 5px !important;
+  box-shadow: 0 0 15px #33d9ff, 0 0 30px #33d9ff !important;
+}
+
+.horizontal-connector {
+  background-color: #33d9ff !important;
+  height: 5px !important;
+  box-shadow: 0 0 15px #33d9ff, 0 0 30px #33d9ff !important;
+}
+
+.test-connector {
+  background-color: red !important;
+  width: 10px !important;
+  box-shadow: 0 0 20px red, 0 0 40px red !important;
+}
+
+
+
+/* Enhanced bracket connector styling */
+.bracket-connectors {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Make sure the playoff bracket container has position relative */
+.playoff-bracket-container {
+  position: relative !important;
+  overflow: visible !important; /* Prevent clipping connectors */
+}
+
+/* Connector line styling with glow effect */
+.connector-line,
+.simple-connector {
+  background-color: #33d9ff;
+  box-shadow: 0 0 5px rgba(51, 217, 255, 0.5), 0 0 10px rgba(51, 217, 255, 0.3);
+  position: absolute;
+  opacity: 0.8;
+  animation: glowLine 2s infinite alternate;
+  z-index: 100 !important;
+  pointer-events: none;
+}
+
+/* Player connector styling with different color */
+.player-connector {
+  background-color: #33d9ff !important;
+  box-shadow: 0 0 5px #33d9ff, 0 0 10px #33d9ff !important;
+  z-index: 101 !important;
+  opacity: 0.8;
+  animation: glowPlayerLine 2s infinite alternate;
+}
+
+/* Specific styles for different bracket sizes */
+/* 6-player bracket */
+.bracket-size-6 .simple-connector {
+  opacity: 0.9 !important; /* Slightly more visible */
+}
+
+/* 7-player bracket */
+.bracket-size-7 .simple-connector {
+  opacity: 0.9 !important;
+}
+
+/* 8-player bracket */
+.bracket-size-8 .simple-connector {
+  opacity: 0.9 !important;
+}
+
+/* 9-player bracket */
+.bracket-size-9 .simple-connector {
+  opacity: 0.9 !important;
+}
+
+/* Keyframe animations for connectors */
+@keyframes glowLine {
+  from { opacity: 0.6; box-shadow: 0 0 3px rgba(51, 217, 255, 0.3), 0 0 6px rgba(51, 217, 255, 0.2); }
+  to { opacity: 0.9; box-shadow: 0 0 8px rgba(51, 217, 255, 0.7), 0 0 16px rgba(51, 217, 255, 0.5); }
+}
+
+@keyframes glowPlayerLine {
+  from { opacity: 0.6; box-shadow: 0 0 3px rgba(255, 49, 49, 0.3), 0 0 6px rgba(255, 49, 49, 0.2); }
+  to { opacity: 0.9; box-shadow: 0 0 8px rgba(255, 49, 49, 0.7), 0 0 16px rgba(255, 49, 49, 0.5); }
+}
+
+/* Fix z-index for all potential overlapping elements */
+.match-container {
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+.bracket-round {
+  position: relative !important;
+  z-index: 5 !important;
+}
+
+.player-slot {
+  position: relative !important;
+  z-index: 20 !important;
+
+}
+
+/* Critical visibility fixes */
+.simple-connector {
+  position: absolute !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 0.8 !important;
+  z-index: 99 !important;
+  pointer-events: none !important;
+}
+
+/* Enhanced visibility for different connector types */
+.vertical-connector {
+  width: 2px !important;
+  box-shadow: 0 0 8px #33d9ff, 0 0 16px #33d9ff !important;
+}
+
+.horizontal-connector {
+  height: 2px !important;
+  box-shadow: 0 0 8px #33d9ff, 0 0 16px #33d9ff !important;
+}
+
+/* Fix for specific issues in different bracket sizes */
+/* 6-player bracket specific adjustments */
+.bracket-size-6 .bracket-round[data-round="1"] .match-container {
+  margin-top: 20px !important;
+}
+
+/* 7-player bracket specific adjustments */
+.bracket-size-7 .bracket-round[data-round="1"] .match-container:nth-child(1) {
+  margin-top: 10px !important;
+}
+
+/* 9-player bracket specific adjustments */
+.bracket-size-9 .bracket-round[data-round="1"] .match-container:nth-child(1) {
+  margin-top: 5px !important;
 }
