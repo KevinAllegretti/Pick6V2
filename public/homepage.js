@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // This code is guaranteed to run after the page loads
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM fully loaded, attaching pool form fix...');
+    //console.log('DOM fully loaded, attaching pool form fix...');
     
     // Handle tab switching between create and join pool forms
     setupTabSwitching();
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const createPoolForm = document.getElementById('create-pool-form');
     
     if (createPoolForm) {
-      console.log('Found create pool form, attaching submit handler...');
+      //console.log('Found create pool form, attaching submit handler...');
       
       // Prevent default submission
       createPoolForm.setAttribute('onsubmit', 'return false;');
@@ -43,11 +43,11 @@ document.addEventListener('DOMContentLoaded', function() {
       // Get the submit button
       const submitBtn = newForm.querySelector('.submit-btn');
       if (submitBtn) {
-        console.log('Found submit button, attaching click handler...');
+        //console.log('Found submit button, attaching click handler...');
         
         // Add click handler to the submit button
         submitBtn.addEventListener('click', async function(e) {
-          console.log('Submit button clicked, processing form...');
+          //console.log('Submit button clicked, processing form...');
           e.preventDefault();
           
           // Get form values
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
           }
           
-          console.log('Form data valid, preparing submission...');
+          //console.log('Form data valid, preparing submission...');
           
           // Get privacy setting
           const privacyBtn = document.getElementById('privacy-btn');
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
           }
           
-          console.log('Submitting pool data:', {
+          //console.log('Submitting pool data:', {
             name: poolName,
             isPrivate,
             mode: selectedMode,
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
           
           try {
-            console.log('Sending fetch request to create pool...');
+            //console.log('Sending fetch request to create pool...');
             const response = await fetch('/pools/create', {
               method: 'POST',
               headers: {
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
               body: JSON.stringify(payload)
             });
             
-            console.log('Received response:', response.status);
+            //console.log('Received response:', response.status);
             
             // Check for HTTP error responses
             if (!response.ok) {
@@ -123,11 +123,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             const data = await response.json();
-            console.log('Response data:', data);
+            //console.log('Response data:', data);
             
             if (data.message && data.pool) {
               // Show success message
-              console.log('Pool created successfully!');
+              //console.log('Pool created successfully!');
               alert('Pool created successfully!');
               
               // Force page reload AFTER the alert is closed
@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         });
         
-        console.log('Submit handler attached successfully!');
+        //console.log('Submit handler attached successfully!');
       } else {
         console.error('Submit button not found in form');
       }
@@ -300,7 +300,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Also run it immediately in case the DOM is already loaded
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    console.log('Document already loaded, fixing privacy toggle immediately...');
+    //console.log('Document already loaded, fixing privacy toggle immediately...');
     fixPrivacyToggle();
   }
 // JavaScript to toggle the playoffs checkbox based on selected mode
@@ -392,7 +392,7 @@ function setupPoolFormListeners() {
           body: JSON.stringify(joinPayload)
         })
         .then(response => {
-          console.log(`Received response with status: ${response.status}`);
+          //console.log(`Received response with status: ${response.status}`);
           if (!response.ok) {
             if (response.status === 404) {
               throw new Error('Pool not found');
@@ -405,7 +405,7 @@ function setupPoolFormListeners() {
           return response.json();
         })
         .then(data => {
-          console.log('Server response:', data);
+          //console.log('Server response:', data);
           alert('You have joined the pool successfully!');
           window.location.reload();
         })
@@ -419,7 +419,7 @@ function setupPoolFormListeners() {
   
 // Replace your existing setupCreatePoolForm function with this enhanced version
 function setupCreatePoolForm() {
-    console.log('Setting up create pool form...');
+    //console.log('Setting up create pool form...');
     const createPoolForm = document.getElementById('create-pool-form');
     
     if (!createPoolForm) {
@@ -427,7 +427,7 @@ function setupCreatePoolForm() {
       return;
     }
     
-    console.log('Create pool form found, attaching event listener');
+    //console.log('Create pool form found, attaching event listener');
     
     // Remove any existing event listeners first
     const newForm = createPoolForm.cloneNode(true);
@@ -435,9 +435,9 @@ function setupCreatePoolForm() {
     
     // Add event listener to the new form clone
     newForm.addEventListener('submit', async function(e) {
-      console.log('Form submit event triggered');
+      //console.log('Form submit event triggered');
       e.preventDefault();
-      console.log('Default form submission prevented');
+      //console.log('Default form submission prevented');
       
       try {
         // Get form values
@@ -445,22 +445,22 @@ function setupCreatePoolForm() {
         const poolPasswordInput = this.querySelector('input[type="password"]');
         const poolPassword = poolPasswordInput ? poolPasswordInput.value : '';
         
-        console.log('Form values: ', { poolName, hasPassword: !!poolPassword });
+        //console.log('Form values: ', { poolName, hasPassword: !!poolPassword });
         
         // Get privacy setting
         const privacyBtn = document.getElementById('privacy-btn');
         const isPrivate = privacyBtn && privacyBtn.classList.contains('private');
-        console.log('Privacy setting:', isPrivate);
+        //console.log('Privacy setting:', isPrivate);
         
         // Get mode setting
         const activeMode = document.querySelector('.mode-card.active');
         const selectedMode = activeMode ? activeMode.dataset.mode : 'classic';
-        console.log('Selected mode:', selectedMode);
+        //console.log('Selected mode:', selectedMode);
         
         // Get hasPlayoffs setting (only applicable for classic mode)
         const hasPlayoffsCheckbox = document.getElementById('hasPlayoffs');
         const hasPlayoffs = hasPlayoffsCheckbox && hasPlayoffsCheckbox.checked;
-        console.log('Has playoffs:', hasPlayoffs);
+        //console.log('Has playoffs:', hasPlayoffs);
         
         // Get username from local storage
         const username = localStorage.getItem('username');
@@ -469,7 +469,7 @@ function setupCreatePoolForm() {
           alert('Username not found. Please log in again.');
           return;
         }
-        console.log('Username from localStorage:', username);
+        //console.log('Username from localStorage:', username);
         
         // Prepare request payload
         const payload = {
@@ -485,9 +485,9 @@ function setupCreatePoolForm() {
           payload.password = poolPassword;
         }
         
-        console.log('Preparing to send request with payload:', JSON.stringify(payload));
+        //console.log('Preparing to send request with payload:', JSON.stringify(payload));
         
-        console.log('Sending POST request to /pools/create');
+        //console.log('Sending POST request to /pools/create');
         const response = await fetch('/pools/create', {
           method: 'POST',
           headers: {
@@ -496,7 +496,7 @@ function setupCreatePoolForm() {
           body: JSON.stringify(payload)
         });
         
-        console.log('Response received, status:', response.status);
+        //console.log('Response received, status:', response.status);
         
         // Check for HTTP error responses
         if (!response.ok) {
@@ -508,17 +508,17 @@ function setupCreatePoolForm() {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
         
-        console.log('Parsing response JSON');
+        //console.log('Parsing response JSON');
         const data = await response.json();
-        console.log('Response data:', data);
+        //console.log('Response data:', data);
         
         if (data.message && data.pool) {
           // Show success message
-          console.log('Pool created successfully:', data.pool);
+          //console.log('Pool created successfully:', data.pool);
           alert('Pool created successfully!');
           
           // Force page reload
-          console.log('Reloading page...');
+          //console.log('Reloading page...');
           window.location.reload();
         } else {
           console.error('Unexpected response structure:', data);
@@ -530,7 +530,7 @@ function setupCreatePoolForm() {
       }
     });
     
-    console.log('Create pool form setup complete');
+    //console.log('Create pool form setup complete');
     
     // IMPORTANT: Call this function to fix the standalone button
     fixCreatePoolButton();
@@ -540,7 +540,7 @@ function setupCreatePoolForm() {
   function fixCreatePoolButton() {
     const createPoolButton = document.querySelector('#create-pool-button');
     if (createPoolButton) {
-      console.log('Found standalone create pool button, fixing it');
+      //console.log('Found standalone create pool button, fixing it');
       
       // Remove existing listeners
       const newButton = createPoolButton.cloneNode(true);
@@ -548,12 +548,12 @@ function setupCreatePoolForm() {
       
       // Add click handler that triggers form submission
       newButton.addEventListener('click', function(e) {
-        console.log('Create pool button clicked');
+        //console.log('Create pool button clicked');
         e.preventDefault();
         
         const form = document.getElementById('create-pool-form');
         if (form) {
-          console.log('Triggering form submission programmatically');
+          //console.log('Triggering form submission programmatically');
           
           // Create and dispatch a submit event
           const submitEvent = new Event('submit', {
@@ -576,28 +576,28 @@ function setupCreatePoolForm() {
     
     // Check if the form exists
     const form = document.getElementById('create-pool-form');
-    console.log('Create pool form exists:', !!form);
+    //console.log('Create pool form exists:', !!form);
     
     if (form) {
       // Log the form's HTML structure
-      console.log('Form HTML:', form.outerHTML);
+      //console.log('Form HTML:', form.outerHTML);
       
       // Check if the form has an action attribute that might override our JS
-      console.log('Form action:', form.getAttribute('action'));
-      console.log('Form method:', form.getAttribute('method'));
+      //console.log('Form action:', form.getAttribute('action'));
+      //console.log('Form method:', form.getAttribute('method'));
       
       // Check for any submit buttons inside the form
       const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
-      console.log('Submit buttons in form:', submitButtons.length);
+      //console.log('Submit buttons in form:', submitButtons.length);
       
       submitButtons.forEach((btn, i) => {
-        console.log(`Submit button ${i+1}:`, btn.outerHTML);
+        //console.log(`Submit button ${i+1}:`, btn.outerHTML);
       });
     }
     
     // Check for other elements with the same ID (which would be invalid HTML)
     const allFormsWithId = document.querySelectorAll('[id="create-pool-form"]');
-    console.log('Number of elements with id="create-pool-form":', allFormsWithId.length);
+    //console.log('Number of elements with id="create-pool-form":', allFormsWithId.length);
     
     console.groupEnd();
   }
@@ -605,14 +605,14 @@ function setupCreatePoolForm() {
   // Initialize the diagnostics when the page loads
   document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
-    console.log('DOM fully loaded, running diagnostics');
+    //console.log('DOM fully loaded, running diagnostics');
     diagnoseDOMStructure();
     setupCreatePoolForm();
     }, 500)
   });
   
   // For immediate testing in the console
-  setTimeout(() => { console.log('Debug script loaded') }, 500);
+  setTimeout(() => { //console.log('Debug script loaded') }, 500);
 
   // Wait for the DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -785,7 +785,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Your existing code...
     
     const loggedInUsername = localStorage.getItem('username');
-    console.log("Logged in user:", loggedInUsername);
+    //console.log("Logged in user:", loggedInUsername);
     updateCountdown();
     setInterval(updateCountdown, 1000);
     updateNavUsername();
@@ -855,7 +855,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Wait for the DOM to be fully loaded before executing any code
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM fully loaded, initializing pool manager...');
+    //console.log('DOM fully loaded, initializing pool manager...');
     
     // Initialize all pool management functionality
     initPoolManager();
@@ -897,11 +897,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const tabContents = document.querySelectorAll('.tab-content');
     
     if (!tabButtons.length || !tabContents.length) {
-      console.log('Tab elements not found, skipping tab setup');
+      //console.log('Tab elements not found, skipping tab setup');
       return;
     }
     
-    console.log('Setting up tab switching...');
+    //console.log('Setting up tab switching...');
     
     tabButtons.forEach(button => {
       button.addEventListener('click', () => {
@@ -946,11 +946,11 @@ function setupPrivacyToggle() {
     const passwordGroup = document.querySelector(".password-group")
   
     if (!privacyBtn || !passwordGroup) {
-      console.log("Privacy button or password group not found, skipping setup")
+      //console.log("Privacy button or password group not found, skipping setup")
       return
     }
   
-    console.log("Setting up privacy toggle...")
+    //console.log("Setting up privacy toggle...")
   
     // Remove any existing event listeners
     const newBtn = privacyBtn.cloneNode(true)
@@ -981,7 +981,7 @@ function setupPrivacyToggle() {
         this.innerHTML = '<i class="icon fas fa-lock"></i><span>Private</span>'
       }
   
-      console.log("Privacy toggled. Is public:", isPublic)
+      //console.log("Privacy toggled. Is public:", isPublic)
     })
   }
   
@@ -1015,11 +1015,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const playoffsToggle = document.getElementById('playoffs-toggle');
     
     if (!modeCards.length) {
-      console.log('Mode cards not found, skipping setup');
+      //console.log('Mode cards not found, skipping setup');
       return;
     }
     
-    console.log('Setting up mode selection...');
+    //console.log('Setting up mode selection...');
     
     // Initial state: Show/hide playoffs toggle based on current active mode
     const activeMode = document.querySelector('.mode-card.active');
@@ -1074,11 +1074,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const createPoolForm = document.getElementById('create-pool-form');
     
     if (!createPoolForm) {
-      console.log('Create pool form not found, skipping setup');
+      //console.log('Create pool form not found, skipping setup');
       return;
     }
     
-    console.log('Setting up create pool form...');
+    //console.log('Setting up create pool form...');
     
     // Ensure the form doesn't have an action attribute
     createPoolForm.setAttribute('action', 'javascript:void(0);');
@@ -1095,7 +1095,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const submitBtn = newForm.querySelector('.submit-btn') || document.getElementById('create-pool-button');
     
     if (submitBtn) {
-      console.log('Found submit button, attaching click handler...');
+      //console.log('Found submit button, attaching click handler...');
       
       // Remove existing listeners
       const newBtn = submitBtn.cloneNode(true);
@@ -1104,7 +1104,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Add click handler
       newBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        console.log('Submit button clicked, triggering form submission...');
+        //console.log('Submit button clicked, triggering form submission...');
         
         // Manually trigger the form submission
         handleCreatePoolSubmit(e);
@@ -1117,7 +1117,7 @@ document.addEventListener("DOMContentLoaded", () => {
    */
   function handleCreatePoolSubmit(e) {
     e.preventDefault();
-    console.log('Processing create pool form submission...');
+    //console.log('Processing create pool form submission...');
     
     // Get the form element
     const form = document.getElementById('create-pool-form');
@@ -1136,17 +1136,17 @@ document.addEventListener("DOMContentLoaded", () => {
       // Get privacy setting
       const privacyBtn = document.getElementById('privacy-btn');
       const isPrivate = privacyBtn && privacyBtn.classList.contains('private');
-      console.log('Privacy setting:', isPrivate);
+      //console.log('Privacy setting:', isPrivate);
       
       // Get mode setting
       const activeMode = document.querySelector('.mode-card.active');
       const selectedMode = activeMode ? activeMode.dataset.mode : 'classic';
-      console.log('Selected mode:', selectedMode);
+      //console.log('Selected mode:', selectedMode);
       
       // Get hasPlayoffs setting (only applicable for classic mode)
       const hasPlayoffsCheckbox = document.getElementById('hasPlayoffs');
       const hasPlayoffs = hasPlayoffsCheckbox && hasPlayoffsCheckbox.checked;
-      console.log('Has playoffs:', hasPlayoffs);
+      //console.log('Has playoffs:', hasPlayoffs);
       
       // Get username from local storage
       const username = localStorage.getItem('username');
@@ -1173,7 +1173,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
       
-      console.log('Sending create pool request...');
+      //console.log('Sending create pool request...');
       
       // Send the API request
       fetch('/pools/create', {
@@ -1184,7 +1184,7 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify(payload)
       })
       .then(response => {
-        console.log('Received response:', response.status);
+        //console.log('Received response:', response.status);
         
         if (!response.ok) {
           if (response.status === 409) {
@@ -1196,11 +1196,11 @@ document.addEventListener("DOMContentLoaded", () => {
         return response.json();
       })
       .then(data => {
-        console.log('Response data:', data);
+        //console.log('Response data:', data);
         
         if (data.message && data.pool) {
           // Show success message
-          console.log('Pool created successfully!');
+          //console.log('Pool created successfully!');
           alert('Pool created successfully!');
           
           // Force page reload
@@ -1226,11 +1226,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const joinPoolForm = document.getElementById('join-pool-form');
     
     if (!joinPoolForm) {
-      console.log('Join pool form not found, skipping setup');
+      //console.log('Join pool form not found, skipping setup');
       return;
     }
     
-    console.log('Setting up join pool form...');
+    //console.log('Setting up join pool form...');
     
     // Remove any existing event listeners
     const newForm = joinPoolForm.cloneNode(true);
@@ -1239,7 +1239,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Add the submit event listener to the new form
     newForm.addEventListener('submit', function(e) {
       e.preventDefault();
-      console.log('Processing join pool form submission...');
+      //console.log('Processing join pool form submission...');
       
       // Get form values
       const poolNameInput = this.querySelector('input[type="text"]');
@@ -1272,7 +1272,7 @@ document.addEventListener("DOMContentLoaded", () => {
         poolPassword: poolPassword
       };
       
-      console.log('Sending join pool request...');
+      //console.log('Sending join pool request...');
       
       // Send the API request
       fetch('/pools/joinByName', {
@@ -1283,7 +1283,7 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify(joinPayload)
       })
       .then(response => {
-        console.log('Received response:', response.status);
+        //console.log('Received response:', response.status);
         
         if (!response.ok) {
           if (response.status === 404) {
@@ -1298,11 +1298,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return response.json();
       })
       .then(data => {
-        console.log('Response data:', data);
-        
-        // Show success message
-        alert('You have joined the pool successfully!');
-        
+        //console.log('Response data:', data);
+
         // Force page reload
         window.location.reload();
       })
@@ -1320,11 +1317,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const weekDisplay = document.getElementById('currentWeekDisplay');
     
     if (!weekDisplay) {
-      console.log('Week display element not found, skipping update');
+      //console.log('Week display element not found, skipping update');
       return;
     }
     
-    console.log('Updating current week display...');
+    //console.log('Updating current week display...');
     
     fetch('/getCurrentWeek')
       .then(response => response.json())
@@ -1344,7 +1341,7 @@ document.addEventListener("DOMContentLoaded", () => {
    */
   function fetchInitialData() {
     // Add code here if you need to fetch any data when the page loads
-    console.log('Fetching initial data...');
+    //console.log('Fetching initial data...');
     
     setTimeout(() => {
       fetch('/api/getResults')
@@ -1369,7 +1366,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
   // Also run immediately in case the DOM is already loaded
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    console.log('Document already loaded, initializing immediately...');
+    //console.log('Document already loaded, initializing immediately...');
     initPoolManager();
   }
 function rebuildUIWithResults(results) {
@@ -1380,7 +1377,7 @@ function rebuildUIWithResults(results) {
         return;
     }
 
-   // console.log(`Processing ${results.length} results to match against ${allPicks.length} picks on screen.`);
+   // //console.log(`Processing ${results.length} results to match against ${allPicks.length} picks on screen.`);
 
     // Iterate over each pick element to process results
     allPicks.forEach(pickElement => {
@@ -1393,7 +1390,7 @@ function rebuildUIWithResults(results) {
         }
         
         const teamName = teamLogo.alt;
-       // console.log(`Processing pick for team: ${teamName} with bet value ${displayedBetValue}`);
+       // //console.log(`Processing pick for team: ${teamName} with bet value ${displayedBetValue}`);
 
         // Find the result for this specific team and bet value
         const matchingResult = results.find(r => 
@@ -1401,7 +1398,7 @@ function rebuildUIWithResults(results) {
         );
 
         if (matchingResult) {
-          //  console.log(`Matching result found for ${teamName}:`, matchingResult);
+          //  //console.log(`Matching result found for ${teamName}:`, matchingResult);
 
             // Apply color based on the result
             let color;
@@ -1418,7 +1415,7 @@ function rebuildUIWithResults(results) {
 
             // Apply the color to the pick element (in this case, the span with the bet value)
             pickElement.querySelector('span').style.setProperty('color', color, 'important');
-           // console.log(`Applied ${color} to ${teamName} for bet value ${displayedBetValue}`);
+           // //console.log(`Applied ${color} to ${teamName} for bet value ${displayedBetValue}`);
         } else {
             //console.warn(`No matching result found for ${teamName} with bet value ${displayedBetValue}`);
         }
@@ -1435,8 +1432,8 @@ function getCurrentTimeInUTC4() {
 }
 
 const now = new Date();
-console.log(now + "now");
-console.log(getCurrentTimeInUTC4() + "now2");
+//console.log(now + "now");
+//console.log(getCurrentTimeInUTC4() + "now2");
 
 
 // Save the calculated times to the database
@@ -1452,7 +1449,7 @@ async function saveInitialTimes() {
                 thursdayDeadline: thursdayDeadline.toISOString(),
             }),
         });
-        console.log('Initial times saved successfully.');
+        //console.log('Initial times saved successfully.');
     } catch (error) {
         console.error('Error saving initial times:', error);
     }
@@ -1474,22 +1471,22 @@ async function checkCurrentTimeWindow() {
         const thursdayTime = new Date(thursdayDeadline);
         const sundayTime = new Date(sundayDeadline);
 
-        console.log("Current time: ", now);
-        console.log("Tuesday Start time: ", tuesdayTime);
-        console.log("Thursday deadline: ", thursdayTime);
-        console.log("Sunday deadline: ", sundayTime);
+        //console.log("Current time: ", now);
+        //console.log("Tuesday Start time: ", tuesdayTime);
+        //console.log("Thursday deadline: ", thursdayTime);
+        //console.log("Sunday deadline: ", sundayTime);
 
         if (now > tuesdayTime && now < thursdayTime) {
-            console.log('Current time window: Pick Time');
+            //console.log('Current time window: Pick Time');
             enablePickTimeFeatures();
         } else if (now > thursdayTime && now < sundayTime) {
-            console.log('Current time window: Thursday Game Time');
+            //console.log('Current time window: Thursday Game Time');
             enableThursdayGameFeatures();
         } else if (now > sundayTime && now < tuesdayTime) {
-            console.log('Current time window: Sunday Game Time');
+            //console.log('Current time window: Sunday Game Time');
             enableSundayGameFeatures();
         } else {
-            console.log('Error determining the current time window');
+            //console.log('Error determining the current time window');
         }
     } catch (error) {
         console.error('Error checking current time window:', error);
@@ -1497,7 +1494,7 @@ async function checkCurrentTimeWindow() {
 }
 
 function enableThursdayGameFeatures() {
-    console.log('Enabling Thursday game features...');
+    //console.log('Enabling Thursday game features...');
     const now = getCurrentTimeInUTC4();
     const blackedOutGames = new Set();
     const userThursdayPicks = new Set();
@@ -1698,7 +1695,7 @@ async function getCurrentTimePhase() {
         const sundayTime = new Date(sundayDeadline);
 
         if (now > tuesdayTime && now < thursdayTime) {
-            //console.log("its pcik tioeeeee")
+            ////console.log("its pcik tioeeeee")
             return 'pick';
         } else if (now > thursdayTime && now < sundayTime) {
             return 'thursday';
@@ -1788,7 +1785,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const loggedInUsername = localStorage.getItem('username');
-    console.log("Logged in user:", loggedInUsername);
+    //console.log("Logged in user:", loggedInUsername);
     updateCountdown();
     setInterval(updateCountdown, 1000);
     updateNavUsername();
@@ -1799,7 +1796,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (profileIcon) {
         profileIcon.addEventListener('click', async () => {
-            console.log('Profile icon clicked');
+            //console.log('Profile icon clicked');
             if (!slideOutPanel.classList.contains('visible')) {
                 // Only load profile and bio when opening
                 await loadUserProfile();
@@ -1985,7 +1982,7 @@ document.addEventListener('click', function(event) {
             const pointsElement = playerRow.querySelector('.player-points');
             const points = pointsElement ? parseFloat(pointsElement.textContent.trim()) || 0 : 0;
             
-            console.log(`Profile clicked: ${username}, Points: ${points}`);
+            //console.log(`Profile clicked: ${username}, Points: ${points}`);
             
             // Show profile with the points we just grabbed
             showInPoolUserProfile(username, points);
@@ -2024,7 +2021,7 @@ document.addEventListener('click', function(event) {
             const poolWrapper = playerRow.closest('.pool-wrapper');
             const isClassicPool = !poolWrapper.classList.contains('survivor-mode');
             
-            console.log(`Profile clicked: ${username}, Points: ${pointsValue}, Pool type: ${isClassicPool ? 'Classic' : 'Survivor'}`);
+            //console.log(`Profile clicked: ${username}, Points: ${pointsValue}, Pool type: ${isClassicPool ? 'Classic' : 'Survivor'}`);
             
             // Pass all info to the profile function
             showProfileWithContext(username, pointsValue, isClassicPool);
@@ -2043,7 +2040,7 @@ document.addEventListener('click', function(event) {
             // For survivor pools, check if player is eliminated
             const isEliminated = playerRow.classList.contains('eliminated-player');
             
-            console.log(`Survivor profile clicked: ${username}, Status: ${isEliminated ? 'Eliminated' : 'Active'}`);
+            //console.log(`Survivor profile clicked: ${username}, Status: ${isEliminated ? 'Eliminated' : 'Active'}`);
             
             // Pass survivor-specific info
             showProfileWithContext(username, 0, false, isEliminated);
@@ -2069,7 +2066,7 @@ async function showInPoolUserProfile(username) {
     const isClassicPool = window.currentProfileIsClassic;
     const isEliminated = window.currentProfileIsEliminated;
     
-    console.log(`Processing profile: ${username}, Points: ${points}, Classic Pool: ${isClassicPool}, Eliminated: ${isEliminated}`);
+    //console.log(`Processing profile: ${username}, Points: ${points}, Classic Pool: ${isClassicPool}, Eliminated: ${isEliminated}`);
     
     try {
         // Get user data
@@ -2096,7 +2093,7 @@ async function showInPoolUserProfile(username) {
             const numWeek = Math.max(1, currentWeek);
             const weeklyAverage = (numPoints / numWeek).toFixed(1);
             
-            console.log(`Weekly average: ${weeklyAverage} (${numPoints}/${numWeek})`);
+            //console.log(`Weekly average: ${weeklyAverage} (${numPoints}/${numWeek})`);
             
             userData.points = numPoints;
             userData.weeklyAverage = weeklyAverage;
@@ -2772,7 +2769,7 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
     const encodedPoolName = encodeURIComponent(poolName);
     const url = `/api/getPicks/${encodedUsername}/${encodedPoolName}`;
 
-   // console.log(`Fetching picks for username: ${username}, poolName: ${poolName}, URL: ${url}, isPickTime: ${isPickTime}`);
+   // //console.log(`Fetching picks for username: ${username}, poolName: ${poolName}, URL: ${url}, isPickTime: ${isPickTime}`);
 
     fetch(url)
         .then(response => {
@@ -2786,17 +2783,17 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
             picksContainer.innerHTML = '';
 
               // Log commenceTime values before sorting
-              //  console.log('Before sorting:', picksData.picks.map(pick => pick.commenceTime));
+              //  //console.log('Before sorting:', picksData.picks.map(pick => pick.commenceTime));
 
                 // Sort picks by commenceTime before rendering
                 picksData.picks.sort((a, b) => new Date(a.commenceTime) - new Date(b.commenceTime));
 
                 // Log commenceTime values after sorting
-               // console.log('After sorting:', picksData.picks.map(pick => pick.commenceTime));
+               // //console.log('After sorting:', picksData.picks.map(pick => pick.commenceTime));
             if (username === localStorage.getItem('username').toLowerCase() || !isPickTime) {
                 // Existing logic to fetch and display picks
                 if (picksData && picksData.picks && Array.isArray(picksData.picks) && picksData.picks.length > 0) {
-                 //   console.log('Rendering picks for user:', username);
+                 //   //console.log('Rendering picks for user:', username);
 
                     picksData.picks.forEach(pick => {
                         const pickDiv = document.createElement('div');
@@ -2856,14 +2853,14 @@ async function fetchPicks(username, poolName, playerRow, teamLogos) {
                     immortalLockContainer.textContent = '';
                 }
             } else {
-                console.log(`Displaying pick time banner for user: ${username}`);
+                //console.log(`Displaying pick time banner for user: ${username}`);
 
                 const bannerImage = document.createElement('img');
                 bannerImage.src = 'PickTimeNew.png'; // Updated path
                 bannerImage.alt = 'Player Making Selections';
                 bannerImage.className = 'pick-banner';
 
-                console.log('Banner image path:', bannerImage.src); // Log the banner image path
+                //console.log('Banner image path:', bannerImage.src); // Log the banner image path
 
                 picksContainer.appendChild(bannerImage);
             }
@@ -2883,9 +2880,9 @@ function checkIfThursdayGame(commenceTime) {
     const gameDate = new Date(commenceTime); // Parse the date
     const localDate = new Date(gameDate.getTime() - gameDate.getTimezoneOffset() * 60000); // Adjust to local time
     const dayLocal = localDate.getDay(); // Get the day of the week in local time
-    console.log(`Original Date (UTC): ${commenceTime}`);
-    console.log(`Adjusted Date (Local): ${localDate}`);
-    console.log(`Day (Local): ${dayLocal}`);
+    //console.log(`Original Date (UTC): ${commenceTime}`);
+    //console.log(`Adjusted Date (Local): ${localDate}`);
+    //console.log(`Day (Local): ${dayLocal}`);
     return dayLocal === 4; // Return true for Thursday in local timezone
 }
 
@@ -2937,7 +2934,7 @@ async function fetchPicks(username, poolName, playerRow, teamLogos, isSurvivorPo
                         }
                         break;
                     case 'thursday':
-                        console.log('Processing Thursday game time picks');
+                        //console.log('Processing Thursday game time picks');
                         
                         if (isSurvivorPool) {
                             // For survivor pools, check if they have a Thursday pick
@@ -3756,7 +3753,7 @@ function deletePool(poolName) {
     })
     .then(data => {
         if (data.message) {
-            console.log('Pool deleted successfully:', poolName);
+            //console.log('Pool deleted successfully:', poolName);
             // Remove the pool from the UI
             const poolElement = document.querySelector(`[data-pool-name='${CSS.escape(poolName)}']`);
             if (poolElement) {
@@ -3796,7 +3793,7 @@ function leavePool(poolName) {
         return response.json();
     })
     .then(data => {
-        console.log('Successfully left the pool:', data);
+        //console.log('Successfully left the pool:', data);
         // Remove the pool from the UI
         const poolWrapper = document.querySelector(`.pool-wrapper[data-pool-name="${poolName}"]`);
         if (poolWrapper) {
@@ -3857,11 +3854,11 @@ document.addEventListener('DOMContentLoaded', function() {
             poolPassword: poolPassword
         };
     
-       // console.log('Attempting to join pool with the following details:', joinPayload);
+       // //console.log('Attempting to join pool with the following details:', joinPayload);
     
         // Make sure the URL matches your API route
         const apiEndpoint = '/pools/joinByName'; // This should match your server route
-        console.log(`Making POST request to: ${apiEndpoint}`);
+        //console.log(`Making POST request to: ${apiEndpoint}`);
     
         fetch(apiEndpoint, {
             method: 'POST',
@@ -3871,14 +3868,14 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify(joinPayload)
         })
         .then(response => {
-            console.log(`Received response with status: ${response.status}`);
+            //console.log(`Received response with status: ${response.status}`);
             if (!response.ok) {
                 throw new Error(`Network response was not ok ${response.statusText}`);
             }
             return response.json();
         })
         .then(data => {
-            console.log('Server response:', data);
+            //console.log('Server response:', data);
             alert('You have joined the pool successfully!');
             window.location.reload();
         })
@@ -3905,7 +3902,7 @@ function updateUserPoints(username, additionalPoints, poolName) {
     })
     .then(updateData => {
         if (updateData.success) {
-            console.log('User points updated successfully:', updateData.message);
+            //console.log('User points updated successfully:', updateData.message);
             // Optionally update the UI here
         } else {
             console.error('Failed to update user points:', updateData.message);
@@ -3930,7 +3927,7 @@ function changeUserPoints(username, points, poolName) {
     })
     .then(updateData => {
         if (updateData.success) {
-            console.log('User points set successfully:', updateData.message);
+            //console.log('User points set successfully:', updateData.message);
             // Optionally update the UI here to reflect the new points
         } else {
             console.error('Failed to set user points:', updateData.message);
@@ -3980,7 +3977,7 @@ function updateUserStats(username, poolName, winIncrement = 0, lossIncrement = 0
     })
     .then(updateData => {
         if (updateData.success) {
-            console.log('User stats updated successfully:', updateData.message);
+            //console.log('User stats updated successfully:', updateData.message);
             // Optionally update the UI here
         } else {
             console.error('Failed to update user stats:', updateData.message);
@@ -4004,7 +4001,7 @@ function resetUserStats(username, poolName) {
     })
     .then(updateData => {
         if (updateData.success) {
-            console.log('User stats reset successfully:', updateData.message);
+            //console.log('User stats reset successfully:', updateData.message);
             // Optionally update the UI here
         } else {
             console.error('Failed to reset user stats:', updateData.message);
@@ -4555,7 +4552,7 @@ function displayPlayoffPool(pool) {
     });
 // Enhanced fetchPlayoffBracket function with better error handling
 async function fetchPlayoffBracket(poolName) {
-    console.log(`Fetching playoff bracket for pool: ${poolName}`);
+    //console.log(`Fetching playoff bracket for pool: ${poolName}`);
     const bracketContainer = document.getElementById(`playoff-bracket-${poolName.replace(/\s+/g, '-')}`);
     const memberCountElement = document.getElementById(`playoffMemberCount-${poolName}`);
     
@@ -4567,10 +4564,10 @@ async function fetchPlayoffBracket(poolName) {
     try {
         const encodedPoolName = encodeURIComponent(poolName);
         const url = `/api/playoffs/${encodedPoolName}/bracket`;
-        console.log(`Fetching bracket data from: ${url}`);
+        //console.log(`Fetching bracket data from: ${url}`);
         
         const response = await fetch(url);
-        console.log(`Bracket API response status: ${response.status}`);
+        //console.log(`Bracket API response status: ${response.status}`);
         
         if (!response.ok) {
             console.error(`Failed to fetch bracket data: ${response.status}`);
@@ -4578,10 +4575,10 @@ async function fetchPlayoffBracket(poolName) {
         }
         
         const data = await response.json();
-        console.log('Bracket API response data:', data);
+        //console.log('Bracket API response data:', data);
         
         if (data.success && data.bracket) {
-            console.log('Rendering bracket with data:', data.bracket);
+            //console.log('Rendering bracket with data:', data.bracket);
             renderBracket(data.bracket, bracketContainer, poolName);
             
             // Update member count
@@ -5180,7 +5177,7 @@ async function fetchPicks(username, poolName, playerRow, teamLogos, isSurvivorPo
                         }
                         break;
                     case 'thursday':
-                        console.log('Processing Thursday game time picks');
+                        //console.log('Processing Thursday game time picks');
                         
                         if (isSurvivorPool) {
                             // For survivor pools, check if they have a Thursday pick
@@ -5347,7 +5344,7 @@ function rebuildUIWithResults(results) {
         return;
     }
 
-    console.log(`Processing ${results.length} results to match against ${allPicks.length} picks on screen.`);
+    //console.log(`Processing ${results.length} results to match against ${allPicks.length} picks on screen.`);
 
     // Iterate over each pick element to process results
     allPicks.forEach(pickElement => {
@@ -5384,7 +5381,7 @@ function rebuildUIWithResults(results) {
         }
 
         if (matchingResult) {
-            console.log(`Matching result found for ${teamName}:`, matchingResult);
+            //console.log(`Matching result found for ${teamName}:`, matchingResult);
 
             // Apply color based on the result
             let color;
@@ -5403,7 +5400,7 @@ function rebuildUIWithResults(results) {
             const valueSpan = pickElement.querySelector('span');
             if (valueSpan) {
                 valueSpan.style.setProperty('color', color, 'important');
-                console.log(`Applied ${color} to ${teamName} for bet value ${displayedBetValue}`);
+                //console.log(`Applied ${color} to ${teamName} for bet value ${displayedBetValue}`);
             }
         } else {
             console.warn(`No matching result found for ${teamName} with bet value ${displayedBetValue}`);
@@ -5421,7 +5418,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize the panel but don't create it right away
     // It will be created on first click and then reused
-    console.log('Player picks panel styles initialized');
+    //console.log('Player picks panel styles initialized');
     
     // Add a global error handler for fetch operations
     window.addEventListener('unhandledrejection', function(event) {
@@ -5486,10 +5483,10 @@ document.addEventListener('DOMContentLoaded', function() {
       .then(data => {
         if (data.success && data.bracket) {
           console.group('Playoff Bracket Debug');
-          console.log('Current Week:', data.bracket.currentWeek);
+          //console.log('Current Week:', data.bracket.currentWeek);
           
           // Check positions for all members
-          console.log('Members:');
+          //console.log('Members:');
           data.bracket.members.forEach(member => {
             console.log(`${member.username} (Seed ${member.seed}):`,
                         `position=${member.position}`,
@@ -5619,7 +5616,7 @@ function renderBracket(bracketData, container, poolName) {
     // Add bracket connectors in a second pass
     createBracketConnectors(bracketData, visibleMatches, bracketData.rounds.length);
     
-    console.log('Bracket rendered successfully with', memberCount, 'players');
+    //console.log('Bracket rendered successfully with', memberCount, 'players');
     
   }
   
@@ -5771,7 +5768,7 @@ document.addEventListener('DOMContentLoaded', function() {
       container.classList.add('bracket-fixed');
       
       // Log success
-      console.log('Playoff bracket fixed for scrolling:', container);
+      //console.log('Playoff bracket fixed for scrolling:', container);
     });
   }
   
@@ -5980,7 +5977,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Updated renderBracket function to pass currentWeek and isLastWeek to createMatchElement
 function renderBracket(bracketData, container, poolName) {
-    console.log('Starting to render bracket with data:', bracketData);
+    //console.log('Starting to render bracket with data:', bracketData);
     
     // Clear the bracket container
     container.innerHTML = '';
@@ -6085,7 +6082,7 @@ function renderBracket(bracketData, container, poolName) {
     // Add bracket connectors in a second pass
     createBracketConnectors(bracketData, visibleMatches, bracketData.rounds.length);
     
-    console.log('Bracket rendered successfully with', memberCount, 'players');
+    //console.log('Bracket rendered successfully with', memberCount, 'players');
 }
 
 // Simple function to create empty slot
@@ -6413,7 +6410,7 @@ function createMatchElement(match, poolName, champion, currentWeek, isLastWeek) 
   // 1. Unified function to initialize the player picks panel (KEEP THIS ONE)
 function initializePlayerPicksPanel() {
     if (!document.getElementById('playoff-player-picks-panel')) {
-        console.log('Creating player picks panel');
+        //console.log('Creating player picks panel');
         
         const picksPanel = document.createElement('div');
         picksPanel.id = 'playoff-player-picks-panel';
@@ -6464,7 +6461,7 @@ async function fetchPlayoffPicks(username, poolName) {
         // Use the correct endpoint from your server-side routes
         const url = `/api/playoffs/${encodedPoolName}/picks/${encodedUsername}`;
         
-        console.log(`Fetching playoff picks from: ${url}`);
+        //console.log(`Fetching playoff picks from: ${url}`);
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -6480,7 +6477,7 @@ async function fetchPlayoffPicks(username, poolName) {
 }*/
 
 async function showPlayerPicks(player, poolName) {
-    console.log('Player data received:', player);
+    //console.log('Player data received:', player);
     
     // Get the current week first
     let currentPlayoffWeek = null;
@@ -6490,7 +6487,7 @@ async function showPlayerPicks(player, poolName) {
             const weekData = await weekResponse.json();
             if (weekData.success) {
                 currentPlayoffWeek = weekData.playoffCurrentWeek;
-                console.log('Current playoff week from API:', currentPlayoffWeek);
+                //console.log('Current playoff week from API:', currentPlayoffWeek);
             }
         }
     } catch (error) {
@@ -6525,7 +6522,7 @@ async function showPlayerPicks(player, poolName) {
                     );
                     
                     if (fullPlayerData) {
-                        console.log('Found full player data:', fullPlayerData);
+                        //console.log('Found full player data:', fullPlayerData);
                         // Get stats either from stats object or directly from player
                         playerStats.win = fullPlayerData.stats?.win || fullPlayerData.win || 0;
                         playerStats.loss = fullPlayerData.stats?.loss || fullPlayerData.loss || 0;
@@ -6535,7 +6532,7 @@ async function showPlayerPicks(player, poolName) {
                         isCurrentWeekPlayer = fullPlayerData.inCurrentWeekMatch === true;
                         
                         if (!isCurrentWeekPlayer) {
-                            console.log(`Player ${player.username} is not in a current week match`);
+                            //console.log(`Player ${player.username} is not in a current week match`);
                             alert(`Picks viewing is only available for players in current week (Week ${currentPlayoffWeek}) matchups.`);
                             picksPanel.classList.remove('open');
                             return;
@@ -6550,7 +6547,7 @@ async function showPlayerPicks(player, poolName) {
                             );
                             
                             if (clickedMatch && clickedMatch.week !== currentPlayoffWeek) {
-                                console.log(`Player clicked from week ${clickedMatch.week}, not current week ${currentPlayoffWeek}`);
+                                //console.log(`Player clicked from week ${clickedMatch.week}, not current week ${currentPlayoffWeek}`);
                                 alert(`Picks viewing is only available for current week (Week ${currentPlayoffWeek}) matchups.`);
                                 picksPanel.classList.remove('open');
                                 return;
@@ -6563,7 +6560,7 @@ async function showPlayerPicks(player, poolName) {
             console.warn('Error fetching bracket data:', error);
         }
         
-        console.log('Using player stats:', playerStats);
+        //console.log('Using player stats:', playerStats);
         
         // Update the record in the UI
         const recordContainer = picksPanel.querySelector('.player-record');
@@ -6705,7 +6702,7 @@ async function fetchPlayoffPicks(username, poolName) {
         // Use the correct endpoint from your server-side routes
         const url = `/api/playoffs/${encodedPoolName}/picks/${encodedUsername}`;
         
-        console.log(`Fetching playoff picks from: ${url}`);
+        //console.log(`Fetching playoff picks from: ${url}`);
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -6721,7 +6718,7 @@ async function fetchPlayoffPicks(username, poolName) {
 }
 
 function renderBracket(bracketData, container, poolName) {
-    console.log('Starting to render bracket with data:', bracketData);
+    //console.log('Starting to render bracket with data:', bracketData);
     
     // Clear the bracket container
     container.innerHTML = '';
@@ -6940,25 +6937,25 @@ function renderBracket(bracketData, container, poolName) {
     container.appendChild(bracketRoundsDiv);
     
     setTimeout(() => {
-        console.log("Delayed bracket connector creation starting...");
+        //console.log("Delayed bracket connector creation starting...");
         createBracketConnectors(bracketData, visibleMatches, bracketData.rounds.length);
       }, 500); // 500ms delay
-    console.log('Bracket rendered successfully with', memberCount, 'players');
+    //console.log('Bracket rendered successfully with', memberCount, 'players');
 }
 // Bracket connectors for 6, 7, 8, 9, and 10-player brackets
 // Bracket connectors for 6, 7, 8, 9, and 10-player brackets
 function createBracketConnectors() {
-    console.log("Starting createBracketConnectors function...");
+    //console.log("Starting createBracketConnectors function...");
     
     // Wait for DOM to be fully loaded
     setTimeout(() => {
       // Find ALL bracket containers (not just the first one)
       const bracketContainers = document.querySelectorAll('.playoff-bracket-container');
-      console.log(`Found ${bracketContainers.length} bracket containers on the page`);
+      //console.log(`Found ${bracketContainers.length} bracket containers on the page`);
       
       // Process each bracket container separately
       bracketContainers.forEach((bracketContainer, index) => {
-        console.log(`Processing bracket container ${index + 1}...`);
+        //console.log(`Processing bracket container ${index + 1}...`);
         
         // Check player count from data attribute or class
         const playerCount = parseInt(bracketContainer.querySelector('.bracket-round')?.dataset.playerCount || '0');
@@ -7001,11 +6998,11 @@ function createBracketConnectors() {
         }
         
         if (!bracketType) {
-          console.log(`Bracket ${index + 1} is not a 6, 7, 8, 9, or 10-player bracket, skipping`);
+          //console.log(`Bracket ${index + 1} is not a 6, 7, 8, 9, or 10-player bracket, skipping`);
           return; // Skip this bracket container
         }
         
-        console.log(`Creating connectors for ${bracketType}-player bracket ${index + 1}`);
+        //console.log(`Creating connectors for ${bracketType}-player bracket ${index + 1}`);
         
         // Make sure the container has position relative
         bracketContainer.style.position = 'relative';
@@ -7013,13 +7010,13 @@ function createBracketConnectors() {
         // Clear any existing connectors for this specific bracket
         const existingConnectors = bracketContainer.querySelectorAll('.bracket-connector');
         existingConnectors.forEach(conn => conn.remove());
-        console.log(`Cleared ${existingConnectors.length} existing connectors from bracket ${index + 1}`);
+        //console.log(`Cleared ${existingConnectors.length} existing connectors from bracket ${index + 1}`);
         
         try {
           if (bracketType === 10) {
             // 10-player bracket connectors
             if (rounds.length < 4) {
-              console.log(`Bracket ${index + 1} doesn't have enough rounds (${rounds.length}) for a 10-player bracket, skipping`);
+              //console.log(`Bracket ${index + 1} doesn't have enough rounds (${rounds.length}) for a 10-player bracket, skipping`);
               return;
             }
             
@@ -7032,7 +7029,7 @@ function createBracketConnectors() {
             // Verify structure
             if (firstRoundMatches.length !== 2 || quarterFinalMatches.length !== 4 || 
                 semiFinalMatches.length !== 2 || !finalMatch) {
-              console.log(`Bracket ${index + 1} does not have the correct match structure for a 10-player bracket`);
+              //console.log(`Bracket ${index + 1} does not have the correct match structure for a 10-player bracket`);
               return;
             }
             
@@ -7056,7 +7053,7 @@ function createBracketConnectors() {
           } else if (bracketType === 9) {
             // 9-player bracket connectors
             if (rounds.length < 4) {
-              console.log(`Bracket ${index + 1} doesn't have enough rounds (${rounds.length}) for a 9-player bracket, skipping`);
+              //console.log(`Bracket ${index + 1} doesn't have enough rounds (${rounds.length}) for a 9-player bracket, skipping`);
               return;
             }
             
@@ -7069,7 +7066,7 @@ function createBracketConnectors() {
             // Verify structure
             if (firstRoundMatches.length !== 1 || quarterFinalMatches.length !== 4 || 
                 semiFinalMatches.length !== 2 || !finalMatch) {
-              console.log(`Bracket ${index + 1} does not have the correct match structure for a 9-player bracket`);
+              //console.log(`Bracket ${index + 1} does not have the correct match structure for a 9-player bracket`);
               return;
             }
             
@@ -7089,7 +7086,7 @@ function createBracketConnectors() {
           } else if (bracketType === 8) {
             // 8-player bracket connectors
             if (rounds.length < 3) {
-              console.log(`Bracket ${index + 1} doesn't have enough rounds (${rounds.length}), skipping`);
+              //console.log(`Bracket ${index + 1} doesn't have enough rounds (${rounds.length}), skipping`);
               return;
             }
             
@@ -7099,7 +7096,7 @@ function createBracketConnectors() {
             
             // Proceed only if we have the correct structure for an 8-player bracket
             if (firstRoundMatches.length !== 4 || semiFinalMatches.length !== 2 || !finalMatch) {
-              console.log(`Bracket ${index + 1} does not have the correct match structure for an 8-player bracket`);
+              //console.log(`Bracket ${index + 1} does not have the correct match structure for an 8-player bracket`);
               return;
             }
             
@@ -7123,7 +7120,7 @@ function createBracketConnectors() {
           } else if (bracketType === 7) {
             // 7-player bracket connectors
             if (rounds.length < 3) {
-              console.log(`Bracket ${index + 1} doesn't have enough rounds (${rounds.length}), skipping`);
+              //console.log(`Bracket ${index + 1} doesn't have enough rounds (${rounds.length}), skipping`);
               return;
             }
             
@@ -7133,7 +7130,7 @@ function createBracketConnectors() {
             
             // Proceed only if we have the correct structure for a 7-player bracket
             if (firstRoundMatches.length !== 3 || semiFinalMatches.length !== 2 || !finalMatch) {
-              console.log(`Bracket ${index + 1} does not have the correct match structure for a 7-player bracket`);
+              //console.log(`Bracket ${index + 1} does not have the correct match structure for a 7-player bracket`);
               return;
             }
             
@@ -7154,7 +7151,7 @@ function createBracketConnectors() {
           } else if (bracketType === 6) {
             // 6-player bracket connectors
             if (rounds.length < 3) {
-              console.log(`Bracket ${index + 1} doesn't have enough rounds (${rounds.length}), skipping`);
+              //console.log(`Bracket ${index + 1} doesn't have enough rounds (${rounds.length}), skipping`);
               return;
             }
             
@@ -7164,7 +7161,7 @@ function createBracketConnectors() {
             
             // Proceed only if we have the correct structure for a 6-player bracket
             if (firstRoundMatches.length !== 2 || semiFinalMatches.length !== 2 || !finalMatch) {
-              console.log(`Bracket ${index + 1} does not have the correct match structure for a 6-player bracket`);
+              //console.log(`Bracket ${index + 1} does not have the correct match structure for a 6-player bracket`);
               return;
             }
             
@@ -7179,8 +7176,7 @@ function createBracketConnectors() {
             createConnector(bracketContainer, semiFinalMatches[0], finalMatch, 'top');
             createConnector(bracketContainer, semiFinalMatches[1], finalMatch, 'bottom');
           }
-          
-          console.log(`Successfully created connectors for ${bracketType}-player bracket ${index + 1}`);
+
         } catch (error) {
           console.error(`Error creating connectors for bracket ${index + 1}:`, error);
         }
