@@ -6192,7 +6192,6 @@ text-align: center;
 /* Tooltip on hover */
 #privacy-btn:hover::before,
 .privacy-btn:hover::before {
-  content: "Click to toggle public/private";
   position: absolute;
   bottom: -30px;
   left: 50%;
