@@ -848,7 +848,7 @@ cron.schedule('58 23 * * 1', () => {
 
 
 
-cron.schedule('25 17 * * 3', () => {
+cron.schedule('14 17 * * 5', () => {
   console.log("It's Thursday 4:00 PM");
   mockFetchNFLScores();
 });

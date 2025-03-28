@@ -1,3 +1,25 @@
+// Call this function when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the playoff picks panel
+    initializePlayoffPicksPanel();
+    
+    setupCreatePoolForm();
+    // Add the new styles
+    addStylesForNewClassNames();
+    
+    // Process results for any picks on the page
+    setTimeout(() => {
+        fetch('/api/getResults')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.results) {
+                    rebuildUIWithResults(data.results);
+                }
+            })
+            .catch(error => console.error('Failed to fetch results:', error));
+    }, 6000);
+});
+
 /*
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
@@ -5951,27 +5973,7 @@ function initializePlayoffPicksPanel() {
     }
 }
 
-// Call this function when the page loads
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize the playoff picks panel
-    initializePlayoffPicksPanel();
-    
-    setupCreatePoolForm();
-    // Add the new styles
-    addStylesForNewClassNames();
-    
-    // Process results for any picks on the page
-    setTimeout(() => {
-        fetch('/api/getResults')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.results) {
-                    rebuildUIWithResults(data.results);
-                }
-            })
-            .catch(error => console.error('Failed to fetch results:', error));
-    }, 1000);
-});
+
 
 
 
@@ -7296,3 +7298,132 @@ connectorStyles.textContent = `
   }
 `;
 document.head.appendChild(connectorStyles);
+function rebuildUIWithResults(results) {
+    if (!results || !Array.isArray(results) || results.length === 0) {
+        console.warn('No results provided to rebuildUIWithResults');
+        return;
+    }
+
+    console.log(`Processing ${results.length} results to match against picks on screen`);
+    
+    // Log a few sample results to understand the structure
+    if (results.length > 0) {
+        console.log('Sample result structure:', results[0]);
+    }
+
+    // Process regular pool picks (both with and without playoffs)
+    const regularPicks = document.querySelectorAll('.player-picks .pick, .player-immortal-lock .immortal-lock');
+    console.log(`Found ${regularPicks.length} regular pick elements on the page`);
+    processPickElements(regularPicks, results, false);
+
+    // Process playoff-specific picks
+    const playoffPicks = document.querySelectorAll('.playoff-bracket-container .pick-item');
+    console.log(`Found ${playoffPicks.length} playoff pick elements on the page`);
+    processPickElements(playoffPicks, results, true);
+}
+
+// Helper function to process pick elements
+function processPickElements(pickElements, results, isPlayoffPick) {
+    if (pickElements.length === 0) {
+        console.log(`No ${isPlayoffPick ? 'playoff' : 'regular'} pick elements found`);
+        return;
+    }
+
+    console.log(`Processing ${pickElements.length} ${isPlayoffPick ? 'playoff' : 'regular'} pick elements`);
+
+    pickElements.forEach((pickElement, index) => {
+        console.log(`Processing ${isPlayoffPick ? 'playoff' : 'regular'} pick ${index + 1}/${pickElements.length}`);
+        console.log('Pick element HTML:', pickElement.outerHTML);
+        
+        // Handle different element structures for playoff vs regular picks
+        let teamLogo, displayedBetValue;
+
+        if (isPlayoffPick) {
+            // Playoff pick structure
+            teamLogo = pickElement.querySelector('.team-logo');
+            displayedBetValue = pickElement.querySelector('.pick-value')?.textContent.trim();
+        } else {
+            // Regular pick structure
+            teamLogo = pickElement.querySelector('.team-logo');
+            displayedBetValue = pickElement.querySelector('span')?.textContent.trim();
+        }
+
+        console.log('Team logo found:', !!teamLogo);
+        console.log('Displayed bet value:', displayedBetValue);
+
+        if (!teamLogo || !displayedBetValue) {
+            console.warn('Team logo or bet value not found in pick element', pickElement);
+            return; // Skip if no logo or value is found
+        }
+
+        const teamName = teamLogo.alt;
+        console.log('Team name:', teamName);
+
+        // Find the matching result
+        let matchFound = false;
+        let matchingResult = null;
+        
+        results.forEach((result, resultIndex) => {
+            const resultIsPlayoff = result.isPlayoffPick === true;
+            const resultTeamMatches = result.teamName === teamName;
+            const resultValueMatches = result.betValue.toString().trim() === displayedBetValue;
+            const typeMatches = (resultIsPlayoff === isPlayoffPick);
+            
+            if (resultTeamMatches && resultValueMatches) {
+                console.log(`Result ${resultIndex} matches team and value:`, result);
+                console.log(`- Type match: ${typeMatches} (result playoff: ${resultIsPlayoff}, current is playoff: ${isPlayoffPick})`);
+                
+                if (typeMatches) {
+                    matchFound = true;
+                    matchingResult = result;
+                    console.log('FULL MATCH FOUND');
+                }
+            }
+        });
+
+        if (matchingResult) {
+            console.log(`Found matching result for ${teamName} with value ${displayedBetValue}:`, matchingResult);
+            
+            // Apply color based on the result
+            let color;
+            if (matchingResult.result === "hit") {
+                color = "#39FF14"; // Green for a win
+            } else if (matchingResult.result === "miss") {
+                color = "red"; // Red for a loss
+            } else if (matchingResult.result === "push") {
+                color = "yellow"; // Yellow for a push
+            } else {
+                console.warn(`Unknown result for ${teamName}: ${matchingResult.result}`);
+                color = "gray"; // Gray for any unknown result
+            }
+
+            console.log(`Will apply color ${color} based on result: ${matchingResult.result}`);
+
+            // Apply the color to the element (different structure based on type)
+            if (isPlayoffPick) {
+                const valueElement = pickElement.querySelector('.pick-value');
+                if (valueElement) {
+                    console.log('Applying color to playoff pick value element');
+                    valueElement.style.setProperty('color', color, 'important');
+                } else {
+                    console.warn('No pick-value element found in playoff pick');
+                }
+            } else {
+                const valueSpan = pickElement.querySelector('span');
+                if (valueSpan) {
+                    console.log('Applying color to regular pick span element');
+                    valueSpan.style.setProperty('color', color, 'important');
+                } else {
+                    console.warn('No span element found in regular pick');
+                }
+            }
+            
+            console.log(`Applied ${color} to ${teamName} for bet value ${displayedBetValue}`);
+        } else {
+            console.warn(`No matching result found for ${teamName} with bet value ${displayedBetValue}`);
+        }
+    });
+    
+    // Log a final summary
+    console.log(`Finished processing ${pickElements.length} ${isPlayoffPick ? 'playoff' : 'regular'} picks`);
+}
