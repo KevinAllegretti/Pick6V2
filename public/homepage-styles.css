@@ -791,7 +791,6 @@ h2 {
     text-align: left; /* Align text to the left */
     max-width:100% ;/* Takes the full width of its parent */
     margin-bottom: 1px; 
-    margin-left: 10px;
     white-space: wrap;
     align-items: flex-end;
     line-height: 1; /* Adjust line height to remove extra space */
@@ -6098,3 +6097,122 @@ text-align: center;
   position: relative !important;
   z-index: 1 !important;
 }
+/* CSS for the restructured elements */
+.pool-name-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  margin-bottom: 5px;
+  margin-left: 10px;
+  min-height: 40px;
+}
+
+.pool-name {
+  font-size: 20px;
+  font-family: "Russo One", sans-serif;
+  color: #ffffff;
+  text-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff;
+  text-align: left;
+  max-width: 100%;
+  margin-bottom: 1px;
+  white-space: wrap;
+  line-height: 1;
+}
+
+.pool-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+/* Reset margins for user count and view selector since they're now in pool-controls */
+.user-count {
+  margin-left: 0;
+}
+
+.view-selector-container {
+  margin-left: 0;
+}
+/* Enhanced styling for the privacy toggle button */
+#privacy-btn,
+.privacy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #6b7280;
+  border-radius: 6px;
+  background: rgba(30, 41, 59, 0.4);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 110px;
+  position: relative;
+  color: #33d9ff;
+  text-shadow: 0 0 5px rgba(51, 217, 255, 0.5);
+}
+
+/* Add a dropdown indicator */
+#privacy-btn::after,
+.privacy-btn::after {
+  content: "▼";
+  font-size: 0.7em;
+  margin-left: 8px;
+  opacity: 0.8;
+  transition: transform 0.2s ease;
+}
+
+/* Hover effect */
+#privacy-btn:hover,
+.privacy-btn:hover {
+  background: rgba(51, 217, 255, 0.1);
+  border-color: #33d9ff;
+  box-shadow: 0 0 8px rgba(51, 217, 255, 0.3);
+}
+
+/* Active/focus effect */
+#privacy-btn:active,
+#privacy-btn:focus,
+.privacy-btn:active,
+.privacy-btn:focus {
+  outline: none;
+  border-color: #33d9ff;
+  box-shadow: 0 0 12px rgba(51, 217, 255, 0.4);
+}
+
+/* Icon styling */
+#privacy-btn i,
+.privacy-btn i {
+  font-size: 1.1em;
+  margin-right: 5px;
+}
+
+/* Tooltip on hover */
+#privacy-btn:hover::before,
+.privacy-btn:hover::before {
+  content: "Click to toggle public/private";
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.9);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  white-space: nowrap;
+  z-index: 10;
+  opacity: 0.9;
+}
+
+/* Private state styling */
+#privacy-btn.private,
+.privacy-btn.private {
+  background: rgba(51, 217, 255, 0.15);
+  border-color: #33d9ff;
+}
+
+
+

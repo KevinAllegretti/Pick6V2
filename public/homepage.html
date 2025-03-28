@@ -159,18 +159,18 @@
                     <label>Pool Name</label>
                     <input type="text" placeholder="Enter pool name" required>
                 </div>
-
-                <div class="privacy-toggle">
-                    <button type="button" id="privacy-btn">
-                        <i class="icon-unlock"></i>
-                        <span>Public</span>
+                
+                <div class="form-group">
+                    <label>Privacy Setting</label>
+                    <button type="button" id="privacy-btn" class="privacy-btn">
+                      <i class="icon fas fa-globe"></i>
+                      <span>Public</span>
                     </button>
-                </div>
-
-                <div class="form-group password-group hidden">
-                    <label>Password</label>
-                    <input type="password" placeholder="Enter pool password">
-                </div>
+                  </div>
+                  <div class="password-group hidden">
+                    <label for="pool-password">Password</label>
+                    <input type="password" id="pool-password" placeholder="Enter pool password">
+                  </div>
                 <!-- Add this to your create pool form, right after the privacy toggle -->
 <div id="playoffs-toggle" class="form-group playoffs-toggle hidden">
     <label class="checkbox-container">

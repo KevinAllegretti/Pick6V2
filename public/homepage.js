@@ -1,3 +1,4 @@
+/*
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
         fetch('/api/getResults')
@@ -296,60 +297,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
   }
-// This standalone script fixes the privacy toggle to properly show/hide the password field
-(function() {
-    // Function runs immediately when added to the page
-    function fixPrivacyToggle() {
-      // Get required elements
-      const privacyBtn = document.getElementById('privacy-btn');
-      const passwordGroup = document.querySelector('.password-group');
-      
-      if (!privacyBtn || !passwordGroup) {
-        console.error('Privacy button or password group not found');
-        return;
-      }
-      
-      // Replace the existing click handler completely
-      privacyBtn.onclick = function(e) {
-        e.preventDefault();
-        
-        // Toggle the private class
-        const wasPrivate = privacyBtn.classList.contains('private');
-        
-        if (wasPrivate) {
-          // Switching from private to public
-          privacyBtn.classList.remove('private');
-          passwordGroup.classList.add('hidden');
-          
-          // Update icon and text
-          const icon = privacyBtn.querySelector('i');
-          const text = privacyBtn.querySelector('span');
-          
-          if (icon) icon.className = 'icon-unlock';
-          if (text) text.textContent = 'Public';
-        } else {
-          // Switching from public to private
-          privacyBtn.classList.add('private');
-          passwordGroup.classList.remove('hidden');
-          
-          // Update icon and text
-          const icon = privacyBtn.querySelector('i');
-          const text = privacyBtn.querySelector('span');
-          
-          if (icon) icon.className = 'icon-lock';
-          if (text) text.textContent = 'Private';
-        }
-      };
-    }
-    
-    // Run the fix when DOM is loaded
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', fixPrivacyToggle);
-    } else {
-      // DOM is already loaded, run immediately
-      fixPrivacyToggle();
-    }
-  })();
+
   // Also run it immediately in case the DOM is already loaded
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
     console.log('Document already loaded, fixing privacy toggle immediately...');
@@ -387,9 +335,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // ========== POOL MANAGEMENT =================
 // =============================================
 
-/**
- * Set up pool form listeners
- */
 function setupPoolFormListeners() {
     // Join pool form
     setupJoinPoolForm();
@@ -397,10 +342,7 @@ function setupPoolFormListeners() {
     // Create pool form
     setupCreatePoolForm();
   }
-  
-  /**
-   * Set up join pool form
-   */
+
   function setupJoinPoolForm() {
     const joinPoolForm = document.getElementById('join-pool-form-container');
     const toggleJoinFormButton = document.getElementById('show-join-pool-form');
@@ -853,6 +795,583 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Rest of your existing code...
 });
+
+// This standalone script fixes the privacy toggle to properly show/hide the password field
+(function() {
+    // Function runs immediately when added to the page
+    function fixPrivacyToggle() {
+      // Get required elements
+      const privacyBtn = document.getElementById('privacy-btn');
+      const passwordGroup = document.querySelector('.password-group');
+      
+      if (!privacyBtn || !passwordGroup) {
+        console.error('Privacy button or password group not found');
+        return;
+      }
+      
+      // Replace the existing click handler completely
+      privacyBtn.onclick = function(e) {
+        e.preventDefault();
+        
+        // Toggle the private class
+        const wasPrivate = privacyBtn.classList.contains('private');
+        
+        if (wasPrivate) {
+          // Switching from private to public
+          privacyBtn.classList.remove('private');
+          passwordGroup.classList.add('hidden');
+          
+          // Update icon and text
+          const icon = privacyBtn.querySelector('i');
+          const text = privacyBtn.querySelector('span');
+          
+          if (icon) icon.className = 'icon-unlock';
+          if (text) text.textContent = 'Public';
+        } else {
+          // Switching from public to private
+          privacyBtn.classList.add('private');
+          passwordGroup.classList.remove('hidden');
+          
+          // Update icon and text
+          const icon = privacyBtn.querySelector('i');
+          const text = privacyBtn.querySelector('span');
+          
+          if (icon) icon.className = 'icon-lock';
+          if (text) text.textContent = 'Private';
+        }
+      };
+    }
+    
+    // Run the fix when DOM is loaded
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fixPrivacyToggle);
+    } else {
+      // DOM is already loaded, run immediately
+      fixPrivacyToggle();
+    }
+  })();
+
+  */
+
+  // Wait for the DOM to be fully loaded before executing any code
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM fully loaded, initializing pool manager...');
+    
+    // Initialize all pool management functionality
+    initPoolManager();
+    
+    // Update the current week display
+    updateCurrentWeekDisplay();
+    
+    // Update the countdown if present
+    if (typeof updateCountdown === 'function') {
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+    }
+    
+    // Update the navigation username if present
+    if (typeof updateNavUsername === 'function') {
+      updateNavUsername();
+    }
+  });
+  
+  /**
+   * Initialize all pool management functionality
+   */
+  function initPoolManager() {
+    // Setup tab switching between create and join pool forms
+    setupTabSwitching();
+    
+    // Setup interactive elements (privacy toggle, mode selection)
+    setupFormInteractivity();
+    
+    // Setup form submission handlers
+    setupPoolForms();
+  }
+  
+  /**
+   * Set up tab switching between create pool and join pool
+   */
+  function setupTabSwitching() {
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    if (!tabButtons.length || !tabContents.length) {
+      console.log('Tab elements not found, skipping tab setup');
+      return;
+    }
+    
+    console.log('Setting up tab switching...');
+    
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        // Remove active class from all tab buttons
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        
+        // Hide all tab contents
+        tabContents.forEach(content => content.classList.add('hidden'));
+        
+        // Add active class to clicked button
+        button.classList.add('active');
+        
+        // Show corresponding tab content
+        const tabId = button.dataset.tab;
+        const tabContent = document.getElementById(`${tabId}-pool-content`);
+        if (tabContent) {
+          tabContent.classList.remove('hidden');
+        }
+      });
+    });
+  }
+  
+  /**
+   * Set up interactive elements for the form
+   */
+  function setupFormInteractivity() {
+    // Setup privacy toggle button
+    setupPrivacyToggle();
+    
+    // Setup mode selection
+    setupModeSelection();
+  }
+  
+  /**
+   * Set up the privacy toggle button functionality
+   */
+ /**
+ * Set up the privacy toggle button functionality
+ */
+function setupPrivacyToggle() {
+    const privacyBtn = document.getElementById("privacy-btn")
+    const passwordGroup = document.querySelector(".password-group")
+  
+    if (!privacyBtn || !passwordGroup) {
+      console.log("Privacy button or password group not found, skipping setup")
+      return
+    }
+  
+    console.log("Setting up privacy toggle...")
+  
+    // Remove any existing event listeners
+    const newBtn = privacyBtn.cloneNode(true)
+    privacyBtn.parentNode.replaceChild(newBtn, privacyBtn)
+  
+    // Initialize button state
+    let isPublic = true
+  
+    // Set initial button state
+    newBtn.innerHTML = '<i class="icon fas fa-globe"></i><span>Public</span>'
+  
+    // Add the click event listener to the new button
+    newBtn.addEventListener("click", function (e) {
+      e.preventDefault()
+  
+      // Toggle state
+      isPublic = !isPublic
+  
+      if (isPublic) {
+        // Switching to public
+        this.classList.remove("private")
+        passwordGroup.classList.add("hidden")
+        this.innerHTML = '<i class="icon fas fa-globe"></i><span>Public</span>'
+      } else {
+        // Switching to private
+        this.classList.add("private")
+        passwordGroup.classList.remove("hidden")
+        this.innerHTML = '<i class="icon fas fa-lock"></i><span>Private</span>'
+      }
+  
+      console.log("Privacy toggled. Is public:", isPublic)
+    })
+  }
+  
+  
+  // JavaScript to handle the privacy toggle functionality
+document.addEventListener("DOMContentLoaded", () => {
+    const privacyBtn = document.querySelector(".privacy-btn")
+    let isPublic = true // Initial state
+  
+    privacyBtn.addEventListener("click", () => {
+      isPublic = !isPublic
+  
+      if (isPublic) {
+        privacyBtn.innerHTML = '<i class="icon fas fa-globe"></i><span>Public</span>'
+      } else {
+        privacyBtn.innerHTML = '<i class="icon fas fa-lock"></i><span>Private</span>'
+      }
+  
+      // You might want to update a hidden input field with the actual value
+      // const privacyInput = document.querySelector('input[name="privacy"]');
+      // privacyInput.value = isPublic ? 'public' : 'private';
+    })
+  })
+  
+  
+  /**
+   * Set up the mode selection functionality
+   */
+  function setupModeSelection() {
+    const modeCards = document.querySelectorAll('.mode-card');
+    const playoffsToggle = document.getElementById('playoffs-toggle');
+    
+    if (!modeCards.length) {
+      console.log('Mode cards not found, skipping setup');
+      return;
+    }
+    
+    console.log('Setting up mode selection...');
+    
+    // Initial state: Show/hide playoffs toggle based on current active mode
+    const activeMode = document.querySelector('.mode-card.active');
+    if (activeMode && playoffsToggle) {
+      if (activeMode.dataset.mode === 'classic') {
+        playoffsToggle.classList.remove('hidden');
+      } else {
+        playoffsToggle.classList.add('hidden');
+      }
+    }
+    
+    // Add click handlers to mode cards
+    modeCards.forEach(card => {
+      card.addEventListener('click', () => {
+        // Remove active class from all cards
+        modeCards.forEach(c => c.classList.remove('active'));
+        
+        // Add active class to clicked card
+        card.classList.add('active');
+        
+        // Show/hide playoffs toggle based on selected mode
+        if (playoffsToggle) {
+          if (card.dataset.mode === 'classic') {
+            playoffsToggle.classList.remove('hidden');
+          } else {
+            playoffsToggle.classList.add('hidden');
+            
+            // Reset checkbox when switching away from classic
+            const checkbox = document.getElementById('hasPlayoffs');
+            if (checkbox) checkbox.checked = false;
+          }
+        }
+      });
+    });
+  }
+  
+  /**
+   * Set up pool forms (create and join)
+   */
+  function setupPoolForms() {
+    // Setup create pool form
+    setupCreatePoolForm();
+    
+    // Setup join pool form
+    setupJoinPoolForm();
+  }
+  
+  /**
+   * Set up create pool form submission
+   */
+  function setupCreatePoolForm() {
+    const createPoolForm = document.getElementById('create-pool-form');
+    
+    if (!createPoolForm) {
+      console.log('Create pool form not found, skipping setup');
+      return;
+    }
+    
+    console.log('Setting up create pool form...');
+    
+    // Ensure the form doesn't have an action attribute
+    createPoolForm.setAttribute('action', 'javascript:void(0);');
+    createPoolForm.setAttribute('onsubmit', 'return false;');
+    
+    // Remove any existing event listeners
+    const newForm = createPoolForm.cloneNode(true);
+    createPoolForm.parentNode.replaceChild(newForm, createPoolForm);
+    
+    // Add the submit event listener to the new form
+    newForm.addEventListener('submit', handleCreatePoolSubmit);
+    
+    // Get the submit button if it exists separately
+    const submitBtn = newForm.querySelector('.submit-btn') || document.getElementById('create-pool-button');
+    
+    if (submitBtn) {
+      console.log('Found submit button, attaching click handler...');
+      
+      // Remove existing listeners
+      const newBtn = submitBtn.cloneNode(true);
+      submitBtn.parentNode.replaceChild(newBtn, submitBtn);
+      
+      // Add click handler
+      newBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('Submit button clicked, triggering form submission...');
+        
+        // Manually trigger the form submission
+        handleCreatePoolSubmit(e);
+      });
+    }
+  }
+  
+  /**
+   * Handle create pool form submission
+   */
+  function handleCreatePoolSubmit(e) {
+    e.preventDefault();
+    console.log('Processing create pool form submission...');
+    
+    // Get the form element
+    const form = document.getElementById('create-pool-form');
+    
+    try {
+      // Get form values
+      const poolName = form.querySelector('input[type="text"]').value.trim();
+      if (!poolName) {
+        alert('Please enter a pool name');
+        return;
+      }
+      
+      const poolPasswordInput = form.querySelector('input[type="password"]');
+      const poolPassword = poolPasswordInput ? poolPasswordInput.value : '';
+      
+      // Get privacy setting
+      const privacyBtn = document.getElementById('privacy-btn');
+      const isPrivate = privacyBtn && privacyBtn.classList.contains('private');
+      console.log('Privacy setting:', isPrivate);
+      
+      // Get mode setting
+      const activeMode = document.querySelector('.mode-card.active');
+      const selectedMode = activeMode ? activeMode.dataset.mode : 'classic';
+      console.log('Selected mode:', selectedMode);
+      
+      // Get hasPlayoffs setting (only applicable for classic mode)
+      const hasPlayoffsCheckbox = document.getElementById('hasPlayoffs');
+      const hasPlayoffs = hasPlayoffsCheckbox && hasPlayoffsCheckbox.checked;
+      console.log('Has playoffs:', hasPlayoffs);
+      
+      // Get username from local storage
+      const username = localStorage.getItem('username');
+      if (!username) {
+        console.error('Username not found in localStorage');
+        alert('Username not found. Please log in again.');
+        return;
+      }
+      
+      // Prepare request payload
+      const payload = {
+        name: poolName,
+        isPrivate,
+        adminUsername: username.toLowerCase(),
+        mode: selectedMode,
+        hasPlayoffs: selectedMode === 'classic' ? hasPlayoffs : false
+      };
+      
+      // Add password if private
+      if (isPrivate && poolPassword) {
+        payload.password = poolPassword;
+      } else if (isPrivate) {
+        alert('A password is required for private pools');
+        return;
+      }
+      
+      console.log('Sending create pool request...');
+      
+      // Send the API request
+      fetch('/pools/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(response => {
+        console.log('Received response:', response.status);
+        
+        if (!response.ok) {
+          if (response.status === 409) {
+            throw new Error('The pool name is already taken. Please choose another name.');
+          }
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        return response.json();
+      })
+      .then(data => {
+        console.log('Response data:', data);
+        
+        if (data.message && data.pool) {
+          // Show success message
+          console.log('Pool created successfully!');
+          alert('Pool created successfully!');
+          
+          // Force page reload
+          window.location.reload();
+        } else {
+          alert('Unexpected response from server.');
+        }
+      })
+      .catch(error => {
+        console.error('Error creating pool:', error);
+        alert(error.message || 'An error occurred while creating the pool.');
+      });
+    } catch (error) {
+      console.error('Error in form submission:', error);
+      alert('An error occurred while processing your request.');
+    }
+  }
+  
+  /**
+   * Set up join pool form submission
+   */
+  function setupJoinPoolForm() {
+    const joinPoolForm = document.getElementById('join-pool-form');
+    
+    if (!joinPoolForm) {
+      console.log('Join pool form not found, skipping setup');
+      return;
+    }
+    
+    console.log('Setting up join pool form...');
+    
+    // Remove any existing event listeners
+    const newForm = joinPoolForm.cloneNode(true);
+    joinPoolForm.parentNode.replaceChild(newForm, joinPoolForm);
+    
+    // Add the submit event listener to the new form
+    newForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      console.log('Processing join pool form submission...');
+      
+      // Get form values
+      const poolNameInput = this.querySelector('input[type="text"]');
+      const passwordInput = this.querySelector('input[type="password"]');
+      
+      if (!poolNameInput) {
+        console.error('Pool name input not found');
+        return;
+      }
+      
+      const poolName = poolNameInput.value.trim();
+      const poolPassword = passwordInput ? passwordInput.value : '';
+      
+      if (!poolName) {
+        alert('Please enter a pool name');
+        return;
+      }
+      
+      // Get username from local storage
+      const username = localStorage.getItem('username');
+      if (!username) {
+        alert('You must be logged in to join a pool.');
+        return;
+      }
+      
+      // Prepare request payload
+      const joinPayload = {
+        poolName: poolName,
+        username: username.toLowerCase(),
+        poolPassword: poolPassword
+      };
+      
+      console.log('Sending join pool request...');
+      
+      // Send the API request
+      fetch('/pools/joinByName', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(joinPayload)
+      })
+      .then(response => {
+        console.log('Received response:', response.status);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('Pool not found');
+          } else if (response.status === 401) {
+            throw new Error('Incorrect password');
+          } else {
+            throw new Error(`Network response was not ok ${response.statusText}`);
+          }
+        }
+        
+        return response.json();
+      })
+      .then(data => {
+        console.log('Response data:', data);
+        
+        // Show success message
+        alert('You have joined the pool successfully!');
+        
+        // Force page reload
+        window.location.reload();
+      })
+      .catch(error => {
+        console.error('Error joining pool:', error);
+        alert(`Error: ${error.message || 'An error occurred while attempting to join the pool.'}`);
+      });
+    });
+  }
+  
+  /**
+   * Update the current week display
+   */
+  function updateCurrentWeekDisplay() {
+    const weekDisplay = document.getElementById('currentWeekDisplay');
+    
+    if (!weekDisplay) {
+      console.log('Week display element not found, skipping update');
+      return;
+    }
+    
+    console.log('Updating current week display...');
+    
+    fetch('/getCurrentWeek')
+      .then(response => response.json())
+      .then(data => {
+        // Display the week number
+        const weekNumber = parseInt(data.week);
+        weekDisplay.textContent = `Week ${weekNumber}`;
+      })
+      .catch(error => {
+        console.error('Error fetching current week:', error);
+        weekDisplay.textContent = 'Week';
+      });
+  }
+  
+  /**
+   * For fetching initial data after page load
+   */
+  function fetchInitialData() {
+    // Add code here if you need to fetch any data when the page loads
+    console.log('Fetching initial data...');
+    
+    setTimeout(() => {
+      fetch('/api/getResults')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success && data.results) {
+            if (typeof rebuildUIWithResults === 'function') {
+              rebuildUIWithResults(data.results);
+            }
+          } else {
+            console.error('No results found or unable to fetch results:', data.message);
+          }
+        })
+        .catch(error => console.error('Failed to fetch results:', error));
+    }, 3000); // Delay for load time
+  }
+  
+  // Also run immediately in case the DOM is already loaded
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    console.log('Document already loaded, initializing immediately...');
+    initPoolManager();
+  }
 function rebuildUIWithResults(results) {
     const allPicks = document.querySelectorAll('.player-picks .pick, .immortal-lock');
 
@@ -4207,228 +4726,232 @@ async function loadAndDisplayUserPools() {
 }
 
 // Modified displayNewPoolContainer to include the playoff bracket
+// Modified displayNewPoolContainer to include the playoff bracket
 async function displayNewPoolContainer(pool, includePlayoffBracket = false) {
-    const teamLogos = {
-        'Arizona Cardinals': '/ARILogo.png',
-        'Atlanta Falcons': '/ATLLogo.png',
-        'Baltimore Ravens': '/BALLogo.png',
-        'Buffalo Bills': '/BUFLogo.png',
-        'Carolina Panthers': '/CARLogo.png',
-        'Chicago Bears': '/CHILogo.png',
-        'Cincinnati Bengals': '/CINLogo.png',
-        'Cleveland Browns': '/CLELogo.png',
-        'Dallas Cowboys': '/DALLogo.png',
-        'Denver Broncos': '/DENLogo.png',
-        'Detroit Lions': '/DETLogo.png',
-        'Green Bay Packers': '/GBLogo.png',
-        'Houston Texans': '/HOULogo.png',
-        'Indianapolis Colts': '/INDLogo.png',
-        'Jacksonville Jaguars': '/JAXLogo.png',
-        'Kansas City Chiefs': '/KCLogo.png',
-        'Las Vegas Raiders': '/LVLogo.png',
-        'Los Angeles Chargers': '/LACLogo.png',
-        'Los Angeles Rams': '/LARLogo.png',
-        'Miami Dolphins': '/MIALogo.png',
-        'Minnesota Vikings': '/MINLogo.png',
-        'New England Patriots': '/NELogo.png',
-        'New Orleans Saints': '/NOLogo.png',
-        'New York Giants': '/NYGLogo.png',
-        'New York Jets': '/NYJLogo.png',
-        'Philadelphia Eagles': '/PHILogo.png',
-        'Pittsburgh Steelers': '/PITLogo.png',
-        'San Francisco 49ers': '/SFLogo.png',
-        'Seattle Seahawks': '/SEALogo.png',
-        'Tampa Bay Buccaneers': '/TBLogo.png',
-        'Tennessee Titans': '/TENLogo.png',
-        'Washington Commanders': '/WASLogo.png'
-    };
+  const teamLogos = {
+    "Arizona Cardinals": "/ARILogo.png",
+    "Atlanta Falcons": "/ATLLogo.png",
+    "Baltimore Ravens": "/BALLogo.png",
+    "Buffalo Bills": "/BUFLogo.png",
+    "Carolina Panthers": "/CARLogo.png",
+    "Chicago Bears": "/CHILogo.png",
+    "Cincinnati Bengals": "/CINLogo.png",
+    "Cleveland Browns": "/CLELogo.png",
+    "Dallas Cowboys": "/DALLogo.png",
+    "Denver Broncos": "/DENLogo.png",
+    "Detroit Lions": "/DETLogo.png",
+    "Green Bay Packers": "/GBLogo.png",
+    "Houston Texans": "/HOULogo.png",
+    "Indianapolis Colts": "/INDLogo.png",
+    "Jacksonville Jaguars": "/JAXLogo.png",
+    "Kansas City Chiefs": "/KCLogo.png",
+    "Las Vegas Raiders": "/LVLogo.png",
+    "Los Angeles Chargers": "/LACLogo.png",
+    "Los Angeles Rams": "/LARLogo.png",
+    "Miami Dolphins": "/MIALogo.png",
+    "Minnesota Vikings": "/MINLogo.png",
+    "New England Patriots": "/NELogo.png",
+    "New Orleans Saints": "/NOLogo.png",
+    "New York Giants": "/NYGLogo.png",
+    "New York Jets": "/NYJLogo.png",
+    "Philadelphia Eagles": "/PHILogo.png",
+    "Pittsburgh Steelers": "/PITLogo.png",
+    "San Francisco 49ers": "/SFLogo.png",
+    "Seattle Seahawks": "/SEALogo.png",
+    "Tampa Bay Buccaneers": "/TBLogo.png",
+    "Tennessee Titans": "/TENLogo.png",
+    "Washington Commanders": "/WASLogo.png",
+  }
 
-    let username = localStorage.getItem('username');
-    if (!username) {
-        console.error('No logged-in user found!');
-        return;
-    }
+  let username = localStorage.getItem("username")
+  if (!username) {
+    console.error("No logged-in user found!")
+    return
+  }
 
-    // Find or create ordered container
-    let orderedContainer = document.getElementById('ordered-pools-container');
-    if (!orderedContainer) {
-        orderedContainer = document.createElement('div');
-        orderedContainer.id = 'ordered-pools-container';
-        document.getElementById('pool-container-wrapper').appendChild(orderedContainer);
-    }
+  // Find or create ordered container
+  let orderedContainer = document.getElementById("ordered-pools-container")
+  if (!orderedContainer) {
+    orderedContainer = document.createElement("div")
+    orderedContainer.id = "ordered-pools-container"
+    document.getElementById("pool-container-wrapper").appendChild(orderedContainer)
+  }
 
-    username = username.toLowerCase();
-    const isAdmin = username === pool.adminUsername.toLowerCase();
+  username = username.toLowerCase()
+  const isAdmin = username === pool.adminUsername.toLowerCase()
 
-    const poolWrapper = document.createElement('div');
-    poolWrapper.className = 'pool-wrapper';
-    poolWrapper.setAttribute('data-pool-name', pool.name);
-    poolWrapper.setAttribute('data-admin-username', pool.adminUsername);
+  const poolWrapper = document.createElement("div")
+  poolWrapper.className = "pool-wrapper"
+  poolWrapper.setAttribute("data-pool-name", pool.name)
+  poolWrapper.setAttribute("data-admin-username", pool.adminUsername)
 
-    // Get member's order index
-    const memberOrder = pool.members.find(m => 
-        m.username.toLowerCase() === username.toLowerCase()
-    )?.orderIndex ?? 0;
-    
-    // Use negative order to reverse the display order (higher index = higher position)
-    poolWrapper.style.order = -memberOrder;
+  // Get member's order index
+  const memberOrder = pool.members.find((m) => m.username.toLowerCase() === username.toLowerCase())?.orderIndex ?? 0
 
-    // Add playoff bracket section if needed
-    if (includePlayoffBracket) {
-        const playoffSection = document.createElement('div');
-        playoffSection.className = 'playoff-bracket-section';
-        
-        const playoffTitleBar = document.createElement('div');
-        playoffTitleBar.className = 'playoff-title-bar';
-        playoffTitleBar.innerHTML = `
+  // Use negative order to reverse the display order (higher index = higher position)
+  poolWrapper.style.order = -memberOrder
+
+  // Add playoff bracket section if needed
+  if (includePlayoffBracket) {
+    const playoffSection = document.createElement("div")
+    playoffSection.className = "playoff-bracket-section"
+
+    const playoffTitleBar = document.createElement("div")
+    playoffTitleBar.className = "playoff-title-bar"
+    playoffTitleBar.innerHTML = `
             <h3><span class="playoff-icon"><i class="fas fa-trophy"></i></span> ${pool.name} Playoff Bracket</h3>
             <div class="playoff-user-count">
                 <i class="fas fa-users"></i>
                 <span id="playoffMemberCount-${pool.name}">Loading...</span>
             </div>
-        `;
-        
-        const playoffBracketContainer = document.createElement('div');
-        playoffBracketContainer.className = 'playoff-bracket-container';
-        playoffBracketContainer.id = `playoff-bracket-${pool.name.replace(/\s+/g, '-')}`;
-        playoffBracketContainer.innerHTML = `
+        `
+
+    const playoffBracketContainer = document.createElement("div")
+    playoffBracketContainer.className = "playoff-bracket-container"
+    playoffBracketContainer.id = `playoff-bracket-${pool.name.replace(/\s+/g, "-")}`
+    playoffBracketContainer.innerHTML = `
             <div class="playoff-loading">
                 <div class="playoff-spinner"></div>
                 <p>Loading playoff bracket...</p>
             </div>
-        `;
-        
-        playoffSection.appendChild(playoffTitleBar);
-        playoffSection.appendChild(playoffBracketContainer);
-        poolWrapper.appendChild(playoffSection);
-        
-        // We'll fetch the bracket data later after appending to DOM
-    }
+        `
 
-    // Continue with regular pool display
-    const poolNameContainer = document.createElement('div');
-    poolNameContainer.className = 'pool-name-container';
-    
-    const poolNameDiv = document.createElement('div');
-    poolNameDiv.className = 'pool-name';
-    poolNameDiv.innerText = pool.name;
+    playoffSection.appendChild(playoffTitleBar)
+    playoffSection.appendChild(playoffBracketContainer)
+    poolWrapper.appendChild(playoffSection)
 
-    const poolControls = document.createElement('div');
-    poolControls.className = 'pool-controls';
-    
-    const userCountDiv = document.createElement('div');
-    userCountDiv.className = 'user-count';
-    userCountDiv.innerHTML = `
+    // We'll fetch the bracket data later after appending to DOM
+  }
+
+  // Continue with regular pool display
+  const poolNameContainer = document.createElement("div")
+  poolNameContainer.className = "pool-name-container"
+
+  const poolNameDiv = document.createElement("div")
+  poolNameDiv.className = "pool-name"
+  poolNameDiv.innerText = pool.name
+
+  const poolControls = document.createElement("div")
+  poolControls.className = "pool-controls"
+
+  const userCountDiv = document.createElement("div")
+  userCountDiv.className = "user-count"
+  userCountDiv.innerHTML = `
         <i class="fas fa-users"></i>
         <span>${pool.members.length}</span>
-    `;
+    `
 
-    const viewDropdown = document.createElement('div');
-    viewDropdown.className = 'view-selector-container';
-    viewDropdown.innerHTML = `
+  const viewDropdown = document.createElement("div")
+  viewDropdown.className = "view-selector-container"
+  viewDropdown.innerHTML = `
         <select class="view-selector">
             <option value="aroundMe">Around Me</option>
             <option value="all">All Players</option>
         </select>
         <span class="dropdown-arrow">▼</span>
-    `;
+    `
 
-    const select = viewDropdown.querySelector('select');
-    select.addEventListener('change', (e) => {
-        setTimeout(() => {
-            const container = poolContainer;
-            const allRows = [...container.querySelectorAll('.player-row')];
-            const currentUserRow = container.querySelector('.current-user-row');
-            const currentUserIndex = allRows.indexOf(currentUserRow);
-            
-            // Hide all rows initially
-            allRows.forEach(row => row.style.display = 'none');
-            
-            if (e.target.value === 'aroundMe' && currentUserRow) {
-                let startIndex = 0;
-                let endIndex = Math.min(10, allRows.length);
+  const select = viewDropdown.querySelector("select")
+  select.addEventListener("change", (e) => {
+    setTimeout(() => {
+      const container = poolContainer
+      const allRows = [...container.querySelectorAll(".player-row")]
+      const currentUserRow = container.querySelector(".current-user-row")
+      const currentUserIndex = allRows.indexOf(currentUserRow)
 
-                if (currentUserIndex >= 5 && currentUserIndex < allRows.length - 5) {
-                    startIndex = currentUserIndex - 5;
-                    endIndex = currentUserIndex + 5;
-                } else if (currentUserIndex >= allRows.length - 5) {
-                    startIndex = Math.max(0, allRows.length - 10);
-                    endIndex = allRows.length;
-                }
+      // Hide all rows initially
+      allRows.forEach((row) => (row.style.display = "none"))
 
-                for (let i = startIndex; i < endIndex; i++) {
-                    allRows[i].style.display = '';
-                }
-            } else {
-                allRows.slice(0, 10).forEach(row => row.style.display = '');
-                allRows.slice(10).forEach(row => row.style.display = 'none');
+      if (e.target.value === "aroundMe" && currentUserRow) {
+        let startIndex = 0
+        let endIndex = Math.min(10, allRows.length)
 
-                if (allRows.length > 10) {
-                    const showMoreButton = document.createElement('button');
-                    showMoreButton.className = 'show-more-button';
-                    showMoreButton.innerHTML = `
+        if (currentUserIndex >= 5 && currentUserIndex < allRows.length - 5) {
+          startIndex = currentUserIndex - 5
+          endIndex = currentUserIndex + 5
+        } else if (currentUserIndex >= allRows.length - 5) {
+          startIndex = Math.max(0, allRows.length - 10)
+          endIndex = allRows.length
+        }
+
+        for (let i = startIndex; i < endIndex; i++) {
+          allRows[i].style.display = ""
+        }
+      } else {
+        allRows.slice(0, 10).forEach((row) => (row.style.display = ""))
+        allRows.slice(10).forEach((row) => (row.style.display = "none"))
+
+        if (allRows.length > 10) {
+          const showMoreButton = document.createElement("button")
+          showMoreButton.className = "show-more-button"
+          showMoreButton.innerHTML = `
                         <i class="fas fa-chevron-down"></i>
                         <i class="fas fa-users" style="font-size: 0.9em"></i>
                         <span>show ${allRows.length - 10} more</span>
-                    `;
-                    
-                    // Add inline styles to ensure visibility
-                    showMoreButton.style.display = 'flex';
-                    showMoreButton.style.position = 'relative';
-                    showMoreButton.style.zIndex = '100';
-                    showMoreButton.style.visibility = 'visible';
-                    showMoreButton.style.opacity = '1';
-                    
-                    let expanded = false;
-                    showMoreButton.addEventListener('click', () => {
-                        if (!expanded) {
-                            allRows.forEach(row => row.style.display = '');
-                            showMoreButton.innerHTML = `
+                    `
+
+          // Add inline styles to ensure visibility
+          showMoreButton.style.display = "flex"
+          showMoreButton.style.position = "relative"
+          showMoreButton.style.zIndex = "100"
+          showMoreButton.style.visibility = "visible"
+          showMoreButton.style.opacity = "1"
+
+          let expanded = false
+          showMoreButton.addEventListener("click", () => {
+            if (!expanded) {
+              allRows.forEach((row) => (row.style.display = ""))
+              showMoreButton.innerHTML = `
                                 <i class="fas fa-chevron-up"></i>
                                 <i class="fas fa-users" style="font-size: 0.9em"></i>
                                 <span>show less</span>
-                            `;
-                            showMoreButton.classList.add('expanded');
-                        } else {
-                            allRows.forEach((row, index) => {
-                                row.style.display = index < 10 ? '' : 'none';
-                            });
-                            showMoreButton.innerHTML = `
+                            `
+              showMoreButton.classList.add("expanded")
+            } else {
+              allRows.forEach((row, index) => {
+                row.style.display = index < 10 ? "" : "none"
+              })
+              showMoreButton.innerHTML = `
                                 <i class="fas fa-chevron-down"></i>
                                 <i class="fas fa-users" style="font-size: 0.9em"></i>
                                 <span>show ${allRows.length - 10} more</span>
-                            `;
-                            showMoreButton.classList.remove('expanded');
-                        }
-                        expanded = !expanded;
-                    });
-                
-                    // Remove any existing button
-                    const existingButton = document.querySelector('.show-more-button');
-                    if (existingButton) existingButton.remove();
-                    
-                    // Append the button AFTER the pool container to ensure it's visible
-                    const poolWrapper = poolScrollableContainer.closest('.pool-wrapper');
-                    poolWrapper.appendChild(showMoreButton);
-                }
+                            `
+              showMoreButton.classList.remove("expanded")
             }
-        }, 100);
-    });
+            expanded = !expanded
+          })
 
-    poolNameContainer.appendChild(poolNameDiv);
-    poolNameContainer.appendChild(userCountDiv);
-    poolNameContainer.appendChild(viewDropdown);
-    poolNameContainer.appendChild(poolControls);
-    
-    const poolScrollableContainer = document.createElement('div');
-    poolScrollableContainer.className = 'pool-scrollable-container';
+          // Remove any existing button
+          const existingButton = document.querySelector(".show-more-button")
+          if (existingButton) existingButton.remove()
 
-    const poolContainer = document.createElement('div');
-    poolContainer.className = 'pool-container';
+          // Append the button AFTER the pool container to ensure it's visible
+          const poolWrapper = poolScrollableContainer.closest(".pool-wrapper")
+          poolWrapper.appendChild(showMoreButton)
+        }
+      }
+    }, 100)
+  })
 
-    const poolHeader = document.createElement('div');
-    poolHeader.className = 'pool-header';
-    poolHeader.innerHTML = `
+  // Modified structure: First add poolNameDiv to poolNameContainer
+  poolNameContainer.appendChild(poolNameDiv)
+
+  // Then add userCountDiv and viewDropdown to poolControls
+  poolControls.appendChild(userCountDiv)
+  poolControls.appendChild(viewDropdown)
+
+  // Finally add poolControls to poolNameContainer
+  poolNameContainer.appendChild(poolControls)
+
+  const poolScrollableContainer = document.createElement("div")
+  poolScrollableContainer.className = "pool-scrollable-container"
+
+  const poolContainer = document.createElement("div")
+  poolContainer.className = "pool-container"
+
+  const poolHeader = document.createElement("div")
+  poolHeader.className = "pool-header"
+  poolHeader.innerHTML = `
         <span class="header-rank"></span>
         <span class="header-user">User</span>
         <span class="header-points">Points</span>
@@ -4437,64 +4960,69 @@ async function displayNewPoolContainer(pool, includePlayoffBracket = false) {
         <span class="header-win">Win</span>
         <span class="header-loss">Loss</span>
         <span class="header-push">Push</span>
-    `;
-    poolContainer.appendChild(poolHeader);
+    `
+  poolContainer.appendChild(poolHeader)
 
-    pool.members.sort((a, b) => b.points - a.points || a.username.localeCompare(b.username));
+  pool.members.sort((a, b) => b.points - a.points || a.username.localeCompare(b.username))
 
-    const memberDataPromises = pool.members.map(member => 
-        fetchUserProfile(member.username).then(userProfile => ({
-            rank: pool.members.indexOf(member) + 1,
-            username: userProfile.username,
-            profilePic: userProfile.profilePicture,
-            points: member.points,
-            wins: member.win,
-            losses: member.loss,
-            pushes: member.push
-        }))
-    );
+  const memberDataPromises = pool.members.map((member) =>
+    fetchUserProfile(member.username).then((userProfile) => ({
+      rank: pool.members.indexOf(member) + 1,
+      username: userProfile.username,
+      profilePic: userProfile.profilePicture,
+      points: member.points,
+      wins: member.win,
+      losses: member.loss,
+      pushes: member.push,
+    })),
+  )
 
-    Promise.all(memberDataPromises).then(membersData => {
-        membersData.forEach(memberData => {
-            const playerRow = createPlayerRow(memberData, memberData.username === pool.adminUsername, pool.members.length);
-            fetchPicks(memberData.username, pool.name, playerRow, teamLogos);
-            poolContainer.appendChild(playerRow);
-        });
+  Promise.all(memberDataPromises)
+    .then((membersData) => {
+      membersData.forEach((memberData) => {
+        const playerRow = createPlayerRow(memberData, memberData.username === pool.adminUsername, pool.members.length)
+        fetchPicks(memberData.username, pool.name, playerRow, teamLogos)
+        poolContainer.appendChild(playerRow)
+      })
 
-        poolScrollableContainer.appendChild(poolContainer);
-        poolWrapper.appendChild(poolNameContainer);
-        poolWrapper.appendChild(poolScrollableContainer);
+      poolScrollableContainer.appendChild(poolContainer)
+      poolWrapper.appendChild(poolNameContainer)
+      poolWrapper.appendChild(poolScrollableContainer)
 
-        // Append chat container from template
-        const chatTemplate = document.getElementById('chat-template').content.cloneNode(true);
-        poolWrapper.appendChild(chatTemplate);
+      // Append chat container from template
+      const chatTemplate = document.getElementById("chat-template").content.cloneNode(true)
+      poolWrapper.appendChild(chatTemplate)
 
-        // Add to ordered container
-        orderedContainer.appendChild(poolWrapper);
+      // Add to ordered container
+      orderedContainer.appendChild(poolWrapper)
 
-        // If we have a playoff bracket, fetch the data now
-        if (includePlayoffBracket) {
-            
-            
-            // Fetch and display bracket data
-            fetchPlayoffBracket(pool.name);
-        }
+      // If we have a playoff bracket, fetch the data now
+      if (includePlayoffBracket) {
+        // Fetch and display bracket data
+        fetchPlayoffBracket(pool.name)
+      }
 
-        setTimeout(() => {
-            select.value = 'aroundMe';
-            select.dispatchEvent(new Event('change'));
-        }, 100);
+      setTimeout(() => {
+        select.value = "aroundMe"
+        select.dispatchEvent(new Event("change"))
+      }, 100)
 
-        setTimeout(() => {
-            checkCurrentTimeWindow();
-        }, 50);
+      setTimeout(() => {
+        checkCurrentTimeWindow()
+      }, 50)
 
-        // Update pool actions list after adding pool
-        updatePoolActionsList();
-    }).catch(error => {
-        console.error('Error fetching member data:', error);
-    });
+      // Update pool actions list after adding pool
+      updatePoolActionsList()
+    })
+    .catch((error) => {
+      console.error("Error fetching member data:", error)
+    })
 }
+
+
+
+
+
 
 // New function to display only the playoff bracket without the regular pool
 async function displayPlayoffBracketOnly(pool) {
