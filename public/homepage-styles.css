@@ -542,6 +542,7 @@ h2 {
     box-shadow: 0px 6px 20px rgba(0, 204, 255, 0.6);
     transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
 }*/
+/*
 .rule-book-button {
     position: relative;
     display: inline-block;
@@ -557,7 +558,7 @@ h2 {
     transition: color 0.3s ease;
     cursor: pointer;
     margin-left:55px;
-}
+}*/
 
 
 
@@ -2052,6 +2053,7 @@ label {
     flex: 1 1 auto;
     text-align: center;
     min-width: fit-content;
+    margin-left:85px;
   }
   
   .nav-title {
@@ -6211,71 +6213,79 @@ text-align: center;
   border-color: #33d9ff;
 }
 
-
-
-/* How To Play button styling */
-.rule-book-button {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 15px;
-  margin-left: 55px;
-  color: #33d9ff;
-  border: 1px solid #33d9ff;
-  border-radius: 6px;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 0.9rem;
+/* Premium How To Play Button - Matching Global Picks Button */
+.how-to-play-button {
+  display: block;
+  width: auto;
+  max-width: 280px;
+  margin: 20px auto;
+  padding: 7px 17px;
+  font-family: "Russo One", sans-serif;
+  font-size: 1.2em;
   font-weight: 500;
+  color: #ffffff;
+  background: rgba(51, 217, 255, 0.2);
+  border: 2px solid #33d9ff;
+  border-radius: 4px;
+  cursor: pointer;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  box-shadow: 0 0 10px rgba(51, 217, 255, 0.2);
+  letter-spacing: 2px;
+  position: relative;
   overflow: hidden;
+  transition: all 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 0 20px rgba(51, 217, 255, 0.5), inset 0 0 20px rgba(51, 217, 255, 0.3);
+  text-decoration: none;
+  text-align: center;
 }
 
-.rule-book-button::before {
-  content: '';
+.how-to-play-button::before {
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(51, 217, 255, 0.2),
-    transparent
-  );
+  background: linear-gradient(120deg, transparent, rgba(51, 217, 255, 0.2), transparent);
   transition: 0.5s ease;
 }
 
-.rule-book-button:hover {
-  background: rgba(51, 217, 255, 0.2);
-  box-shadow: 0 0 15px rgba(51, 217, 255, 0.5);
-  transform: translateY(-2px);
+.how-to-play-button:hover {
+  color: #ffffff;
+  background: rgba(51, 217, 255, 0.3);
+  box-shadow: 0 0 30px rgba(51, 217, 255, 0.7), inset 0 0 30px rgba(51, 217, 255, 0.5);
+  transform: translateY(-2px) scale(1.02);
+  border-color: #ffffff;
+  text-shadow: 0 0 10px rgba(51, 217, 255, 0.8);
 }
 
-.rule-book-button:hover::before {
+.how-to-play-button:hover::before {
   left: 100%;
 }
 
-.rule-book-button i {
-  color: #33d9ff;
-  font-size: 1.1rem;
+.how-to-play-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 0 10px rgba(51, 217, 255, 0.4), inset 0 0 10px rgba(51, 217, 255, 0.2);
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .rule-book-button {
-    padding: 6px 10px;
-    font-size: 0.8rem;
-  }
-  
+.how-to-play-button i {
+  margin-right: 10px;
+  font-size: 1.1em;
+}
 
-  
-  .rule-book-button i {
-    margin: 0;
+/* Glow animation matching global picks button */
+@keyframes buttonGlow {
+  0% {
+    box-shadow: 0 0 10px rgba(51, 217, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(51, 217, 255, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(51, 217, 255, 0.2);
   }
 }
+
+.how-to-play-button {
+  animation: buttonGlow 2s infinite;
+}
+
