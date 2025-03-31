@@ -556,6 +556,7 @@ h2 {
     box-shadow: none;
     transition: color 0.3s ease;
     cursor: pointer;
+    margin-left:55px;
 }
 
 
@@ -2097,9 +2098,7 @@ label {
 
 /* Show only icons on very small screens */
 @media (max-width: 746px) {
-    .nav-button span {
-      display: none;
-    }
+ 
     
     .nav-button {
       padding: 0.5rem;
@@ -2107,7 +2106,7 @@ label {
     
     .nav-button i {
       margin: 0;
-      font-size: 1.2rem;
+      font-size: 1.0rem;
     }
   }
 
@@ -2122,14 +2121,13 @@ label {
   }
   
   .nav-button.info-btn i {
-    font-size: 1rem;
+    font-size: .8rem;
     margin: 0;
   }
   
   @media (max-width: 746px) {
     .nav-button.info-btn {
-      width: 37px;
-      height: 37px;
+
       min-width: 28px;
     }
   
@@ -6215,3 +6213,69 @@ text-align: center;
 
 
 
+/* How To Play button styling */
+.rule-book-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  margin-left: 55px;
+  color: #33d9ff;
+  border: 1px solid #33d9ff;
+  border-radius: 6px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(51, 217, 255, 0.2);
+  overflow: hidden;
+}
+
+.rule-book-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(51, 217, 255, 0.2),
+    transparent
+  );
+  transition: 0.5s ease;
+}
+
+.rule-book-button:hover {
+  background: rgba(51, 217, 255, 0.2);
+  box-shadow: 0 0 15px rgba(51, 217, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.rule-book-button:hover::before {
+  left: 100%;
+}
+
+.rule-book-button i {
+  color: #33d9ff;
+  font-size: 1.1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .rule-book-button {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+  
+
+  
+  .rule-book-button i {
+    margin: 0;
+  }
+}

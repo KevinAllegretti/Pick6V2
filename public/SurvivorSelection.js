@@ -768,7 +768,6 @@ async function submitUserPicks() {
         alert('An error occurred while submitting pick. Please try again.');
     }
 }
-
 function setupEventListeners() {
     // Pool selector change
     const poolSelector = document.getElementById('poolSelector');
@@ -833,7 +832,6 @@ function setupEventListeners() {
                     }
                 }
 
-
                 // Check for Thursday features
                 const timeResponse = await fetch('/api/timewindows');
                 if (timeResponse.ok) {
@@ -848,6 +846,11 @@ function setupEventListeners() {
                         }, 300);
                     }
                 }
+                
+                // CRITICAL FIX: Always update UI based on elimination status when pool changes
+                // This ensures buttons are properly disabled when all pools are eliminated
+                updateUiForEliminationStatus(poolEliminationStatus[selectedPool]);
+                
             } catch (error) {
                 console.error('Error handling pool change:', error);
             }
@@ -869,6 +872,161 @@ function setupEventListeners() {
     if (displayInjuriesBtn) {
         displayInjuriesBtn.addEventListener('click', handleDisplayInjuries);
     }
+}
+
+// Add this to initializeDashboard to ensure buttons update on initial page load
+async function initializeDashboard() {
+    if (!storedUsername) {
+        console.error('Username not found in storage');
+        return;
+    }
+
+    try {
+        // Load weekly picks first
+        await loadWeeklyPicks();
+
+        // Setup event listeners
+        setupEventListeners();
+
+        // Initialize pool selector and fetch initial picks
+        await populatePoolSelector();
+
+        // Check time window
+        await checkCurrentTimeWindow();
+        
+        // CRITICAL FIX: Force UI update based on elimination status after initialization
+        // This ensures buttons are properly disabled on page load when all pools are eliminated
+        setTimeout(() => {
+            console.log('Initial page load - applying elimination status for:', selectedPool);
+            updateUiForEliminationStatus(poolEliminationStatus[selectedPool]);
+        }, 500); // Small delay to ensure poolEliminationStatus is populated
+    } catch (error) {
+        console.error('Error initializing dashboard:', error);
+    }
+}
+
+    // Other event listeners remain the same...
+    const submitButton = document.getElementById('submitPicks');
+    if (submitButton) {
+        submitButton.addEventListener('click', submitUserPicks);
+    }
+
+    const resetButton = document.getElementById('resetPicks');
+    if (resetButton) {
+        resetButton.addEventListener('click', resetPicks);
+    }
+
+    const displayInjuriesBtn = document.getElementById('displayInjuriesBtn');
+    if (displayInjuriesBtn) {
+        displayInjuriesBtn.addEventListener('click', handleDisplayInjuries);
+    }
+// Add this code right at the end of the document.addEventListener('DOMContentLoaded'...) function
+// This is a direct approach to ensure buttons are disabled on page load
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // Existing code remains unchanged...
+    
+    // Add this at the very end of the function, after all other initialization
+    if (storedUsername) {
+        // Force immediate check for elimination status
+        setTimeout(function() {
+            const poolSelector = document.getElementById('poolSelector');
+            if (poolSelector && poolSelector.value) {
+                const currentSelection = poolSelector.value;
+                
+                // Check if this option has "(All Eliminated)" or "(Eliminated)" in its text
+                const selectedOption = Array.from(poolSelector.options).find(opt => opt.value === currentSelection);
+                
+                if (selectedOption && 
+                    (selectedOption.textContent.includes('(All Eliminated)') || 
+                     selectedOption.textContent.includes('(Eliminated)'))) {
+                    
+                    console.log('DIRECT CHECK: Found eliminated pool on page load:', currentSelection);
+                    
+                    // Directly disable buttons without using updateUiForEliminationStatus
+                    const submitButton = document.getElementById('submitPicks');
+                    const resetButton = document.getElementById('resetPicks');
+                    
+                    if (submitButton) {
+                        submitButton.classList.add('disabled');
+                        submitButton.disabled = true;
+                        // Override click handler
+                        submitButton.onclick = function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            alert('You are eliminated from this pool and cannot submit picks.');
+                        };
+                    }
+                    
+                    if (resetButton) {
+                        resetButton.classList.add('disabled');
+                        resetButton.disabled = true;
+                        // Override click handler
+                        resetButton.onclick = function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            alert('You are eliminated from this pool and cannot reset picks.');
+                        };
+                    }
+                    
+                }
+            }
+        }, 1000); // Longer timeout to ensure everything else has loaded
+    }
+});
+
+// Also modify populatePoolSelector to call this check
+// Add at the end of the populatePoolSelector function:
+function populatePoolSelector() {
+    // Existing code unchanged...
+    
+    // Add this right before isPopulatingPoolSelector = false;
+    // This is a direct approach for checking elimination status during pool selection
+    setTimeout(function() {
+        const poolSelector = document.getElementById('poolSelector');
+        if (poolSelector && poolSelector.value) {
+            const currentSelection = poolSelector.value;
+            
+            // Check if this option has "(All Eliminated)" or "(Eliminated)" in its text
+            const selectedOption = Array.from(poolSelector.options).find(opt => opt.value === currentSelection);
+            
+            if (selectedOption && 
+                (selectedOption.textContent.includes('(All Eliminated)') || 
+                 selectedOption.textContent.includes('(Eliminated)'))) {
+                
+                console.log('DIRECT CHECK: Found eliminated pool:', currentSelection);
+                
+                // Directly disable buttons
+                const submitButton = document.getElementById('submitPicks');
+                const resetButton = document.getElementById('resetPicks');
+                
+                if (submitButton) {
+                    submitButton.classList.add('disabled');
+                    submitButton.disabled = true;
+                    // Override click handler
+                    submitButton.onclick = function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        alert('You are eliminated from this pool and cannot submit picks.');
+                    };
+                }
+                
+                if (resetButton) {
+                    resetButton.classList.add('disabled');
+                    resetButton.disabled = true;
+                    // Override click handler
+                    resetButton.onclick = function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        alert('You are eliminated from this pool and cannot reset picks.');
+                    };
+                }
+                
+            }
+        }
+    }, 500);
+    
+    isPopulatingPoolSelector = false;
 }
 
 async function handlePoolChange(e) {
@@ -3345,3 +3503,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Ensure window.populatePoolSelector points to our implementation
 // This prevents multiple implementations from being called
 window.populatePoolSelector = populatePoolSelector;
+

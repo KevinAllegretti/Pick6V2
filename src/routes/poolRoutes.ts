@@ -737,7 +737,7 @@ router.post('/joinByName', async (req, res) => {
     }
 });*/
 // Route for admins to manage join requests
-
+/*
 // Route to leave a pool
 router.post('/leave/:username/:poolName', async (req, res) => {
     try {
@@ -759,8 +759,42 @@ router.post('/leave/:username/:poolName', async (req, res) => {
         console.error('Error leaving pool:', error);
         res.status(500).json({ message: 'Error leaving pool', error });
     }
-});
+});*/
+router.post('/leave/:username/:poolName', async (req, res) => {
+    try {
+        const { username, poolName } = req.params;
+        const db = await connectToDatabase();
+        const poolsCollection = db.collection('pools');
 
+        // First, check if the pool and member exist
+        const pool = await poolsCollection.findOne({
+            name: poolName,
+            'members.username': username.toLowerCase()
+        });
+
+        if (!pool) {
+            return res.status(404).json({ message: 'Pool or member not found' });
+        }
+
+        // Remove member from pool with explicit typing
+        const updateResult = await poolsCollection.updateOne(
+            { name: poolName },
+            { $pull: { members: { username: username.toLowerCase() } } } as any
+        );
+
+        if (updateResult.modifiedCount === 0) {
+            return res.status(400).json({ message: 'Failed to remove member from pool' });
+        }
+
+        // After leaving, normalize all indices
+        await normalizePoolOrder(poolsCollection, username);
+
+        res.json({ message: 'Successfully left the pool' });
+    } catch (error) {
+        console.error('Error leaving pool:', error);
+        res.status(500).json({ message: 'Error leaving pool', error });
+    }
+});
 router.get('/get-all', async (req, res) => {
   try {
     const pools = await Pool.find();

@@ -391,7 +391,7 @@ async function processPick(username, poolName, pickEntry, gameScores, allResults
               const numericValue = parseFloat(betValueString.replace(/[^-+\d.]/g, ''));
               const isMoneylineBet = Math.abs(numericValue) >= 100;
               
-              if (isMoneylineBet && result === 'miss') {
+              if (isMoneylineBet && result === 'miss' || isMoneylineBet && result === 'push') {
                   console.log(`Eliminating user ${username} from survivor pool ${poolName} due to moneyline loss`);
                   
                   const currentWeek = await getCurrentWeek();
@@ -848,7 +848,7 @@ cron.schedule('58 23 * * 1', () => {
 
 
 
-cron.schedule('14 17 * * 5', () => {
+cron.schedule('46 10 * * 1', () => {
   console.log("It's Thursday 4:00 PM");
   mockFetchNFLScores();
 });

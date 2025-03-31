@@ -890,11 +890,11 @@ document.addEventListener('DOMContentLoaded', function() {
       updateCountdown();
       setInterval(updateCountdown, 1000);
     }
-    
+    /*
     // Update the navigation username if present
     if (typeof updateNavUsername === 'function') {
       updateNavUsername();
-    }
+    }*/
   });
   
   /**
@@ -1086,7 +1086,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setupCreatePoolForm();
     
     // Setup join pool form
-    setupJoinPoolForm();
+   // setupJoinPoolForm();
   }
   
   /**
@@ -1745,12 +1745,12 @@ function showGameTimeAlert(event) {
     alert("It's Game Time! Pick selection page not available.");
 }
 
-function updateNavUsername() {
+/*function updateNavUsername() {
     const username = localStorage.getItem('username');
     if (username) {
       document.getElementById('navUsername').textContent = username;
     }
-  }
+  }*/
   function updateCountdown() {
     const container = document.getElementById('countdown-container');
     if (!container) return;
@@ -1810,7 +1810,7 @@ document.addEventListener('DOMContentLoaded', function() {
     //console.log("Logged in user:", loggedInUsername);
     updateCountdown();
     setInterval(updateCountdown, 1000);
-    updateNavUsername();
+    //updateNavUsername();
     const profileIcon = document.getElementById('profileIconTemplate');
     const slideOutPanel = document.getElementById('slideOutPanel');
     const closePanelBtn = document.getElementById('closePanelBtn');
