@@ -3993,6 +3993,21 @@ text-align: center;
     flex-shrink: 0;
 }
 
+
+/* Individual Stat Items (like user count) */
+.survivor-user-count,
+.survivor-players-remaining { /* Assuming a class for the other stat */
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Montserrat', sans-serif; /* Consistent sans-serif */
+    font-size: 13px; /* Smaller, cleaner font size */
+    color: #e9d5a0; /* Lighter gold for readability */
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+
 /* Enhanced Playoff Bracket Styling - Matching Regular Pool Style */
 
 /* Main container styling to match regular pools */
