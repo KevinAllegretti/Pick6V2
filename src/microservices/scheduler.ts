@@ -12,89 +12,6 @@ import { updateUserPoints, updateUserStats, saveResultsToServer,
 import { connectToDatabase } from './connectDB';
 let gameScores: any[] = [];
 
-const mlbToNflMap: { [key: string]: string } = {
-    "Arizona Diamondbacks": "Arizona Cardinals",
-    "Atlanta Braves": "Atlanta Falcons",
-    "Baltimore Orioles": "Baltimore Ravens",
-    "Boston Red Sox": "New England Patriots",
-    "Chicago Cubs": "Chicago Bears",
-    "Chicago White Sox": "Chicago Bears",
-    "Cincinnati Reds": "Cincinnati Bengals",
-    "Cleveland Guardians": "Cleveland Browns",
-    "Colorado Rockies": "Denver Broncos",
-    "Detroit Tigers": "Detroit Lions",
-    "Houston Astros": "Houston Texans",
-    "Kansas City Royals": "Kanasas City Chiefs",
-    "Los Angeles Angels": "Los Angeles Chargers",
-    "Los Angeles Dodgers": "Los Angeles Rams",
-    "Miami Marlins": "Miami Dolphins",
-    "Milwaukee Brewers": "Green Bay Packers",
-    "Minnesota Twins": "Minnesota Vikings",
-    "New York Yankees": "New York Giants",
-    "New York Mets": "New York Jets",
-    "Oakland Athletics": "San Francisco 49ers",
-    "Philadelphia Phillies": "Philadelpha Eagles",
-    "Pittsburgh Pirates": "Pittsburgh Steelers",
-    "San Francisco Giants": "San Francisco 49ers",
-    "Seattle Mariners": "Seattle Seahawks",
-    "Tampa Bay Rays": "Tampa Bay Buccaneers",
-    "Texas Rangers": "Dallas Cowboys",
-    "Toronto Blue Jays": "Bufallo Bills",
-    "Washington Nationals": "Washington Commanders"
-};
-async function fetchMLBScores() {
-    console.log('fetchMLBScores function started.');
-  
-    const url = 'https://odds.p.rapidapi.com/v4/sports/baseball_mlb/scores';
-    const params = {
-      daysFrom: '1',
-      apiKey: '3decff06f7mshbc96e9118345205p136794jsn629db332340e'
-    };
-    const queryParams = new URLSearchParams(params);
-  
-    try {
-      const response = await fetch(`${url}?${queryParams}`, {
-        method: 'GET',
-        headers: {
-          'x-rapidapi-host': 'odds.p.rapidapi.com',
-          'x-rapidapi-key': '3decff06f7mshbc96e9118345205p136794jsn629db332340e'
-        }
-      });
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-  
-      const scores = await response.json();
-      console.log("Scores data:", scores);
-  
-      gameScores = scores.map(event => {
-        if (!event.scores || !Array.isArray(event.scores)) {
-          console.log(`Skipping event due to missing or invalid scores:`, event);
-          return null;
-        }
-  
-        const homeTeam = mlbToNflMap[event.home_team] || event.home_team;
-        const awayTeam = mlbToNflMap[event.away_team] || event.away_team;
-        const homeScore = event.scores.find(s => mlbToNflMap[s.name] === homeTeam || s.name === event.home_team)?.score;
-        const awayScore = event.scores.find(s => mlbToNflMap[s.name] === awayTeam || s.name === event.away_team)?.score;
-  
-        return {
-          home_team: homeTeam,
-          away_team: awayTeam,
-          home_score: parseInt(homeScore, 10),
-          away_score: parseInt(awayScore, 10)
-        };
-      }).filter(match => match !== null);
-  
-      console.log('Scores fetched:', gameScores);
-  
-      await updateScores(gameScores);
-    } catch (error) {
-      console.error('Error fetching MLB scores:', error);
-    }
-  }
-
 
     async function fetchNFLScores() {
       console.log('fetchNFLScores function started.');
@@ -132,10 +49,10 @@ async function fetchMLBScores() {
           }
     
           // Map team names if necessary, else use NFL names directly
-          const homeTeam = mlbToNflMap[event.home_team] || event.home_team;
-          const awayTeam = mlbToNflMap[event.away_team] || event.away_team;
-          const homeScore = event.scores.find(s => mlbToNflMap[s.name] === homeTeam || s.name === event.home_team)?.score;
-          const awayScore = event.scores.find(s => mlbToNflMap[s.name] === awayTeam || s.name === event.away_team)?.score;
+          const homeTeam = event.home_team;
+          const awayTeam =  event.away_team;
+          const homeScore = event.scores.find(s =>  s.name === event.home_team)?.score;
+          const awayScore = event.scores.find(s =>  s.name === event.away_team)?.score;
     
           return {
             home_team: homeTeam,
