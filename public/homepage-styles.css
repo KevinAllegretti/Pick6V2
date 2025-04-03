@@ -789,7 +789,7 @@ h2 {
     font-size: 20px;
     font-family: 'Russo One', sans-serif;
     color: #ffffff;
-    text-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff;
+    text-shadow: 0 0 5px #33d9ff, 0 0 5px #33d9ff;
     text-align: left; /* Align text to the left */
     max-width:100% ;/* Takes the full width of its parent */
     margin-bottom: 1px; 
@@ -2841,7 +2841,7 @@ body {
     width: 100%;
     margin: 0;
     padding: 0;
-    margin-bottom: 30px; /* Add space between pools */
+    margin-bottom: 60px; /* Add space between pools */
 }
 
 /* Add extra space for the last pool wrapper to prevent cutoff */
@@ -3100,24 +3100,7 @@ body {
     position: relative;
     padding-bottom: 12px;
   }
-  
-  .survivor-pool-name::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    /* Polished gold trim with varying opacity for an accented finish */
-    background: linear-gradient(
-      90deg,
-      transparent,
-      #600029 20%,
-      #d4af37 50%,
-      #600029 80%,
-      transparent
-    );
-  }
+
   
   /* Header and Row Styling */
   .survivor-pool-header {
@@ -3342,14 +3325,16 @@ body {
     color: transparent;
     text-shadow: 
         0 2px 4px rgba(0, 0, 0, 0.3),
-        0 0 10px rgba(41, 171, 226, 0.2);
-    margin-bottom: 1px;
+        0 0 10px rgba(226, 214, 41, 0.2);
+    margin-bottom: -15px;
     letter-spacing: 3px;
     text-transform: uppercase;
     position: relative;
 }
 
+
 /* Art Deco divider */
+/*
 .survivor-pool-name::after {
     content: '';
     position: absolute;
@@ -3366,7 +3351,7 @@ body {
         #c8a951 80%,
         transparent
     );
-}
+}*/
 
 .survivor-pool-header {
     border-bottom: 2px solid #c8a951;
@@ -6127,7 +6112,7 @@ text-align: center;
   font-size: 20px;
   font-family: "Russo One", sans-serif;
   color: #ffffff;
-  text-shadow: 0 0 10px #33d9ff, 0 0 20px #33d9ff;
+  text-shadow: 0 0 5px #33d9ff, 0 0 5px #33d9ff;
   text-align: left;
   max-width: 100%;
   margin-bottom: 1px;
