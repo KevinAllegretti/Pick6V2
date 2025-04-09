@@ -768,6 +768,7 @@ cron.schedule('58 23 * * 1', () => {
 cron.schedule('46 10 * * 1', () => {
   console.log("It's Thursday 4:00 PM");
   mockFetchNFLScores();
+  //test test pm2 reload
 });
 
 // Initialize playoffs at week 14
