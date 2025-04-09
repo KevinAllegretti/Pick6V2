@@ -3310,7 +3310,7 @@ async function populatePoolSelector() {
                     allOption.textContent = 'All Playoff Pools';
                     allOption.dataset.playoff = "true";
                 } else if (!hasPlayoffPool && hasRegularPool) {
-                    allOption.textContent = 'All Regular Pools';
+                    allOption.textContent = 'All Pools';
                 } else {
                     allOption.textContent = 'All Pools';
                 }
