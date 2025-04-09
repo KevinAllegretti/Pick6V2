@@ -772,7 +772,7 @@ cron.schedule('46 10 * * 1', () => {
 
 // Initialize playoffs at week 14
 const url6= 'http://localhost:3000';
-cron.schedule('59 12 * * 5', async () => {
+cron.schedule('19 16 * * 2', async () => {
   const currentWeek = await getCurrentWeek();
   
   if (currentWeek === 14) {

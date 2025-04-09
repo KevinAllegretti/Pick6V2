@@ -2763,6 +2763,8 @@ function removePlayoffIndicator() {
     }
 }
 
+
+
 async function populatePoolSelector() {
     const poolSelector = document.getElementById('poolSelector');
     if (!poolSelector) {
@@ -2832,54 +2834,9 @@ async function populatePoolSelector() {
         const hasPlayoffPool = playoffPools.length > 0;
         const hasRegularPool = regularPools.length > 0;
         
-        // Determine if we can use "All Pools" option
-        let shouldShowAllOption = true;
-        
-        // Mixed pool types - can't show "All Pools"
-        if (hasPlayoffPool && hasRegularPool) {
-            shouldShowAllOption = false;
-            
-            // Add warning about mixed pool types
-            const container = poolSelector.closest('.pool-selector-container');
-            if (container) {
-                const warningDiv = document.createElement('div');
-                warningDiv.className = 'pool-warning';
-                warningDiv.textContent = 'Some pools are in playoff mode while others are in regular season. Please manage picks in individual pools.';
-                container.insertAdjacentElement('afterend', warningDiv);
-            }
-        } else if (classicPools.length > 1) {
-            // Now we'll check if picks match within the same pool type
-            
-            if (hasPlayoffPool) {
-                // Check if playoff pools have the same picks
-                await checkPoolTypePicksMatch(playoffPools, true);
-            }
-            
-            if (hasRegularPool && shouldShowAllOption) {
-                // Check if regular pools have the same picks
-                await checkPoolTypePicksMatch(regularPools, false);
-            }
-        }
-        
-        // Add "All Pools" option if appropriate
-        if (shouldShowAllOption && classicPools.length > 1) {
-            const allOption = document.createElement('option');
-            allOption.value = 'all';
-            
-            // If we have only playoff pools or only regular pools, label appropriately
-            if (hasPlayoffPool && !hasRegularPool) {
-                allOption.textContent = 'All Playoff Pools';
-            } else if (!hasPlayoffPool && hasRegularPool) {
-                allOption.textContent = 'All Regular Pools';
-            } else {
-                allOption.textContent = 'All Pools';
-            }
-            
-            poolSelector.appendChild(allOption);
-        }
-        
-        // Add individual pool options
-        poolPlayoffStatuses.forEach((pool) => {
+        // If there's only one pool, just add that pool
+        if (classicPools.length === 1) {
+            const pool = poolPlayoffStatuses[0];
             const option = document.createElement('option');
             option.value = pool.name;
             option.textContent = pool.name + (pool.isPlayoffPool ? ' (Playoffs)' : '');
@@ -2887,43 +2844,532 @@ async function populatePoolSelector() {
                 option.dataset.playoff = "true";
             }
             poolSelector.appendChild(option);
-        });
-        
-        // Set appropriate selection
-        if (!shouldShowAllOption && selectedPool === 'all') {
-            // If currently on "all" but can't use it, switch to first pool
-            poolSelector.value = classicPools[0].name;
-            selectedPool = classicPools[0].name;
+            selectedPool = pool.name;
+            isPlayoffMode = pool.isPlayoffPool;
             
-            // Set playoff mode based on the selected pool
-            isPlayoffMode = poolPlayoffStatuses.find(p => p.name === selectedPool)?.isPlayoffPool || false;
-            
-            // Clear current picks state
-            userPicks = [];
-            userImmortalLock = null;
-            picksCount = 0;
-            
-            // Clear UI selections
-            document.querySelectorAll('.bet-button').forEach((button) => {
-                if (!button.dataset.thursdayGame) {
-                    button.classList.remove('selected', 'immortal-lock-selected');
-                }
-            });
-        } else if (currentSelection && currentSelection !== 'loading') {
-            poolSelector.value = currentSelection;
-            selectedPool = currentSelection;
-            
-            // Set playoff mode based on the selected pool
-            isPlayoffMode = poolPlayoffStatuses.find(p => p.name === selectedPool)?.isPlayoffPool || false;
+            // Fetch and store last week's picks for single pool
+            try {
+                const lastWeekEndpoint = pool.isPlayoffPool ? 
+                    `/api/getLastWeekPlayoffPicks/${encodeURIComponent(storedUsername)}/${encodeURIComponent(pool.name)}` :
+                    `/api/getLastWeekPicks/${encodeURIComponent(storedUsername)}/${encodeURIComponent(pool.name)}`;
+                
+                const lastWeekResponse = await fetch(lastWeekEndpoint);
+                const lastWeekData = await lastWeekResponse.json();
+                lastWeekPicks[pool.name] = {
+                    picks: lastWeekData.success && Array.isArray(lastWeekData.picks) ? lastWeekData.picks : [],
+                    immortalLockPick: lastWeekData.success && lastWeekData.immortalLockPick ? lastWeekData.immortalLockPick : null,
+                };
+            } catch (error) {
+                console.error(`Error fetching last week's picks for ${pool.name}:`, error);
+                lastWeekPicks[pool.name] = { picks: [], immortalLockPick: null };
+            }
         } else {
-            // Default selection behavior - if "all" is available, use it
+            // Multiple pools - determine if we can show "All Pools" option
+            let shouldShowAllOption = true;
+            
+            // Mixed pool types - can't show "All Pools"
+            if (hasPlayoffPool && hasRegularPool) {
+                shouldShowAllOption = false;
+                
+                // Add warning about mixed pool types
+                const container = poolSelector.closest('.pool-selector-container');
+                if (container) {
+                    const warningDiv = document.createElement('div');
+                    warningDiv.className = 'pool-warning';
+                    warningDiv.textContent = 'Some pools are in playoff mode while others are in regular season. Please manage picks in individual pools.';
+                    container.insertAdjacentElement('afterend', warningDiv);
+                }
+            } else {
+                // All pools are same type (all playoff or all regular)
+                
+                if (hasRegularPool && !hasPlayoffPool) {
+                    // Fetch current picks for all regular pools
+                    const currentPoolPicks = await Promise.all(
+                        regularPools.map(async (pool) => {
+                            try {
+                                const response = await fetch(
+                                    `/api/getPicks/${storedUsername}/${pool.name}`
+                                );
+                                const data = await response.json();
+                                return {
+                                    poolName: pool.name,
+                                    picks: data.picks || [],
+                                    immortalLock: data.immortalLock || [],
+                                    hasData: true
+                                };
+                            } catch (error) {
+                                console.error(`Error fetching picks for pool ${pool.name}:`, error);
+                                return {
+                                    poolName: pool.name,
+                                    picks: [],
+                                    immortalLock: [],
+                                    hasData: false
+                                };
+                            }
+                        })
+                    );
+                    
+                    // Check if some pools have picks and others don't
+                    const somePoolsHavePicks = currentPoolPicks.some(pool => pool.picks && pool.picks.length > 0);
+                    const somePoolsDontHavePicks = currentPoolPicks.some(pool => !pool.picks || pool.picks.length === 0);
+                    
+                    let currentPicksMatch = true;
+                    
+                    // If some pools have picks and others don't, they don't match
+                    if (somePoolsHavePicks && somePoolsDontHavePicks) {
+                        currentPicksMatch = false;
+                        shouldShowAllOption = false;
+                        
+                        // Add warning about different current picks
+                        const container = poolSelector.closest('.pool-selector-container');
+                        if (container) {
+                            const warningDiv = document.createElement('div');
+                            warningDiv.className = 'pool-warning';
+                            warningDiv.textContent =
+                                'Some pools have picks submitted while others don\'t. Please manage picks in individual pools.';
+                            container.insertAdjacentElement('afterend', warningDiv);
+                        }
+                    } 
+                    // All pools have picks - check if they match
+                    else if (somePoolsHavePicks && !somePoolsDontHavePicks) {
+                        // Get only pools with picks
+                        const poolsWithPicks = currentPoolPicks.filter(pool => pool.picks && pool.picks.length > 0);
+                        
+                        if (poolsWithPicks.length > 1) {
+                            const firstPool = poolsWithPicks[0];
+                            currentPicksMatch = poolsWithPicks.every((poolPick) => {
+                                const regularPicksMatch =
+                                    JSON.stringify(sortPicks([...poolPick.picks])) ===
+                                    JSON.stringify(sortPicks([...firstPool.picks]));
+                                    
+                                const immortalLockMatch =
+                                    JSON.stringify(poolPick.immortalLock) ===
+                                    JSON.stringify(firstPool.immortalLock);
+                                    
+                                return regularPicksMatch && immortalLockMatch;
+                            });
+                            
+                            if (currentPicksMatch) {
+                                // Store the matching picks in global state for "all" view
+                                userPicks = [...firstPool.picks];
+                                userImmortalLock = firstPool.immortalLock?.[0] || null;
+                                picksCount = userPicks.length;
+                            } else {
+                                shouldShowAllOption = false;
+                                
+                                // Add warning about different current picks
+                                const container = poolSelector.closest('.pool-selector-container');
+                                if (container) {
+                                    const warningDiv = document.createElement('div');
+                                    warningDiv.className = 'pool-warning';
+                                    warningDiv.textContent =
+                                        'Different current picks detected across pools. Please manage picks in individual pools, or select reset picks on all individual pools to obtain the "all pools" view.';
+                                    container.insertAdjacentElement('afterend', warningDiv);
+                                }
+                            }
+                        }
+                    }
+                    
+                    // If current picks match or no pools have picks, check last week's picks
+                    if (currentPicksMatch) {
+                        const lastWeekPoolPicks = await Promise.all(
+                            regularPools.map(async (pool) => {
+                                try {
+                                    const response = await fetch(
+                                        `/api/getLastWeekPicks/${encodeURIComponent(storedUsername)}/${encodeURIComponent(pool.name)}`
+                                    );
+                                    const data = await response.json();
+                                    return {
+                                        poolName: pool.name,
+                                        picks: data.success && Array.isArray(data.picks) ? data.picks : [],
+                                        immortalLockPick: data.success && data.immortalLockPick ? data.immortalLockPick : null,
+                                        hasData: data.success && Array.isArray(data.picks) && data.picks.length > 0
+                                    };
+                                } catch (error) {
+                                    console.error(`Error fetching last week picks for pool ${pool.name}:`, error);
+                                    return {
+                                        poolName: pool.name,
+                                        picks: [],
+                                        immortalLockPick: null,
+                                        hasData: false
+                                    };
+                                }
+                            })
+                        );
+                        
+                        // Check if some pools have last week picks and others don't
+                        const somePoolsHaveLastWeekPicks = lastWeekPoolPicks.some(pool => pool.hasData);
+                        const somePoolsDontHaveLastWeekPicks = lastWeekPoolPicks.some(pool => !pool.hasData);
+                        
+                        let lastWeekPicksMatch = true;
+                        
+                        // If some pools have last week picks and others don't, they don't match
+                        if (somePoolsHaveLastWeekPicks && somePoolsDontHaveLastWeekPicks) {
+                            lastWeekPicksMatch = false;
+                            shouldShowAllOption = false;
+                            
+                            // Add warning about different last week picks
+                            const container = poolSelector.closest('.pool-selector-container');
+                            if (container) {
+                                const warningDiv = document.createElement('div');
+                                warningDiv.className = 'pool-warning';
+                                warningDiv.textContent =
+                                    'Some pools have last week picks while others don\'t. Please manage picks in individual pools.';
+                                container.insertAdjacentElement('afterend', warningDiv);
+                            }
+                        }
+                        // All pools have last week picks - check if they match
+                        else if (somePoolsHaveLastWeekPicks && !somePoolsDontHaveLastWeekPicks) {
+                            // Get only pools with last week picks
+                            const poolsWithLastWeekPicks = lastWeekPoolPicks.filter(pool => pool.hasData);
+                            
+                            if (poolsWithLastWeekPicks.length > 1) {
+                                const firstPool = poolsWithLastWeekPicks[0];
+                                lastWeekPicksMatch = poolsWithLastWeekPicks.every((poolPick) => {
+                                    const regularPicksMatch =
+                                        JSON.stringify(sortPicks([...poolPick.picks])) ===
+                                        JSON.stringify(sortPicks([...firstPool.picks]));
+                                    const immortalLockMatch =
+                                        JSON.stringify(poolPick.immortalLockPick) ===
+                                        JSON.stringify(firstPool.immortalLockPick);
+                                    return regularPicksMatch && immortalLockMatch;
+                                });
+                                
+                                if (lastWeekPicksMatch) {
+                                    // Store the matching picks for the 'all' view
+                                    lastWeekPicks['all'] = {
+                                        picks: firstPool.picks,
+                                        immortalLockPick: firstPool.immortalLockPick,
+                                    };
+                                } else {
+                                    shouldShowAllOption = false;
+                                    
+                                    // Add warning about different last week picks
+                                    const container = poolSelector.closest('.pool-selector-container');
+                                    if (container) {
+                                        const warningDiv = document.createElement('div');
+                                        warningDiv.className = 'pool-warning';
+                                        warningDiv.textContent =
+                                            'Different last week picks detected across pools. Please manage picks in individual pools.';
+                                        container.insertAdjacentElement('afterend', warningDiv);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } 
+                // For playoff pools, check if playoff pools have matching picks
+                else if (hasPlayoffPool && !hasRegularPool) {
+                    // Fetch current picks for all playoff pools
+                    const currentPoolPicks = await Promise.all(playoffPools.map(async (pool) => {
+                        try {
+                            const response = await fetch(`/api/getPlayoffPicks/${storedUsername}/${pool.name}`);
+                            const data = await response.json();
+                            return {
+                                poolName: pool.name,
+                                picks: data.picks || [],
+                                immortalLock: data.immortalLock || [],
+                                hasData: Array.isArray(data.picks) && data.picks.length > 0
+                            };
+                        } catch (error) {
+                            console.error(`Error fetching picks for playoff pool ${pool.name}:`, error);
+                            return {
+                                poolName: pool.name,
+                                picks: [],
+                                immortalLock: [],
+                                hasData: false
+                            };
+                        }
+                    }));
+                    
+                    // Check if some pools have picks and others don't
+                    const somePoolsHavePicks = currentPoolPicks.some(pool => pool.hasData);
+                    const somePoolsDontHavePicks = currentPoolPicks.some(pool => !pool.hasData);
+                    
+                    // Debug logs
+                    console.log("Playoff pools current picks status:");
+                    currentPoolPicks.forEach(pool => {
+                        console.log(`Pool ${pool.poolName}:`, {
+                            hasPicks: pool.hasData,
+                            picksCount: pool.picks.length
+                        });
+                    });
+                    
+                    let currentPicksMatch = true;
+                    
+                    // If some pools have picks and others don't, they don't match
+                    if (somePoolsHavePicks && somePoolsDontHavePicks) {
+                        currentPicksMatch = false;
+                        shouldShowAllOption = false;
+                        
+                        // Add warning about different current picks
+                        const container = poolSelector.closest('.pool-selector-container');
+                        if (container) {
+                            const warningDiv = document.createElement('div');
+                            warningDiv.className = 'pool-warning';
+                            warningDiv.textContent = 'Some playoff pools have picks submitted while others don\'t. Please manage picks in individual pools.';
+                            container.insertAdjacentElement('afterend', warningDiv);
+                        }
+                        
+                        console.log("Some playoff pools have picks while others don't - disabling All Pools option");
+                    }
+                    // All pools have picks - check if they match
+                    else if (somePoolsHavePicks && !somePoolsDontHavePicks) {
+                        // Get only pools with picks
+                        const poolsWithPicks = currentPoolPicks.filter(pool => pool.hasData);
+                        
+                        if (poolsWithPicks.length > 1) {
+                            const firstPool = poolsWithPicks[0];
+                            
+                            console.log("Comparing playoff picks across pools with picks:");
+                            poolsWithPicks.forEach(pool => {
+                                console.log(`Pool ${pool.poolName}:`, {
+                                    picks: sortPicks([...pool.picks]),
+                                    immortalLock: pool.immortalLock
+                                });
+                            });
+                            
+                            currentPicksMatch = poolsWithPicks.every((poolPick) => {
+                                // Sort picks first to ensure consistent comparison
+                                const firstPoolSorted = sortPicks([...firstPool.picks]);
+                                const currentPoolSorted = sortPicks([...poolPick.picks]);
+                                
+                                const picksMatch = JSON.stringify(currentPoolSorted) === 
+                                                JSON.stringify(firstPoolSorted);
+                                                
+                                // Compare immortal locks (if any)
+                                let immortalLockMatch = true;
+                                if (firstPool.immortalLock?.length || poolPick.immortalLock?.length) {
+                                    immortalLockMatch = JSON.stringify(firstPool.immortalLock || []) === 
+                                                      JSON.stringify(poolPick.immortalLock || []);
+                                }
+                                
+                                // Debug log for individual pool comparison
+                                console.log(`Pool ${poolPick.poolName} vs first pool:`, {
+                                    picksMatch,
+                                    immortalLockMatch
+                                });
+                                
+                                return picksMatch && immortalLockMatch;
+                            });
+                            
+                            if (currentPicksMatch) {
+                                // Store the matching picks in global state for "all" view
+                                userPicks = [...firstPool.picks];
+                                userImmortalLock = firstPool.immortalLock?.[0] || null;
+                                picksCount = userPicks.length;
+                                
+                                console.log("All playoff pools have matching picks - enabling All Pools option");
+                            } else {
+                                shouldShowAllOption = false;
+                                
+                                // Add warning about different current picks
+                                const container = poolSelector.closest('.pool-selector-container');
+                                if (container) {
+                                    const warningDiv = document.createElement('div');
+                                    warningDiv.className = 'pool-warning';
+                                    warningDiv.textContent = 'Different current picks detected across playoff pools. Please manage picks in individual pools.';
+                                    container.insertAdjacentElement('afterend', warningDiv);
+                                }
+                                
+                                console.log("Playoff pools have different picks - disabling All Pools option");
+                            }
+                        }
+                    }
+                    
+                    // If current picks match or no pools have picks, check last week's picks
+                    if (currentPicksMatch) {
+                        // Fetch last week's picks for all playoff pools
+                        const lastWeekPoolPicks = await Promise.all(playoffPools.map(async (pool) => {
+                            try {
+                                const response = await fetch(`/api/getLastWeekPlayoffPicks/${storedUsername}/${pool.name}`);
+                                const data = await response.json();
+                                return {
+                                    poolName: pool.name,
+                                    picks: data.success && Array.isArray(data.picks) ? data.picks : [],
+                                    immortalLockPick: data.success && data.immortalLockPick ? data.immortalLockPick : null,
+                                    hasData: data.success && Array.isArray(data.picks) && data.picks.length > 0
+                                };
+                            } catch (error) {
+                                console.error(`Error fetching last week picks for playoff pool ${pool.name}:`, error);
+                                return {
+                                    poolName: pool.name,
+                                    picks: [],
+                                    immortalLockPick: null,
+                                    hasData: false
+                                };
+                            }
+                        }));
+                        
+                        // Check if some pools have last week picks and others don't
+                        const somePoolsHaveLastWeekPicks = lastWeekPoolPicks.some(pool => pool.hasData);
+                        const somePoolsDontHaveLastWeekPicks = lastWeekPoolPicks.some(pool => !pool.hasData);
+                        
+                        // Debug logs
+                        console.log("Playoff pools last week picks status:");
+                        lastWeekPoolPicks.forEach(pool => {
+                            console.log(`Pool ${pool.poolName} last week:`, {
+                                hasPicks: pool.hasData,
+                                picksCount: pool.picks?.length || 0
+                            });
+                        });
+                        
+                        let lastWeekPicksMatch = true;
+                        
+                        // If some pools have last week picks and others don't, they don't match
+                        if (somePoolsHaveLastWeekPicks && somePoolsDontHaveLastWeekPicks) {
+                            lastWeekPicksMatch = false;
+                            shouldShowAllOption = false;
+                            
+                            // Add warning about different last week picks
+                            const container = poolSelector.closest('.pool-selector-container');
+                            if (container) {
+                                const warningDiv = document.createElement('div');
+                                warningDiv.className = 'pool-warning';
+                                warningDiv.textContent = 'Some playoff pools have last week picks while others don\'t. Please manage picks in individual pools.';
+                                container.insertAdjacentElement('afterend', warningDiv);
+                            }
+                            
+                            console.log("Some playoff pools have last week picks while others don't - disabling All Pools option");
+                        }
+                        // All pools have last week picks - check if they match
+                        else if (somePoolsHaveLastWeekPicks && !somePoolsDontHaveLastWeekPicks) {
+                            // Get only pools with last week picks
+                            const poolsWithLastWeekPicks = lastWeekPoolPicks.filter(pool => pool.hasData);
+                            
+                            if (poolsWithLastWeekPicks.length > 1) {
+                                const firstPool = poolsWithLastWeekPicks[0];
+                                
+                                console.log("Comparing last week playoff picks across pools:");
+                                poolsWithLastWeekPicks.forEach(pool => {
+                                    console.log(`Pool ${pool.poolName} last week:`, {
+                                        picks: sortPicks([...pool.picks]),
+                                        immortalLockPick: pool.immortalLockPick
+                                    });
+                                });
+                                
+                                lastWeekPicksMatch = poolsWithLastWeekPicks.every((poolPick) => {
+                                    // Sort picks first to ensure consistent comparison
+                                    const firstPoolSorted = sortPicks([...firstPool.picks]);
+                                    const currentPoolSorted = sortPicks([...poolPick.picks]);
+                                    
+                                    const picksMatch = JSON.stringify(currentPoolSorted) === 
+                                                    JSON.stringify(firstPoolSorted);
+                                                    
+                                    // Compare immortal locks (if any)
+                                    let immortalLockMatch = true;
+                                    if (firstPool.immortalLockPick || poolPick.immortalLockPick) {
+                                        immortalLockMatch = JSON.stringify(firstPool.immortalLockPick) === 
+                                                          JSON.stringify(poolPick.immortalLockPick);
+                                    }
+                                    
+                                    // Debug log for individual pool last week comparison
+                                    console.log(`Pool ${poolPick.poolName} last week vs first pool:`, {
+                                        picksMatch,
+                                        immortalLockMatch
+                                    });
+                                    
+                                    return picksMatch && immortalLockMatch;
+                                });
+                                
+                                if (lastWeekPicksMatch) {
+                                    // Store the matching picks for the 'all' view
+                                    lastWeekPicks['all'] = {
+                                        picks: firstPool.picks,
+                                        immortalLockPick: firstPool.immortalLockPick
+                                    };
+                                    
+                                    console.log("All playoff pools have matching last week picks");
+                                } else {
+                                    shouldShowAllOption = false;
+                                    
+                                    // Add warning about different last week picks
+                                    const container = poolSelector.closest('.pool-selector-container');
+                                    if (container) {
+                                        const warningDiv = document.createElement('div');
+                                        warningDiv.className = 'pool-warning';
+                                        warningDiv.textContent = 'Different last week picks detected across playoff pools. Please manage picks in individual pools.';
+                                        container.insertAdjacentElement('afterend', warningDiv);
+                                    }
+                                    
+                                    console.log("Playoff pools have different last week picks - disabling All Pools option");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Add "All Pools" option if appropriate
             if (shouldShowAllOption && classicPools.length > 1) {
-                poolSelector.value = 'all';
-                selectedPool = 'all';
-                isPlayoffMode = hasPlayoffPool && !hasRegularPool;
-            } else if (poolSelector.options.length > 0) {
-                selectedPool = poolSelector.options[0].value;
+                const allOption = document.createElement('option');
+                allOption.value = 'all';
+                
+                // If we have only playoff pools or only regular pools, label appropriately
+                if (hasPlayoffPool && !hasRegularPool) {
+                    allOption.textContent = 'All Playoff Pools';
+                    allOption.dataset.playoff = "true";
+                } else if (!hasPlayoffPool && hasRegularPool) {
+                    allOption.textContent = 'All Regular Pools';
+                } else {
+                    allOption.textContent = 'All Pools';
+                }
+                
+                poolSelector.appendChild(allOption);
+            }
+            
+            // Add individual pool options
+            poolPlayoffStatuses.forEach((pool) => {
+                const option = document.createElement('option');
+                option.value = pool.name;
+                option.textContent = pool.name + (pool.isPlayoffPool ? ' (Playoffs)' : '');
+                if (pool.isPlayoffPool) {
+                    option.dataset.playoff = "true";
+                }
+                poolSelector.appendChild(option);
+            });
+            
+            // Set appropriate selection
+            if (!shouldShowAllOption && selectedPool === 'all') {
+                // If currently on "all" but can't use it, switch to first pool
+                poolSelector.value = classicPools[0].name;
+                selectedPool = classicPools[0].name;
+                
+                // Set playoff mode based on the selected pool
                 isPlayoffMode = poolPlayoffStatuses.find(p => p.name === selectedPool)?.isPlayoffPool || false;
+                
+                // Clear current picks state
+                userPicks = [];
+                userImmortalLock = null;
+                picksCount = 0;
+                
+                // Clear UI selections
+                document.querySelectorAll('.bet-button').forEach((button) => {
+                    if (!button.dataset.thursdayGame) {
+                        button.classList.remove('selected', 'immortal-lock-selected');
+                    }
+                });
+            } else if (currentSelection && currentSelection !== 'loading') {
+                poolSelector.value = currentSelection;
+                selectedPool = currentSelection;
+                
+                // Set playoff mode based on the selected pool
+                isPlayoffMode = poolPlayoffStatuses.find(p => p.name === selectedPool)?.isPlayoffPool || false;
+                
+                // Handle 'all' selection for playoff/regular mode
+                if (selectedPool === 'all') {
+                    isPlayoffMode = hasPlayoffPool && !hasRegularPool;
+                }
+            } else {
+                // Default selection behavior - if "all" is available, use it
+                if (shouldShowAllOption && classicPools.length > 1) {
+                    poolSelector.value = 'all';
+                    selectedPool = 'all';
+                    isPlayoffMode = hasPlayoffPool && !hasRegularPool;
+                } else if (poolSelector.options.length > 0) {
+                    selectedPool = poolSelector.options[0].value;
+                    isPlayoffMode = poolPlayoffStatuses.find(p => p.name === selectedPool)?.isPlayoffPool || false;
+                }
             }
         }
         
@@ -2971,75 +3417,11 @@ async function populatePoolSelector() {
         poolSelector.innerHTML = '<option value="error">Error loading pools</option>';
         poolSelector.classList.add('error');
     }
-    
-    // Helper function to check if pools of the same type have matching picks
-    async function checkPoolTypePicksMatch(pools, isPlayoff) {
-        try {
-            // Get appropriate endpoint
-            const endpoint = isPlayoff ? 
-                (pool) => `/api/getPlayoffPicks/${storedUsername}/${pool.name}` : 
-                (pool) => `/api/getPicks/${storedUsername}/${pool.name}`;
-                
-            // Fetch picks for all pools
-            const poolPicks = await Promise.all(pools.map(async (pool) => {
-                try {
-                    const response = await fetch(endpoint(pool));
-                    if (!response.ok) return null;
-                    
-                    const data = await response.json();
-                    return {
-                        poolName: pool.name,
-                        picks: data.picks || [],
-                        immortalLock: data.immortalLock || []
-                    };
-                } catch (error) {
-                    console.error(`Error fetching picks for pool ${pool.name}:`, error);
-                    return null;
-                }
-            }));
-            
-            // Filter out failed requests
-            const validPicks = poolPicks.filter(pick => pick !== null);
-            
-            // If we have multiple pools with valid picks, check if they match
-            if (validPicks.length > 1) {
-                const firstPool = validPicks[0];
-                const picksMatch = validPicks.every((poolPick) => {
-                    // Sort picks first to ensure consistent comparison
-                    const firstPoolSorted = sortPicks([...firstPool.picks]);
-                    const currentPoolSorted = sortPicks([...poolPick.picks]);
-                    
-                    const picksMatch = JSON.stringify(currentPoolSorted) === 
-                                     JSON.stringify(firstPoolSorted);
-                                     
-                    // Compare immortal locks (if any)
-                    let immortalLockMatch = true;
-                    if (firstPool.immortalLock?.length || poolPick.immortalLock?.length) {
-                        immortalLockMatch = JSON.stringify(firstPool.immortalLock || []) === 
-                                          JSON.stringify(poolPick.immortalLock || []);
-                    }
-                    
-                    return picksMatch && immortalLockMatch;
-                });
-                
-                if (!picksMatch) {
-                    shouldShowAllOption = false;
-                    
-                    // Add warning about different picks
-                    const container = poolSelector.closest('.pool-selector-container');
-                    if (container) {
-                        const warningDiv = document.createElement('div');
-                        warningDiv.className = 'pool-warning';
-                        warningDiv.textContent = `Different picks detected across ${isPlayoff ? 'playoff' : 'regular'} pools. Please manage picks in individual pools.`;
-                        container.insertAdjacentElement('afterend', warningDiv);
-                    }
-                }
-            }
-        } catch (error) {
-            console.error(`Error checking ${isPlayoff ? 'playoff' : 'regular'} pool picks:`, error);
-        }
-    }
 }
+
+
+
+
 
 async function fetchUserPicksAndRender(username, poolSelection) {
     console.log('\n=== Fetching User Picks ===');
