@@ -215,7 +215,36 @@ li {
       border: 2px solid #00ccff;
       border-radius: 8px;
   }
+  
+  
+.survivor-prev-container, .elim-container, .sps-container{display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+  .survivor-prev{
+      width: 100%;
+      max-width: 120px;
+      height: auto;
+      border: 2px solid #d4af37;
+      border-radius: 8px;
+  }
 
+  .elim {
+    width: 100%;
+    max-width: 350px;
+    height: auto;
+    border: 2px solid #d4af37;
+    border-radius: 8px;
+}
+
+.sps {
+    width: 100%;
+    max-width: 250px;
+    height: auto;
+    border: 2px solid #d4af37;
+    border-radius: 8px;
+}
   .survivor-rule-box {
     background: linear-gradient(
         145deg,
