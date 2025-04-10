@@ -199,7 +199,7 @@ li {
 
   .profile-panel-container, .pool-manager-pic-container, .rule-book-container, .schedule-container, .pool-pic-container, .Makepicks-pic-container,.chat-pic-container,
   .profile-panel-other-container, .icon-container, .top-picks-container,
-  .game-container, .injuries, .point-legend-container, .immortal-lock-container {
+  .game-container, .injuries, .point-legend-container, .immortal-lock-container, .arrow-container, .create-pool-container {
       display: flex;
       justify-content: center;
       align-items: center;
@@ -208,7 +208,7 @@ li {
 
   .profile-panel-pic, .pool-manager-pic, .pool-pic, .Makepicks-pic, .chat-pic,
   .profile-panel-other-pic, .icon-pic, .top-picks,
-  .game-container-pic, .injuries-pic, .point-legend, .immortal-lock {
+  .game-container-pic, .injuries-pic, .point-legend, .immortal-lock, .arrow, .create-pool {
       width: 100%;
       max-width: 300px;
       height: auto;
