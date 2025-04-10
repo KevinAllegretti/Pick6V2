@@ -10,6 +10,7 @@ import { updateUserPoints, updateUserStats, saveResultsToServer,
     import { incrementWeek } from './serverUtils';
     import { getCurrentWeek } from './serverUtils';
 import { connectToDatabase } from './connectDB';
+import { eliminateUsersWithoutPicks } from './serverUtils';
 let gameScores: any[] = [];
 
 
@@ -654,8 +655,12 @@ cron.schedule('43 11 * * 5', () => {
   console.log("It's Thursday 4:00 PM");
   saveSurvivorPicks();
 });
-
-
+/*
+cron.schedule('46 16 * * 4', () => {
+  console.log("It's Thursday 7:05 PM, eliminating users without picks from survivor pools");
+  eliminateUsersWithoutPicks();
+});
+*/
 /*
 
 cron.schedule('0 0 * * 2', async () => {

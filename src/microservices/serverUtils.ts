@@ -646,3 +646,107 @@ export async function initializeWeek() {
     console.log(`Set week to ${result.value.week}`);
     return result.value.week;
   }
+
+  /**
+ * Eliminates users from survivor pools who have not submitted picks for the current week
+ * This function should be called from a cron job after the Thursday deadline
+ */
+export async function eliminateUsersWithoutPicks(): Promise<void> {
+    try {
+      console.log('Starting elimination process for users without picks in survivor pools');
+      
+      const database = await connectToDatabase();
+      const poolsCollection = database.collection('pools');
+      const picksCollection = database.collection('userPicks');
+      
+      // Get current week
+      const currentWeek = await getCurrentWeek();
+      console.log(`Current week is ${currentWeek}`);
+      
+      // Find all survivor pools
+      const survivorPools = await poolsCollection.find({ mode: 'survivor' }).toArray();
+      console.log(`Found ${survivorPools.length} survivor pools`);
+      
+      if (survivorPools.length === 0) {
+        console.log('No survivor pools found, skipping elimination process');
+        return;
+      }
+      
+      // Process each survivor pool
+      for (const pool of survivorPools) {
+        console.log(`Processing pool: ${pool.name}`);
+        
+        // Get all active members in the pool (not already eliminated)
+        const activeMembers = pool.members.filter((member: any) => 
+          !member.isEliminated
+        );
+        
+        console.log(`Pool ${pool.name} has ${activeMembers.length} active members`);
+        
+        if (activeMembers.length === 0) {
+          console.log(`No active members in pool ${pool.name}, skipping`);
+          continue;
+        }
+        
+        // For each active member, check if they have submitted picks for this week
+        for (const member of activeMembers) {
+          const username = member.username.toLowerCase();
+          
+          // Find picks for this user in this pool
+          const userPicks = await picksCollection.findOne({
+            username: username,
+            poolName: pool.name
+          });
+          
+          // Check if user has submitted picks
+          const hasSubmittedPicks = userPicks && 
+                                   userPicks.picks && 
+                                   Array.isArray(userPicks.picks) && 
+                                   userPicks.picks.length > 0;
+          
+          if (!hasSubmittedPicks) {
+            console.log(`User ${username} in pool ${pool.name} has not submitted picks for week ${currentWeek}, eliminating`);
+            
+            // Update member status to eliminated
+            await poolsCollection.updateOne(
+              {
+                name: pool.name,
+                'members.username': username
+              },
+              {
+                $set: {
+                  'members.$.isEliminated': true
+                }
+              }
+            );
+            
+            // Add to eliminatedMembers array for record keeping
+            await poolsCollection.updateOne(
+              { name: pool.name },
+              {
+                $addToSet: {
+                  eliminatedMembers: {
+                    username: username,
+                    eliminatedAt: new Date(),
+                    eliminationWeek: currentWeek,
+                    reason: 'no_picks'
+                  }
+                }
+              }
+            );
+            
+            console.log(`Eliminated user ${username} from pool ${pool.name} for not submitting picks`);
+          } else {
+            console.log(`User ${username} in pool ${pool.name} has submitted picks for week ${currentWeek}`);
+          }
+        }
+        
+        console.log(`Completed processing for pool ${pool.name}`);
+      }
+      
+      console.log('Elimination process for users without picks completed successfully');
+    } catch (error) {
+      console.error('Error during elimination process:', error);
+      throw new Error('Failed to eliminate users without picks');
+    }
+  }

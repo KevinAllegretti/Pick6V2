@@ -757,24 +757,34 @@ function enableThursdayGameFeatures() {
 }
 
 function enableSundayGameFeatures() {
+    // Handle regular picks button
     const choosePicksButtons = document.querySelectorAll('.global-picks-button');
     if (choosePicksButtons.length > 0) {
         choosePicksButtons.forEach(button => {
             button.classList.add('disabled');
-            button.textContent = 'Selections Unavailable';
+            button.textContent = 'SELECTIONS UNAVAILABLE';
         });
     } else {
         console.error('No choose picks buttons found');
     }
 
+    // Handle survivor picks button
+    const survivorPicksButtons = document.querySelectorAll('#survivorPicksButton');
+    if (survivorPicksButtons.length > 0) {
+        survivorPicksButtons.forEach(button => {
+            button.classList.add('disabled');
+            button.textContent = 'SURVIVOR SELECTIONS UNAVAILABLE';
+        });
+    }
+
     // Set up click handlers for buttons
-    choosePicksButtons.forEach(button => {
+    const allButtons = document.querySelectorAll('.global-picks-button.disabled, #survivorPicksButton.disabled');
+    allButtons.forEach(button => {
         button.onclick = (event) => {
-            showGameTimeAlert(event); // Pass the event object
+            showGameTimeAlert(event);
         };
     });
 }
-
 function enablePickTimeFeatures() {
     const choosePicksButtons = document.querySelectorAll('.global-picks-button');
     if (choosePicksButtons.length > 0) {
@@ -831,11 +841,24 @@ async function isCurrentTimePickTime() {
 }
 
 
+// Add a flag to track if the alert has been shown
+let gameTimeAlertShown = false;
+
 function showGameTimeAlert(event) {
     if (event) {
         event.preventDefault(); // Prevent default action
     }
-    alert("It's Game Time! Pick selection page not available.");
+    
+    // Only show the alert if it hasn't been shown yet
+    if (!gameTimeAlertShown) {
+        alert("It's Game Time! Pick selection page not available.");
+        gameTimeAlertShown = true;
+        
+        // Reset the flag after some time so the alert can be shown again if needed
+        setTimeout(() => {
+            gameTimeAlertShown = false;
+        }, 100); // Reset after 5 seconds
+    }
 }
 
 /*function updateNavUsername() {
@@ -884,7 +907,7 @@ const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60)) + 1;
                 // Game Time
                 container.innerHTML = `
                     <div class="game-time">
-                        IT'S GAME TIME!
+                        GAME TIME
                     </div>
                 `;
             }

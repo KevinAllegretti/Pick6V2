@@ -3498,14 +3498,15 @@ body {
     text-shadow: 0 0 10px rgba(45, 185, 255, 0.5);
 }
 
-.countdown-timer {
-    display: flex;
-    gap: 1.75rem;
-    background: rgba(6, 12, 24, 0.7);
-    padding: 1rem 1.5rem;
-    border-radius: 0.25rem;
-    border: 1px solid rgba(45, 185, 255, 0.2);
-    position: relative;
+.game-time {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.4rem;
+  color: #fff;
+  letter-spacing: 0.15em;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(45, 185, 255, 0.5);
 }
 
 .countdown-timer::after {
@@ -6307,4 +6308,17 @@ text-align: center;
   border-radius: 10px;
   box-shadow: 0 0 15px rgba(51, 217, 255, 0.5);
   border: 2px solid #33d9ff;
+}
+#survivorPicksButton.disabled {
+  color: #808080 !important;
+  border-color: #808080 !important;
+  background: rgba(24, 26, 27, 0.8) !important;
+  background-color: rgba(24, 26, 27, 0.8) !important;
+  background-image: none !important;
+  cursor: not-allowed;
+  animation: none;
+  opacity: 1.0;
+  font-size: 0.9em;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
 }
