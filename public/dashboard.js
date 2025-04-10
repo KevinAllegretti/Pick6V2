@@ -4318,3 +4318,188 @@ async function handlePoolChange(e) {
         console.error('Error handling pool change:', error);
     }
 }
+
+async function checkCurrentTimeWindow() {
+    try {
+        const response = await fetch('/api/timewindows');
+        if (!response.ok) {
+            throw new Error('Failed to fetch time windows.');
+        }
+
+        const { tuesdayStartTime, thursdayDeadline, sundayDeadline } = await response.json();
+        const now = getCurrentTimeInUTC4();
+        
+        const tuesdayTime = new Date(tuesdayStartTime);
+        const thursdayTime = new Date(thursdayDeadline);
+        const sundayTime = new Date(sundayDeadline);
+
+        if (now > sundayTime && now < tuesdayTime) {
+            // Sunday game time should trump all other conditions
+            console.log('Current time window: Sunday Game Time');
+            enableSundayGameFeatures();
+            
+            // Set a global flag to indicate we're in Sunday game time
+            window.isSundayGameTime = true;
+        } else if (now > thursdayTime && now < sundayTime) {
+            console.log('Current time window: Thursday Game Time');
+            window.isSundayGameTime = false;
+            setTimeout(() => {
+                enableThursdayGameFeatures();
+            }, 100);
+        } else if (now > tuesdayTime && now < thursdayTime) {
+            console.log('Current time window: Pick Time');
+            window.isSundayGameTime = false;
+            enablePickTimeFeatures();
+        } else {
+            console.log('Error determining the current time window');
+            window.isSundayGameTime = false;
+        }
+    } catch (error) {
+        console.error('Error checking current time window:', error);
+        window.isSundayGameTime = false;
+    }
+}
+
+function enableSundayGameFeatures() {
+    const submitPicksButton = document.getElementById('submitPicks');
+    const resetPicksButton = document.getElementById('resetPicks');
+    
+    // Ensure buttons are disabled
+    if (submitPicksButton) {
+        submitPicksButton.classList.add('disabled');
+        submitPicksButton.disabled = true;
+        submitPicksButton.removeEventListener('click', submitUserPicks);
+        submitPicksButton.addEventListener('click', showGameTimeAlert);
+    }
+    
+    if (resetPicksButton) {
+        resetPicksButton.classList.add('disabled');
+        resetPicksButton.disabled = true;
+        resetPicksButton.removeEventListener('click', resetPicks);
+        resetPicksButton.addEventListener('click', showGameTimeAlert);
+    }
+}
+
+function updateButtonsBasedOnEligibility(eligibility) {
+    const submitBtn = document.getElementById('submitPicks');
+    const resetBtn = document.getElementById('resetPicks');
+    
+    // Check if we're in Sunday game time - this trumps all other conditions
+    if (window.isSundayGameTime) {
+        enableSundayGameFeatures(); // Reapply Sunday game time features
+        return;
+    }
+    
+    if (!eligibility.eligible) {
+        // Disable buttons for ineligible playoff pools
+        if (submitBtn) {
+            submitBtn.classList.add('disabled');
+            submitBtn.disabled = true;
+            submitBtn.title = eligibility.reason;
+        }
+        
+        if (resetBtn) {
+            resetBtn.classList.add('disabled');
+            resetBtn.disabled = true;
+            resetBtn.title = eligibility.reason;
+        }
+        
+        // Add visual indicator
+        const picksContainer = document.getElementById('picksContainer');
+        if (picksContainer) {
+            // Remove any existing message first
+            const existingMsg = document.getElementById('playoff-eligibility-message');
+            if (existingMsg) existingMsg.remove();
+            
+            // Add new message
+            const eligibilityMsg = document.createElement('div');
+            eligibilityMsg.id = 'playoff-eligibility-message';
+            eligibilityMsg.className = 'playoff-indicator';
+            eligibilityMsg.style.backgroundColor = '#ff5252';
+            eligibilityMsg.textContent = `Playoff status: ${eligibility.reason}`;
+            
+            // Insert at the top of the container
+            picksContainer.insertBefore(eligibilityMsg, picksContainer.firstChild);
+        }
+    } else {
+        // Enable buttons for eligible pools
+        resetPlayoffUI();
+    }
+}
+
+function resetPlayoffUI() {
+    const submitBtn = document.getElementById('submitPicks');
+    const resetBtn = document.getElementById('resetPicks');
+    
+    // Check if we're in Sunday game time - this trumps all other conditions
+    if (window.isSundayGameTime) {
+        enableSundayGameFeatures(); // Reapply Sunday game time features
+        return;
+    }
+    
+    if (submitBtn) {
+        submitBtn.classList.remove('disabled');
+        submitBtn.disabled = false;
+        submitBtn.title = '';
+        submitBtn.removeEventListener('click', showGameTimeAlert);
+        submitBtn.addEventListener('click', submitUserPicks);
+    }
+    
+    if (resetBtn) {
+        resetBtn.classList.remove('disabled');
+        resetBtn.disabled = false;
+        resetBtn.title = '';
+        resetBtn.removeEventListener('click', showGameTimeAlert);
+        resetBtn.addEventListener('click', resetPicks);
+    }
+    
+    // Remove any playoff status messages
+    const existingMsg = document.getElementById('playoff-eligibility-message');
+    if (existingMsg) existingMsg.remove();
+}
+
+async function handlePoolChange(e) {
+    console.log('Pool changed to:', e.target.value);
+    selectedPool = e.target.value;
+    
+    try {
+        // Check if we're in time windows
+        const timeResponse = await fetch('/api/timewindows');
+        if (timeResponse.ok) {
+            const { thursdayDeadline, sundayDeadline, tuesdayStartTime } = await timeResponse.json();
+            const now = getCurrentTimeInUTC4();
+            const thursdayTime = new Date(thursdayDeadline);
+            const sundayTime = new Date(sundayDeadline);
+            const tuesdayTime = new Date(tuesdayStartTime);
+            
+            const isThursdayGameTime = now > thursdayTime && now < sundayTime;
+            const isSundayGameTime = now > sundayTime && now < tuesdayTime;
+            
+            // Always set the global flag
+            window.isSundayGameTime = isSundayGameTime;
+
+            // Clear current state and re-render
+            await fetchUserPicksAndRender(storedUsername, selectedPool);
+
+            // Apply time-specific features
+            if (isSundayGameTime) {
+                // Sunday game time trumps everything
+                enableSundayGameFeatures();
+            } else if (isThursdayGameTime) {
+                // Wait for DOM to be fully updated
+                await new Promise(resolve => setTimeout(resolve, 500));
+                enableThursdayGameFeatures();
+            }
+            
+            // Check if this is a playoff pool and update UI accordingly
+            if (selectedPool !== 'all') {
+                isPlayoffMode = await checkIfPlayoffPool(selectedPool);
+                if (isPlayoffMode && !isSundayGameTime) {
+                    await updatePlayoffUIState();
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error handling pool change:', error);
+    }
+}
