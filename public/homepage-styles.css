@@ -2294,6 +2294,8 @@ label {
     background: rgba(24, 26, 27, 0.8);
     cursor: not-allowed;
     animation: none;
+    width: 320px;
+    font-size: .9em;
 }
 
 
@@ -2915,6 +2917,7 @@ body {
     cursor: not-allowed;
     box-shadow: none;
     transform: none;
+
 }
 
 
