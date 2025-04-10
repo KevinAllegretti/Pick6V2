@@ -215,3 +215,27 @@ li {
       border: 2px solid #00ccff;
       border-radius: 8px;
   }
+
+  .survivor-rule-box {
+    background: linear-gradient(
+        145deg,
+        #1b0a13 0%,
+        #600029 50%,
+        #1d1e2a 100%
+      );
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    width: 80%;
+    color: #f5f5f5;
+    margin: 10px 0;
+    text-align: left;
+}
+
+
+h3 {
+    font-size: 1.8em;
+    color: #d4af37;
+    margin-bottom: 10px;
+    text-shadow: 0 0 10px rgba(255, 235, 51, 0.555);
+}
