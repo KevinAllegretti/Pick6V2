@@ -5785,3 +5785,276 @@ function processPickElements(pickElements, results, isPlayoffPick) {
     console.log(`Finished processing ${pickElements.length} ${isPlayoffPick ? 'playoff' : 'regular'} picks`);
 }
 
+async function showPlayerPicks(player, poolName) {
+    console.log('Player data received:', player);
+    
+    // Get the current week first
+    let currentPlayoffWeek = null;
+    try {
+        const weekResponse = await fetch(`/api/playoffs/isPlayoff/${poolName}`);
+        if (weekResponse.ok) {
+            const weekData = await weekResponse.json();
+            if (weekData.success) {
+                currentPlayoffWeek = weekData.playoffCurrentWeek;
+                console.log('Current playoff week from API:', currentPlayoffWeek);
+            }
+        }
+    } catch (error) {
+        console.warn('Error fetching current playoff week:', error);
+    }
+    
+    // Initialize panel
+    initializePlayerPicksPanel();
+    const picksPanel = document.getElementById('playoff-player-picks-panel');
+    
+    // Update player name in panel
+    document.getElementById('selected-player-name').textContent = player.username;
+    
+    // Clear existing picks
+    const picksContainer = picksPanel.querySelector('.player-picks-container');
+    picksContainer.innerHTML = '<div class="loading-spinner"></div>';
+    
+    try {
+        // Check what time phase we're in
+        const timePhase = await getCurrentTimePhase();
+        
+        // If the current user is viewing someone else's picks during pick time
+        const isCurrentUser = player.username.toLowerCase() === localStorage.getItem('username').toLowerCase();
+        
+        if (timePhase === 'pick' && !isCurrentUser) {
+            // Show pick time banner instead of picks for other users
+            picksContainer.innerHTML = '';
+            const bannerImage = document.createElement('img');
+            bannerImage.src = 'PlayoffPickBanner.png'; // Create a new banner image specifically for playoffs
+            bannerImage.alt = 'Picks Hidden During Selection Period';
+            bannerImage.className = 'playoff-pick-banner';
+            picksContainer.appendChild(bannerImage);
+            
+            // First fetch the full bracket data to get complete player stats
+            let playerStats = { win: 0, loss: 0, push: 0 };
+            
+            try {
+                const bracketResponse = await fetch(`/api/playoffs/${poolName}/bracket`);
+                if (bracketResponse.ok) {
+                    const bracketData = await bracketResponse.json();
+                    if (bracketData.success && bracketData.bracket && bracketData.bracket.members) {
+                        // Find this player in the members array to get their stats
+                        const fullPlayerData = bracketData.bracket.members.find(
+                            m => m.username.toLowerCase() === player.username.toLowerCase()
+                        );
+                        
+                        if (fullPlayerData) {
+                            // Get stats either from stats object or directly from player
+                            playerStats.win = fullPlayerData.stats?.win || fullPlayerData.win || 0;
+                            playerStats.loss = fullPlayerData.stats?.loss || fullPlayerData.loss || 0;
+                            playerStats.push = fullPlayerData.stats?.push || fullPlayerData.push || 0;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.warn('Error fetching bracket data:', error);
+            }
+            
+            // Update the record in the UI
+            const recordContainer = picksPanel.querySelector('.player-record');
+            if (recordContainer) {
+                const recordItems = recordContainer.querySelectorAll('.record-item');
+                
+                // Directly set the HTML of the record items for more reliable updating
+                if (recordItems.length >= 1) recordItems[0].innerHTML = `<span>W:</span> <span>${playerStats.win}</span>`;
+                if (recordItems.length >= 2) recordItems[1].innerHTML = `<span>L:</span> <span>${playerStats.loss}</span>`;
+                if (recordItems.length >= 3) recordItems[2].innerHTML = `<span>P:</span> <span>${playerStats.push}</span>`;
+            }
+            
+            // Show the panel
+            picksPanel.classList.add('open');
+            return;
+        }
+        
+        // First fetch the full bracket data to get complete player stats and match info
+        let playerStats = { win: 0, loss: 0, push: 0 };
+        let bracketData = null;
+        let isCurrentWeekPlayer = false;
+        
+        try {
+            const bracketResponse = await fetch(`/api/playoffs/${poolName}/bracket`);
+            if (bracketResponse.ok) {
+                bracketData = await bracketResponse.json();
+                if (bracketData.success && bracketData.bracket && bracketData.bracket.members) {
+                    // Find this player in the members array to get their stats
+                    const fullPlayerData = bracketData.bracket.members.find(
+                        m => m.username.toLowerCase() === player.username.toLowerCase()
+                    );
+                    
+                    if (fullPlayerData) {
+                        console.log('Found full player data:', fullPlayerData);
+                        // Get stats either from stats object or directly from player
+                        playerStats.win = fullPlayerData.stats?.win || fullPlayerData.win || 0;
+                        playerStats.loss = fullPlayerData.stats?.loss || fullPlayerData.loss || 0;
+                        playerStats.push = fullPlayerData.stats?.push || fullPlayerData.push || 0;
+                        
+                        // The most important check - is this player in the current week's matches?
+                        isCurrentWeekPlayer = fullPlayerData.inCurrentWeekMatch === true;
+                        
+                        if (!isCurrentWeekPlayer) {
+                            console.log(`Player ${player.username} is not in a current week match`);
+                            alert(`Picks viewing is only available for players in current week (Week ${currentPlayoffWeek}) matchups.`);
+                            picksPanel.classList.remove('open');
+                            return;
+                        }
+                        
+                        // Next, find the specific match the user clicked on to verify it's current
+                        if (player.position) {
+                            // Try to find the match containing this position
+                            const clickedMatch = bracketData.bracket.matches.find(match => 
+                                (match.player1?.position === player.position || 
+                                 match.player2?.position === player.position)
+                            );
+                            
+                            if (clickedMatch && clickedMatch.week !== currentPlayoffWeek) {
+                                console.log(`Player clicked from week ${clickedMatch.week}, not current week ${currentPlayoffWeek}`);
+                                alert(`Picks viewing is only available for current week (Week ${currentPlayoffWeek}) matchups.`);
+                                picksPanel.classList.remove('open');
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.warn('Error fetching bracket data:', error);
+        }
+        
+        console.log('Using player stats:', playerStats);
+        
+        // Update the record in the UI
+        const recordContainer = picksPanel.querySelector('.player-record');
+        if (recordContainer) {
+            const recordItems = recordContainer.querySelectorAll('.record-item');
+            
+            // Directly set the HTML of the record items for more reliable updating
+            if (recordItems.length >= 1) recordItems[0].innerHTML = `<span>W:</span> <span>${playerStats.win}</span>`;
+            if (recordItems.length >= 2) recordItems[1].innerHTML = `<span>L:</span> <span>${playerStats.loss}</span>`;
+            if (recordItems.length >= 3) recordItems[2].innerHTML = `<span>P:</span> <span>${playerStats.push}</span>`;
+        }
+        
+        // Get team logos map for displaying team logos
+        const teamLogos = getTeamLogos();
+        
+        // Fetch player picks
+        const picksData = await fetchPlayoffPicks(player.username, poolName);
+        
+        // Fetch results to color the picks
+        let results = [];
+        try {
+            const resultsResponse = await fetch('/api/getResults');
+            if (resultsResponse.ok) {
+                const resultsData = await resultsResponse.json();
+                results = resultsData.success ? resultsData.results || [] : [];
+            }
+        } catch (error) {
+            console.warn('Error fetching results:', error);
+        }
+        
+        // Clear loading spinner
+        picksContainer.innerHTML = '';
+        
+        if (picksData && picksData.picks && picksData.picks.length > 0) {
+            // Render picks
+            picksData.picks.forEach(pick => {
+                const pickElement = document.createElement('div');
+                pickElement.className = 'pick-item';
+                
+                // Find matching result for playoff picks
+                const matchingResult = results.find(r => 
+                    r.username?.toLowerCase() === player.username.toLowerCase() &&
+                    r.teamName === pick.teamName &&
+                    r.betValue === pick.value &&
+                    r.poolName === `playoff_${poolName}`
+                );
+                
+                let color = '';
+                if (matchingResult) {
+                    if (matchingResult.result === 'hit') {
+                        color = '#39FF14'; // Green
+                    } else if (matchingResult.result === 'miss') {
+                        color = 'red';
+                    } else if (matchingResult.result === 'push') {
+                        color = 'yellow';
+                    }
+                }
+                
+                pickElement.innerHTML = `
+                    <img src="${teamLogos[pick.teamName] || '/Default.png'}" alt="${pick.teamName}" class="team-logo">
+                    <div class="pick-details">
+                        <div class="pick-team">${pick.teamName}</div>
+                        <div class="pick-value" style="color: ${color} !important">${pick.value}</div>
+                    </div>
+                `;
+                
+                picksContainer.appendChild(pickElement);
+            });
+            
+            // Add immortal lock if exists
+            if (picksData.immortalLock && picksData.immortalLock.length > 0) {
+                const immortalPick = picksData.immortalLock[0];
+                const pickElement = document.createElement('div');
+                pickElement.className = 'pick-item immortal-lock-pick';
+                
+                // Find matching result for playoff immortal lock
+                const matchingResult = results.find(r => 
+                    r.username?.toLowerCase() === player.username.toLowerCase() &&
+                    r.teamName === immortalPick.teamName &&
+                    r.betValue === immortalPick.value &&
+                    r.poolName === `playoff_${poolName}` &&
+                    r.isImmortalLock
+                );
+                
+                let color = '';
+                if (matchingResult) {
+                    if (matchingResult.result === 'hit') {
+                        color = '#39FF14'; // Green
+                    } else if (matchingResult.result === 'miss') {
+                        color = 'red';
+                    } else if (matchingResult.result === 'push') {
+                        color = 'yellow';
+                    }
+                }
+                
+                pickElement.innerHTML = `
+                    <img src="${teamLogos[immortalPick.teamName] || '/Default.png'}" alt="${immortalPick.teamName}" class="team-logo">
+                    <div class="pick-details">
+                        <div class="pick-team">${immortalPick.teamName}</div>
+                        <div class="pick-value" style="color: ${color} !important">${immortalPick.value}</div>
+                    </div>
+                    <span class="immortal-lock-badge">LOCK</span>
+                `;
+                
+                picksContainer.appendChild(pickElement);
+            }
+        } else {
+            // No picks message
+            const noPicks = document.createElement('div');
+            noPicks.className = 'no-picks-message';
+            noPicks.textContent = 'No picks available for this player';
+            picksContainer.appendChild(noPicks);
+        }
+        
+        // Show the panel
+        picksPanel.classList.add('open');
+        
+    } catch (error) {
+        console.error('Error showing player picks:', error);
+        
+        // Show error message
+        picksContainer.innerHTML = `
+            <div class="picks-error-message">Failed to load player picks</div>
+            <button class="playoff-retry-btn" onclick="showPlayerPicks(${JSON.stringify(player)}, '${poolName}')">
+                Retry
+            </button>
+        `;
+        
+        // Still show the panel with the error
+        picksPanel.classList.add('open');
+    }
+}

@@ -6299,3 +6299,11 @@ text-align: center;
   display: block; /* Ensure block display */
 }
 
+.playoff-pick-banner {
+  width: 100%;
+  max-width: 300px;
+  margin: 20px auto;
+  display: block;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(51, 217, 255, 0.5);
+}
