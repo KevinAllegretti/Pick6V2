@@ -6289,3 +6289,13 @@ text-align: center;
   animation: buttonGlow 2s infinite;
 }
 
+/* Update the pick-banner class to ensure it fills the entire row height */
+.pick-banner {
+  max-height: 66px !important; /* Match exactly the fixed height of player-row */
+  height: 66px !important; /* Force the exact height */
+  width: auto; /* Maintain aspect ratio */
+  object-fit: cover; /* Change from 'contain' to 'cover' to ensure it fills the space */
+  margin: 0; /* Remove any margin that might create spacing */
+  display: block; /* Ensure block display */
+}
+
