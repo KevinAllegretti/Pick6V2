@@ -331,6 +331,40 @@ router.post('/joinByName', async (req, res) => {
         res.status(500).json({ message: 'Error joining pool', error });
     }
 });*/
+
+// Add this to poolRoutes.ts
+router.post('/toggleSurvivorLock', async (req, res) => {
+    try {
+      const { poolName, isLocked } = req.body;
+      const database = await connectToDatabase();
+      const poolsCollection = database.collection('pools');
+      
+      // Update the pool's lock status, but ONLY for survivor pools
+      const result = await poolsCollection.updateOne(
+        { name: poolName, mode: 'survivor' }, // Explicitly check for survivor mode
+        { $set: { isLocked } }
+      );
+      
+      if (result.matchedCount === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Pool not found or not a survivor pool' 
+        });
+      }
+      
+      res.json({ 
+        success: true, 
+        message: `Survivor pool ${isLocked ? 'locked' : 'unlocked'} successfully` 
+      });
+    } catch (error) {
+      console.error('Error toggling survivor pool lock:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error toggling survivor pool lock' 
+      });
+    }
+  });
+  /*
 router.post('/joinByName', async (req, res) => {
     try {
         const { poolName, username, poolPassword } = req.body;
@@ -430,7 +464,114 @@ router.post('/joinByName', async (req, res) => {
         console.error('Error joining pool:', error);
         res.status(500).json({ message: 'Error joining pool', error });
     }
-});
+});*/
+router.post('/joinByName', async (req, res) => {
+    try {
+      const { poolName, username, poolPassword } = req.body;
+      
+      const db = await connectToDatabase();
+      const usersCollection = db.collection("users");
+      const poolsCollection = db.collection("pools");
+  
+      const user = await usersCollection.findOne({ username: username.toLowerCase() });
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      const pool = await poolsCollection.findOne({ name: poolName });
+      if (!pool) {
+        return res.status(404).json({ message: 'Pool not found' });
+      }
+  
+      // Check if this is a locked survivor pool
+      if (pool.mode === 'survivor' && pool.isLocked) {
+        return res.status(403).json({ 
+          message: 'This survivor pool is locked and not accepting new members' 
+        });
+      }
+  
+      if (pool.isPrivate && pool.password) {
+        if (poolPassword !== pool.password) {
+          return res.status(401).json({ message: 'Incorrect password' });
+        }
+      }
+  
+      const isMemberAlready = pool.members.some(member => 
+        member.username.toLowerCase() === username.toLowerCase()
+      );
+      
+      if (!isMemberAlready) {
+        // Check if this is a survivor pool
+        if (pool.mode === 'survivor') {
+          // Check if the user was previously eliminated
+          const wasEliminated = pool.eliminatedMembers && 
+                                pool.eliminatedMembers.some(m => 
+                                    m.username.toLowerCase() === username.toLowerCase()
+                                );
+          
+          if (wasEliminated) {
+            // If they were eliminated before, create survivor member with isEliminated=true
+            const newMember = {
+              user: user._id,
+              username: username.toLowerCase(),
+              orderIndex: 0,
+              isEliminated: true // Mark as eliminated
+            };
+            
+            await poolsCollection.updateOne(
+              { name: poolName },
+              { $push: { members: newMember } } as any
+            );
+            
+            console.log(`User ${username} rejoined survivor pool ${poolName} as eliminated`);
+          } else {
+            // Normal survivor member (not eliminated)
+            const newMember = {
+              user: user._id,
+              username: username.toLowerCase(),
+              orderIndex: 0,
+              isEliminated: false
+            };
+            
+            await poolsCollection.updateOne(
+              { name: poolName },
+              { $push: { members: newMember } } as any
+            );
+          }
+        } else {
+          // Regular pool member (classic mode)
+          const newMember = {
+            user: user._id,
+            username: username.toLowerCase(),
+            points: 0,
+            picks: [],
+            win: 0,
+            loss: 0,
+            push: 0,
+            orderIndex: 0
+          };
+  
+          await poolsCollection.updateOne(
+            { name: poolName },
+            { $push: { members: newMember } } as any
+          );
+        }
+  
+        // After joining, normalize all indices
+        await normalizePoolOrder(poolsCollection, username);
+      }
+  
+      const updatedPool = await poolsCollection.findOne({ name: poolName });
+      res.status(200).json({ 
+        message: 'Joined pool successfully', 
+        pool: updatedPool
+      });
+  
+    } catch (error) {
+      console.error('Error joining pool:', error);
+      res.status(500).json({ message: 'Error joining pool', error });
+    }
+  });
 
 
 router.get('/getSurvivorStatus/:username/:poolName', async (req, res) => {

@@ -449,31 +449,50 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         body: JSON.stringify(joinPayload)
       })
-      .then(response => {
+      .then(async response => { // Make this async to potentially read the body on error
         //console.log('Received response:', response.status);
-        
+    
         if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Pool not found');
+          let errorMessage = `Network response was not ok (${response.status} ${response.statusText})`; // Default error
+    
+          // --- START MODIFICATION ---
+          if (response.status === 403) {
+            // Try to get the specific message from the backend
+            try {
+              const errorData = await response.json();
+              // Use the backend message or a custom one
+              errorMessage = errorData.message || 'This pool is locked and cannot be joined at this time.';
+            } catch (e) {
+              // Fallback if reading JSON fails
+              errorMessage = 'This pool is locked and cannot be joined at this time.';
+            }
+          } else if (response.status === 404) {
+            errorMessage = 'Pool not found';
           } else if (response.status === 401) {
-            throw new Error('Incorrect password');
-          } else {
-            throw new Error(`Network response was not ok ${response.statusText}`);
+            errorMessage = 'Incorrect password';
           }
+          // --- END MODIFICATION ---
+    
+          throw new Error(errorMessage); // Throw with the specific or default message
         }
-        
+    
         return response.json();
       })
       .then(data => {
         //console.log('Response data:', data);
-
+    
+        // Show success message (optional, depends on your flow)
+        alert('Successfully joined the pool!'); // Or use data.message
+    
         // Force page reload
         window.location.reload();
       })
       .catch(error => {
         console.error('Error joining pool:', error);
+        // The alert will now display the specific error message thrown above
         alert(`Error: ${error.message || 'An error occurred while attempting to join the pool.'}`);
       });
+    
     });
   }
   
@@ -1451,23 +1470,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Create Pool Form Submission
-  // Create Pool Form Submission
 
-
-    // Join Pool Form Submission
-    // Join Pool Form Submission
 // Join Pool Form Submission
+// Join Pool Form Submission (V3 - Modified)
 const joinPoolForm = document.getElementById('join-pool-form');
 joinPoolForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     const poolName = joinPoolForm.querySelector('input[type="text"]').value.trim();
     const poolPassword = joinPoolForm.querySelector('input[type="password"]').value;
     const username = localStorage.getItem('username');
 
     if (!username) {
         alert('Username not found. Please log in again.');
+        return;
+    }
+
+    // Ensure pool name is entered
+    if (!poolName) {
+        alert('Please enter a pool name.');
         return;
     }
 
@@ -1483,34 +1504,66 @@ joinPoolForm.addEventListener('submit', async (e) => {
         });
 
         if (!response.ok) {
-            if (response.status === 404) {
+            // --- START MODIFICATION ---
+            if (response.status === 403) {
+                // Specific check for locked survivor pool
+                alert('This survivor pool is locked and cannot be joined at this time.');
+                return; // Stop execution
+            }
+            // --- END MODIFICATION ---
+            else if (response.status === 404) {
                 alert('Pool not found.');
-                return;
+                return; // Stop execution
             }
-            if (response.status === 401) {
+            else if (response.status === 401) {
                 alert('Incorrect password.');
-                return;
+                return; // Stop execution
             }
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            // For any other non-ok status, throw a generic error
+            else {
+                 // Optional: Try to get a message from the body for other errors
+                 let errorMsg = `HTTP error! Status: ${response.status}`;
+                 try {
+                     const errorData = await response.json();
+                     if (errorData && errorData.message) {
+                         errorMsg = errorData.message; // Use backend message if available
+                     }
+                 } catch (jsonError) {
+                     // Ignore if body isn't valid JSON or empty
+                 }
+                 // Throw the error to be caught by the catch block
+                 throw new Error(errorMsg);
+            }
         }
 
+        // If response.ok is true, proceed with success logic
         const data = await response.json();
-        if (data.message) {
+        if (data.message) { // Or check for data.pool or other success indicators
             // Reset form
             joinPoolForm.reset();
-            
+
             // Show success message
-            alert('Successfully joined the pool!');
-            
+            alert('Successfully joined the pool!'); // Use data.message if preferred
+
             // Reload the page
             window.location.reload();
+        } else {
+             // Handle cases where response is ok, but data isn't as expected
+             console.warn('Joined pool, but unexpected response structure:', data);
+             alert('Joined pool, but received an unexpected response from the server.');
+             window.location.reload(); // Still reload perhaps?
         }
+
     } catch (error) {
-        console.error('Error:', error);
-        alert('An error occurred while joining the pool.');
+        // This catch block will now handle the generic errors thrown above
+        console.error('Error joining pool:', error);
+        // Display the error message from the thrown Error object
+        alert(`Error: ${error.message || 'An error occurred while joining the pool.'}`);
     }
 });
+// The closing }); for the DOMContentLoaded might be further down in your original file
 });
+
 //here is end of v3
 
 function sortPlayersByPoints(players) {
@@ -2705,6 +2758,8 @@ function createSurvivorPlayerRow(memberData, currentUsername) {
 
 // Complete displaySurvivorPool function with all changes
 async function displaySurvivorPool(pool) {
+    console.log('Starting displaySurvivorPool for pool:', pool.name);
+    
     const teamLogos = {
         'Arizona Cardinals': '/ARILogo.png',
         'Atlanta Falcons': '/ATLLogo.png',
@@ -2747,7 +2802,9 @@ async function displaySurvivorPool(pool) {
     }
 
     username = username.toLowerCase();
-
+    const isAdmin = username.toLowerCase() === pool.adminUsername.toLowerCase();
+    console.log('Current user is admin?', isAdmin);
+    
     // Set the current pool name in localStorage for later use
     localStorage.setItem('currentPoolName', pool.name);
 
@@ -2806,6 +2863,14 @@ async function displaySurvivorPool(pool) {
     poolNameContainer.appendChild(poolNameDiv);
     poolNameContainer.appendChild(statsContainer);
 
+    // Append the pool name container to the wrapper BEFORE adding the lock control
+    poolWrapper.appendChild(poolNameContainer);
+    
+    // Now that poolNameContainer is in the DOM, add the lock control
+    console.log('About to call addSurvivorPoolLockControl');
+    addSurvivorPoolLockControl(poolWrapper, isAdmin, pool.name, pool.isLocked || false);
+    console.log('Returned from addSurvivorPoolLockControl');
+
     // Create scrollable container
     const poolScrollableContainer = document.createElement('div');
     poolScrollableContainer.className = 'pool-scrollable-container';
@@ -2823,7 +2888,7 @@ async function displaySurvivorPool(pool) {
         <span class="survivor-header-eliminated">STATUS</span>
     `;
     poolContainer.appendChild(poolHeader);
-
+    
     try {
         const currentUsername = localStorage.getItem('username').toLowerCase();
         // Process members and fetch their statuses
@@ -2919,7 +2984,6 @@ async function displaySurvivorPool(pool) {
             poolScrollableContainer.appendChild(poolContainer);
         }
 
-        poolWrapper.appendChild(poolNameContainer);
         poolWrapper.appendChild(poolScrollableContainer);
 
         // Add chat container from template
@@ -2937,7 +3001,6 @@ async function displaySurvivorPool(pool) {
         console.error('Error displaying survivor pool:', error);
     }
 }
-
 
 
 // Helper function to add pool controls (admin/leave buttons)
@@ -3616,6 +3679,7 @@ async function displayPlayoffBracketOnly(pool) {
 
     const poolNameContainer = document.createElement('div');
     poolNameContainer.className = 'pool-name-container';
+    
     
     const poolNameDiv = document.createElement('div');
     poolNameDiv.className = 'pool-name playoff-pool-name';
@@ -5709,7 +5773,7 @@ function processPickElements(pickElements, results, isPlayoffPick) {
         return;
     }
 
-    console.log(`Processing ${pickElements.length} ${isPlayoffPick ? 'playoff' : 'regular'} pick elements`);
+  //  console.log(`Processing ${pickElements.length} ${isPlayoffPick ? 'playoff' : 'regular'} pick elements`);
 
     pickElements.forEach((pickElement, index) => {
         console.log(`Processing ${isPlayoffPick ? 'playoff' : 'regular'} pick ${index + 1}/${pickElements.length}`);
@@ -5728,8 +5792,8 @@ function processPickElements(pickElements, results, isPlayoffPick) {
             displayedBetValue = pickElement.querySelector('span')?.textContent.trim();
         }
 
-        console.log('Team logo found:', !!teamLogo);
-        console.log('Displayed bet value:', displayedBetValue);
+     //   console.log('Team logo found:', !!teamLogo);
+      //  console.log('Displayed bet value:', displayedBetValue);
 
         if (!teamLogo || !displayedBetValue) {
             console.warn('Team logo or bet value not found in pick element', pickElement);
@@ -5737,7 +5801,7 @@ function processPickElements(pickElements, results, isPlayoffPick) {
         }
 
         const teamName = teamLogo.alt;
-        console.log('Team name:', teamName);
+     //   console.log('Team name:', teamName);
 
         // Find the matching result
         let matchFound = false;
@@ -5750,19 +5814,19 @@ function processPickElements(pickElements, results, isPlayoffPick) {
             const typeMatches = (resultIsPlayoff === isPlayoffPick);
             
             if (resultTeamMatches && resultValueMatches) {
-                console.log(`Result ${resultIndex} matches team and value:`, result);
-                console.log(`- Type match: ${typeMatches} (result playoff: ${resultIsPlayoff}, current is playoff: ${isPlayoffPick})`);
+       //         console.log(`Result ${resultIndex} matches team and value:`, result);
+      //          console.log(`- Type match: ${typeMatches} (result playoff: ${resultIsPlayoff}, current is playoff: ${isPlayoffPick})`);
                 
                 if (typeMatches) {
                     matchFound = true;
                     matchingResult = result;
-                    console.log('FULL MATCH FOUND');
+     //               console.log('FULL MATCH FOUND');
                 }
             }
         });
 
         if (matchingResult) {
-            console.log(`Found matching result for ${teamName} with value ${displayedBetValue}:`, matchingResult);
+           // console.log(`Found matching result for ${teamName} with value ${displayedBetValue}:`, matchingResult);
             
             // Apply color based on the result
             let color;
@@ -5777,13 +5841,13 @@ function processPickElements(pickElements, results, isPlayoffPick) {
                 color = "gray"; // Gray for any unknown result
             }
 
-            console.log(`Will apply color ${color} based on result: ${matchingResult.result}`);
+           // console.log(`Will apply color ${color} based on result: ${matchingResult.result}`);
 
             // Apply the color to the element (different structure based on type)
             if (isPlayoffPick) {
                 const valueElement = pickElement.querySelector('.pick-value');
                 if (valueElement) {
-                    console.log('Applying color to playoff pick value element');
+          //          console.log('Applying color to playoff pick value element');
                     valueElement.style.setProperty('color', color, 'important');
                 } else {
                     console.warn('No pick-value element found in playoff pick');
@@ -5791,21 +5855,21 @@ function processPickElements(pickElements, results, isPlayoffPick) {
             } else {
                 const valueSpan = pickElement.querySelector('span');
                 if (valueSpan) {
-                    console.log('Applying color to regular pick span element');
+          //          console.log('Applying color to regular pick span element');
                     valueSpan.style.setProperty('color', color, 'important');
                 } else {
                     console.warn('No span element found in regular pick');
                 }
             }
             
-            console.log(`Applied ${color} to ${teamName} for bet value ${displayedBetValue}`);
+          //  console.log(`Applied ${color} to ${teamName} for bet value ${displayedBetValue}`);
         } else {
             console.warn(`No matching result found for ${teamName} with bet value ${displayedBetValue}`);
         }
     });
     
     // Log a final summary
-    console.log(`Finished processing ${pickElements.length} ${isPlayoffPick ? 'playoff' : 'regular'} picks`);
+ //   console.log(`Finished processing ${pickElements.length} ${isPlayoffPick ? 'playoff' : 'regular'} picks`);
 }
 
 async function showPlayerPicks(player, poolName) {
@@ -6080,4 +6144,112 @@ async function showPlayerPicks(player, poolName) {
         // Still show the panel with the error
         picksPanel.classList.add('open');
     }
+}
+
+// Add this function to your homepage.js file
+function addSurvivorPoolLockControl(poolWrapper, isAdmin, poolName, isLocked) {
+    console.log('Starting addSurvivorPoolLockControl function');
+    console.log('Parameters:', { 
+        poolWrapperExists: !!poolWrapper, 
+        isAdmin: isAdmin, 
+        poolName: poolName, 
+        isLocked: isLocked 
+    });
+    
+    // Only add to survivor pools and only for admins
+    if (!isAdmin || !poolWrapper.classList.contains('survivor-mode')) {
+        console.log('Not adding control - either not admin or not survivor mode');
+        console.log('isAdmin:', isAdmin);
+        console.log('isSurvivorMode:', poolWrapper.classList.contains('survivor-mode'));
+        return;
+    }
+    
+    // Find the pool name container to add our toggle
+    const poolNameContainer = poolWrapper.querySelector('.pool-name-container');
+    console.log('PoolNameContainer found:', !!poolNameContainer);
+    
+    if (!poolNameContainer) {
+        console.log('Pool name container not found, returning');
+        return;
+    }
+    
+    // Find the stats container (where we want to add the toggle)
+    const statsContainer = poolNameContainer.querySelector('.survivor-stats-container');
+    if (!statsContainer) {
+        console.log('Stats container not found, falling back to pool name container');
+        return;
+    }
+    
+    console.log('Creating lock toggle container');
+    // Create the lock toggle container
+    const lockToggleContainer = document.createElement('div');
+    lockToggleContainer.className = 'survivor-lock-toggle';
+    
+    // Create the toggle switch
+    const toggleSwitch = document.createElement('label');
+    toggleSwitch.className = 'switch';
+    toggleSwitch.innerHTML = `
+      <input type="checkbox" ${isLocked ? 'checked' : ''}>
+      <span class="slider round"></span>
+    `;
+    
+    // Create lock icon and status text
+    const lockIcon = document.createElement('i');
+    lockIcon.className = `fas fa-lock${isLocked ? '' : '-open'} lock-icon`;
+    lockIcon.style.color = isLocked ? 'gold' : '#777';
+    
+    const statusText = document.createElement('span');
+    statusText.className = 'lock-status-text';
+    statusText.textContent = isLocked ? 'Closed' : 'Open';
+    
+    // Add everything to the container
+    lockToggleContainer.appendChild(toggleSwitch);
+    lockToggleContainer.appendChild(lockIcon);
+    lockToggleContainer.appendChild(statusText);
+    
+    // Add the container to the stats container instead of the pool name container
+    statsContainer.appendChild(lockToggleContainer);
+    console.log('Lock toggle container added to stats container');
+    
+    // Add event listener to the toggle
+    const checkbox = toggleSwitch.querySelector('input');
+    checkbox.addEventListener('change', async (event) => {
+      console.log('Toggle changed, new isLocked value:', event.target.checked);
+      const isLocked = event.target.checked;
+      try {
+        console.log('Sending request to toggle survivor lock');
+        const response = await fetch('/pools/toggleSurvivorLock', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            poolName,
+            isLocked
+          })
+        });
+        
+        console.log('Response received:', response.status);
+        if (response.ok) {
+          // Update the UI
+          lockIcon.className = `fas fa-lock${isLocked ? '' : '-open'} lock-icon`;
+          lockIcon.style.color = isLocked ? 'gold' : '#777';
+          statusText.textContent = isLocked ? 'Closed Pool' : 'Open Pool';
+          console.log('UI updated successfully');
+        } else {
+          // Revert the toggle if there was an error
+          checkbox.checked = !isLocked;
+          alert('Failed to update pool lock status');
+          console.log('Error updating lock status, checkbox reverted');
+        }
+      } catch (error) {
+        console.error('Error toggling pool lock:', error);
+        checkbox.checked = !isLocked;
+        alert('Error updating pool status');
+        console.log('Exception caught, checkbox reverted');
+      }
+    });
+    
+    console.log('Event listener added to checkbox');
+    console.log('addSurvivorPoolLockControl function completed');
 }
