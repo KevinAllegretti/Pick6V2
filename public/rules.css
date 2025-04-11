@@ -217,7 +217,7 @@ li {
   }
   
   
-.survivor-prev-container, .elim-container, .sps-container{display: flex;
+.survivor-prev-container, .elim-container, .sps-container, .lock-container{display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
@@ -230,7 +230,7 @@ li {
       border-radius: 8px;
   }
 
-  .elim {
+  .elim , .lock{
     width: 100%;
     max-width: 350px;
     height: auto;
