@@ -2702,6 +2702,7 @@ label {
     display: flex;
     align-items: center;
     padding-left: 8px;  /* Reduced padding */
+    max-width: 197px;
 }
 
 /* Pick styling - More compact */
@@ -6985,7 +6986,6 @@ input:checked + .slider:before {
 .golf-player-user,
 .golf-player-picks,
 .golf-player-sum {
-  padding: 12px 15px;
   border-right: 1px solid rgba(57, 255, 20, 0.2);
 }
 
@@ -7185,8 +7185,8 @@ input:checked + .slider:before {
 .golf-player-user {
   display: flex;
   align-items: center;
-  padding: 10px 15px;
   border-right: 1px solid var(--golf-border);
+  max-width: 150px !important;
 }
 
 .golf-profile-pic {
@@ -7200,13 +7200,7 @@ input:checked + .slider:before {
   flex-shrink: 0;
 }
 
-.player-username {
-  color: var(--golf-text);
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+
 
 /* Picks section */
 .golf-player-picks {
