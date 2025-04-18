@@ -13,7 +13,165 @@ import { updateUserPoints, updateUserStats, saveResultsToServer,
 import { connectToDatabase } from './connectDB';
 import { eliminateUsersWithoutPicks } from './serverUtils';
 let gameScores: any[] = [];
+async function fetchAndSavePGAChampionshipOdds() {
+  console.log('Fetching PGA Championship odds from FanDuel...');
+  
+  // Step 1: Get the API key
+  const apiKey = 'e22c201b39907f6f0b2cb61e9edb6e64'; // Use your existing API key
+  
+  try {
+    // Step 2: First get a list of in-season sports to find the golf key
+    const sportsResponse = await fetch(`https://api.the-odds-api.com/v4/sports/?apiKey=${apiKey}`, {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-host': 'odds.p.rapidapi.com',
+        'x-rapidapi-key': apiKey
+      }
+    });
+    
+    if (!sportsResponse.ok) {
+      throw new Error(`HTTP error! Status: ${sportsResponse.status}`);
+    }
+    
+    const sportsData = await sportsResponse.json();
+    
+    // Specifically look for PGA Championship
+    const pgaChampionship = sportsData.find((sport: any) => 
+      sport.key.includes('pga_championship') || 
+      (sport.title && sport.title.includes('PGA Championship'))
+    );
+    
+    if (!pgaChampionship) {
+      console.log('PGA Championship not found in available tournaments.');
+      return;
+    }
+    
+    console.log(`Found PGA Championship: ${pgaChampionship.title}, key: ${pgaChampionship.key}`);
+    
+    // Use the 'outrights' market
+    const market = 'outrights';
+    console.log(`Fetching ${pgaChampionship.title} odds with market: ${market}`);
+    
+    const oddsResponse = await fetch(`https://api.the-odds-api.com/v4/sports/${pgaChampionship.key}/odds/?apiKey=${apiKey}&regions=us&markets=${market}&oddsFormat=american&bookmakers=fanduel`, {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-host': 'odds.p.rapidapi.com',
+        'x-rapidapi-key': apiKey
+      }
+    });
+    
+    if (!oddsResponse.ok) {
+      throw new Error(`HTTP error fetching odds! Status: ${oddsResponse.status}`);
+    }
+    
+    const oddsData = await oddsResponse.json();
+    
+    if (oddsData.length === 0) {
+      console.log(`No odds data available from FanDuel for market '${market}'.`);
+      return;
+    }
+    
+    console.log(`==========================================`);
+    console.log(`FANDUEL ODDS FOR: ${pgaChampionship.title.toUpperCase()}`);
+    console.log(`==========================================`);
+    console.log(`Retrieved data for ${oddsData.length} events`);
+    
+    // Process the odds data - find the FanDuel bookmaker and extract golfer odds
+    let golferOdds: any[] = [];
+    
+    oddsData.forEach((event: any) => {
+      const startTime = new Date(event.commence_time);
+      console.log(`\nTournament: ${pgaChampionship.title}`);
+      console.log(`Start time: ${startTime.toLocaleString()}`);
+      
+      // Find FanDuel among the bookmakers
+      const fanduel = event.bookmakers.find((bm: any) => 
+        bm.key === 'fanduel' || bm.title.toLowerCase().includes('fanduel')
+      );
+      
+      if (!fanduel) {
+        console.log('FanDuel odds not available for this event.');
+        return;
+      }
+      
+      console.log(`Bookmaker: ${fanduel.title}`);
+      console.log(`Last update: ${new Date(fanduel.last_update).toLocaleString()}`);
+      
+      // Process each market
+      fanduel.markets.forEach((market: any) => {
+        console.log(`Market: ${market.key}`);
+        
+        // Sort outcomes by odds
+        const sortedOutcomes = [...market.outcomes].sort((a: any, b: any) => {
+          // Sort by odds (lower number = higher probability in American odds)
+          const aOdds = parseInt(a.price);
+          const bOdds = parseInt(b.price);
+          
+          if (aOdds > 0 && bOdds > 0) {
+            return aOdds - bOdds; // Both positive, lower is better
+          } else if (aOdds < 0 && bOdds < 0) {
+            return bOdds - aOdds; // Both negative, more negative (lower) is better
+          } else {
+            return aOdds < 0 ? -1 : 1; // Negative beats positive
+          }
+        });
+        
+        // Populate golfer odds array
+        golferOdds = sortedOutcomes.map((outcome: any, idx: number) => {
+          const oddsValue = `${outcome.price > 0 ? '+' : ''}${outcome.price}`;
+          console.log(`${idx+1}. ${outcome.name.padEnd(30)}: ${oddsValue}`);
+          
+          return {
+            rank: idx + 1,
+            name: outcome.name,
+            odds: outcome.price,
+            oddsDisplay: oddsValue
+          };
+        });
+      });
+    });
+    
+    // Log API usage info
+    console.log(`\nAPI Headers Information:`);
+    console.log(`x-requests-remaining: ${oddsResponse.headers.get('x-requests-remaining')}`);
+    console.log(`x-requests-used: ${oddsResponse.headers.get('x-requests-used')}`);
+    
+    if (golferOdds.length === 0) {
+      console.log('No golfer odds available from FanDuel.');
+      return;
+    }
+    
+    // Save to database
+    const database = await connectToDatabase();
+    const pgaOddsCollection = database.collection('pgaChampionshipOdds');
+    
+    // Create a simplified document with just the tournament info and golfer odds
+    const oddsDocument = {
+      tournament: pgaChampionship.title,
+      tournamentKey: pgaChampionship.key,
+      startTime: new Date(oddsData[0].commence_time),
+      bookmaker: 'FanDuel',
+      fetchedAt: new Date(),
+      golferOdds: golferOdds
+    };
+    
+    // Save to the database
+    const result = await pgaOddsCollection.insertOne(oddsDocument);
+    
+    console.log(`\nSaved PGA Championship FanDuel odds to database with ID: ${result.insertedId}`);
+    
+    return oddsDocument;
+    
+  } catch (error) {
+    console.error('Error fetching PGA Championship odds:', error);
+  }
+}
 
+// Set up cron job to run weekly
+cron.schedule('41 14 * * 2', () => {
+  console.log('Running weekly PGA Championship FanDuel odds update...');
+  fetchAndSavePGAChampionshipOdds();
+});
 
     async function fetchNFLScores() {
       console.log('fetchNFLScores function started.');
@@ -771,7 +929,7 @@ cron.schedule('58 23 * * 1', () => {
 
 
 
-cron.schedule('46 10 * * 1', () => {
+cron.schedule('46 16 * * 2', () => {
   console.log("It's Thursday 4:00 PM");
   mockFetchNFLScores();
   //test test pm2 reload

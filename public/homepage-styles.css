@@ -3512,6 +3512,16 @@ body {
   text-shadow: 0 0 10px rgba(45, 185, 255, 0.5);
 }
 
+.countdown-timer {
+  display: flex;
+  gap: 1.75rem;
+  background: rgba(6, 12, 24, 0.7);
+  padding: 1rem 1.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(45, 185, 255, 0.2);
+  position: relative;
+}
+
 .countdown-timer::after {
     content: '';
     position: absolute;
@@ -6503,4 +6513,953 @@ input:checked + .slider:before {
   input:checked + .slider:before {
     transform: translateX(17px); /* Adjusted for smaller width */
   }
+}
+
+
+/*GOLF*/
+
+/* Golf Mode Card Styling */
+.mode-card[data-mode="golf"] {
+  flex: 1;
+  padding: 16px;
+  background: linear-gradient(
+    145deg,
+    #0e3f1a 0%,
+    #114b20 50%,
+    #1a332a 100%
+  );
+  border: 1px solid #39FF14; /* Bright green border */
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    0 0 20px rgba(57, 255, 20, 0.1),
+    inset 0 0 30px rgba(10, 40, 25, 0.2);
+}
+
+/* Add a golf flag corner accent */
+.mode-card[data-mode="golf"]::before {
+  content: '⛳';
+  position: absolute;
+  top: 5px;
+  right: 8px;
+  font-size: 16px;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.mode-card[data-mode="golf"]:hover {
+  transform: translateY(-2px);
+  border-color: #5aff40;
+  box-shadow: 
+    0 0 30px rgba(57, 255, 20, 0.2),
+    inset 0 0 40px rgba(10, 40, 25, 0.3);
+}
+
+.mode-card[data-mode="golf"]:hover::before {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+.mode-card[data-mode="golf"].active {
+  background: linear-gradient(
+    145deg,
+    #1a332a 0%,
+    #114b20 50%,
+    #0e3f1a 100%
+  );
+  border-color: #5aff40;
+  box-shadow: 
+    0 0 40px rgba(57, 255, 20, 0.25),
+    inset 0 0 50px rgba(10, 40, 25, 0.4);
+}
+
+/* Golf mode title styling */
+.mode-card[data-mode="golf"] .mode-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.125rem;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(45deg, #39FF14, #9aff85);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 10px;
+}
+
+/* Golf mode description styling */
+.mode-card[data-mode="golf"] .mode-description {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  color: #b5ffb0;
+  line-height: 1.4;
+  opacity: 0.9;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.5px;
+}
+
+/* Golf Mode Styling */
+.golf-mode {
+  width: 100%;
+}
+
+
+
+/* Stats Container */
+.golf-stats-container {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* User Count and Phase Status */
+.golf-user-count,
+.golf-phase-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  color: #a3ff95;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* Golf Pool Container */
+.golf-pool-container {
+  min-width: 600px;
+  max-width: 600px;
+  padding: 20px;
+  /* Golf-themed dark gradient */
+  background: linear-gradient(
+    145deg,
+    #0c3511 0%,
+    #115c20 50%,
+    #0e4918 100%
+  );
+  border: 2px solid #39FF14;
+  border-radius: 12px;
+  box-shadow: 0 0 30px rgba(57, 255, 20, 0.15),
+    inset 0 0 50px rgba(10, 40, 25, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Pool Header */
+.golf-pool-header {
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid #39FF14;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+/* Header items */
+.golf-header-user { flex: 0.7; }
+.golf-header-picks { flex: 2;}
+.golf-header-sum { flex: 0.5; text-align: center; }
+
+/* Player Row */
+.golf-player-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(57, 255, 20, 0.2);
+  color: #fff;
+}
+
+/* Player items */
+.golf-player-user { 
+  flex: 0.7;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.golf-player-picks { 
+  flex: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.golf-player-sum { 
+  flex: 0.5;
+  text-align: center;
+  font-family: 'Quantico', sans-serif;
+  color: #39FF14;
+  font-weight: bold;
+}
+
+/* Profile pic */
+.golf-profile-pic {
+  width: 43px;
+  height: 43px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  margin-right: 10px;
+  flex-shrink: 0;
+  border: 1.5px solid #39FF14;
+}
+
+/* Golf pick styling */
+.golf-pick {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(57, 255, 20, 0.3);
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin: 2px;
+}
+
+.golfer-name {
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+}
+
+.golfer-score {
+  font-family: 'Quantico', sans-serif;
+  font-size: 11px;
+  color: #39FF14;
+}
+
+/* Special messages */
+.waiting-for-draft, 
+.no-picks-yet,
+.no-picks {
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  width: 100%;
+}
+
+/* Current user highlighting */
+.golf-player-row.current-user-row {
+  background: linear-gradient(90deg, 
+    rgba(57, 255, 20, 0.08) 0%,
+    rgba(57, 255, 20, 0.15) 50%,
+    rgba(57, 255, 20, 0.08) 100%
+  );
+  box-shadow: inset 0 0 15px rgba(57, 255, 20, 0.05);
+}
+
+
+
+.start-draft-button:hover {
+  background: linear-gradient(45deg, #115c20, #0c3511);
+  box-shadow: 0 0 20px rgba(57, 255, 20, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Golf Selections Button */
+.golf-picks-button {
+  display: block;
+  width: auto;
+  max-width: 280px;
+  margin: 20px auto;
+  padding: 10px 20px;
+  font-family: "Russo One", sans-serif;
+  font-size: 1.2em;
+  font-weight: 500;
+  color: #ffffff;
+  background: linear-gradient(45deg, #0c3511, #115c20);
+  border: 2px solid #39FF14;
+  border-radius: 4px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(57, 255, 20, 0.3);
+  text-decoration: none;
+  text-align: center;
+}
+
+.golf-picks-button:hover {
+  background: linear-gradient(45deg, #115c20, #0c3511);
+  box-shadow: 0 0 25px rgba(57, 255, 20, 0.5);
+  transform: translateY(-2px);
+}
+
+.golf-picks-button::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(57, 255, 20, 0.1),
+    transparent
+  );
+  transform: rotate(45deg);
+  transition: transform 0.6s ease;
+}
+
+.golf-picks-button:hover::after {
+  transform: rotate(45deg) translate(50%, 50%);
+}
+
+
+
+
+
+
+/* Phase indicator badge */
+.golf-phase-badge {
+  display: inline-block;
+  background: linear-gradient(90deg, #0c3511, #115c20);
+  border: 1px solid #39FF14;
+  border-radius: 12px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #39FF14;
+  margin-left: 10px;
+  box-shadow: 0 0 10px rgba(57, 255, 20, 0.2);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+
+/* Improved pool header container */
+.golf-pool-header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  padding: 12px 15px;
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(90deg, #0a2a12, #103f1c);
+  border-bottom: 2px solid #39FF14;
+}
+
+/* Left side with name and phase */
+.golf-header-left {
+  display: flex;
+  align-items: center;
+}
+
+/* Right side with stats */
+.golf-header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+
+
+.start-draft-button:hover {
+  background: #115c20;
+  box-shadow: 0 0 15px rgba(57, 255, 20, 0.5);
+}
+
+/* Add flag icon */
+.start-draft-button::before {
+  content: '⛳';
+  font-size: 14px;
+}
+
+/* Updated golf mode container styles */
+.golf-mode {
+  width: 100%;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  background-color: #0a1a0c;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Pool header with integrated START DRAFT button */
+.golf-header-container {
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  background: linear-gradient(to bottom, #0c3511, #0e2d11);
+  border-bottom: 2px solid #39FF14;
+}
+
+/* Top row with pool name and action button */
+.golf-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+
+
+/* Improved START DRAFT button */
+.start-draft-button {
+  background: #0c3511;
+  border: 2px solid #39FF14;
+  color: #39FF14;
+  padding: 8px 16px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: bold;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
+  margin-bottom:30px;
+}
+
+.start-draft-button:hover {
+  background: #115c20;
+  box-shadow: 0 0 15px rgba(57, 255, 20, 0.5);
+}
+
+
+.golf-phase-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #39FF14;
+  font-size: 14px;
+}
+
+.golf-user-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #39FF14;
+  font-size: 14px;
+}
+
+/* Table headers with borders */
+.golf-table-header {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  background: #0a2a12;
+  border-bottom: 1px solid #39FF14;
+  border-top: 1px solid #39FF14;
+}
+
+.golf-header-user,
+.golf-header-picks,
+.golf-header-sum {
+  padding: 10px 15px;
+  font-weight: bold;
+  color: #39FF14;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+  font-size: 14px;
+  border-right: 1px solid rgba(57, 255, 20, 0.3);
+}
+
+.golf-header-user {
+  text-align: left;
+}
+
+.golf-header-sum {
+  border-right: none;
+}
+
+/* Player rows with clear borders */
+.golf-player-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  border-bottom: 1px solid rgba(57, 255, 20, 0.2);
+}
+
+.golf-player-user,
+.golf-player-picks,
+.golf-player-sum {
+  padding: 12px 15px;
+  border-right: 1px solid rgba(57, 255, 20, 0.2);
+}
+
+.golf-player-sum {
+  border-right: none;
+  text-align: center;
+}
+
+/* Improve player display */
+.golf-player-user {
+  display: flex;
+  align-items: center;
+}
+
+.golf-profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+  background-size: cover;
+  background-position: center;
+  border: 2px solid #39FF14;
+}
+
+.waiting-for-draft {
+  width: 100%;
+  text-align: center;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Current user row highlight */
+.golf-player-row.current-user-row {
+  background: rgba(57, 255, 20, 0.1);
+}
+
+/* Golf Pool Styling */
+.golf-mode {
+  --golf-primary: #39FF14;
+  --golf-primary-dark: #32CD32;
+  --golf-primary-light: #7CFC00;
+
+  --golf-bg-medium: #115c20;
+  --golf-bg-light: #1a8930;
+  --golf-text: #ffffff;
+  --golf-text-muted: rgba(255, 255, 255, 0.7);
+  --golf-border: rgba(57, 255, 20, 0.3);
+  --golf-shadow: rgba(57, 255, 20, 0.5);
+}
+
+/* Pool wrapper */
+.pool-wrapper.golf-mode {
+  margin-bottom: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: var(--golf-bg-dark);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Header container */
+.golf-header-container {
+  background: linear-gradient(145deg, var(--golf-bg-dark), var(--golf-bg-medium));
+  padding: 15px;
+  border-bottom: 2px solid var(--golf-primary);
+}
+
+.golf-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+
+
+
+.golf-pool-name i {
+  margin-right: 8px;
+  color: var(--golf-primary);
+}
+
+/* Phase indicator and user count */
+.golf-phase-indicator,
+.golf-user-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--golf-border);
+  border-radius: 20px;
+  font-size: 14px;
+  color: var(--golf-primary);
+}
+
+.golf-phase-indicator i,
+.golf-user-count i {
+  color: var(--golf-primary);
+}
+
+/* Start draft button */
+.start-draft-button {
+  background: linear-gradient(to right, var(--golf-primary-dark), var(--golf-primary));
+  color: #000;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px var(--golf-shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.start-draft-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 15px var(--golf-shadow);
+}
+
+.start-draft-button::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0)
+  );
+  transform: rotate(30deg);
+  transition: transform 0.6s;
+}
+
+.start-draft-button:hover::after {
+  transform: rotate(30deg) translate(50%, 50%);
+}
+
+/* Table header */
+.golf-table-header {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  background-color: var(--golf-bg-medium);
+  border-bottom: 1px solid var(--golf-primary);
+  color: var(--golf-text);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.golf-header-user,
+.golf-header-picks,
+.golf-header-sum {
+  padding: 10px 15px;
+  text-align: center;
+  border-right: 1px solid var(--golf-border);
+}
+
+.golf-header-user {
+  text-align: left;
+}
+
+.golf-header-sum {
+  border-right: none;
+}
+
+/* Pool container */
+.golf-pool-container {
+  background-color: var(--golf-bg-dark);
+  border-radius: 0 0 8px 8px;
+}
+
+/* Player rows */
+.golf-player-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  border-bottom: 1px solid var(--golf-border);
+  transition: background-color 0.2s;
+}
+
+.golf-player-row:last-child {
+  border-bottom: none;
+}
+
+.golf-player-row:hover {
+  background-color: rgba(57, 255, 20, 0.05);
+}
+
+.golf-player-row.current-user-row {
+  background-color: rgba(57, 255, 20, 0.1);
+}
+
+/* User section */
+.golf-player-user {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  border-right: 1px solid var(--golf-border);
+}
+
+.golf-profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+  border: 2px solid var(--golf-primary);
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+.player-username {
+  color: var(--golf-text);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Picks section */
+.golf-player-picks {
+  padding: 10px 15px;
+  border-right: 1px solid var(--golf-border);
+  color: var(--golf-text);
+}
+
+.golf-picks-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.golf-pick {
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--golf-border);
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 13px;
+}
+
+.golf-pick-round {
+  font-weight: bold;
+  color: var(--golf-primary);
+  margin-bottom: 2px;
+}
+
+.golf-pick-name {
+  color: var(--golf-text);
+}
+
+.golf-pick-score {
+  font-weight: bold;
+  margin-top: 2px;
+}
+
+.score-over {
+  color: #ff4d4d; /* Red for over par */
+}
+
+.score-under {
+  color: #39FF14; /* Green for under par */
+}
+
+.score-even {
+  color: white; /* White for even par */
+}
+
+/* Waiting and no picks messages */
+.waiting-for-draft,
+.no-picks-yet,
+.no-picks {
+  font-style: italic;
+  color: var(--golf-text-muted);
+  text-align: center;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+/* Sum section */
+.golf-player-sum {
+  padding: 10px 15px;
+  text-align: center;
+  font-weight: bold;
+  font-family: 'Quantico', monospace;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Golf selections button */
+.golf-picks-button {
+  display: block;
+  width: auto;
+  max-width: 280px;
+  margin: 20px auto;
+  padding: 10px 20px;
+  font-family: "Russo One", sans-serif;
+  font-size: 1.2em;
+  font-weight: 500;
+  color: #000000;
+  background: linear-gradient(to right, var(--golf-primary-dark), var(--golf-primary));
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px var(--golf-shadow);
+}
+
+.golf-picks-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 25px var(--golf-shadow);
+}
+
+.golf-picks-button::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0)
+  );
+  transform: rotate(30deg);
+  transition: transform 0.6s;
+}
+
+.golf-picks-button:hover::after {
+  transform: rotate(30deg) translate(50%, 50%);
+}
+
+
+
+
+/*huh*/
+
+/* Maintain existing header container layout */
+.golf-header-container {
+  border-bottom: 2px solid #39FF14;
+}
+
+/* Header top section with proper left alignment */
+.golf-header-top {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Keep left alignment */
+}
+
+/* Pool name styling with left alignment */
+.golf-pool-name {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 24px;
+  color: #ffffff;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+  text-align: left;
+}
+
+/* Start draft button position directly below pool name */
+.start-draft-button {
+  background: #0c3511;
+  border: 2px solid #39FF14;
+  color: #39FF14;
+  padding: 8px 16px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: bold;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
+  margin-left: 0; /* Align with the pool name */
+  margin-bottom:5px;
+}
+
+/* Keep the bottom section with proper alignment */
+.golf-header-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* Left align */
+  gap: 5px;
+margin-bottom: -10px;
+}
+
+.golf-selections-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: auto;
+  max-width: 320px;
+  margin: 20px auto;
+  padding: 0 30px;
+  height: 55px;
+  font-family: 'Russo One', sans-serif;
+  font-size: 1.2em;
+  font-weight: 500;
+  color: #ffffff;
+  background: rgba(57, 255, 20, 0.2);
+  border: 2px solid #39FF14;
+  border-radius: 4px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 0 20px rgba(57, 255, 20, 0.5),
+              inset 0 0 20px rgba(57, 255, 20, 0.3);
+}
+
+.golf-selections-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+      120deg,
+      transparent,
+      rgba(57, 255, 20, 0.2),
+      transparent
+  );
+  transition: 0.5s ease;
+}
+
+.golf-selections-button:hover {
+  color: #ffffff;
+  background: rgba(57, 255, 20, 0.3);
+  transform: translateY(-2px) scale(1.02);
+  border-color: #ffffff;
+  text-shadow: 0 0 10px rgba(57, 255, 20, 0.8);
+  box-shadow: 0 0 30px rgba(57, 255, 20, 0.7),
+              inset 0 0 30px rgba(57, 255, 20, 0.5);
+}
+
+.golf-selections-button:hover::before {
+  left: 100%;
+}
+
+.golf-selections-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 0 10px rgba(57, 255, 20, 0.4),
+              inset 0 0 10px rgba(57, 255, 20, 0.2);
+}
+
+.golf-selections-button:disabled {
+  background: rgba(23, 32, 58, 0.5);
+  color: rgba(57, 255, 20, 0.5);
+  border-color: rgba(57, 255, 20, 0.5);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.golf-selections-button:disabled::before {
+  display: none;
 }

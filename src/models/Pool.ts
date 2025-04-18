@@ -110,10 +110,34 @@ const poolSchema = new mongoose.Schema({
   },
   mode: {
     type: String,
-    enum: ['classic', 'survivor'],
+    enum: ['classic', 'survivor', 'golf'], 
     default: 'classic',
     required: true
   },
+
+  idleTime: {
+    type: Boolean,
+    default: false
+  },
+  
+  draftTime: {
+    type: Boolean,
+    default: false
+  },
+  
+  playTime: {
+    type: Boolean,
+    default: false
+  },
+  
+  draftOrder: [{
+    username: String,
+    picks: [{
+      round: Number,
+      golferName: String,
+      pickTime: Date
+    }]
+  }],
   createdAt: {
     type: Date,
     default: Date.now,
@@ -256,12 +280,17 @@ const poolSchema = new mongoose.Schema({
 });
 
 // Middleware to use correct member schema based on pool mode
+// Middleware to use correct member schema based on pool mode
 poolSchema.pre('save', function(next) {
   if (this.isModified('mode') || this.isModified('members')) {
     this.members = this.members.map(member => {
       if (this.mode === 'survivor') {
         const { points, picks, win, loss, push, ...survivorMember } = member;
         return survivorMember;
+      } else if (this.mode === 'golf') {
+        // Keep picks for golf mode but remove classic stats
+        const { points, win, loss, push, ...golfMember } = member;
+        return golfMember;
       }
       return member;
     });

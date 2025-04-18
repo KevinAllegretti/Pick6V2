@@ -61,8 +61,8 @@ interface SurvivorMember extends BaseMember {
     isEliminated: boolean;
 }
 
-// Function to create appropriate member based on pool mode
-const createMemberByMode = (user: any, username: string, orderIndex: number, mode: 'classic' | 'survivor'): ClassicMember | SurvivorMember => {
+// Update the createMemberByMode function to include golf mode
+const createMemberByMode = (user: any, username: string, orderIndex: number, mode: 'classic' | 'survivor' | 'golf'): ClassicMember | SurvivorMember | GolfMember => {
     const baseMember = {
         user: user._id,
         username: username.toLowerCase(),
@@ -73,6 +73,12 @@ const createMemberByMode = (user: any, username: string, orderIndex: number, mod
         return {
             ...baseMember,
             isEliminated: false
+        };
+    } else if (mode === 'golf') {
+        return {
+            ...baseMember,
+            picks: [],
+            golferSelections: []
         };
     }
 
@@ -85,6 +91,12 @@ const createMemberByMode = (user: any, username: string, orderIndex: number, mod
         push: 0
     };
 };
+
+// Define GolfMember interface
+interface GolfMember extends BaseMember {
+    picks: any[];
+    golferSelections: any[];
+}
 
 /*
 router.post('/create', async (req, res) => {
@@ -159,6 +171,7 @@ router.post('/create', async (req, res) => {
     }
 });*/
 
+/*
 router.post('/create', async (req, res) => {
     try {
         // Add hasPlayoffs to the destructured properties
@@ -220,6 +233,85 @@ router.post('/create', async (req, res) => {
 
         // Log the created pool ID and whether hasPlayoffs was set
         console.log('Pool created with ID:', result.insertedId, 'hasPlayoffs:', !!hasPlayoffs);
+
+        res.status(201).json({ 
+            message: 'Pool created successfully',
+            pool: {
+                ...newPool,
+                _id: result.insertedId
+            }
+        });
+
+    } catch (error: any) {
+        console.error('Error creating pool:', error);
+        if (error.code === 11000) {
+            return res.status(409).json({ message: 'Pool name already exists' });
+        }
+        res.status(500).json({ message: 'Error creating pool', error });
+    }
+});*/
+
+router.post('/create', async (req, res) => {
+    try {
+        const { name, isPrivate, adminUsername, mode, password, hasPlayoffs } = req.body;
+
+        // Log the incoming request
+        console.log('Creating pool with params:', { 
+            name, 
+            isPrivate, 
+            adminUsername, 
+            mode, 
+            hasPassword: !!password, 
+            hasPlayoffs 
+        });
+
+        const db = await connectToDatabase();
+        const usersCollection = db.collection("users");
+        const poolsCollection = db.collection("pools");
+
+        const admin = await usersCollection.findOne({ username: adminUsername.toLowerCase() });
+        if (!admin) {
+            return res.status(404).json({ message: 'Admin user not found' });
+        }
+
+        // Create admin member with appropriate schema based on mode
+        const adminMember = createMemberByMode(admin, adminUsername, 0, mode || 'classic');
+
+        // Base pool object
+        const newPool = {
+            name,
+            isPrivate,
+            admin: admin._id,
+            adminUsername: adminUsername.toLowerCase(),
+            password: isPrivate ? password : undefined,
+            members: [adminMember],
+            mode: mode || 'classic',
+            // Only set hasPlayoffs when mode is classic
+            hasPlayoffs: mode === 'classic' ? !!hasPlayoffs : false
+        };
+
+        // Add golf-specific fields if needed
+        if (mode === 'golf') {
+            Object.assign(newPool, {
+                idleTime: true,      // Start in idle time (users can join)
+                draftTime: false,    // Not in draft time yet
+                playTime: false,     // Not in play time yet
+                draftOrder: []       // Initialize empty draft order
+            });
+        }
+
+        console.log('Creating pool with model:', {
+            ...newPool,
+            password: newPool.password ? '***' : undefined // Hide password in logs
+        });
+
+        const result = await poolsCollection.insertOne(newPool);
+        
+        // After creating the pool, normalize all indices
+        await normalizePoolOrder(poolsCollection, adminUsername);
+
+        // Log the created pool ID
+        console.log('Pool created with ID:', result.insertedId);
 
         res.status(201).json({ 
             message: 'Pool created successfully',
