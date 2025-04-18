@@ -3456,14 +3456,7 @@ async function loadAndDisplayUserPools() {
         // In production, uncomment the line below
         const isPlayoffTime = currentWeek >= 14 && currentWeek <= 17;
         
-        // Check if user is in any golf pools
-        const hasGolfPool = pools.some(pool => pool.mode === 'golf');
-        
-        // Show the golf button if the user is in a golf pool
-        if (hasGolfPool) {
-            displayGolfSelectionButton();
-        }
-        
+       
         // Check if user is in any survivor pools
         const hasSurvivorPool = pools.some(pool => pool.mode === 'survivor');
         
@@ -3471,6 +3464,17 @@ async function loadAndDisplayUserPools() {
         if (hasSurvivorPool && document.getElementById('survivorPicksButton')) {
             document.getElementById('survivorPicksButton').style.display = 'block';
         }
+
+
+
+         // Check if user is in any golf pools
+         const hasGolfPool = pools.some(pool => pool.mode === 'golf');
+        
+         // Show the golf button if the user is in a golf pool
+         if (hasGolfPool) {
+             displayGolfSelectionButton();
+         }
+         
         
         // Sort pools by orderIndex
         pools.sort((a, b) => {
@@ -3509,13 +3513,14 @@ async function loadAndDisplayUserPools() {
         console.error('Error fetching or processing pools:', error);
     }
 }
-
-// Helper function to display the golf selection button
 function displayGolfSelectionButton() {
     // Check if the button already exists
     if (document.getElementById('golfPicksButton')) {
         return; // Button already exists
     }
+    
+    // Find the survivor button first
+    const survivorButton = document.getElementById('survivorPicksButton');
     
     // Create container if it doesn't exist
     let picksButtonsContainer = document.querySelector('.picks-buttons-container');
@@ -3553,11 +3558,15 @@ function displayGolfSelectionButton() {
         window.location.href = 'golfSelection.html';
     });
     
-    // Add to container
-    picksButtonsContainer.appendChild(golfButton);
+    // Position logic:
+    // If survivor button exists, add golf button after it
+    if (survivorButton) {
+        survivorButton.parentNode.insertBefore(golfButton, survivorButton.nextSibling);
+    } else {
+        // If no survivor button, add to the container
+        picksButtonsContainer.appendChild(golfButton);
+    }
 }
-
-// Modified displayNewPoolContainer to include the playoff bracket
 // Modified displayNewPoolContainer to include the playoff bracket
 async function displayNewPoolContainer(pool, includePlayoffBracket = false, currentweek) {
   const teamLogos = {
@@ -6825,46 +6834,7 @@ function createGolfPlayerRow(member, currentUsername, pool, phase) {
     }
   }
 
-  function displayGolfSelectionButton() {
-    // Check if the button already exists
-    if (document.getElementById('golfPicksButton')) {
-        return; // Button already exists
-    }
-    
-    // Create container if it doesn't exist
-    let picksButtonsContainer = document.querySelector('.picks-buttons-container');
-    if (!picksButtonsContainer) {
-        picksButtonsContainer = document.createElement('div');
-        picksButtonsContainer.className = 'picks-buttons-container';
-        
-        // Find where to insert - after the global picks button
-        const globalPicksButton = document.getElementById('globalPicksButton');
-        if (globalPicksButton) {
-            globalPicksButton.parentNode.insertBefore(picksButtonsContainer, globalPicksButton.nextSibling);
-        } else {
-            // If no global picks button, add to main content
-            const mainContent = document.getElementById('main-content');
-            if (mainContent) {
-                mainContent.appendChild(picksButtonsContainer);
-            }
-        }
-    }
-    
-    // Create the Golf Selections button
-    const golfButton = document.createElement('button');
-    golfButton.id = 'golfPicksButton';
-    golfButton.className = 'golf-selections-button';
-    golfButton.innerHTML = 'GOLF PICK 6 SELECTION';
-    
-    // Add event listener
-    golfButton.addEventListener('click', () => redirectToGolfSelections());
-    
-    // Add to container
-    picksButtonsContainer.appendChild(golfButton);
-    
-    // Add to any phase checking as needed
-    checkCurrentTimeWindow();
-}
+
   
   // Function to redirect to golf selections page
   function redirectToGolfSelections(poolName) {
