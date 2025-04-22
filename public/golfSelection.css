@@ -1,0 +1,424 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+
+body {
+    font-family: 'Oswald', sans-serif;
+    background-color: #0a401f; /* Dark green background */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.title {
+    text-shadow: 2px 2px 15px rgba(0, 255, 128, 0.7);
+    text-align: center;
+    margin-bottom: 10px;
+    color: #00FF7F; /* Spring green */
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 2.5rem;
+}
+
+.back-button-container {
+    text-align: center;
+    width: 100%;
+    padding: 10px 0;
+}
+
+.back-button {
+    font-family: 'Montserrat', sans-serif;
+    display: inline-block;
+    padding: 12px 25px;
+    margin: 10px auto;
+    text-align: center;
+    background: #121212;
+    color: #7FFF00; /* Chartreuse color */
+    text-decoration: none;
+    border-radius: 50px;
+    border: 2px solid #7FFF00;
+    transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0px 4px 15px rgba(127, 255, 0, 0.4);
+}
+
+.back-button:hover {
+    background-color: #7FFF00;
+    color: #121212;
+    box-shadow: 0px 6px 20px rgba(127, 255, 0, 0.6);
+}
+
+.main-wrapper {
+    flex: 1;
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 20px;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    max-height: 600px;
+    overflow-y: auto;
+    margin: 0 auto;
+    background: linear-gradient(145deg, #0f3d28 0%, #165831 50%, #0c3c22 100%);
+    border: 2px solid #00FF7F;
+    border-radius: 15px;
+    box-shadow: 0 0 30px rgba(0, 255, 127, 0.3);
+    overflow-x: hidden;
+    padding: 20px;
+}
+
+/* Custom scrollbar styling */
+.container::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+.container::-webkit-scrollbar-track {
+    background: #0a2e17;
+    border-radius: 10px;
+}
+
+.container::-webkit-scrollbar-thumb {
+    background-color: #00FF7F;
+    border-radius: 10px;
+    border: 3px solid #0a2e17;
+}
+
+.container::-webkit-scrollbar-thumb:hover {
+    background-color: #7FFF00;
+}
+
+/* Pool selector styling */
+.pool-selector-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.pool-selector-label {
+    color: #7FFF00;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.pool-selector {
+    background-color: rgba(10, 46, 23, 0.8);
+    color: #00FF7F;
+    border: 2px solid #00FF7F;
+    border-radius: 8px;
+    padding: 8px 15px;
+    font-size: 16px;
+    min-width: 200px;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 255, 127, 0.3);
+    transition: all 0.3s ease;
+}
+
+.pool-selector:focus {
+    outline: none;
+    box-shadow: 0 0 15px rgba(0, 255, 127, 0.5);
+}
+
+.pool-selector option {
+    background-color: #0a2e17;
+    color: #00FF7F;
+    padding: 10px;
+}
+
+/* Draft status indicators */
+.draft-status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 10px 0 20px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.round-indicator, .turn-indicator {
+    color: #F0FFF0; /* Honeydew color */
+    font-size: 1.2rem;
+    margin: 5px 0;
+    text-shadow: 0 0 10px rgba(0, 255, 127, 0.5);
+}
+
+.turn-indicator {
+    font-weight: bold;
+    color: #7FFF00; /* Chartreuse for emphasis */
+}
+
+/* Golfer selection cards */
+.picks-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 15px;
+}
+
+.golfer-card {
+    background: linear-gradient(145deg, #165831 0%, #1e7d46 100%);
+    border: 2px solid #32CD32; /* LimeGreen */
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.golfer-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    border-color: #7FFF00;
+}
+
+.golfer-card.selected {
+    background: linear-gradient(145deg, #7FFF00 0%, #32CD32 100%);
+    color: #121212;
+}
+
+.golfer-card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: linear-gradient(145deg, #444 0%, #555 100%);
+    border-color: #777;
+}
+
+.golfer-card.picked {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #333;
+    border-color: #777;
+}
+
+.golfer-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #FFFFFF;
+    text-align: center;
+    margin-bottom: 10px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.golfer-odds {
+    font-size: 1rem;
+    color: #FFFFFF;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.golfer-card.selected .golfer-name,
+.golfer-card.selected .golfer-odds {
+    color: #121212;
+}
+
+.golfer-card.picked .picked-by {
+    font-size: 0.8rem;
+    color: #FF5555;
+    margin-top: 5px;
+    text-align: center;
+}
+
+/* Modal Styling */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: linear-gradient(145deg, #0c3c22 0%, #165831 100%);
+    border: 2px solid #00FF7F;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 0 30px rgba(0, 255, 127, 0.5);
+    animation: modalAppear 0.3s ease forwards;
+}
+
+@keyframes modalAppear {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.modal-header {
+    padding: 15px;
+    text-align: center;
+    border-bottom: 1px solid #00FF7F;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #7FFF00;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.modal-body {
+    padding: 20px;
+    color: #F0FFF0;
+    text-align: center;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.1rem;
+}
+
+.modal-body span {
+    color: #7FFF00;
+    font-weight: bold;
+}
+
+.modal-footer {
+    padding: 15px;
+    display: flex;
+    justify-content: space-around;
+    border-top: 1px solid #00FF7F;
+}
+
+.cancel-button, .confirm-button {
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.cancel-button {
+    background-color: #333;
+    color: #FFF;
+    border: 1px solid #555;
+}
+
+.confirm-button {
+    background-color: #7FFF00;
+    color: #121212;
+    border: 1px solid #7FFF00;
+}
+
+.cancel-button:hover {
+    background-color: #444;
+}
+
+.confirm-button:hover {
+    background-color: #00FF7F;
+    box-shadow: 0 0 15px rgba(0, 255, 127, 0.5);
+}
+
+/* Your Team Display */
+.team-display {
+    margin: 30px auto;
+    width: 90%;
+    max-width: 1200px;
+    background: linear-gradient(145deg, #0f3d28 0%, #165831 50%, #0c3c22 100%);
+    border: 2px solid #00FF7F;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 0 30px rgba(0, 255, 127, 0.3);
+}
+
+.team-display h2 {
+    text-align: center;
+    color: #7FFF00;
+    margin-top: 0;
+    font-family: 'Josefin Sans', sans-serif;
+}
+
+.your-team-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    padding: 10px;
+}
+
+.selected-golfer {
+    background: linear-gradient(145deg, #1e7d46 0%, #32CD32 100%);
+    border: 2px solid #7FFF00;
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 180px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.selected-golfer-name {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #FFF;
+    text-align: center;
+    margin-bottom: 5px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.selected-golfer-round {
+    font-size: 0.9rem;
+    color: #F0FFF0;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 3px 8px;
+    border-radius: 5px;
+    margin-top: 5px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.empty-message {
+    color: #7FFF00;
+    font-style: italic;
+    text-align: center;
+    width: 100%;
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container, .team-display {
+        width: 95%;
+        margin: 0 auto;
+        max-height: 450px;
+    }
+    
+    .picks-container {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+        padding: 10px;
+    }
+    
+    .golfer-card {
+        padding: 10px;
+    }
+    
+    .golfer-name {
+        font-size: 1rem;
+    }
+    
+    .golfer-odds {
+        font-size: 0.9rem;
+    }
+    
+    .modal-content {
+        width: 95%;
+    }
+}

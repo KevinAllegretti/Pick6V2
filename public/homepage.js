@@ -5337,7 +5337,7 @@ async function showPlayerPicks(player, poolName) {
             // No picks message
             const noPicks = document.createElement('div');
             noPicks.className = 'no-picks-message';
-            noPicks.textContent = 'No picks available for this player';
+            noPicks.textContent = 'Submitted picks will show up here!';
             picksContainer.appendChild(noPicks);
         }
         
@@ -6343,7 +6343,7 @@ async function showPlayerPicks(player, poolName) {
             // No picks message
             const noPicks = document.createElement('div');
             noPicks.className = 'no-picks-message';
-            noPicks.textContent = 'No picks available for this player';
+            noPicks.textContent = 'Submitted picks will show up here!';
             picksContainer.appendChild(noPicks);
         }
         
@@ -6671,6 +6671,8 @@ async function displayGolfPoolContainer(pool) {
 }
 
 function createGolfPlayerRow(member, currentUsername, pool, phase) {
+    
+   
     const playerRow = document.createElement("div");
     playerRow.className = "golf-player-row";
     

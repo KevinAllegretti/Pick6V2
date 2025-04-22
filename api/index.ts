@@ -15,6 +15,8 @@ import playoffRoutes from '../src/routes/playoffRoutes'
 import dashRoutes from '../src/routes/dashRoutes'
 import { fetchNFLschedule } from '../src/Controllers/dashController';
 import { fetchTeamsAndWeeks, fetchGamesByFilter } from '../src/Controllers/dashController';
+import golfRoutes from '../src/routes/golfRoutes'
+
 require("dotenv").config();
 
 const app = express();
@@ -73,7 +75,7 @@ app.use('/api', dashRoutes);
 app.use(profileRoutes);
 app.use(weekRoutes);
 app.use('/api', InjuryRoutes);
-
+app.use('/api', golfRoutes);
 app.use('/api', timeWindowRoutes)
 app.use(playoffRoutes)
 app.post('/api/fetchTeamsAndWeeks', fetchTeamsAndWeeks);
