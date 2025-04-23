@@ -5,39 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Golf Pick-6 Selection</title>
     <link rel="stylesheet" href="golfSelection.css">
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&family=Josefin+Sans:wght@400;600&display=swap" rel="stylesheet">
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
 </head>
 <body>
-    <div class="back-button-container">
-        <a href="/homepage.html" class="back-button">Back to Homepage</a>
+    <div class="title-container">
+        <div class="back-button-container">
+            <a href="/homepage.html" class="back-button">Back to Homepage</a>
+        </div>
+        <h1 class="title">Golf Pick-6 Draft</h1>
     </div>
-
-    <h1 class="title">Golf Pick-6 Draft</h1>
     
-    <div class="draft-status">
-        <div class="round-indicator">Round <span id="currentRound">1</span> of 6</div>
-        <div class="turn-indicator"><span id="currentUserName">User</span>'s Turn</div>
+    <div class="controls-container">
+        <div class="draft-status">
+            <div class="round-indicator">Round <span id="currentRound">1</span> of 6</div>
+            <div class="turn-indicator"><span id="currentUserName">User</span>'s Turn</div>
+        </div>
+        
+        <div class="pool-selector-container">
+            <label for="poolSelector" class="pool-selector-label">Select Pool:</label>
+            <select id="poolSelector" class="pool-selector">
+                <!-- Pools will be populated dynamically -->
+                <option value="loading">Loading pools...</option>
+            </select>
+        </div>
     </div>
 
-    <div class="pool-selector-container">
-        <label for="poolSelector" class="pool-selector-label">Draft for:</label>
-        <select id="poolSelector" class="pool-selector">
-            <!-- Pools will be populated dynamically -->
-            <option value="loading">Loading pools...</option>
-        </select>
-    </div>
-
+        <!-- Your Team Display -->
+        <div class="team-display">
+            <h2>Your Team</h2>
+            <div id="yourTeamContainer" class="your-team-container">
+                <!-- Selected golfers will be displayed here -->
+                <div class="empty-message">No golfers selected yet</div>
+            </div>
+        </div>
     <div class="main-wrapper">
         <div class="container">
-            <div id="pickContainer" class="picks-container">
+            <div id="pickContainer" class="golfers-container">
                 <!-- Golfer selection cards will be populated here -->
             </div>
+            
+            <!-- Status messages will be added here with JavaScript when needed -->
         </div>
     </div>
 
@@ -57,14 +66,7 @@
         </div>
     </div>
 
-    <!-- Your Team Display -->
-    <div class="team-display">
-        <h2>Your Team</h2>
-        <div id="yourTeamContainer" class="your-team-container">
-            <!-- Selected golfers will be displayed here -->
-            <div class="empty-message">No golfers selected yet</div>
-        </div>
-    </div>
+
 
     <script src="golfSelection.js"></script>
 </body>

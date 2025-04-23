@@ -1,4 +1,3 @@
-
 // Core variables
 const storedUsername = localStorage.getItem('username')?.toLowerCase();
 let selectedPool = null;
@@ -25,6 +24,7 @@ const currentRoundSpan = document.getElementById('currentRound');
 const currentUserNameSpan = document.getElementById('currentUserName');
 const poolSelector = document.getElementById('poolSelector');
 const yourTeamContainer = document.getElementById('yourTeamContainer');
+const pickContainer = document.getElementById('pickContainer');
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', async () => {
@@ -51,6 +51,7 @@ poolSelector.addEventListener('change', async (e) => {
     await loadPoolState();
     await fetchGolfers();
     await fetchUserPicks();
+    await fetchAllPoolPicks();
     await fetchDraftState();
     renderPicksContainer();
     updateDraftStatus();
@@ -61,6 +62,9 @@ poolSelector.addEventListener('change', async (e) => {
  * Initialize the golf selection page
  */
 async function initializeGolfSelection() {
+    // Show loading state
+    showLoadingState();
+    
     // Populate pool selector
     await populateGolfPoolSelector();
     
@@ -69,14 +73,43 @@ async function initializeGolfSelection() {
         await loadPoolState();
         await fetchGolfers();
         await fetchUserPicks();
+        await fetchAllPoolPicks();
         await fetchDraftState();
         renderPicksContainer();
         updateDraftStatus();
         updateYourTeamDisplay();
     }
     
+    // Hide loading state
+    hideLoadingState();
+    
     // Start polling for draft state updates
     startDraftStatePolling();
+}
+
+/**
+ * Show loading state
+ */
+function showLoadingState() {
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'loadingState';
+    loadingDiv.className = 'status-message';
+    loadingDiv.innerHTML = `
+        <h2>Loading Draft</h2>
+        <p>Please wait while we set up your golf draft...</p>
+    `;
+    
+    document.querySelector('.container').appendChild(loadingDiv);
+}
+
+/**
+ * Hide loading state
+ */
+function hideLoadingState() {
+    const loadingDiv = document.getElementById('loadingState');
+    if (loadingDiv) {
+        loadingDiv.remove();
+    }
 }
 
 /**
@@ -114,6 +147,7 @@ async function populateGolfPoolSelector() {
     } catch (error) {
         console.error('Error fetching pools:', error);
         poolSelector.innerHTML = '<option value="error">Error loading pools</option>';
+        showErrorMessage('Failed to load golf pools. Please refresh the page and try again.');
     }
 }
 
@@ -147,37 +181,63 @@ async function loadPoolState() {
  * Update UI elements based on the current pool state
  */
 function updateUIForPoolState() {
-    const pickContainer = document.getElementById('pickContainer');
+    // Clear any existing status messages
+    clearStatusMessages();
+    
+    // Update draft status visibility
+    const draftStatusElement = document.querySelector('.draft-status');
+    const picksContainer = document.getElementById('pickContainer');
     
     if (currentPoolState.idleTime) {
         // Pool is in IdleTime - waiting for draft to start
-        pickContainer.innerHTML = `
-            <div class="idle-message">
-                <h2>Waiting for Draft to Start</h2>
-                <p>The admin will start the draft soon. Please wait.</p>
-            </div>
+        const idleMessage = document.createElement('div');
+        idleMessage.className = 'status-message idle-message';
+        idleMessage.innerHTML = `
+            <h2>Waiting for Draft to Start</h2>
+            <p>The admin will start the draft soon. Please check back later or wait for the draft to begin.</p>
         `;
-        pickContainer.classList.add('idle-state');
-        document.querySelector('.draft-status').style.display = 'none';
+        
+        // Insert the message BEFORE the picks container instead of inside it
+        if (picksContainer && picksContainer.parentNode) {
+            picksContainer.parentNode.insertBefore(idleMessage, picksContainer);
+        } else {
+            // Fallback to the old behavior if picks container isn't found
+            document.querySelector('.container').appendChild(idleMessage);
+        }
+        
+        draftStatusElement.style.display = 'none';
     }
     else if (currentPoolState.draftTime) {
         // Pool is in DraftTime - active drafting
-        pickContainer.classList.remove('idle-state');
-        document.querySelector('.draft-status').style.display = 'flex';
+        draftStatusElement.style.display = 'flex';
     }
     else if (currentPoolState.playTime) {
         // Pool is in PlayTime - draft is complete, tournament has started
-        pickContainer.innerHTML = `
-            <div class="play-message">
-                <h2>Draft Complete</h2>
-                <p>The tournament has started. View your team on the homepage.</p>
-            </div>
+        const playMessage = document.createElement('div');
+        playMessage.className = 'status-message play-message';
+        playMessage.innerHTML = `
+            <h2>Draft Complete</h2>
+            <p>The tournament has started. View your team and track scores on the homepage.</p>
         `;
-        pickContainer.classList.add('play-state');
-        document.querySelector('.draft-status').style.display = 'none';
+        
+        // Insert the play message BEFORE the picks container too
+        if (picksContainer && picksContainer.parentNode) {
+            picksContainer.parentNode.insertBefore(playMessage, picksContainer);
+        } else {
+            document.querySelector('.container').appendChild(playMessage);
+        }
+        
+        draftStatusElement.style.display = 'none';
     }
 }
 
+/**
+ * Clear any status messages currently displayed
+ */
+function clearStatusMessages() {
+    const statusMessages = document.querySelectorAll('.status-message');
+    statusMessages.forEach(message => message.remove());
+}
 /**
  * Fetch available golfers from the database
  */
@@ -189,8 +249,6 @@ async function fetchGolfers() {
         }
         
         golferOptions = await response.json();
-        console.log('Loaded golfers:', golferOptions); // Debug log
-        renderPicksContainer(); // Call render after fetching
         
     } catch (error) {
         console.error('Error fetching golfers:', error);
@@ -264,38 +322,32 @@ async function fetchDraftState() {
  * Render the golfer selection container
  */
 function renderPicksContainer() {
-    const pickContainer = document.getElementById('pickContainer');
+    // Clear the current container
     pickContainer.innerHTML = '';
     
-    // Always display golfers, but with different interaction based on state
-    if (currentPoolState.idleTime) {
-        // Add a message about the pool being in idle time
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'idle-message';
-        messageDiv.innerHTML = `
-            <h2>Waiting for Draft to Start</h2>
-            <p>The admin will start the draft soon. Please wait.</p>
-        `;
-        pickContainer.appendChild(messageDiv);
+    // If there are no golfers to display
+    if (!golferOptions || golferOptions.length === 0) {
+        const emptyMessage = document.createElement('div');
+        emptyMessage.className = 'empty-message';
+        emptyMessage.textContent = 'No golfers available for selection';
+        pickContainer.appendChild(emptyMessage);
+        return;
     }
-    
-    if (currentPoolState.playTime) {
-        // Add a message about the pool being in play time
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'play-message';
-        messageDiv.innerHTML = `
-            <h2>Draft Complete</h2>
-            <p>The tournament has started. View your team on the homepage.</p>
-        `;
-        pickContainer.appendChild(messageDiv);
-    }
-    
-    // Always show available golfers, regardless of state
-    const golfersContainer = document.createElement('div');
-    golfersContainer.className = 'golfers-container';
     
     // Check if it's the current user's turn (only relevant in draft mode)
     const isUserTurn = currentPoolState.draftTime && draftOrder[currentUserTurn] === storedUsername;
+    
+    // Add "your turn" class to turn indicator if it's the user's turn
+    const turnIndicator = document.querySelector('.turn-indicator');
+    if (isUserTurn) {
+        turnIndicator.classList.add('your-turn');
+    } else {
+        turnIndicator.classList.remove('your-turn');
+    }
+    
+    // Create the golfers grid
+    const golfersContainer = document.createElement('div');
+    golfersContainer.className = 'golfers-container';
     
     // Render each golfer
     golferOptions.forEach(golfer => {
@@ -387,9 +439,20 @@ async function handleGolferConfirmation() {
     // Close the modal
     closeConfirmationModal();
     
+    // Show loading state
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'submittingPick';
+    loadingDiv.className = 'status-message';
+    loadingDiv.innerHTML = `
+        <h2>Submitting Your Pick</h2>
+        <p>Please wait while we process your selection...</p>
+    `;
+    document.querySelector('.container').appendChild(loadingDiv);
+    
     // Validate that it's still the user's turn
     const isUserTurn = draftOrder[currentUserTurn] === storedUsername;
     if (!isUserTurn) {
+        clearStatusMessages();
         showErrorMessage("It's no longer your turn. Please wait for your next turn.");
         return;
     }
@@ -422,6 +485,12 @@ async function handleGolferConfirmation() {
         // Clear the selected golfer
         selectedGolfer = null;
         
+        // Remove loading state
+        clearStatusMessages();
+        
+        // Show success message
+        showSuccessMessage(`Successfully selected ${pickData.golferName}`);
+        
         // Update UI
         updateYourTeamDisplay();
         
@@ -435,6 +504,7 @@ async function handleGolferConfirmation() {
         
     } catch (error) {
         console.error('Error submitting pick:', error);
+        clearStatusMessages();
         showErrorMessage('Failed to submit pick. Please try again.');
     }
 }
@@ -464,9 +534,13 @@ function updateYourTeamDisplay() {
         const golferElement = document.createElement('div');
         golferElement.className = 'selected-golfer';
         
+        // Find the golfer's odds for display
+        const golferInfo = golferOptions.find(g => g.name === pick.golferName) || { odds: pick.odds };
+        
         golferElement.innerHTML = `
             <div class="selected-golfer-name">${pick.golferName}</div>
             <div class="selected-golfer-round">Round ${pick.round}</div>
+            <div class="selected-golfer-odds">Odds: ${golferInfo.oddsDisplay || golferInfo.odds}</div>
         `;
         
         yourTeamContainer.appendChild(golferElement);
@@ -482,12 +556,38 @@ function startDraftStatePolling() {
         if (selectedPool && currentPoolState.draftTime) {
             const prevDraftRound = currentDraftRound;
             const prevUserTurn = currentUserTurn;
+            const prevState = {...currentPoolState};
             
             await loadPoolState();
             await fetchDraftState();
             
             // Only update UI if something changed
-            if (prevDraftRound !== currentDraftRound || prevUserTurn !== currentUserTurn) {
+            if (prevDraftRound !== currentDraftRound || 
+                prevUserTurn !== currentUserTurn || 
+                prevState.idleTime !== currentPoolState.idleTime ||
+                prevState.draftTime !== currentPoolState.draftTime ||
+                prevState.playTime !== currentPoolState.playTime) {
+                
+                await fetchAllPoolPicks();
+                renderPicksContainer();
+                updateDraftStatus();
+                
+                // If it just became user's turn, notify them
+                if (draftOrder[currentUserTurn] === storedUsername && 
+                    (prevUserTurn !== currentUserTurn || prevDraftRound !== currentDraftRound)) {
+                    showSuccessMessage("It's your turn to pick!");
+                }
+            }
+        } else {
+            // Check if the state changed from idle to draft or draft to play
+            const prevState = {...currentPoolState};
+            await loadPoolState();
+            
+            if (prevState.idleTime !== currentPoolState.idleTime ||
+                prevState.draftTime !== currentPoolState.draftTime ||
+                prevState.playTime !== currentPoolState.playTime) {
+                
+                await fetchDraftState();
                 await fetchAllPoolPicks();
                 renderPicksContainer();
                 updateDraftStatus();
@@ -507,12 +607,279 @@ function showErrorMessage(message) {
     
     // Add to body
     document.body.appendChild(errorToast);
+
+}
+
+/**
+ * Show success message to the user
+ */
+function showSuccessMessage(message) {
+    // Create success toast (reusing error toast styles with modifications)
+    const successToast = document.createElement('div');
+    successToast.className = 'error-toast'; // Reuse the same class for animation
+    successToast.style.background = 'rgba(30, 150, 60, 0.9)'; // Override with green
+    successToast.textContent = message;
     
-    // Remove after 3 seconds
-    setTimeout(() => {
-        errorToast.classList.add('fade-out');
-        setTimeout(() => {
-            document.body.removeChild(errorToast);
-        }, 500);
-    }, 3000);
+    // Add to body
+    document.body.appendChild(successToast);
+    
+
+}
+/**
+ * Update UI elements based on the current pool state
+ */
+function updateUIForPoolState() {
+    // Clear any existing status messages
+    clearStatusMessages();
+    
+    // Update draft status visibility
+    const draftStatusElement = document.querySelector('.draft-status');
+    
+    // Important: Find the right place to insert the message
+    // We want it between the pool selector and the main container
+    const poolSelectorContainer = document.querySelector('.pool-selector-container');
+    const mainContainer = document.querySelector('.container');
+    
+    if (currentPoolState.idleTime) {
+        // Pool is in IdleTime - waiting for draft to start
+        const idleMessage = document.createElement('div');
+        idleMessage.className = 'status-message idle-message';
+        idleMessage.innerHTML = `
+            <h2>Waiting for Draft to Start</h2>
+            <p>The admin will start the draft soon. Please check back later or wait for the draft to begin.</p>
+        `;
+        
+        // Insert the message after the pool selector but before the main container
+        if (poolSelectorContainer && poolSelectorContainer.parentNode) {
+            // Find the controls container (parent of pool selector)
+            const controlsContainer = poolSelectorContainer.closest('.controls-container');
+            if (controlsContainer) {
+                // Append to the controls container - this will put it after the pool selector
+                // but before the main container
+                controlsContainer.appendChild(idleMessage);
+            } else {
+                // Fallback - insert before the main container
+                document.body.insertBefore(idleMessage, mainContainer);
+            }
+        } else {
+            // Last resort fallback
+            document.body.appendChild(idleMessage);
+        }
+        
+        draftStatusElement.style.display = 'none';
+    }
+    else if (currentPoolState.draftTime) {
+        // Pool is in DraftTime - active drafting
+        draftStatusElement.style.display = 'flex';
+    }
+    else if (currentPoolState.playTime) {
+        // Pool is in PlayTime - draft is complete, tournament has started
+        const playMessage = document.createElement('div');
+        playMessage.className = 'status-message play-message';
+        playMessage.innerHTML = `
+            <h2>Draft Complete</h2>
+            <p>The tournament has started. View your team and track scores on the homepage.</p>
+        `;
+        
+        // Insert the play message in the same place as the idle message
+        if (poolSelectorContainer && poolSelectorContainer.parentNode) {
+            const controlsContainer = poolSelectorContainer.closest('.controls-container');
+            if (controlsContainer) {
+                controlsContainer.appendChild(playMessage);
+            } else {
+                document.body.insertBefore(playMessage, mainContainer);
+            }
+        } else {
+            document.body.appendChild(playMessage);
+        }
+        
+        draftStatusElement.style.display = 'none';
+    }
+}
+
+/**
+ * Clear any status messages currently displayed
+ */
+function clearStatusMessages() {
+    const statusMessages = document.querySelectorAll('.status-message');
+    statusMessages.forEach(message => message.remove());
+}
+
+/**
+ * Show loading state
+ */
+function showLoadingState() {
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'loadingState';
+    loadingDiv.className = 'status-message';
+    loadingDiv.innerHTML = `
+        <h2>Loading Draft</h2>
+        <p>Please wait while we set up your golf draft...</p>
+    `;
+    
+    // Find the right place to insert the loading message
+    const mainContainer = document.querySelector('.container');
+    const poolSelectorContainer = document.querySelector('.pool-selector-container');
+    
+    if (poolSelectorContainer) {
+        const controlsContainer = poolSelectorContainer.closest('.controls-container');
+        if (controlsContainer) {
+            controlsContainer.appendChild(loadingDiv);
+            return;
+        }
+    }
+    
+    // Fallback - insert before the main container
+    if (mainContainer && mainContainer.parentNode) {
+        mainContainer.parentNode.insertBefore(loadingDiv, mainContainer);
+    } else {
+        // Last resort
+        document.body.appendChild(loadingDiv);
+    }
+}
+
+/**
+ * Hide loading state
+ */
+function hideLoadingState() {
+    const loadingDiv = document.getElementById('loadingState');
+    if (loadingDiv) {
+        loadingDiv.remove();
+    }
+}
+
+/**
+ * Start polling for draft state updates
+ */
+function startDraftStatePolling() {
+    // Keep track of previous pool state to avoid unnecessary UI updates
+    let prevPoolState = {...currentPoolState};
+    
+    // Poll every 5 seconds
+    setInterval(async () => {
+        if (selectedPool) {
+            try {
+                // First check if the pool state changed
+                const prevState = {...currentPoolState};
+                
+                // Fetch updated pool state
+                const stateResponse = await fetch(`/api/getPoolState/${selectedPool}`);
+                if (stateResponse.ok) {
+                    const state = await stateResponse.json();
+                    const newState = {
+                        idleTime: state.idleTime || false,
+                        draftTime: state.draftTime || false,
+                        playTime: state.playTime || false
+                    };
+                    
+                    // Only update the UI if the pool state changed
+                    const stateChanged = 
+                        prevState.idleTime !== newState.idleTime ||
+                        prevState.draftTime !== newState.draftTime ||
+                        prevState.playTime !== newState.playTime;
+                    
+                    if (stateChanged) {
+                        console.log('Pool state changed, updating UI');
+                        currentPoolState = newState;
+                        updateUIForPoolState();
+                    }
+                    
+                    // If in draft mode, check for changes to draft state
+                    if (currentPoolState.draftTime) {
+                        const prevDraftRound = currentDraftRound;
+                        const prevUserTurn = currentUserTurn;
+                        
+                        await fetchDraftState();
+                        
+                        // Only update UI if draft round or turn changed
+                        if (prevDraftRound !== currentDraftRound || 
+                            prevUserTurn !== currentUserTurn) {
+                            
+                            await fetchAllPoolPicks();
+                            renderPicksContainer();
+                            updateDraftStatus();
+                            
+                            // If it just became user's turn, notify them
+                            if (draftOrder[currentUserTurn] === storedUsername && 
+                                (prevUserTurn !== currentUserTurn || prevDraftRound !== currentDraftRound)) {
+                                showSuccessMessage("It's your turn to pick!");
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error during polling:', error);
+            }
+        }
+    }, 5000);
+}
+
+/**
+ * Update UI elements based on the current pool state
+ * Modified to prevent flicker/reanimation when state hasn't changed
+ */
+function updateUIForPoolState() {
+    // Clear any existing status messages first
+    clearStatusMessages();
+    
+    // Get reference to the draft status element
+    const draftStatusElement = document.querySelector('.draft-status');
+    
+    // Find the controls container to append messages to
+    const controlsContainer = document.querySelector('.controls-container');
+    
+    if (currentPoolState.idleTime) {
+        // Pool is in IdleTime - waiting for draft to start
+        const idleMessage = document.createElement('div');
+        idleMessage.className = 'status-message idle-message';
+        idleMessage.id = 'idle-message'; // Add an ID for easy reference
+        idleMessage.innerHTML = `
+            <h2>Waiting for Draft to Start</h2>
+            <p>The admin will start the draft soon. Please check back later or wait for the draft to begin.</p>
+        `;
+        
+        // Add to the controls container
+        if (controlsContainer) {
+            controlsContainer.appendChild(idleMessage);
+        }
+        
+        // Hide draft status
+        if (draftStatusElement) {
+            draftStatusElement.style.display = 'none';
+        }
+    }
+    else if (currentPoolState.draftTime) {
+        // Pool is in DraftTime - active drafting
+        if (draftStatusElement) {
+            draftStatusElement.style.display = 'flex';
+        }
+    }
+    else if (currentPoolState.playTime) {
+        // Pool is in PlayTime - draft is complete, tournament has started
+        const playMessage = document.createElement('div');
+        playMessage.className = 'status-message play-message';
+        playMessage.id = 'play-message'; // Add an ID for easy reference
+        playMessage.innerHTML = `
+            <h2>Draft Complete</h2>
+            <p>The tournament has started. View your team and track scores on the homepage.</p>
+        `;
+        
+        // Add to the controls container
+        if (controlsContainer) {
+            controlsContainer.appendChild(playMessage);
+        }
+        
+        // Hide draft status
+        if (draftStatusElement) {
+            draftStatusElement.style.display = 'none';
+        }
+    }
+}
+
+/**
+ * Clear any status messages currently displayed
+ */
+function clearStatusMessages() {
+    const statusMessages = document.querySelectorAll('.status-message');
+    statusMessages.forEach(message => message.remove());
 }

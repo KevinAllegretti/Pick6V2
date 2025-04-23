@@ -1,220 +1,914 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&family=Josefin+Sans:wght@400;600&display=swap');
+
+:root {
+  --main-bg: #0e3122;
+  --container-bg: #134b32;
+  --card-bg: #1a6b49;
+  --card-hover: #238e62;
+  --selected-bg: #7fff00;
+  --text-light: #f0fff0;
+  --text-primary: #ffffff;
+  --primary-accent: #00ff7f;
+  --secondary-accent: #7fff00;
+  --border-light: rgba(0, 255, 127, 0.5);
+  --shadow-color: rgba(0, 0, 0, 0.4);
+  --disabled-color: #333333;
+  --card-glow: rgba(0, 255, 127, 0.4);
+  --btn-hover: #00d66b;
+  --overlay-bg: rgba(0, 0, 0, 0.85);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 body {
-    font-family: 'Oswald', sans-serif;
-    background-color: #0a401f; /* Dark green background */
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+  font-family: 'Montserrat', sans-serif;
+  background: linear-gradient(135deg, #0c2a1e 0%, var(--main-bg) 50%, #0c2a1e 100%);
+  color: var(--text-primary);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.title-container {
+  padding: 1.5rem 0 0.5rem;
+  background: rgba(10, 40, 25, 0.6);
+  border-bottom: 2px solid var(--primary-accent);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 2;
 }
 
 .title {
-    text-shadow: 2px 2px 15px rgba(0, 255, 128, 0.7);
-    text-align: center;
-    margin-bottom: 10px;
-    color: #00FF7F; /* Spring green */
-    font-family: 'Josefin Sans', sans-serif;
-    font-size: 2.5rem;
+  text-align: center;
+  color: var(--primary-accent);
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 600;
+  text-shadow: 0 0 15px rgba(0, 255, 127, 0.7), 0 0 30px rgba(0, 255, 127, 0.4);
+  margin: 0 0 5px;
+  letter-spacing: 1px;
 }
 
 .back-button-container {
-    text-align: center;
-    width: 100%;
-    padding: 10px 0;
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 3;
 }
 
 .back-button {
-    font-family: 'Montserrat', sans-serif;
-    display: inline-block;
-    padding: 12px 25px;
-    margin: 10px auto;
-    text-align: center;
-    background: #121212;
-    color: #7FFF00; /* Chartreuse color */
-    text-decoration: none;
-    border-radius: 50px;
-    border: 2px solid #7FFF00;
-    transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
-    cursor: pointer;
-    box-shadow: 0px 4px 15px rgba(127, 255, 0, 0.4);
+  display: inline-flex;
+  align-items: center;
+  padding: 0.6rem 1.2rem;
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--secondary-accent);
+  text-decoration: none;
+  border-radius: 50px;
+  border: 2px solid var(--secondary-accent);
+  transition: all 0.3s ease;
+  font-weight: 500;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  font-size: 0.95rem;
+  margin-bottom: 30px;
+}
+
+.back-button:before {
+  margin-right: 8px;
+  font-size: 1.1rem;
 }
 
 .back-button:hover {
-    background-color: #7FFF00;
-    color: #121212;
-    box-shadow: 0px 6px 20px rgba(127, 255, 0, 0.6);
+  background-color: var(--secondary-accent);
+  color: #121212;
+  box-shadow: 0 6px 15px rgba(127, 255, 0, 0.5);
+  transform: translateY(-2px);
 }
 
-.main-wrapper {
-    flex: 1;
-    max-width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 20px;
+.controls-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  z-index: 1;
 }
 
-.container {
-    width: 90%;
-    max-width: 1200px;
-    max-height: 600px;
-    overflow-y: auto;
-    margin: 0 auto;
-    background: linear-gradient(145deg, #0f3d28 0%, #165831 50%, #0c3c22 100%);
-    border: 2px solid #00FF7F;
-    border-radius: 15px;
-    box-shadow: 0 0 30px rgba(0, 255, 127, 0.3);
-    overflow-x: hidden;
-    padding: 20px;
-}
-
-/* Custom scrollbar styling */
-.container::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
-}
-
-.container::-webkit-scrollbar-track {
-    background: #0a2e17;
-    border-radius: 10px;
-}
-
-.container::-webkit-scrollbar-thumb {
-    background-color: #00FF7F;
-    border-radius: 10px;
-    border: 3px solid #0a2e17;
-}
-
-.container::-webkit-scrollbar-thumb:hover {
-    background-color: #7FFF00;
-}
-
-/* Pool selector styling */
-.pool-selector-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    margin: 10px 0;
-}
-
-.pool-selector-label {
-    color: #7FFF00;
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-family: 'Montserrat', sans-serif;
-}
-
-.pool-selector {
-    background-color: rgba(10, 46, 23, 0.8);
-    color: #00FF7F;
-    border: 2px solid #00FF7F;
-    border-radius: 8px;
-    padding: 8px 15px;
-    font-size: 16px;
-    min-width: 200px;
-    cursor: pointer;
-    box-shadow: 0 0 10px rgba(0, 255, 127, 0.3);
-    transition: all 0.3s ease;
-}
-
-.pool-selector:focus {
-    outline: none;
-    box-shadow: 0 0 15px rgba(0, 255, 127, 0.5);
-}
-
-.pool-selector option {
-    background-color: #0a2e17;
-    color: #00FF7F;
-    padding: 10px;
-}
-
-/* Draft status indicators */
+/* Draft Status Panel */
 .draft-status {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 10px 0 20px;
-    font-family: 'Montserrat', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(10, 40, 25, 0.7);
+  padding: 0.8rem 2rem;
+  margin: 0.5rem 0 1.2rem;
+  border-radius: 12px;
+  border: 2px solid var(--border-light);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 500px;
+  transition: all 0.3s ease;
 }
 
 .round-indicator, .turn-indicator {
-    color: #F0FFF0; /* Honeydew color */
-    font-size: 1.2rem;
-    margin: 5px 0;
-    text-shadow: 0 0 10px rgba(0, 255, 127, 0.5);
+  font-family: 'Oswald', sans-serif;
+  margin: 5px 0;
+  text-align: center;
+}
+
+.round-indicator {
+  color: var(--text-light);
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
 }
 
 .turn-indicator {
-    font-weight: bold;
-    color: #7FFF00; /* Chartreuse for emphasis */
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--secondary-accent);
+  text-shadow: 0 0 10px rgba(127, 255, 0, 0.5);
+  letter-spacing: 0.5px;
 }
 
-/* Golfer selection cards */
-.picks-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 20px;
-    padding: 15px;
+.turn-indicator.your-turn {
+  color: var(--primary-accent);
+  text-shadow: 0 0 15px rgba(0, 255, 127, 0.7);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Pool Selector */
+.pool-selector-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  max-width: 350px;
+  justify-content: center;
+}
+
+.pool-selector-label {
+  color: var(--secondary-accent);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.pool-selector {
+  background: rgba(10, 40, 25, 0.7);
+  color: var(--primary-accent);
+  border: 2px solid var(--primary-accent);
+  border-radius: 8px;
+  padding: 10px 15px;
+  font-size: 1rem;
+  min-width: 220px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  outline: none;
+  font-family: 'Montserrat', sans-serif;
+  text-align: center;
+  font-weight: 500;
+}
+
+.pool-selector:focus, .pool-selector:hover {
+  box-shadow: 0 0 15px rgba(0, 255, 127, 0.5);
+  border-color: var(--secondary-accent);
+}
+
+.pool-selector option {
+  background-color: #0a2e17;
+  color: var(--text-primary);
+  padding: 10px;
+}
+
+/* Main Content Area */
+.main-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 0 1rem 1.5rem;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  height: auto;
+  max-height: 500px;
+  overflow-y: auto;
+  background: linear-gradient(135deg, #0c3922 0%, var(--container-bg) 50%, #0c3922 100%);
+  border: 2px solid var(--primary-accent);
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  padding: 1.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-accent) #0a2e17;
+  position: relative;
+}
+
+.container::-webkit-scrollbar {
+  width: 12px;
+}
+
+.container::-webkit-scrollbar-track {
+  background: #0a2e17;
+  border-radius: 10px;
+}
+
+.container::-webkit-scrollbar-thumb {
+  background-color: var(--primary-accent);
+  border-radius: 10px;
+  border: 3px solid #0a2e17;
+}
+
+.container::-webkit-scrollbar-thumb:hover {
+  background-color: var(--secondary-accent);
+}
+
+/* Status Messages */
+.status-message {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: rgba(10, 40, 25, 0.85);
+  z-index: 5;
+  border-radius: 13px;
+  padding: 2rem;
+  backdrop-filter: blur(4px);
+}
+
+.status-message h2 {
+  color: var(--secondary-accent);
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.status-message p {
+  color: var(--text-light);
+  font-size: 1.1rem;
+  text-align: center;
+  max-width: 600px;
+  line-height: 1.5;
+}
+
+.idle-message, .play-message {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Golfer Selection Grid */
+.golfers-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.5rem;
+  padding: 0.5rem;
 }
 
 .golfer-card {
-    background: linear-gradient(145deg, #165831 0%, #1e7d46 100%);
-    border: 2px solid #32CD32; /* LimeGreen */
-    border-radius: 10px;
-    padding: 15px;
+  background: linear-gradient(145deg, #196b42 0%, var(--card-bg) 100%);
+  border: 2px solid var(--border-light);
+  border-radius: 12px;
+  padding: 1.2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px var(--shadow-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.golfer-card:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+  pointer-events: none;
+}
+
+.golfer-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 8px 20px var(--shadow-color), 0 0 15px var(--card-glow);
+  border-color: var(--primary-accent);
+}
+
+.golfer-card.selected {
+  background: linear-gradient(145deg, var(--selected-bg) 0%, #58cc00 100%);
+  color: #121212;
+  border-color: var(--primary-accent);
+  box-shadow: 0 0 20px rgba(127, 255, 0, 0.5);
+  transform: translateY(-5px) scale(1.02);
+}
+
+.golfer-card.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: linear-gradient(145deg, #333 0%, #444 100%);
+  border-color: #555;
+  box-shadow: none;
+  transform: none;
+}
+
+.golfer-card.picked {
+  opacity: 0.65;
+  cursor: not-allowed;
+  background: linear-gradient(145deg, #222 0%, var(--disabled-color) 100%);
+  border-color: #555;
+  box-shadow: none;
+  transform: none;
+}
+
+.golfer-card.view-only {
+  cursor: default;
+}
+
+.golfer-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 1rem;
+  font-family: 'Montserrat', sans-serif;
+  line-height: 1.3;
+}
+
+.golfer-odds {
+  font-size: 0.95rem;
+  color: var(--text-light);
+  background: rgba(0, 0, 0, 0.25);
+  padding: 0.5rem 1rem;
+  border-radius: 30px;
+  font-weight: 500;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.golfer-card.selected .golfer-name,
+.golfer-card.selected .golfer-odds {
+  color: #121212;
+}
+
+.golfer-card.selected .golfer-odds {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.picked-by {
+  margin-top: 0.8rem;
+  font-size: 0.85rem;
+  color: #ff7070;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+/* Confirmation Modal */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--overlay-bg);
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: linear-gradient(145deg, #0c3922 0%, var(--container-bg) 100%);
+  border: 2px solid var(--primary-accent);
+  border-radius: 15px;
+  width: 90%;
+  max-width: 450px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(0, 255, 127, 0.3);
+  animation: modalAppear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  overflow: hidden;
+}
+
+@keyframes modalAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-header {
+  padding: 1.2rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(0, 255, 127, 0.3);
+  background: rgba(10, 40, 25, 0.5);
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: var(--primary-accent);
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 1.5rem;
+}
+
+.modal-body {
+  padding: 1.8rem 1.5rem;
+  color: var(--text-light);
+  text-align: center;
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.modal-body span {
+  color: var(--secondary-accent);
+  font-weight: 600;
+}
+
+.modal-footer {
+  padding: 1.2rem;
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid rgba(0, 255, 127, 0.3);
+  background: rgba(10, 40, 25, 0.3);
+}
+
+.cancel-button, .confirm-button {
+  padding: 0.8rem 1.5rem;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  min-width: 120px;
+  border: none;
+}
+
+.cancel-button {
+  background-color: rgba(80, 80, 80, 0.7);
+  color: #FFF;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.confirm-button {
+  background-color: var(--secondary-accent);
+  color: #121212;
+}
+
+.cancel-button:hover {
+  background-color: rgba(100, 100, 100, 0.8);
+  transform: translateY(-2px);
+}
+
+.confirm-button:hover {
+  background-color: var(--primary-accent);
+  box-shadow: 0 0 15px rgba(0, 255, 127, 0.6);
+  transform: translateY(-2px);
+}
+
+/* Your Team Display */
+.team-display {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto 2rem;
+  background: linear-gradient(135deg, #0c3922 0%, var(--container-bg) 50%, #0c3922 100%);
+  border: 2px solid var(--primary-accent);
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.team-display h2 {
+  text-align: center;
+  color: var(--secondary-accent);
+  margin-top: 0;
+  margin-bottom: 1.2rem;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 1.8rem;
+  text-shadow: 0 0 10px rgba(127, 255, 0, 0.4);
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.team-display h2:after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -0.5rem;
+  width: 80px;
+  height: 3px;
+  background: var(--primary-accent);
+  transform: translateX(-50%);
+  border-radius: 3px;
+  box-shadow: 0 0 10px rgba(0, 255, 127, 0.6);
+}
+
+.your-team-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  padding: 1rem 0.5rem;
+}
+
+.selected-golfer {
+  background: linear-gradient(145deg, #1c704a 0%, #238553 100%);
+  border: 2px solid var(--border-light);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 180px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.selected-golfer:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(0, 255, 127, 0.2);
+  border-color: var(--primary-accent);
+}
+
+.selected-golfer-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 0.7rem;
+  line-height: 1.3;
+}
+
+.selected-golfer-round {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  background: rgba(0, 0, 0, 0.25);
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.empty-message {
+  color: rgba(127, 255, 0, 0.7);
+  font-style: italic;
+  text-align: center;
+  width: 100%;
+  padding: 2rem 0;
+  font-size: 1.1rem;
+}
+
+/* Error Toast */
+.error-toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(200, 30, 30, 0.9);
+  color: white;
+  padding: 15px 30px;
+  border-radius: 30px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+  z-index: 2000;
+  font-weight: 500;
+  max-width: 90%;
+  text-align: center;
+  animation: toastIn 0.5s ease forwards;
+}
+
+.error-toast.fade-out {
+  animation: toastOut 0.5s ease forwards;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translate(-50%, 20px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes toastOut {
+  from { opacity: 1; transform: translate(-50%, 0); }
+  to { opacity: 0; transform: translate(-50%, 20px); }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .golfers-container {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.2rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .container, .team-display {
+    max-width: 95%;
+  }
+  
+  .golfers-container {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+  }
+  
+  .title {
+    font-size: 2.2rem;
+  }
+  
+  .back-button-container {
+    top: 1.2rem;
+    left: 1.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    max-height: 450px;
+    padding: 1rem;
+  }
+  
+  .golfers-container {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.8rem;
+  }
+  
+  .golfer-card {
+    padding: 1rem 0.8rem;
+  }
+  
+  .title {
+    font-size: 1.8rem;
+  }
+  
+  .back-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+  
+  .back-button-container {
+    top: 1rem;
+    left: 1rem;
+  }
+  
+  .round-indicator {
+    font-size: 1rem;
+  }
+  
+  .turn-indicator {
+    font-size: 1.2rem;
+  }
+  
+  .selected-golfer {
+    width: 160px;
+    padding: 0.8rem;
+  }
+}
+
+@media (max-width: 550px) {
+  .golfers-container {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.7rem;
+  }
+  
+  .golfer-name {
+    font-size: 1rem;
+    margin-bottom: 0.8rem;
+  }
+  
+  .golfer-odds {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .selected-golfer {
+    width: 140px;
+  }
+  
+  .selected-golfer-name {
+    font-size: 1rem;
+  }
+  
+  .selected-golfer-round {
+    font-size: 0.8rem;
+  }
+  
+  .modal-content {
+    width: 95%;
+  }
+  
+  .modal-body {
+    padding: 1.5rem 1rem;
+    font-size: 1rem;
+  }
+  
+  .modal-header h2, .team-display h2 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 450px) {
+  .title {
+    font-size: 1.6rem;
+  }
+  
+  .back-button-container {
+    position: static;
+    width: 100%;
     display: flex;
+    justify-content: center;
+    padding: 0.8rem 0 0;
+  }
+  
+  .draft-status {
+    padding: 0.7rem 1.5rem;
+  }
+  
+  .pool-selector-container {
     flex-direction: column;
-    align-items: center;
+    gap: 8px;
+  }
+  
+  .pool-selector {
+    width: 100%;
+  }
+}
+
+/* Add these styles to your CSS */
+.status-message {
+    background: rgba(10, 40, 25, 0.85);
+    border-radius: 15px;
+    border: 2px solid var(--primary-accent);
+    padding: 1.2rem;
+    margin-bottom: 1rem;
+    width: 100%;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 5;
+    position: relative;
+}
+
+.status-message h2 {
+    color: var(--secondary-accent);
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 1.8rem;
+    margin-bottom: 0.7rem;
+    text-align: center;
+}
+
+.status-message p {
+    color: var(--text-light);
+    font-size: 1.1rem;
+    text-align: center;
+    max-width: 600px;
+    line-height: 1.5;
+    margin: 0 auto;
+}
+
+.idle-message, .play-message {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.golfers-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.2rem;
+    padding: 0.5rem;
+    width: 100%;
+}
+
+.golfer-card {
+    background: linear-gradient(145deg, #196b42 0%, var(--card-bg) 100%);
+    border: 2px solid var(--border-light);
+    border-radius: 12px;
+    padding: 1.2rem 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 10px var(--shadow-color);
+    position: relative;
+    overflow: hidden;
+    height: 100%;
 }
 
 .golfer-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-    border-color: #7FFF00;
+    box-shadow: 0 8px 20px var(--shadow-color), 0 0 15px var(--card-glow);
+    border-color: var(--primary-accent);
 }
 
-.golfer-card.selected {
-    background: linear-gradient(145deg, #7FFF00 0%, #32CD32 100%);
-    color: #121212;
+.golfer-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
 }
 
-.golfer-card.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: linear-gradient(145deg, #444 0%, #555 100%);
-    border-color: #777;
-}
-
-.golfer-card.picked {
-    opacity: 0.6;
-    cursor: not-allowed;
-    background: #333;
-    border-color: #777;
+.golfer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
 .golfer-name {
     font-size: 1.2rem;
-    font-weight: bold;
-    color: #FFFFFF;
-    text-align: center;
-    margin-bottom: 10px;
+    font-weight: 600;
+    color: var(--text-primary);
     font-family: 'Montserrat', sans-serif;
+    line-height: 1.3;
 }
 
 .golfer-odds {
-    font-size: 1rem;
-    color: #FFFFFF;
-    background: rgba(0, 0, 0, 0.2);
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text-light);
+    background: rgba(0, 0, 0, 0.25);
+    padding: 0.3rem 0.7rem;
+    border-radius: 30px;
+    font-weight: 500;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    white-space: nowrap;
+}
+
+.picked-by {
+    margin-top: 0.8rem;
+    font-size: 0.85rem;
+    color: #ff7070;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-weight: 500;
+    align-self: flex-start;
+}
+
+/* Selected and special states */
+.golfer-card.selected {
+    background: linear-gradient(145deg, var(--selected-bg) 0%, #58cc00 100%);
+    color: #121212;
+    border-color: var(--primary-accent);
+    box-shadow: 0 0 20px rgba(127, 255, 0, 0.5);
+    transform: translateY(-5px) scale(1.02);
+}
+
+.golfer-card.picked {
+    opacity: 0.65;
+    cursor: not-allowed;
+    background: linear-gradient(145deg, #222 0%, var(--disabled-color) 100%);
+    border-color: #555;
+    box-shadow: none;
+    transform: none;
+}
+
+.golfer-card.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: linear-gradient(145deg, #333 0%, #444 100%);
+    border-color: #555;
+    box-shadow: none;
+    transform: none;
 }
 
 .golfer-card.selected .golfer-name,
@@ -222,203 +916,34 @@ body {
     color: #121212;
 }
 
-.golfer-card.picked .picked-by {
-    font-size: 0.8rem;
-    color: #FF5555;
-    margin-top: 5px;
-    text-align: center;
+.golfer-card.selected .golfer-odds {
+    background: rgba(255, 255, 255, 0.25);
 }
 
-/* Modal Styling */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    justify-content: center;
-    align-items: center;
-}
-
-.modal-content {
-    background: linear-gradient(145deg, #0c3c22 0%, #165831 100%);
-    border: 2px solid #00FF7F;
-    border-radius: 15px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 0 30px rgba(0, 255, 127, 0.5);
-    animation: modalAppear 0.3s ease forwards;
-}
-
-@keyframes modalAppear {
-    from {
-        opacity: 0;
-        transform: scale(0.8);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .golfers-container {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     }
 }
 
-.modal-header {
-    padding: 15px;
-    text-align: center;
-    border-bottom: 1px solid #00FF7F;
-}
-
-.modal-header h2 {
-    margin: 0;
-    color: #7FFF00;
-    font-family: 'Montserrat', sans-serif;
-}
-
-.modal-body {
-    padding: 20px;
-    color: #F0FFF0;
-    text-align: center;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 1.1rem;
-}
-
-.modal-body span {
-    color: #7FFF00;
-    font-weight: bold;
-}
-
-.modal-footer {
-    padding: 15px;
-    display: flex;
-    justify-content: space-around;
-    border-top: 1px solid #00FF7F;
-}
-
-.cancel-button, .confirm-button {
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-
-.cancel-button {
-    background-color: #333;
-    color: #FFF;
-    border: 1px solid #555;
-}
-
-.confirm-button {
-    background-color: #7FFF00;
-    color: #121212;
-    border: 1px solid #7FFF00;
-}
-
-.cancel-button:hover {
-    background-color: #444;
-}
-
-.confirm-button:hover {
-    background-color: #00FF7F;
-    box-shadow: 0 0 15px rgba(0, 255, 127, 0.5);
-}
-
-/* Your Team Display */
-.team-display {
-    margin: 30px auto;
-    width: 90%;
-    max-width: 1200px;
-    background: linear-gradient(145deg, #0f3d28 0%, #165831 50%, #0c3c22 100%);
-    border: 2px solid #00FF7F;
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 0 30px rgba(0, 255, 127, 0.3);
-}
-
-.team-display h2 {
-    text-align: center;
-    color: #7FFF00;
-    margin-top: 0;
-    font-family: 'Josefin Sans', sans-serif;
-}
-
-.your-team-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
-    padding: 10px;
-}
-
-.selected-golfer {
-    background: linear-gradient(145deg, #1e7d46 0%, #32CD32 100%);
-    border: 2px solid #7FFF00;
-    border-radius: 10px;
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 180px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.selected-golfer-name {
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: #FFF;
-    text-align: center;
-    margin-bottom: 5px;
-    font-family: 'Montserrat', sans-serif;
-}
-
-.selected-golfer-round {
-    font-size: 0.9rem;
-    color: #F0FFF0;
-    background: rgba(0, 0, 0, 0.2);
-    padding: 3px 8px;
-    border-radius: 5px;
-    margin-top: 5px;
-    font-family: 'Montserrat', sans-serif;
-}
-
-.empty-message {
-    color: #7FFF00;
-    font-style: italic;
-    text-align: center;
-    width: 100%;
-    font-family: 'Montserrat', sans-serif;
-}
-
-/* Responsive Design */
 @media (max-width: 768px) {
-    .container, .team-display {
-        width: 95%;
-        margin: 0 auto;
-        max-height: 450px;
+    .golfers-container {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     }
     
-    .picks-container {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 15px;
-        padding: 10px;
-    }
-    
-    .golfer-card {
-        padding: 10px;
-    }
-    
-    .golfer-name {
-        font-size: 1rem;
+    .golfer-header {
+        flex-direction: column;
+        align-items: flex-start;
     }
     
     .golfer-odds {
-        font-size: 0.9rem;
+        margin-top: 0.3rem;
     }
-    
-    .modal-content {
-        width: 95%;
+}
+
+@media (max-width: 480px) {
+    .golfers-container {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     }
 }

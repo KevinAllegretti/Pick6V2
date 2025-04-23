@@ -167,11 +167,12 @@ async function fetchAndSavePGAChampionshipOdds() {
   }
 }
 
+/*
 // Set up cron job to run weekly
 cron.schedule('41 14 * * 2', () => {
   console.log('Running weekly PGA Championship FanDuel odds update...');
   fetchAndSavePGAChampionshipOdds();
-});
+});*/
 
     async function fetchNFLScores() {
       console.log('fetchNFLScores function started.');
