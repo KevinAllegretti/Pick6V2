@@ -324,7 +324,7 @@ async function fetchDraftState() {
 function renderPicksContainer() {
     // Clear the current container
     pickContainer.innerHTML = '';
-    
+
     // If there are no golfers to display
     if (!golferOptions || golferOptions.length === 0) {
         const emptyMessage = document.createElement('div');
@@ -333,87 +333,172 @@ function renderPicksContainer() {
         pickContainer.appendChild(emptyMessage);
         return;
     }
-    
-    // Check if it's the current user's turn (only relevant in draft mode)
-    const isUserTurn = currentPoolState.draftTime && draftOrder[currentUserTurn] === storedUsername;
-    
-    // Add "your turn" class to turn indicator if it's the user's turn
-    const turnIndicator = document.querySelector('.turn-indicator');
-    if (isUserTurn) {
-        turnIndicator.classList.add('your-turn');
+
+    // --- Debugging the state right before turn calculation ---
+    console.log(`[DEBUG renderPicksContainer] Running. Round: ${currentDraftRound}, Turn Index: ${currentUserTurn}, Pool State:`, currentPoolState);
+    console.log(`[DEBUG renderPicksContainer] Draft Order:`, JSON.stringify(draftOrder)); // Log draft order
+    console.log(`[DEBUG renderPicksContainer] Stored Username: '${storedUsername}'`);     // Log username
+
+    // --- Determine who is picking ---
+    let currentUserForTurn = 'Unknown';
+    const numberOfDrafters = draftOrder.length;
+    let isUserTurn = false; // Default to false
+
+    if (draftOrder && numberOfDrafters > 0 && currentPoolState.draftTime) {
+        const isEvenRound = currentDraftRound % 2 === 0;
+        console.log(`[DEBUG renderPicksContainer] Is Even Round?: ${isEvenRound}`); // Debug
+
+        if (isEvenRound) {
+            // Even round (snake)
+            const reverseIndex = numberOfDrafters - 1 - currentUserTurn;
+            console.log(`[DEBUG renderPicksContainer] Even Round - Reverse Index: ${reverseIndex}`); // Debug
+            if (reverseIndex >= 0 && reverseIndex < numberOfDrafters) {
+                currentUserForTurn = draftOrder[reverseIndex];
+            } else {
+                 console.log(`[DEBUG renderPicksContainer] Calculated Reverse Index ${reverseIndex} is out of bounds for draftOrder length ${numberOfDrafters}`);
+            }
+        } else {
+            // Odd round (normal)
+             console.log(`[DEBUG renderPicksContainer] Odd Round - Turn Index: ${currentUserTurn}`); // Debug
+             if (currentUserTurn >= 0 && currentUserTurn < numberOfDrafters) {
+                currentUserForTurn = draftOrder[currentUserTurn];
+             } else {
+                  console.log(`[DEBUG renderPicksContainer] Turn Index ${currentUserTurn} is out of bounds for draftOrder length ${numberOfDrafters}`);
+             }
+        }
+        console.log(`[DEBUG renderPicksContainer] Calculated User For Turn: '${currentUserForTurn}'`); // Debug
+        // Perform the comparison
+        isUserTurn = currentUserForTurn === storedUsername;
+        console.log(`[DEBUG renderPicksContainer] Comparison Result: Is User Turn? ${isUserTurn} (Comparing '${currentUserForTurn}' vs '${storedUsername}')`); // Debug the final result
     } else {
-        turnIndicator.classList.remove('your-turn');
+         console.log(`[DEBUG renderPicksContainer] Turn calculation skipped. DraftTime: ${currentPoolState.draftTime}, Drafters: ${numberOfDrafters}`); // Debug why skipped
     }
-    
+    // --- End of turn determination ---
+
+
+    // Update turn indicator (can be redundant, but helps confirm)
+    const turnIndicator = document.querySelector('.turn-indicator');
+     if (turnIndicator) {
+         if (isUserTurn && currentPoolState.draftTime) { // Make sure draft is active for highlight
+            turnIndicator.classList.add('your-turn');
+        } else {
+            turnIndicator.classList.remove('your-turn');
+        }
+     }
+
     // Create the golfers grid
     const golfersContainer = document.createElement('div');
     golfersContainer.className = 'golfers-container';
-    
+
     // Render each golfer
     golferOptions.forEach(golfer => {
         const card = document.createElement('div');
         card.className = 'golfer-card';
         card.dataset.name = golfer.name;
-        
+
         // Check if golfer is already picked by any user
         let isPicked = false;
         let pickedBy = '';
-        
+
         Object.entries(allGolfPicks).forEach(([username, picks]) => {
-            const foundPick = picks.find(pick => pick.golferName === golfer.name);
-            if (foundPick) {
-                isPicked = true;
-                pickedBy = username === storedUsername ? 'You' : username;
+            // Ensure picks is an array before calling find
+            if (Array.isArray(picks)) {
+                const foundPick = picks.find(pick => pick.golferName === golfer.name);
+                if (foundPick) {
+                    isPicked = true;
+                    pickedBy = username === storedUsername ? 'You' : username;
+                }
+            } else {
+                 // Log if a user's picks aren't an array, might indicate data issue
+                 // console.warn(`[DEBUG renderPicksContainer] Picks for user '${username}' is not an array:`, picks);
             }
         });
-        
+
         // Set appropriate classes based on selection state
         if (isPicked) {
             card.classList.add('picked');
-        } else if (currentPoolState.draftTime && !isUserTurn) {
+        } else if (currentPoolState.draftTime && !isUserTurn) { // Condition for disabling
             card.classList.add('disabled');
+             console.log(`[DEBUG renderPicksContainer] Golfer '${golfer.name}': Adding 'disabled' class because isUserTurn is ${isUserTurn}`); // Debug disabling
         } else if (selectedGolfer && selectedGolfer.name === golfer.name) {
             card.classList.add('selected');
         }
-        
-        // Disable interaction if not in draft mode
+
+        // Disable interaction if not in draft mode (view-only state)
         if (!currentPoolState.draftTime) {
             card.classList.add('view-only');
         }
-        
+
         // Create card content
         card.innerHTML = `
             <div class="golfer-name">${golfer.name}</div>
             <div class="golfer-odds">Odds: ${golfer.oddsDisplay || golfer.odds}</div>
             ${isPicked ? `<div class="picked-by">Picked by: ${pickedBy}</div>` : ''}
         `;
-        
-        // Add click event handler only in draft mode and if it's the user's turn
-        if (currentPoolState.draftTime && !isPicked && isUserTurn) {
+
+        // Add click event handler only in draft mode, if not picked, AND if it's the user's turn
+        if (currentPoolState.draftTime && !isPicked && isUserTurn) { // Condition for adding listener
             card.addEventListener('click', () => handleGolferSelection(golfer));
+             console.log(`[DEBUG renderPicksContainer] Golfer '${golfer.name}': Adding click listener because isUserTurn is ${isUserTurn}`); // Debug adding listener
+        } else {
+             // Optional: Log why listener wasn't added for non-picked golfers during draft time
+             if(currentPoolState.draftTime && !isPicked && !isUserTurn) {
+                 console.log(`[DEBUG renderPicksContainer] Golfer '${golfer.name}': NOT adding listener. DraftTime: ${currentPoolState.draftTime}, isPicked: ${isPicked}, isUserTurn: ${isUserTurn}`);
+             }
         }
-        
+
         golfersContainer.appendChild(card);
     });
-    
+
     pickContainer.appendChild(golfersContainer);
 }
-
+/**
+ * Update the draft status indicators
+ */
 /**
  * Update the draft status indicators
  */
 function updateDraftStatus() {
     currentRoundSpan.textContent = currentDraftRound;
-    
-    // Get the username of the current user's turn
-    const currentUser = draftOrder[currentUserTurn] || 'Unknown';
-    currentUserNameSpan.textContent = currentUser === storedUsername ? 'Your' : `${currentUser}'s`;
-    
-    // Highlight if it's the current user's turn
-    if (currentUser === storedUsername) {
-        document.querySelector('.turn-indicator').classList.add('your-turn');
+
+    let currentUser = 'Unknown';
+    const numberOfDrafters = draftOrder.length; // Get the number of users
+
+    if (draftOrder && numberOfDrafters > 0) {
+        const isEvenRound = currentDraftRound % 2 === 0;
+
+        if (isEvenRound) {
+            // Even round (snake): Calculate the index from the end of the draftOrder
+            const reverseIndex = numberOfDrafters - 1 - currentUserTurn;
+            // Ensure the calculated index is valid
+            if (reverseIndex >= 0 && reverseIndex < numberOfDrafters) {
+                currentUser = draftOrder[reverseIndex];
+            }
+        } else {
+            // Odd round (normal): Use the currentUserTurn directly
+            // Ensure the index is valid
+             if (currentUserTurn >= 0 && currentUserTurn < numberOfDrafters) {
+                currentUser = draftOrder[currentUserTurn];
+             }
+        }
+    }
+
+    // Display the calculated user, checking if it's the logged-in user
+    currentUserNameSpan.textContent = currentUser === storedUsername ? 'Your' : `${currentUser}`;
+
+    // Highlight if it's the current user's turn based on the correct calculation
+    const isMyTurn = currentUser === storedUsername;
+    const turnIndicator = document.querySelector('.turn-indicator'); // Make sure this selector is correct
+
+    // Add a check to ensure the element exists before modifying classList
+    if (turnIndicator) {
+        if (isMyTurn && currentPoolState.draftTime) { // Also check if drafting is active
+           turnIndicator.classList.add('your-turn');
+        } else {
+            turnIndicator.classList.remove('your-turn');
+        }
     } else {
-        document.querySelector('.turn-indicator').classList.remove('your-turn');
+        console.warn('Could not find element with class .turn-indicator');
     }
 }
 
@@ -438,34 +523,76 @@ function handleGolferSelection(golfer) {
 async function handleGolferConfirmation() {
     // Close the modal
     closeConfirmationModal();
-    
+
     // Show loading state
     const loadingDiv = document.createElement('div');
     loadingDiv.id = 'submittingPick';
-    loadingDiv.className = 'status-message';
+    loadingDiv.className = 'status-message'; // Use the same class for consistency
     loadingDiv.innerHTML = `
         <h2>Submitting Your Pick</h2>
         <p>Please wait while we process your selection...</p>
     `;
-    document.querySelector('.container').appendChild(loadingDiv);
-    
-    // Validate that it's still the user's turn
-    const isUserTurn = draftOrder[currentUserTurn] === storedUsername;
-    if (!isUserTurn) {
-        clearStatusMessages();
-        showErrorMessage("It's no longer your turn. Please wait for your next turn.");
-        return;
+    // Append loading message consistently (e.g., within the controls container or body)
+     const controlsContainer = document.querySelector('.controls-container');
+     if (controlsContainer) {
+         controlsContainer.appendChild(loadingDiv);
+     } else {
+         document.body.appendChild(loadingDiv); // Fallback
+     }
+
+
+    // --- CORRECTED VALIDATION ---
+    let currentUserForTurn = 'Unknown';
+    const numberOfDrafters = draftOrder.length;
+    let isValidTurn = false; // Use a flag
+
+    if (draftOrder && numberOfDrafters > 0 && currentPoolState.draftTime) { // Check draftTime too
+        const isEvenRound = currentDraftRound % 2 === 0;
+        if (isEvenRound) {
+            // Even round (snake)
+            const reverseIndex = numberOfDrafters - 1 - currentUserTurn;
+            if (reverseIndex >= 0 && reverseIndex < numberOfDrafters) {
+                currentUserForTurn = draftOrder[reverseIndex];
+            }
+        } else {
+            // Odd round (normal)
+             if (currentUserTurn >= 0 && currentUserTurn < numberOfDrafters) {
+                currentUserForTurn = draftOrder[currentUserTurn];
+             }
+        }
+        // Final check: Does the calculated current user match the logged-in user?
+        isValidTurn = currentUserForTurn === storedUsername;
     }
-    
+    // --- END OF CORRECTION ---
+
+
+    // Check the validation result
+    if (!isValidTurn) {
+        // Remove the loading message before showing the error
+        const submittingDiv = document.getElementById('submittingPick');
+        if (submittingDiv) submittingDiv.remove();
+        // clearStatusMessages(); // Or use this if it also removes the loading message
+
+        showErrorMessage("It's no longer your turn. Please wait for your next turn.");
+        console.warn(`Validation Failed in handleGolferConfirmation: Expected turn for ${currentUserForTurn}, but current user is ${storedUsername}. Round: ${currentDraftRound}, Turn Index: ${currentUserTurn}`);
+        return; // Stop execution
+    }
+
+    // --- If validation passes, proceed with submitting ---
     try {
+        // Ensure a golfer is actually selected before proceeding
+        if (!selectedGolfer) {
+             throw new Error("No golfer selected to confirm.");
+        }
+
         // Prepare the pick data
         const pickData = {
             golferName: selectedGolfer.name,
             round: currentDraftRound,
-            odds: selectedGolfer.odds,
+            odds: selectedGolfer.odds, // Make sure odds are included if needed by backend
             timestamp: new Date().toISOString()
         };
-        
+
         // Submit the pick
         const response = await fetch(`/api/submitGolfPick/${storedUsername}/${selectedPool}`, {
             method: 'POST',
@@ -474,38 +601,63 @@ async function handleGolferConfirmation() {
             },
             body: JSON.stringify(pickData)
         });
-        
+
+        // Remove the loading message regardless of success or failure below
+        const submittingDiv = document.getElementById('submittingPick');
+        if (submittingDiv) submittingDiv.remove();
+        // clearStatusMessages(); // Or use this
+
         if (!response.ok) {
-            throw new Error('Failed to submit pick');
+             // Try to get a more specific error message from the server response
+            let errorMsg = `Failed to submit pick (${response.status})`;
+            try {
+                const errorData = await response.json();
+                errorMsg = errorData.message || errorMsg; // Use server message if available
+            } catch (e) {
+                // Ignore if response is not JSON
+            }
+            console.error("Server error response:", errorMsg);
+            throw new Error(errorMsg); // Throw the specific error
         }
-        
-        // Add the pick to the user's picks
+
+        // --- Pick submitted successfully ---
+
+        // Add the pick to the local user's picks array
         userGolfPicks.push(pickData);
-        
-        // Clear the selected golfer
+
+        // Clear the selected golfer state
         selectedGolfer = null;
-        
-        // Remove loading state
-        clearStatusMessages();
-        
+
         // Show success message
         showSuccessMessage(`Successfully selected ${pickData.golferName}`);
-        
-        // Update UI
+
+        // Update the 'Your Team' display immediately
         updateYourTeamDisplay();
-        
-        // Wait for server to update the draft state
-        setTimeout(async () => {
-            await fetchDraftState();
-            await fetchAllPoolPicks();
-            renderPicksContainer();
-            updateDraftStatus();
-        }, 1000);
-        
+
+        // OPTIONAL: Immediately fetch state update or rely on polling.
+        // Polling (already running) is often sufficient. Fetching here gives quicker feedback
+        // but might be redundant. Let's comment it out for now and rely on polling.
+        /*
+        console.log("Fetching updated state after successful pick...");
+        await fetchDraftState();
+        await fetchAllPoolPicks();
+        renderPicksContainer(); // Re-render golfer list (disabling the picked one)
+        updateDraftStatus(); // Update the status display
+        */
+
     } catch (error) {
-        console.error('Error submitting pick:', error);
-        clearStatusMessages();
-        showErrorMessage('Failed to submit pick. Please try again.');
+        console.error('Error during pick submission process:', error);
+
+         // Ensure loading message is removed on error
+        const submittingDiv = document.getElementById('submittingPick');
+        if (submittingDiv) submittingDiv.remove();
+        // clearStatusMessages();
+
+        // Show a user-friendly error message (use error.message if available)
+        showErrorMessage(error.message || 'An error occurred while submitting your pick. Please try again.');
+
+        // Clear selected golfer state so user doesn't retry the same failed action easily
+        selectedGolfer = null;
     }
 }
 

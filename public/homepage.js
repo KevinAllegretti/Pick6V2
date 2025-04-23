@@ -7091,7 +7091,7 @@ async function displayGolfPoolContainer(pool) {
   tableHeader.className = "golf-table-header";
   tableHeader.innerHTML = `
     <div class="golf-header-user">USER</div>
-    <div class="golf-header-picks">SELECTIONS</div>
+    <div class="golf-header-picks">PICKS</div>
     <div class="golf-header-sum">SCORE</div>
   `;
   

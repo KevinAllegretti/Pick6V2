@@ -167,6 +167,8 @@ router.get('/getDraftState/:poolName', async (req, res) => {
     }
 });
 
+// Inside golfRoutes.ts
+
 /**
  * Submit a golf pick
  * @route POST /api/submitGolfPick/:username/:poolName
@@ -175,90 +177,127 @@ router.post('/submitGolfPick/:username/:poolName', async (req, res) => {
     try {
         const { username, poolName } = req.params;
         const pick = req.body;
-        
+
         // Validate required fields
         if (!pick.golferName || !pick.round) {
             return res.status(400).json({ success: false, message: 'Golfer name and round are required' });
         }
-        
+
         const database = await connectToDatabase();
         const poolsCollection = database.collection('pools');
         const golfDraftStateCollection = database.collection('golfDraftState');
         const userGolfPicksCollection = database.collection('userGolfPicks');
-        
+
         // Get the pool to check if it's in draft mode
         const pool = await poolsCollection.findOne({ name: poolName, mode: 'golf' });
         if (!pool) {
             return res.status(404).json({ success: false, message: 'Pool not found or not a golf pool' });
         }
-        
+
         if (!pool.draftTime) {
             return res.status(400).json({ success: false, message: 'Pool is not in draft mode' });
         }
-        
+
         // Get the draft state
         const draftState = await golfDraftStateCollection.findOne({ poolName });
         if (!draftState) {
             return res.status(404).json({ success: false, message: 'Draft state not found' });
         }
-        
-        // Verify it's this user's turn
-        const currentTurnUser = draftState.draftOrder[draftState.currentTurn];
-        if (currentTurnUser.toLowerCase() !== username.toLowerCase()) {
+
+        // --- CORRECTED BACKEND TURN VALIDATION ---
+        let expectedUserForTurn = 'Unknown';
+        const numberOfDrafters = draftState.draftOrder ? draftState.draftOrder.length : 0; // Check if draftOrder exists
+
+        if (draftState.draftOrder && numberOfDrafters > 0) {
+            const isEvenRound = draftState.currentRound % 2 === 0;
+
+            if (isEvenRound) {
+                // Even round (snake): Calculate the index from the end
+                const reverseIndex = numberOfDrafters - 1 - draftState.currentTurn;
+                if (reverseIndex >= 0 && reverseIndex < numberOfDrafters) {
+                    expectedUserForTurn = draftState.draftOrder[reverseIndex];
+                } else {
+                    console.error(`Backend Validation Error: Calculated Reverse Index ${reverseIndex} out of bounds.`);
+                }
+            } else {
+                // Odd round (normal): Use the currentTurn index directly
+                if (draftState.currentTurn >= 0 && draftState.currentTurn < numberOfDrafters) {
+                    expectedUserForTurn = draftState.draftOrder[draftState.currentTurn];
+                } else {
+                     console.error(`Backend Validation Error: Current Turn Index ${draftState.currentTurn} out of bounds.`);
+                }
+            }
+             console.log(`Backend Validation: Round ${draftState.currentRound}, Turn ${draftState.currentTurn}, Expected User: ${expectedUserForTurn}`);
+        } else {
+             console.error(`Backend Validation Error: Draft order not found or empty for pool ${poolName}`);
+        }
+
+        // Compare the calculated expected user (lowercase) with the user making the request (lowercase)
+        if (expectedUserForTurn.toLowerCase() !== username.toLowerCase()) {
+             console.error(`Turn Validation Failed (Backend): Expected ${expectedUserForTurn}, Got ${username}. Round: ${draftState.currentRound}, Turn Index: ${draftState.currentTurn}`);
+            // Send the specific error message that the frontend is receiving
             return res.status(400).json({ success: false, message: 'It is not your turn to draft' });
         }
-        
-        // Check if already picked in this round
+        // --- END OF CORRECTION ---
+
+
+        // Check if already picked in this round (Existing logic)
         const userPicks = await userGolfPicksCollection.findOne({
             username: username.toLowerCase(),
             poolName
         });
-        
+
         if (userPicks && userPicks.golfers) {
             const existingRoundPick = userPicks.golfers.find((g: any) => g.round === pick.round);
             if (existingRoundPick) {
                 return res.status(400).json({ success: false, message: 'You already made a pick for this round' });
             }
         }
-        
-        // Check if this golfer is already picked
+
+        // Check if this golfer is already picked (Existing logic)
         const allPoolPicks = await userGolfPicksCollection.find({ poolName }).toArray();
-        for (const userPick of allPoolPicks) {
-            const golferAlreadyPicked = userPick.golfers && userPick.golfers.find((g: any) => g.golferName === pick.golferName);
-            if (golferAlreadyPicked) {
-                return res.status(400).json({ success: false, message: 'This golfer has already been drafted' });
+        for (const userPickDoc of allPoolPicks) {
+            // Ensure userPickDoc.golfers exists and is an array
+            if (userPickDoc.golfers && Array.isArray(userPickDoc.golfers)) {
+                const golferAlreadyPicked = userPickDoc.golfers.find((g: any) => g.golferName === pick.golferName);
+                if (golferAlreadyPicked) {
+                    return res.status(400).json({ success: false, message: `This golfer (${pick.golferName}) has already been drafted by ${userPickDoc.username}` });
+                }
             }
         }
-        
-        // Save the pick
+
+        // Save the pick (Existing logic)
         await userGolfPicksCollection.updateOne(
             { username: username.toLowerCase(), poolName },
-            { 
+            {
                 $push: { golfers: pick },
                 $setOnInsert: { username: username.toLowerCase(), poolName }
             },
             { upsert: true }
         );
-        
-        // Update the draft state to advance to the next user's turn
-        const totalUsers = draftState.draftOrder.length;
-        const nextTurn = (draftState.currentTurn + 1) % totalUsers;
+
+        // Update the draft state to advance to the next user's turn (Existing logic)
+        const nextTurn = (draftState.currentTurn + 1) % numberOfDrafters; // Use calculated numberOfDrafters
         let nextRound = draftState.currentRound;
-        
-        // If we've gone through all users, increment the round
-        if (nextTurn === 0 && draftState.currentRound < 6) {
+
+        // If we've gone through all users AND it's not the last round, increment the round
+        // Ensure numberOfDrafters is valid before checking nextTurn
+        if (numberOfDrafters > 0 && nextTurn === 0 && draftState.currentRound < 6) {
             nextRound++;
         }
-        
-        // Check if draft is complete (after round 6)
+
+        // Check if draft is complete (after round 6 pick by the last person in that round's sequence)
         let isComplete = false;
-        if (draftState.currentRound === 6 && nextTurn === 0) {
-            isComplete = true;
+         // Draft is complete if it was the last turn of the last round
+        if (draftState.currentRound === 6 && nextTurn === 0 && numberOfDrafters > 0) {
+           isComplete = true;
+           console.log(`Draft for pool ${poolName} marked as complete.`);
         }
-        
+
+
         await golfDraftStateCollection.updateOne(
             { poolName },
-            { 
+            {
                 $set: {
                     currentTurn: nextTurn,
                     currentRound: nextRound,
@@ -266,12 +305,12 @@ router.post('/submitGolfPick/:username/:poolName', async (req, res) => {
                 }
             }
         );
-        
-        // If draft is complete, update pool state to PlayTime
+
+        // If draft is complete, update pool state to PlayTime (Existing logic)
         if (isComplete) {
             await poolsCollection.updateOne(
                 { name: poolName, mode: 'golf' },
-                { 
+                {
                     $set: {
                         idleTime: false,
                         draftTime: false,
@@ -279,9 +318,11 @@ router.post('/submitGolfPick/:username/:poolName', async (req, res) => {
                     }
                 }
             );
+            console.log(`Pool state for ${poolName} updated to PlayTime.`);
         }
-        
+
         res.json({ success: true, message: 'Pick submitted successfully' });
+
     } catch (error) {
         console.error('Error submitting golf pick:', error);
         res.status(500).json({ success: false, message: 'Failed to submit golf pick' });
