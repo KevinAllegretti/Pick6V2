@@ -6862,26 +6862,24 @@ async function fetchGolfPicks(username, poolName) {
   }
 }
 
-// Modify the createGolfPlayerRow function to use the fetched picks
-async function createGolfPlayerRow(member, currentUsername, pool, phase) {
+async function createGolfPlayerRow(member, currentUsername, pool, phase, golfDraftState = null) {
   const playerRow = document.createElement("div");
   playerRow.className = "golf-player-row";
-  
+
   // Highlight current user
   if (member.username.toLowerCase() === currentUsername.toLowerCase()) {
-    playerRow.classList.add("current-user-row");
+      playerRow.classList.add("current-user-row");
   }
-  
-  // Create user section with improved styling
+
+  // Create user section
   const userSection = document.createElement("div");
-  userSection.className = "golf-player-user";
-  
-  // Get profile pic (default if none exists)
+  userSection.className = "golf-player-user"; // This div will contain pic, name, and potentially the clock icon
+
+  // Profile Pic
   const profilePic = document.createElement("div");
   profilePic.className = "golf-profile-pic";
-  profilePic.style.backgroundImage = `url('Default.png')`;
-  
-  // Fetch profile pic if available
+  profilePic.style.backgroundImage = `url('Default.png')`; // Default
+
   fetchUserProfile(member.username.toLowerCase())
     .then(userProfile => {
       if (userProfile && userProfile.profilePicture) {
@@ -6891,110 +6889,156 @@ async function createGolfPlayerRow(member, currentUsername, pool, phase) {
     .catch(err => {
       console.error(`Error fetching profile for ${member.username}:`, err);
     });
-  
-  // Username
+
+  // Username Span
   const usernameSpan = document.createElement("span");
   usernameSpan.className = "player-username";
   usernameSpan.textContent = member.username;
-  
+
+  // Append Pic and Username to User Section FIRST
   userSection.appendChild(profilePic);
   userSection.appendChild(usernameSpan);
+
+  // --- Add "On the Clock" Indicator IF applicable, appended to userSection ---
+  if (phase === "Draft" && golfDraftState && golfDraftState.draftOrder && golfDraftState.draftOrder.length > 0) {
+      let currentUserOnClock = 'Unknown';
+      const numberOfDrafters = golfDraftState.draftOrder.length;
+      const isEvenRound = golfDraftState.currentRound % 2 === 0;
+
+      if (isEvenRound) {
+          const reverseIndex = numberOfDrafters - 1 - golfDraftState.currentTurn;
+          if (reverseIndex >= 0 && reverseIndex < numberOfDrafters) {
+              currentUserOnClock = golfDraftState.draftOrder[reverseIndex];
+          }
+      } else {
+          if (golfDraftState.currentTurn >= 0 && golfDraftState.currentTurn < numberOfDrafters) {
+              currentUserOnClock = golfDraftState.draftOrder[golfDraftState.currentTurn];
+          }
+      }
+
+      // Compare lowercase usernames
+      if (currentUserOnClock.toLowerCase() === member.username.toLowerCase()) {
+          console.log(`Match! Adding clock icon for ${member.username}`); // Debug
+          const clockIcon = document.createElement('i');
+          clockIcon.className = 'fas fa-clock golf-on-the-clock'; // Added FontAwesome classes
+          clockIcon.title = 'On the Clock';
+          userSection.appendChild(clockIcon); // *** Append icon HERE, after the username span ***
+      }
+  }
+  // --- End Indicator ---
+
+  // Append the completed userSection (Pic, Name, maybe Clock) to the row
   playerRow.appendChild(userSection);
-  
-  // Create picks section with improved styling
+
+  // Create picks section (Add loading indicator initially)
   const picksSection = document.createElement("div");
   picksSection.className = "golf-player-picks";
-  
-  // Add loading indicator
   const loadingDiv = document.createElement("div");
   loadingDiv.className = "loading-picks";
   loadingDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
   picksSection.appendChild(loadingDiv);
-  
   playerRow.appendChild(picksSection);
-  
-  // Create SCORE section with improved styling
+
+  // Create SCORE section
   const sumSection = document.createElement("div");
   sumSection.className = "golf-player-sum";
   sumSection.textContent = "-"; // Default
   playerRow.appendChild(sumSection);
 
-  // Fetch picks after creating the row structure
+  // --- ASYNCHRONOUSLY Fetch and Populate Picks/Score ---
+  // (This part runs after the initial row structure is returned)
   if (phase !== "Joining") {
-    try {
-      const golfPicksData = await fetchGolfPicks(member.username, pool.name);
-      
-      // Clear loading indicator
-      picksSection.innerHTML = '';
-      
-      if (golfPicksData.picks && golfPicksData.picks.length > 0) {
-        // Create a flex container for picks
-        const picksContainer = document.createElement("div");
-        picksContainer.className = "golf-picks-container";
-        
-        let totalScore = 0;
-        
-        // Create individual pick elements for each selection
-        golfPicksData.picks.forEach(pick => {
-          const pickElement = document.createElement("div");
-          pickElement.className = "golf-pick";
-          
-          if (phase === "Draft") {
-            pickElement.innerHTML = `
-              <span class="golf-pick-round">R${pick.round || '?'}</span>
-              <span class="golf-pick-name">${pick.golferName}</span>
-            `;
-          } else if (phase === "Tournament") {
-            const score = pick.score || 0;
-            totalScore += score;
-            
-            const scoreDisplay = score > 0 ? `+${score}` : score;
-            const scoreClass = score > 0 ? 'score-over' : (score < 0 ? 'score-under' : 'score-even');
-            
-            pickElement.innerHTML = `
-              <span class="golf-pick-name">${pick.golferName}</span>
-              <span class="golf-pick-score ${scoreClass}">${scoreDisplay}</span>
-            `;
+      try {
+          const golfPicksData = await fetchGolfPicks(member.username, pool.name);
+
+          // Clear loading indicator from picks section
+          picksSection.innerHTML = '';
+
+          if (golfPicksData.success && golfPicksData.picks && golfPicksData.picks.length > 0) {
+              const picksContainer = document.createElement("div");
+              picksContainer.className = "golf-picks-container";
+              let totalScore = 0;
+              let validScoresCount = 0; // Count golfers with valid scores
+
+               // Sort picks by round before displaying
+               golfPicksData.picks.sort((a, b) => (a.round || 99) - (b.round || 99));
+
+
+              golfPicksData.picks.forEach(pick => {
+                  const pickElement = document.createElement("div");
+                  pickElement.className = "golf-pick";
+
+                  if (phase === "Draft") {
+                      pickElement.innerHTML = `
+                          <span class="golf-pick-round">R${pick.round || '?'}</span>
+                          <span class="golf-pick-name">${pick.golferName}</span>
+                      `;
+                  } else if (phase === "Tournament") {
+                       // Use score from fetched data if available, default to 0 otherwise
+                       const score = typeof pick.score === 'number' ? pick.score : 0;
+                       // Only include in total score calculation if it's a valid number
+                       if (typeof pick.score === 'number') {
+                          totalScore += score;
+                          validScoresCount++;
+                       }
+
+                      const scoreDisplay = typeof pick.score !== 'number' ? '-' : (score === 0 ? 'E' : (score > 0 ? `+${score}` : score));
+                      const scoreClass = typeof pick.score !== 'number' ? 'score-tbd' : (score > 0 ? 'score-over' : (score < 0 ? 'score-under' : 'score-even'));
+
+                      pickElement.innerHTML = `
+                          <span class="golf-pick-name">${pick.golferName}</span>
+                          <span class="golf-pick-score ${scoreClass}">${scoreDisplay}</span>
+                      `;
+                  }
+                  picksContainer.appendChild(pickElement);
+              });
+              picksSection.appendChild(picksContainer);
+
+              // Update score section for Tournament phase using only golfers with scores
+              if (phase === "Tournament" && validScoresCount > 0) {
+                   // Calculate sum based on the best 4 scores if available, else all scores
+                   const scores = golfPicksData.picks
+                      .map(p => typeof p.score === 'number' ? p.score : Infinity) // Map to score or infinity
+                      .filter(s => s !== Infinity) // Filter out non-scores
+                      .sort((a, b) => a - b); // Sort scores ascending
+
+                   const scoresToSum = scores.slice(0, 4); // Take the best (lowest) 4 scores
+                   const finalTotalScore = scoresToSum.reduce((sum, score) => sum + score, 0);
+
+
+                  const formattedScore = finalTotalScore === 0 ? 'E' : (finalTotalScore > 0 ? `+${finalTotalScore}` : finalTotalScore);
+                  const scoreClass = finalTotalScore > 0 ? 'score-over' : (finalTotalScore < 0 ? 'score-under' : 'score-even');
+                  sumSection.innerHTML = `<span class="${scoreClass}">${formattedScore}</span>`;
+              } else if (phase === "Tournament") {
+                  sumSection.textContent = "-"; // Show dash if no valid scores yet
+              } else if (phase === "Draft") {
+                   sumSection.textContent = "-"; // Show dash during draft
+              }
+
+          } else {
+              // Handle case where picks array is empty or fetch failed but didn't throw error
+              const noPicks = document.createElement("div");
+              noPicks.className = phase === "Draft" ? "no-picks-yet" : "no-picks";
+              noPicks.textContent = phase === "Draft" ? "No selections yet" : "No golfers selected";
+              picksSection.appendChild(noPicks);
+              sumSection.textContent = "-"; // Show dash if no picks
           }
-          
-          picksContainer.appendChild(pickElement);
-        });
-        
-        picksSection.appendChild(picksContainer);
-        
-        // Update score section for Tournament phase
-        if (phase === "Tournament" && golfPicksData.picks.length > 0) {
-          const avgScore = totalScore / golfPicksData.picks.length;
-          const formattedScore = avgScore > 0 ? `+${avgScore.toFixed(1)}` : avgScore.toFixed(1);
-          const scoreClass = avgScore > 0 ? 'score-over' : (avgScore < 0 ? 'score-under' : 'score-even');
-          
-          sumSection.innerHTML = `<span class="${scoreClass}">${formattedScore}</span>`;
-        }
-      } else {
-        const noPicks = document.createElement("div");
-        noPicks.className = phase === "Draft" ? "no-picks-yet" : "no-picks";
-        noPicks.textContent = phase === "Draft" ? "No selections yet" : "No golfers selected";
-        picksSection.appendChild(noPicks);
+      } catch (error) {
+          console.error(`Error loading picks/score for ${member.username}:`, error);
+          picksSection.innerHTML = '<div class="picks-error">Error</div>'; // Simple error in picks section
+          sumSection.textContent = "ERR"; // Indicate error in score
       }
-    } catch (error) {
-      console.error(`Error loading picks for ${member.username}:`, error);
-      
-      // Show error message
-      picksSection.innerHTML = '';
-      const errorDiv = document.createElement("div");
-      errorDiv.className = "picks-error";
-      errorDiv.textContent = "Failed to load picks";
-      picksSection.appendChild(errorDiv);
-    }
   } else {
-    // If in Joining phase, update with waiting message
-    picksSection.innerHTML = '';
-    const waitingDiv = document.createElement("div");
-    waitingDiv.className = "waiting-for-draft";
-    waitingDiv.textContent = "Waiting for draft to begin";
-    picksSection.appendChild(waitingDiv);
+      // If in Joining phase, clear loading and show waiting message
+      picksSection.innerHTML = '';
+      const waitingDiv = document.createElement("div");
+      waitingDiv.className = "waiting-for-draft";
+      waitingDiv.textContent = "Waiting for draft to begin";
+      picksSection.appendChild(waitingDiv);
+      sumSection.textContent = "-"; // Show dash during joining phase
   }
-  
+  // --- END ASYNC PART ---
+
   return playerRow;
 }
 
@@ -7086,6 +7130,16 @@ async function displayGolfPoolContainer(pool) {
   poolHeaderContainer.appendChild(headerBottom);
   poolWrapper.appendChild(poolHeaderContainer);
   
+
+  let golfDraftState = null; // Variable to hold draft state for this pool
+    if (pool.draftTime) {
+        console.log(`Pool ${pool.name} is in draft time, fetching state...`);
+        golfDraftState = await fetchGolfDraftState(pool.name); // Fetch state if drafting
+         if (!golfDraftState) {
+             console.warn(`Could not fetch draft state for ${pool.name}, indicator will not be shown.`);
+         }
+    }
+
   // Create table header with improved styling
   const tableHeader = document.createElement("div");
   tableHeader.className = "golf-table-header";
@@ -7108,7 +7162,7 @@ async function displayGolfPoolContainer(pool) {
   // Process members and create rows
   // Since createGolfPlayerRow is now async, we need to handle this differently
   const playerRowPromises = pool.members.map(member => 
-    createGolfPlayerRow(member, username, pool, phaseText)
+    createGolfPlayerRow(member, username, pool, phaseText, golfDraftState) // Pass draft state
   );
   
   // Wait for all player rows to be created
@@ -7132,12 +7186,8 @@ async function displayGolfPoolContainer(pool) {
     poolWrapper.appendChild(golfSelectionsBtn);
   }*/
   
-  // Add chat template
-  const chatTemplate = document.getElementById("chat-template")?.content.cloneNode(true);
-  if (chatTemplate) {
-    poolWrapper.appendChild(chatTemplate);
-  }
-  
+
+
   orderedContainer.appendChild(poolWrapper);
   
   // Update pool actions list
@@ -7237,5 +7287,21 @@ async function loadAndDisplayUserPools() {
     
   } catch (error) {
     console.error('Error fetching or processing pools:', error);
+  }
+}
+
+async function fetchGolfDraftState(poolName) {
+  try {
+      const response = await fetch(`/api/getDraftState/${encodeURIComponent(poolName)}`);
+      if (!response.ok) {
+          console.error(`Failed to fetch draft state for ${poolName}: ${response.status}`);
+          return null; // Return null on failure
+      }
+      const data = await response.json();
+      console.log(`Draft state for ${poolName}:`, data); // Debug log
+      return data; // Return the fetched data
+  } catch (error) {
+      console.error(`Error fetching draft state for ${poolName}:`, error);
+      return null;
   }
 }
