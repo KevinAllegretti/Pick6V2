@@ -954,11 +954,7 @@ body {
   
   html, body {
     background-color: var(--main-bg);
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
+
   }
   
   /* iOS status bar specific (for PWAs) */
