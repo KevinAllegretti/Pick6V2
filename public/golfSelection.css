@@ -947,3 +947,33 @@ body {
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     }
 }
+
+:root {
+    --main-bg: #0e3122;
+  }
+  
+  html, body {
+    background-color: var(--main-bg);
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+  
+  /* iOS status bar specific (for PWAs) */
+  @supports (-webkit-touch-callout: none) {
+    body {
+      /* Set status bar color for iOS PWAs */
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  }
+  
+  /* For WebViews - ensures full bleed */
+  .container {
+    background-color: var(--main-bg);
+    min-height: 100vh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
