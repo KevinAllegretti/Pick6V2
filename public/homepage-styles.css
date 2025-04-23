@@ -7533,3 +7533,85 @@ margin-bottom: -10px;
 .golf-picks-button:hover {
   background-color: #4a8f38;
 }
+
+/* Container for golf picks */
+.golf-picks-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, auto);
+  gap: 12px;
+  padding: 15px;
+  width: 100%;
+}
+
+/* Individual pick styling with improved aesthetics */
+.golf-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.2));
+  border: 1px solid rgba(57, 255, 20, 0.4);
+  border-radius: 8px;
+
+  text-align: center;
+  height: 100%;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.golf-pick:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3), 0 0 15px rgba(57, 255, 20, 0.3);
+  border-color: rgba(57, 255, 20, 0.8);
+}
+
+/* Golfer name styling */
+.golfer-name {
+  font-weight: bold;
+  font-size: 14px;
+  color: white;
+  margin-bottom: 5px;
+}
+
+/* Score styling */
+.golfer-score {
+  font-family: 'Quantico', sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+
+/* Clean up the overall table layout */
+.golf-player-row, .golf-table-header {
+  display: grid;
+  grid-template-columns: 0.8fr 3fr 0.6fr;
+  align-items: center;
+}
+
+/* Add some styling to the header */
+.golf-table-header {
+  background: linear-gradient(to right, rgba(57, 255, 20, 0.1), rgba(57, 255, 20, 0.2));
+  border-bottom: 2px solid rgba(57, 255, 20, 0.5);
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+/* Better score display */
+.golf-player-sum {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  font-weight: bold;
+  height: 100%;
+}
+
+
+
+/* Add special styling for player names */
+.player-username {
+  font-weight: 500;
+  color: white;
+  font-size: 15px;
+}
