@@ -291,7 +291,7 @@ router.post('/submitGolfPick/:username/:poolName', async (req, res) => {
 /**
  * Start the draft for a pool (Admin only)
  * @route POST /api/startGolfDraft/:poolName
-
+*/
 router.post('/startGolfDraft/:poolName', async (req, res) => {
     try {
         const { poolName } = req.params;
@@ -334,7 +334,7 @@ router.post('/startGolfDraft/:poolName', async (req, res) => {
         }
         
         // Create a randomized draft order
-        const draftOrder = members.map((member: any) => member.username);
+        const draftOrder: string[] = members.map((member: any) => member.username);
         // Fisher-Yates shuffle algorithm
         for (let i = draftOrder.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -342,7 +342,7 @@ router.post('/startGolfDraft/:poolName', async (req, res) => {
         }
         
         // Create snake draft order for all 6 rounds
-        const fullDraftOrder = [];
+        const fullDraftOrder: string[] = [];
         for (let round = 1; round <= 6; round++) {
             if (round % 2 === 1) {
                 // Odd rounds go in order
@@ -394,5 +394,29 @@ router.post('/startGolfDraft/:poolName', async (req, res) => {
         res.status(500).json({ success: false, message: 'Failed to start draft' });
     }
 });
- */
+
+// Add this to your golfRoutes.ts file
+router.get('/golfPicks/:username/:poolName', async (req, res) => {
+    try {
+      const { username, poolName } = req.params;
+      
+      const database = await connectToDatabase();
+      const userGolfPicksCollection = database.collection('userGolfPicks');
+      
+      const userPicks = await userGolfPicksCollection.findOne({
+        username: username.toLowerCase(),
+        poolName
+      });
+      
+      if (!userPicks) {
+        return res.json({ success: true, picks: [] });
+      }
+      
+      res.json({ success: true, picks: userPicks.golfers || [] });
+    } catch (error) {
+      console.error('Error fetching golf picks:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch golf picks' });
+    }
+  });
+ 
 export default router;
