@@ -7204,7 +7204,6 @@ input:checked + .slider:before {
 
 /* Picks section */
 .golf-player-picks {
-  padding: 10px 15px;
   border-right: 1px solid var(--golf-border);
   color: var(--golf-text);
 }
@@ -7614,4 +7613,98 @@ margin-bottom: -10px;
   font-weight: 500;
   color: white;
   font-size: 15px;
+}
+
+
+
+/* Modified Golf Player Picks - Single Line Layout */
+.golf-player-picks { 
+  flex: 2;
+  display: flex;
+  flex-wrap: nowrap; /* Change from wrap to nowrap */
+  gap: 5px;
+  overflow-x: auto; /* Allow horizontal scrolling if needed */
+  min-height: 70px; /* Ensure consistent height */
+  align-items: center;
+}
+
+/* Increase overall pool container width */
+.golf-pool-container {
+  min-width: 1050px; /* Increased from 600px */
+
+
+  background: linear-gradient(
+    145deg,
+    #0c3511 0%,
+    #115c20 50%,
+    #0e4918 100%
+  );
+  border: 2px solid #39FF14;
+  border-radius: 12px;
+  box-shadow: 0 0 30px rgba(57, 255, 20, 0.15),
+    inset 0 0 50px rgba(10, 40, 25, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Adjust the header to match the wider container */
+.golf-pool-header {
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid #39FF14;
+
+  width: 100%;
+}
+
+/* Adjust the header picks column to be wider */
+.golf-header-picks { 
+  flex: 3; /* Increased from 2 to give more space */
+}
+
+/* Adjust the player row layout */
+.golf-player-row, .golf-table-header {
+  display: grid;
+  grid-template-columns: 0.8fr 4fr 0.6fr; /* Increased middle column width */
+  align-items: center;
+}
+
+/* Make golf picks more compact for horizontal display */
+.golf-pick {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(57, 255, 20, 0.3);
+  border-radius: 4px;
+  margin: 2px;
+  flex-shrink: 0; /* Prevent picks from shrinking */
+  min-width: 90px; /* Ensure minimum width */
+}
+
+/* Ensure the picks container doesn't wrap */
+.golf-picks-container {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #39FF14 rgba(0, 0, 0, 0.2);
+}
+
+/* Scrollbar styling for webkit browsers */
+.golf-picks-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.golf-picks-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.golf-picks-container::-webkit-scrollbar-thumb {
+  background-color: #39FF14;
+  border-radius: 3px;
 }
