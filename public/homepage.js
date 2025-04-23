@@ -7121,7 +7121,7 @@ async function displayGolfPoolContainer(pool) {
   
   poolScrollableContainer.appendChild(poolContainer);
   poolWrapper.appendChild(poolScrollableContainer);
-  
+  /*
   // Add Golf Selections button if in draft phase - improved positioning and styling
   if (pool.draftTime) {
     const golfSelectionsBtn = document.createElement("button");
@@ -7130,7 +7130,7 @@ async function displayGolfPoolContainer(pool) {
     golfSelectionsBtn.innerHTML = '<i class="fas fa-golf-ball"></i> GOLF SELECTIONS';
     golfSelectionsBtn.addEventListener("click", () => redirectToGolfSelections(pool.name));
     poolWrapper.appendChild(golfSelectionsBtn);
-  }
+  }*/
   
   // Add chat template
   const chatTemplate = document.getElementById("chat-template")?.content.cloneNode(true);
