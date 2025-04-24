@@ -865,7 +865,7 @@ function startDraftStatePolling() {
                             // Give a slight delay so the message is visible
                             setTimeout(() => {
                                 window.location.reload();
-                            }, 1500);
+                            }, 500);
                             return; // Exit early since we're refreshing
                         }
                         
