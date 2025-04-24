@@ -985,28 +985,68 @@ cron.schedule('27 17 * * 3', async () => {
     }
   }
 });
-/*
-async function fetchAndSaveMastersData() {
-  console.log('Fetching Masters Tournament data and saving to database...');
+
+
+
+
+
+//GOLFFFF
+// Define interfaces for API responses and processing
+interface GolferData {
+  firstName?: string;
+  lastName?: string;
+  total?: number | string;
+  score?: number | string;
+  position?: string;
+  status?: string;
+}
+
+interface FormattedGolfer {
+  firstName: string;
+  lastName: string;
+  name: string;
+  score: number;
+  scoreDisplay: string;
+  position: string;
+  status: string;
+}
+
+interface TournamentInfo {
+  tournId: string;
+  name: string;
+  status: string;
+  dates: {
+    start: string;
+    end: string;
+  };
+}
+
+interface TournamentDocument {
+  tournamentName: string;
+  tournamentId: string;
+  year: string;
+  fetchedAt: Date;
+  status: string;
+  tournamentInfo?: TournamentInfo;
+  data: any;
+}
+
+async function fetchAndSavePGAChampionshipData(): Promise<{ success: boolean, id?: string, status?: string, error?: any }> {
+  console.log('Fetching PGA Championship Tournament information and saving to database...');
   
-  // API key from your previous example
+  const tournamentId = '033';
+  const tournamentName = 'PGA Championship';
   const apiKey = 'e5859daf3amsha3927ab000fb4a3p1b5686jsndea26f3d7448';
-  const tournId = '475'; // Using this as our default Masters tournament ID
   const year = '2025';
   
   try {
-    // Connect to the database
     const database = await connectToDatabase();
-    const mastersCollection = database.collection('mastersLeaderboard');
+    const pgaChampionshipCollection = database.collection('golfTournaments');
     
-    console.log('Connected to database, fetching tournament data...');
+    console.log(`Fetching PGA Championship data with ID: ${tournamentId}...`);
     
-    // No need to get the schedule if we're getting errors
-    // We'll just use the known tournament ID directly
-    console.log(`Using tournament ID: ${tournId} for Masters Tournament`);
-    
-    // Fetch the leaderboard with the tournament ID
-    const leaderboardResponse = await fetch(`https://live-golf-data.p.rapidapi.com/leaderboard?orgId=1&tournId=${tournId}&year=${year}`, {
+    // Try to get the leaderboard for the tournament
+    const leaderboardResponse = await fetch(`https://live-golf-data.p.rapidapi.com/leaderboard?orgId=1&tournId=${tournamentId}&year=${year}`, {
       method: 'GET',
       headers: {
         'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
@@ -1014,74 +1054,110 @@ async function fetchAndSaveMastersData() {
       }
     });
     
-    if (!leaderboardResponse.ok) {
-      throw new Error(`HTTP error fetching leaderboard! Status: ${leaderboardResponse.status}`);
+    // If we can get a leaderboard, process it
+    if (leaderboardResponse.ok) {
+      const leaderboardData = await leaderboardResponse.json();
+      
+      // Check if there's actual leaderboard data
+      let leaderboard: GolferData[] = [];
+      let tournamentStatus = 'upcoming';
+      
+      // Look for leaderboard data in different possible properties
+      if (Array.isArray(leaderboardData.leaderboard)) {
+        leaderboard = leaderboardData.leaderboard;
+        tournamentStatus = 'in-progress';
+      } else if (Array.isArray(leaderboardData.leaderboardRows)) {
+        leaderboard = leaderboardData.leaderboardRows;
+        tournamentStatus = 'in-progress';
+      }
+      
+      console.log(`Found ${leaderboard.length} players on leaderboard`);
+      
+      // If we have a leaderboard with players, process it
+      if (leaderboard.length > 0) {
+        // Format the leaderboard data for our database
+        const formattedLeaderboard: FormattedGolfer[] = leaderboard.map(player => {
+          // Extract score - handle different API response formats
+          let score = 0;
+          let scoreDisplay = "E"; // Default display is even par
+          
+          if (player?.total !== undefined) {
+            // Handle "E" for even par
+            if (player.total === "E") {
+              score = 0;
+              scoreDisplay = "E";
+            } else {
+              // Convert to number if it's a string with a number
+              score = typeof player.total === 'number' ? player.total : 
+                      parseInt(String(player.total).replace("+", "")) || 0;
+              
+              // Generate display format
+              scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+            }
+          } else if (player?.score !== undefined) {
+            // Parse string score ("+5", "-3", "E")
+            const scoreStr = String(player.score);
+            if (scoreStr === "E") {
+              score = 0;
+              scoreDisplay = "E";
+            } else {
+              score = parseInt(scoreStr.replace("+", "")) || 0;
+              scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+            }
+          }
+          
+          return {
+            firstName: player?.firstName || "",
+            lastName: player?.lastName || "",
+            name: `${player?.firstName || ""} ${player?.lastName || ""}`.trim(),
+            score: score,
+            scoreDisplay: scoreDisplay,
+            position: player?.position || "",
+            status: player?.status || "active"
+          };
+        });
+        
+        // Save the tournament data
+        const pgaDocument: TournamentDocument = {
+          tournamentName,
+          tournamentId,
+          year,
+          fetchedAt: new Date(),
+          status: tournamentStatus,
+          data: {
+            leaderboard: formattedLeaderboard
+          }
+        };
+        
+        // Save to database
+        const result = await pgaChampionshipCollection.insertOne(pgaDocument);
+        
+        console.log(`\n==========================================`);
+        console.log(`PGA CHAMPIONSHIP LEADERBOARD SAVED`);
+        console.log(`==========================================`);
+        console.log(`Tournament: ${tournamentName}`);
+        console.log(`Status: ${tournamentStatus}`);
+        console.log(`Players: ${formattedLeaderboard.length}`);
+        
+        // Show top 5 players
+        if (formattedLeaderboard.length > 0) {
+          console.log(`\nTop 5 Players:`);
+          formattedLeaderboard.slice(0, 5).forEach((player, idx) => {
+            console.log(`${idx+1}. ${player.name.padEnd(25)} ${player.scoreDisplay}`);
+          });
+        }
+        
+        // Process golf picks with this real leaderboard data
+        await processGolfPicks(formattedLeaderboard);
+        
+        return { success: true, id: result.insertedId.toString(), status: tournamentStatus };
+      }
     }
     
-    const leaderboardData = await leaderboardResponse.json();
+    // If no leaderboard is available yet, proceed with scheduled info
+    console.log('No leaderboard data available. Saving tournament schedule info.');
     
-    // Log the raw data structure to help debug
-    console.log('Leaderboard data structure:', 
-      Object.keys(leaderboardData).length > 0 
-        ? Object.keys(leaderboardData)
-        : 'Empty response'
-    );
-    
-    // Create a document to save
-    const masterDocument = {
-      tournamentName: 'Masters Tournament',
-      tournamentId: tournId,
-      year,
-      fetchedAt: new Date(),
-      data: leaderboardData
-    };
-    
-    // Save to the database
-    const result = await mastersCollection.insertOne(masterDocument);
-    
-    console.log(`\n==========================================`);
-    console.log(`MASTERS TOURNAMENT DATA SAVED`);
-    console.log(`==========================================`);
-    console.log(`Tournament: Masters Tournament`);
-    console.log(`Year: ${year}`);
-    console.log(`Saved with ID: ${result.insertedId}`);
-    
-    // Display some key stats if available
-    if (leaderboardData.leaderboard && Array.isArray(leaderboardData.leaderboard) && leaderboardData.leaderboard.length > 0) {
-      console.log(`\nTop 5 Players:`);
-      leaderboardData.leaderboard.slice(0, 5).forEach((player: any, idx: number) => {
-        const name = `${player.firstName || ''} ${player.lastName || ''}`.trim();
-        const score = player.score || 'E';
-        console.log(`${idx+1}. ${name.padEnd(24)} ${score}`);
-      });
-    } else {
-      console.log('\nNo leaderboard data available yet.');
-    }
-    
-    return { success: true, id: result.insertedId };
-    
-  } catch (error) {
-    console.error('Error fetching and saving Masters Tournament data:', error);
-    return { success: false, error };
-  }
-}
-
-
-
-
-
-// Call once immediately
-fetchAndSaveMastersData();*/
-
-
-async function fetchTournamentsList() {
-  console.log('Fetching available golf tournaments...');
-  
-  const apiKey = 'e5859daf3amsha3927ab000fb4a3p1b5686jsndea26f3d7448';
-  const year = '2025';
-  
-  try {
-    // Try the schedule endpoint which should list all tournaments for the year
+    // Get schedule info
     const scheduleResponse = await fetch(`https://live-golf-data.p.rapidapi.com/schedule?year=${year}`, {
       method: 'GET',
       headers: {
@@ -1096,295 +1172,403 @@ async function fetchTournamentsList() {
     
     const scheduleData = await scheduleResponse.json();
     
-    // Log the raw structure to help debug
-    console.log('Schedule data structure:', typeof scheduleData);
-    console.log('Keys if object:', typeof scheduleData === 'object' ? Object.keys(scheduleData) : 'Not an object');
+    // Initialize with default values to avoid null errors
+    const defaultTournamentInfo: TournamentInfo = {
+      tournId: tournamentId,
+      name: tournamentName,
+      status: 'upcoming',
+      dates: {
+        start: '2025-05-15T00:00:00Z',
+        end: '2025-05-18T00:00:00Z'
+      }
+    };
     
-    // Handle different response formats
-    let tournaments:any = [];
+    // Find PGA Championship in the schedule
+    let pgaTournamentInfo: TournamentInfo = defaultTournamentInfo;
+    let found = false;
     
     if (Array.isArray(scheduleData)) {
-      tournaments = scheduleData;
-      console.log(`Found ${tournaments.length} tournaments in array format`);
-    } else if (typeof scheduleData === 'object' && scheduleData !== null) {
-      // Check if there's a tournaments/events array in the object
-      if (Array.isArray(scheduleData.tournaments)) {
-        tournaments = scheduleData.tournaments;
-      } else if (Array.isArray(scheduleData.events)) {
-        tournaments = scheduleData.events;
-      } else if (Array.isArray(scheduleData.schedule)) {
-        tournaments = scheduleData.schedule;
-      } else {
-        // If we can't find an array, use the object keys as possible tournament IDs
-        console.log('No tournament array found, attempting to use object keys');
-        tournaments = Object.keys(scheduleData).map(key => ({
-          tournId: key,
-          name: `Tournament ${key}`,
-          id: key
-        }));
-      }
-      console.log(`Found ${tournaments.length} tournaments via object extraction`);
-    } else {
-      console.log('Unexpected schedule data format. Raw data:', scheduleData);
-      return { found: false, error: 'Unexpected data format' };
-    }
-    
-    // Now try to use a direct approach to get the Masters Tournament
-    console.log('Attempting direct approach with known tournament IDs...');
-    
-    // List of potential tournament IDs to try for the Masters
-    const potentialIds = ['014', '475', '018', '026', '001', '002', '003', '007'];
-    
-    for (const id of potentialIds) {
-      console.log(`Trying tournament ID: ${id}`);
-      
-      try {
-        const tournamentResponse = await fetch(`https://live-golf-data.p.rapidapi.com/leaderboard?orgId=1&tournId=${id}&year=${year}`, {
-          method: 'GET',
-          headers: {
-            'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
-            'x-rapidapi-key': apiKey
+      const foundItem = scheduleData.find(t => t.tournId === tournamentId);
+      if (foundItem) {
+        pgaTournamentInfo = {
+          tournId: foundItem.tournId || tournamentId,
+          name: foundItem.name || tournamentName,
+          status: foundItem.status || 'upcoming',
+          dates: {
+            start: foundItem.dates?.start || '2025-05-15T00:00:00Z',
+            end: foundItem.dates?.end || '2025-05-18T00:00:00Z'
           }
-        });
-        
-        if (!tournamentResponse.ok) {
-          console.log(`Tournament ID ${id} returned status ${tournamentResponse.status}`);
-          continue;
+        };
+        found = true;
+      }
+    } else if (scheduleData && typeof scheduleData === 'object') {
+      for (const key in scheduleData) {
+        if (Array.isArray(scheduleData[key])) {
+          const foundItem = scheduleData[key].find(t => t.tournId === tournamentId);
+          if (foundItem) {
+            pgaTournamentInfo = {
+              tournId: foundItem.tournId || tournamentId,
+              name: foundItem.name || tournamentName,
+              status: foundItem.status || 'upcoming',
+              dates: {
+                start: foundItem.dates?.start || '2025-05-15T00:00:00Z',
+                end: foundItem.dates?.end || '2025-05-18T00:00:00Z'
+              }
+            };
+            found = true;
+            break;
+          }
         }
-        
-        const tournamentData = await tournamentResponse.json();
-        
-        // Check if this looks like a tournament
-        const hasLeaderboard = 
-          Array.isArray(tournamentData.leaderboardRows) || 
-          Array.isArray(tournamentData.leaderboard);
-          
-        if (!hasLeaderboard) {
-          console.log(`Tournament ID ${id} does not have leaderboard data`);
-          continue;
-        }
-        
-        // Try to get tournament name
-        const name = tournamentData.tournamentName || tournamentData.name || `Tournament ${id}`;
-        
-        console.log(`Found tournament with ID ${id}: ${name}`);
-        
-        // Check if it might be the Masters
-        const isMasters = name.toLowerCase().includes('masters');
-        const courseName = tournamentData.courseName || '';
-        const isAugusta = courseName.toLowerCase().includes('augusta');
-        
-        if (isMasters || isAugusta) {
-          console.log(`This appears to be the Masters Tournament! ID: ${id}, Name: ${name}, Course: ${courseName}`);
-          
-          return {
-            found: true,
-            tournament: {
-              tournId: id,
-              name: name,
-              courseName: courseName
-            }
-          };
-        } else {
-          console.log(`Tournament ID ${id} is not the Masters: ${name}, ${courseName}`);
-        }
-      } catch (error:any) {
-        console.log(`Error checking tournament ID ${id}:`, error.message);
       }
     }
     
-    return { found: false, message: 'Could not find Masters Tournament' };
-  } catch (error:any) {
-    console.error('Error fetching tournaments list:', error);
-    return { found: false, error: error.message };
-  }
-}
-
-async function fetchAndSaveTournamentData(tournamentId: string, tournamentName: string) {
-  console.log(`Fetching data for ${tournamentName} (ID: ${tournamentId})...`);
-  
-  const apiKey = 'e5859daf3amsha3927ab000fb4a3p1b5686jsndea26f3d7448';
-  const year = '2025';
-  
-  try {
-    // Connect to the database
-    const database = await connectToDatabase();
-    const tournamentsCollection = database.collection('golfTournaments');
-    
-    const leaderboardResponse = await fetch(`https://live-golf-data.p.rapidapi.com/leaderboard?orgId=1&tournId=${tournamentId}&year=${year}`, {
-      method: 'GET',
-      headers: {
-        'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
-        'x-rapidapi-key': apiKey
-      }
-    });
-    
-    if (!leaderboardResponse.ok) {
-      throw new Error(`HTTP error fetching leaderboard! Status: ${leaderboardResponse.status}`);
+    if (!found) {
+      console.log('Could not find PGA Championship details in schedule. Using placeholder record.');
     }
     
-    const leaderboardData = await leaderboardResponse.json();
-    
-    // Create a document to save
-    const tournamentDocument = {
+    // Create a document to save with the schedule information
+    const pgaDocument: TournamentDocument = {
       tournamentName,
       tournamentId,
       year,
       fetchedAt: new Date(),
-      data: leaderboardData
+      status: 'upcoming',
+      tournamentInfo: pgaTournamentInfo,
+      data: { message: 'No leaderboard data available yet. Tournament is scheduled for the future.' }
     };
     
     // Save to the database
-    const result = await tournamentsCollection.insertOne(tournamentDocument);
+    const result = await pgaChampionshipCollection.insertOne(pgaDocument);
     
     console.log(`\n==========================================`);
-    console.log(`TOURNAMENT DATA SAVED: ${tournamentName}`);
+    console.log(`PGA CHAMPIONSHIP INFO SAVED`);
     console.log(`==========================================`);
-    console.log(`Year: ${year}`);
+    console.log(`Tournament: ${tournamentName}`);
     console.log(`Tournament ID: ${tournamentId}`);
-    console.log(`Saved with DB ID: ${result.insertedId}`);
+    console.log(`Year: ${year}`);
+    console.log(`Status: Upcoming - Scheduled for May 15-18, 2025`);
+    console.log(`Saved with ID: ${result.insertedId.toString()}`);
     
-    // Display some key stats if available
-    let players = [];
-    if (Array.isArray(leaderboardData.leaderboardRows)) {
-      players = leaderboardData.leaderboardRows;
-    } else if (Array.isArray(leaderboardData.leaderboard)) {
-      players = leaderboardData.leaderboard;
-    }
+    return { success: true, id: result.insertedId.toString(), status: 'upcoming' };
     
-    if (players.length > 0) {
-      console.log(`\nTop 5 Players:`);
-      players.slice(0, 5).forEach((player: any, idx: number) => {
-        const name = `${player.firstName || ''} ${player.lastName || ''}`.trim();
-        const score = player.total || player.score || 'E';
-        console.log(`${idx+1}. ${name.padEnd(24)} ${score}`);
-      });
-    } else {
-      console.log('No leaderboard data available.');
-      console.log('Available keys in response:', Object.keys(leaderboardData));
-    }
-    
-    return { success: true, id: result.insertedId };
-    
-  } catch (error: any) {
-    console.error(`Error fetching and saving tournament data:`, error);
-    return { success: false, error: error.message };
-  }
-}
-
-// Main function to orchestrate the process
-async function getMastersData() {
-  try {
-    // First try to find the Masters Tournament ID
-    console.log('Step 1: Finding Masters Tournament...');
-    const tournamentsResult:any = await fetchTournamentsList();
-    
-    if (tournamentsResult.found) {
-      // Masters found, fetch and save its data
-      const mastersId = tournamentsResult.tournament.tournId;
-      const mastersName = tournamentsResult.tournament.name;
-      
-      console.log('Step 2: Fetching Masters Tournament data...');
-      await fetchAndSaveTournamentData(mastersId, mastersName);
-    } else {
-      // If we can't find the Masters, try tournament ID 014 (common Masters ID)
-      console.log('Could not definitively identify the Masters. Trying ID 014...');
-      await fetchAndSaveTournamentData('014', 'Masters Tournament');
-    }
   } catch (error) {
-    console.error('Error in Masters data processing:', error);
+    console.error('Error fetching and saving PGA Championship data:', error);
+    return { success: false, error };
   }
 }
 
-async function findPGAChampionship() {
-  console.log('Searching for PGA Championship Tournament...');
+// Process golf picks with real leaderboard data
+/*
+async function processGolfPicks(golfScores: FormattedGolfer[]): Promise<void> {
+  console.log('Processing golf picks with tournament data...');
   
-  const apiKey = 'e5859daf3amsha3927ab000fb4a3p1b5686jsndea26f3d7448';
-  const year = '2025';
-  
-  // List of potential tournament IDs to try for the PGA Championship
-  // The PGA Championship is often ID '018' in many golf APIs
-  const potentialIds = ['015', '033', '034', '019', '020', '028'];
-  
-  for (const id of potentialIds) {
-    console.log(`Trying tournament ID: ${id}`);
+  try {
+    const database = await connectToDatabase();
+    const userGolfPicksCollection = database.collection('userGolfPicks');
+    const golfResultsCollection = database.collection('golfBetResults');
+    const poolsCollection = database.collection('pools');
     
-    try {
-      const tournamentResponse = await fetch(`https://live-golf-data.p.rapidapi.com/leaderboard?orgId=1&tournId=${id}&year=${year}`, {
-        method: 'GET',
-        headers: {
-          'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
-          'x-rapidapi-key': apiKey
-        }
-      });
+    // Get all golf pools that are in playTime phase
+    const golfPools = await poolsCollection.find({
+      mode: 'golf',
+      playTime: true
+    }).toArray();
+    
+    console.log(`Found ${golfPools.length} golf pools in play phase`);
+    
+    // Process each pool
+    for (const pool of golfPools) {
+      console.log(`Processing pool: ${pool.name}`);
       
-      if (!tournamentResponse.ok) {
-        console.log(`Tournament ID ${id} returned status ${tournamentResponse.status}`);
-        continue;
-      }
+      // Get all user picks for this pool
+      const allUserPicks = await userGolfPicksCollection.find({
+        poolName: pool.name
+      }).toArray();
       
-      const tournamentData = await tournamentResponse.json();
+      console.log(`Found ${allUserPicks.length} users with picks in pool ${pool.name}`);
       
-      // Check if this looks like a tournament
-      const hasLeaderboard = 
-        Array.isArray(tournamentData.leaderboardRows) || 
-        Array.isArray(tournamentData.leaderboard);
+      // Process each user's picks
+      for (const userPick of allUserPicks) {
+        const username = userPick.username;
+        const golfers = userPick.golfers || [];
         
-      if (!hasLeaderboard) {
-        console.log(`Tournament ID ${id} does not have leaderboard data`);
-        continue;
-      }
-      
-      // Try to get tournament name
-      const name = tournamentData.tournamentName || tournamentData.name || `Tournament ${id}`;
-      
-      console.log(`Found tournament with ID ${id}: ${name}`);
-      
-      // Check if it might be the PGA Championship
-      const isPGAChampionship = 
-        name.toLowerCase().includes('pga championship') || 
-        name.toLowerCase().includes('pga champ');
+        console.log(`Processing ${golfers.length} golfers for user ${username}`);
         
-      const courseName = tournamentData.courseName || '';
-      
-      if (isPGAChampionship) {
-        console.log(`This appears to be the PGA Championship! ID: ${id}, Name: ${name}, Course: ${courseName}`);
+        // Skip if no golfers selected
+        if (golfers.length === 0) continue;
         
-        // Get sample player data to verify
-        let players = [];
-        if (Array.isArray(tournamentData.leaderboardRows)) {
-          players = tournamentData.leaderboardRows;
-        } else if (Array.isArray(tournamentData.leaderboard)) {
-          players = tournamentData.leaderboard;
-        }
+        // Calculate scores for each golfer
+        let totalScore = 0;
+        const golferResults:any = [];
         
-        if (players.length > 0) {
-          console.log(`\nTop 5 Players in PGA Championship:`);
-          players.slice(0, 5).forEach((player: any, idx: number) => {
-            const name = `${player.firstName || ''} ${player.lastName || ''}`.trim();
-            const score = player.total || player.score || 'E';
-            console.log(`${idx+1}. ${name.padEnd(24)} ${score}`);
-          });
-        }
-        
-        return {
-          found: true,
-          tournament: {
-            tournId: id,
-            name: name,
-            courseName: courseName
+        for (const golfer of golfers) {
+          const golferName = golfer.golferName;
+          
+          // Find this golfer in the leaderboard data
+          const golferData = golfScores.find(entry => 
+            entry.name.toLowerCase() === golferName.toLowerCase()
+          );
+          
+          if (golferData) {
+            // Store golfer result
+            golferResults.push({
+              golferName,
+              score: golferData.score,
+              scoreDisplay: golferData.scoreDisplay,
+              position: golferData.position,
+              round: golfer.round
+            });
+            
+            // Store the score directly in the user's pick
+            await userGolfPicksCollection.updateOne(
+              { 
+                username: username.toLowerCase(),
+                poolName: pool.name,
+                "golfers.golferName": golferName
+              },
+              {
+                $set: {
+                  "golfers.$.score": golferData.score,
+                  "golfers.$.scoreDisplay": golferData.scoreDisplay,
+                  "golfers.$.position": golferData.position
+                }
+              }
+            );
+            
+            // Add to total score - including positive (over par) scores
+            totalScore += golferData.score;
           }
-        };
-      } else {
-        console.log(`Tournament ID ${id} is not the PGA Championship: ${name}, ${courseName}`);
+        }
+        
+        // Calculate average score
+        const averageScore = golfers.length > 0 ? totalScore / golfers.length : 0;
+        
+        // Create score display format for total
+        const totalScoreDisplay = totalScore === 0 ? "E" : 
+                                (totalScore > 0 ? `+${totalScore}` : 
+                                `${totalScore}`);
+        
+        // Save results to golfBetResults collection
+        await golfResultsCollection.updateOne(
+          { 
+            username: username.toLowerCase(), 
+            poolName: pool.name 
+          },
+          {
+            $set: {
+              username: username.toLowerCase(),
+              poolName: pool.name,
+              totalScore,
+              totalScoreDisplay,
+              averageScore,
+              golferResults,
+              timestamp: new Date()
+            }
+          },
+          { upsert: true }
+        );
+        
+        // Update pool member's total score
+        await poolsCollection.updateOne(
+          {
+            name: pool.name,
+            'members.username': username.toLowerCase()
+          },
+          {
+            $set: {
+              'members.$.golfScore': totalScore,
+              'members.$.golfScoreDisplay': totalScoreDisplay,
+              'members.$.golfSelections': golferResults
+            }
+          }
+        );
+        
+        console.log(`Updated scores for ${username} in pool ${pool.name}. Total: ${totalScoreDisplay}`);
       }
-    } catch (error:any) {
-      console.log(`Error checking tournament ID ${id}:`, error.message);
     }
+    
+    console.log('Golf scores processed successfully.');
+  } catch (error) {
+    console.error('Error processing golf picks:', error);
   }
+}*/
+
+
+// Mock leaderboard data - just basic scores for popular golfers
+const mockGolfScores = [
+  { name: "Scottie Scheffler", score: -12 },
+  { name: "Rory McIlroy", score: -7 },
+  { name: "Jon Rahm", score: -6 },
+  { name: "Brooks Koepka", score: -8 },
+  { name: "Jordan Spieth", score: 2 },
+  { name: "Dustin Johnson", score: 0 },
+  { name: "Justin Thomas", score: -3 },
+  { name: "Collin Morikawa", score: -4 },
+  { name: "Bryson DeChambeau", score: 4 },
+  { name: "Will Zalatoris", score: 7 },
+  { name: "Xander Schauffele", score: -10 },
+  { name: "Viktor Hovland", score: -5 },
+  { name: "Tony Finau", score: -2 },
+  { name: "Cameron Smith", score: -1 },
+  { name: "Matt Fitzpatrick", score: 1 },
+  { name: "Hideki Matsuyama", score: 5 },
+  { name: "Tommy Fleetwood", score: 6 },
+  { name: "Shane Lowry", score: 8 },
+  { name: "Max Homa", score: 9 },
+];
+
+
+async function fetchMockGolfScores() {
+  console.log('fetchMockGolfScores function started.');
   
-  console.log('Could not find PGA Championship Tournament among tested IDs');
-  return { found: false, message: 'Could not find PGA Championship Tournament' };
+  try {
+    // Process each user's golf picks with the mock scores
+    await processGolfPicks(mockGolfScores);
+    
+    console.log('Golf scores processed successfully.');
+  } catch (error) {
+    console.error('Error in fetchMockGolfScores:', error);
+  }
 }
 
-//findPGAChampionship()
+
+// Process golf picks with mock scores
+async function processGolfPicks(golfScores) {
+  console.log('Processing golf picks with mock scores...');
+  
+  try {
+    const database = await connectToDatabase();
+    const userGolfPicksCollection = database.collection('userGolfPicks');
+    const golfResultsCollection = database.collection('golfBetResults');
+    const poolsCollection = database.collection('pools');
+    
+    // Get all golf pools that are in playTime phase
+    const golfPools = await poolsCollection.find({
+      mode: 'golf',
+      playTime: true
+    }).toArray();
+    
+    console.log(`Found ${golfPools.length} golf pools in play phase`);
+    
+    // Process each pool
+    for (const pool of golfPools) {
+      console.log(`Processing pool: ${pool.name}`);
+      
+      // Get all user picks for this pool
+      const allUserPicks = await userGolfPicksCollection.find({
+        poolName: pool.name
+      }).toArray();
+      
+      console.log(`Found ${allUserPicks.length} users with picks in pool ${pool.name}`);
+      
+      // Process each user's picks
+      for (const userPick of allUserPicks) {
+        const username = userPick.username;
+        const golfers = userPick.golfers || [];
+        
+        console.log(`Processing ${golfers.length} golfers for user ${username}`);
+        
+        // Skip if no golfers selected
+        if (golfers.length === 0) continue;
+        
+        // Calculate scores for each golfer
+        let totalScore = 0;
+        const golferResults: any = [];
+        
+        for (const golfer of golfers) {
+          const golferName = golfer.golferName;
+          
+          // Find this golfer in the mock scores
+          const mockScoreEntry = golfScores.find(entry => 
+            entry.name.toLowerCase() === golferName.toLowerCase()
+          );
+          
+          if (mockScoreEntry) {
+            // Ensure we have a numeric score (even if API returned "E")
+            const score = mockScoreEntry.score;
+            const scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+            
+            // Add to results array
+            golferResults.push({
+              golferName,
+              score,
+              scoreDisplay,
+              position: mockScoreEntry.position || "",
+              round: golfer.round
+            });
+            
+            // Store the score directly in the user's pick
+            await userGolfPicksCollection.updateOne(
+              { 
+                username: username.toLowerCase(),
+                poolName: pool.name,
+                "golfers.golferName": golferName
+              },
+              {
+                $set: {
+                  "golfers.$.score": score,
+                  "golfers.$.scoreDisplay": scoreDisplay,
+                  "golfers.$.position": mockScoreEntry.position || ""
+                }
+              }
+            );
+            
+            // Add to total score - include both positive and negative scores
+            totalScore += score;
+          }
+        }
+        
+        // Calculate average score
+        const averageScore = golfers.length > 0 ? totalScore / golfers.length : 0;
+        
+        // Create score display format for total
+        const totalScoreDisplay = totalScore === 0 ? "E" : 
+                                (totalScore > 0 ? `+${totalScore}` : 
+                                `${totalScore}`);
+        
+        // Save results to golfBetResults collection
+        await golfResultsCollection.updateOne(
+          { 
+            username: username.toLowerCase(), 
+            poolName: pool.name 
+          },
+          {
+            $set: {
+              username: username.toLowerCase(),
+              poolName: pool.name,
+              totalScore,
+              totalScoreDisplay,
+              averageScore,
+              golferResults,
+              timestamp: new Date()
+            }
+          },
+          { upsert: true }
+        );
+        
+        // Update pool member's total score
+        await poolsCollection.updateOne(
+          {
+            name: pool.name,
+            'members.username': username.toLowerCase()
+          },
+          {
+            $set: {
+              'members.$.golfScore': totalScore,
+              'members.$.golfScoreDisplay': totalScoreDisplay,
+              'members.$.golfSelections': golferResults
+            }
+          }
+        );
+        
+        console.log(`Updated scores for ${username} in pool ${pool.name}. Total: ${totalScoreDisplay}`);
+      }
+    }
+    
+    console.log('Golf scores processed successfully.');
+  } catch (error) {
+    console.error('Error processing golf picks:', error);
+  }
+}
+ 
+fetchMockGolfScores()

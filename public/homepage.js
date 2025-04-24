@@ -7187,6 +7187,11 @@ async function displayGolfPoolContainer(pool) {
   }*/
   
 
+  // Only update scores if the pool is in tournament phase
+  if (pool.playTime && poolWrapper) {
+    // Update golf scores for this pool
+    await updateGolfScoresDisplay(poolWrapper);
+  }
 
   orderedContainer.appendChild(poolWrapper);
   
@@ -7305,3 +7310,166 @@ async function fetchGolfDraftState(poolName) {
       return null;
   }
 }
+
+// Function to fetch golf scores for a pool
+async function fetchGolfScores(poolName) {
+  try {
+    const response = await fetch(`/api/getGolfScores/${encodeURIComponent(poolName)}`);
+    
+    if (!response.ok) {
+      console.error(`Failed to fetch golf scores: ${response.status}`);
+      return null;
+    }
+    
+    const data = await response.json();
+    return data.success ? data.golfScores : null;
+  } catch (error) {
+    console.error('Error fetching golf scores:', error);
+    return null;
+  }
+}
+
+// Update golf scores display
+async function updateGolfScoresDisplay(poolWrapper) {
+  console.log("HELLLOOOOOOO")
+  const poolName = poolWrapper.getAttribute('data-pool-name');
+  if (!poolName) {
+    console.error('Pool name not found on wrapper element');
+    return;
+  }
+  
+  const golfScores = await fetchGolfScores(poolName);
+  
+  if (!golfScores) {
+    console.warn(`No golf scores available for ${poolName}`);
+    return;
+  }
+  
+  console.log(`Updating display with golf scores for ${poolName}`, golfScores);
+  
+  // Update each player row
+  golfScores.forEach(userScore => {
+    const username = userScore.username;
+    console.log(`User ${username} data:`, userScore);
+    console.log(`Total score from API: ${userScore.totalScore}`);
+    console.log(`Total score display from API: ${userScore.totalScoreDisplay}`);
+    
+    // Log individual golfer scores to verify they're being added correctly
+    let calculatedTotal = 0;
+    if (userScore.golfers && userScore.golfers.length > 0) {
+      console.log(`${username}'s golfers:`);
+      userScore.golfers.forEach(golfer => {
+        console.log(`- ${golfer.golferName}: ${golfer.score} (${golfer.scoreDisplay})`);
+        calculatedTotal += golfer.score;
+      });
+      console.log(`Calculated total from golfer scores: ${calculatedTotal}`);
+    }
+    
+    // Find the player row by username
+    const playerRow = Array.from(poolWrapper.querySelectorAll('.golf-player-row')).find(row => {
+      const usernameEl = row.querySelector('.player-username');
+      return usernameEl && usernameEl.textContent.trim().toLowerCase() === username.toLowerCase();
+    });
+    
+    if (!playerRow) {
+      console.warn(`Player row not found for ${username}`);
+      return;
+    }
+    
+    // Update picks section
+    const picksSection = playerRow.querySelector('.golf-player-picks');
+    if (picksSection) {
+      // Clear existing content
+      picksSection.innerHTML = '';
+      
+      // Create container for golfer picks
+      const picksContainer = document.createElement('div');
+      picksContainer.className = 'golf-picks-container';
+      
+      // Sort golfers by score (best/lowest first)
+      const sortedGolfers = [...userScore.golfers].sort((a, b) => a.score - b.score);
+      
+      // Add each golfer with their score
+      sortedGolfers.forEach(golfer => {
+        const pickElement = document.createElement('div');
+        pickElement.className = 'golf-pick';
+        
+        // Determine score class
+        const scoreClass = golfer.score > 0 ? 'score-over' : (golfer.score < 0 ? 'score-under' : 'score-even');
+        
+        pickElement.innerHTML = `
+          <span class="golf-pick-name">${golfer.golferName}</span>
+          <span class="golf-pick-score ${scoreClass}">${golfer.scoreDisplay || golfer.score}</span>
+        `;
+        
+        picksContainer.appendChild(pickElement);
+      });
+      
+      picksSection.appendChild(picksContainer);
+    }
+    
+    // Update total score section
+    const sumSection = playerRow.querySelector('.golf-player-sum');
+    if (sumSection) {
+      const scoreClass = userScore.totalScore > 0 ? 'score-over' : 
+                        (userScore.totalScore < 0 ? 'score-under' : 'score-even');
+      
+      // Use totalScoreDisplay from the API if available
+      const displayValue = userScore.totalScoreDisplay || 
+                         (userScore.totalScore === 0 ? "E" : 
+                          userScore.totalScore > 0 ? `+${userScore.totalScore}` : 
+                          `${userScore.totalScore}`);
+      
+      console.log(`Setting display value for ${username}: ${displayValue}`);
+      
+      sumSection.innerHTML = `<span class="${scoreClass}">${displayValue}</span>`;
+      
+      // Log what's actually displayed
+      console.log(`${username}'s displayed score: ${sumSection.textContent.trim()}`);
+    }
+  });
+  
+  // Sort player rows by score
+  sortPlayerRowsByScore(poolWrapper);
+}
+
+// Sort player rows by score
+function sortPlayerRowsByScore(poolWrapper) {
+  const container = poolWrapper.querySelector('.golf-pool-container');
+  if (!container) return;
+  
+  // Get the header row
+  const headerRow = container.querySelector('.golf-table-header');
+  if (!headerRow) return;
+  
+  // Get all player rows
+  const playerRows = Array.from(container.querySelectorAll('.golf-player-row'));
+  
+  // Sort by score (lowest first)
+  playerRows.sort((a, b) => {
+    const scoreA = getScoreFromRow(a);
+    const scoreB = getScoreFromRow(b);
+    return scoreA - scoreB;
+  });
+  
+  // Clear container and re-add header and sorted rows
+  container.innerHTML = '';
+  container.appendChild(headerRow);
+  
+  playerRows.forEach(row => {
+    container.appendChild(row);
+  });
+}
+
+// Helper to extract numeric score from a player row
+function getScoreFromRow(row) {
+  const sumSection = row.querySelector('.golf-player-sum');
+  if (!sumSection) return 0;
+  
+  const scoreText = sumSection.textContent.trim();
+  
+  if (scoreText === 'E') return 0;
+  if (scoreText.startsWith('+')) return parseFloat(scoreText.substring(1));
+  return parseFloat(scoreText);
+}
+

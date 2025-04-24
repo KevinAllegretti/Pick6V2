@@ -620,4 +620,72 @@ async function updateDraftStateAfterPick(poolName) {
         console.error('Error updating draft state after auto-pick:', error);
     }
 }
+
+/**
+ * Get golf scores for a pool
+ * @route GET /api/getGolfScores/:poolName
+ */
+router.get('/getGolfScores/:poolName', async (req, res) => {
+    try {
+        const { poolName } = req.params;
+        
+        const database = await connectToDatabase();
+        const userGolfPicksCollection = database.collection('userGolfPicks');
+        const golfResultsCollection = database.collection('golfBetResults');
+        
+        // Get all users' picks for this pool
+        const userPicks = await userGolfPicksCollection.find({
+            poolName
+        }).toArray();
+        
+        // Get all users' results for this pool - this has the correct totalScore
+        const golfResults = await golfResultsCollection.find({
+            poolName
+        }).toArray();
+        
+        console.log('Golf results from DB:', golfResults); // Add this to see what's coming from DB
+        
+        // Combine the data
+        const combinedData = userPicks.map(userPick => {
+            // Find the corresponding result
+            const result = golfResults.find(r => 
+                r.username.toLowerCase() === userPick.username.toLowerCase()
+            );
+            
+            // Format scores for display
+            const formattedGolfers = (userPick.golfers || []).map(golfer => {
+                return {
+                    ...golfer,
+                    // Use scoreDisplay if it exists, otherwise format it
+                    scoreDisplay: golfer.scoreDisplay || (
+                        golfer.score === 0 ? "E" : 
+                        golfer.score > 0 ? `+${golfer.score}` : 
+                        `${golfer.score}`
+                    )
+                };
+            });
+            
+            // IMPORTANT: Use the values from golfResults which have the correct calculations
+            return {
+                username: userPick.username,
+                golfers: formattedGolfers,
+                totalScore: result?.totalScore || 0,
+                // Use totalScoreDisplay directly from database if available
+                totalScoreDisplay: result?.totalScoreDisplay || (
+                    (result?.totalScore === 0) ? "E" : 
+                    (result?.totalScore > 0) ? `+${result?.totalScore}` : 
+                    `${result?.totalScore || 0}`
+                )
+            };
+        });
+        
+        res.json({
+            success: true,
+            golfScores: combinedData
+        });
+    } catch (error) {
+        console.error('Error fetching golf scores:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch golf scores' });
+    }
+});
 export default router;
