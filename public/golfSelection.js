@@ -1107,6 +1107,7 @@ function startDraftStatePolling() {
     
     // Poll every 5 seconds
     setInterval(async () => {
+        console.log("hello")
         if (selectedPool) {
             try {
                 // First check if the pool state changed
@@ -1122,6 +1123,9 @@ function startDraftStatePolling() {
                         playTime: state.playTime || false
                     };
                     
+                    // Check if we're transitioning FROM idle TO draft mode
+                    const draftJustStarted = prevState.idleTime && newState.draftTime;
+                    
                     // Only update the UI if the pool state changed
                     const stateChanged = 
                         prevState.idleTime !== newState.idleTime ||
@@ -1131,34 +1135,84 @@ function startDraftStatePolling() {
                     if (stateChanged) {
                         console.log('Pool state changed, updating UI');
                         currentPoolState = newState;
+                        
+                        // If draft just started, refresh the entire page
+                        if (draftJustStarted) {
+                            console.log('Draft just started! Refreshing page...');
+                            // Show a quick notification before refreshing
+                            showSuccessMessage('Draft is starting! Page will refresh...');
+                            // Give a slight delay so the message is visible
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                            return; // Exit early since we're refreshing
+                        }
+                        
+                        // Otherwise update UI without refreshing
                         updateUIForPoolState();
                     }
                     
-                    // If in draft mode, check for changes to draft state
-                    if (currentPoolState.draftTime) {
-                        const prevDraftRound = currentDraftRound;
-                        const prevUserTurn = currentUserTurn;
-                        
-                        await fetchDraftState();
-                        
-                        // Only update UI if draft round or turn changed
-                        if (prevDraftRound !== currentDraftRound || 
-                            prevUserTurn !== currentUserTurn) {
+                    // Only proceed with draft state updates if we're in draft mode
+                    // and we're not about to refresh the page
+                    if (currentPoolState.draftTime && !draftJustStarted) {
+                        try {
+                            const prevDraftRound = currentDraftRound;
+                            const prevUserTurn = currentUserTurn;
                             
-                            await fetchAllPoolPicks();
-                            renderPicksContainer();
-                            updateDraftStatus();
+                            await fetchDraftState();
                             
-                            // If it just became user's turn, notify them
-                            if (draftOrder[currentUserTurn] === storedUsername && 
-                                (prevUserTurn !== currentUserTurn || prevDraftRound !== currentDraftRound)) {
-                                showSuccessMessage("It's your turn to pick!");
+                            // If we just entered draft mode or timer isn't running, start it
+                            if (!isTimerRunning) {
+                                startDraftTimer();
                             }
+                            
+                            // Only update UI if draft round or turn changed
+                            if (prevDraftRound !== currentDraftRound || 
+                                prevUserTurn !== currentUserTurn) {
+                                
+                                await fetchAllPoolPicks();
+                                renderPicksContainer();
+                                updateDraftStatus();
+                                
+                                // If it just became user's turn, notify them
+                                let currentUser = 'Unknown';
+                                const numberOfDrafters = draftOrder.length;
+                                
+                                if (draftOrder && numberOfDrafters > 0) {
+                                    const isEvenRound = currentDraftRound % 2 === 0;
+                                    
+                                    if (isEvenRound) {
+                                        // Even round (snake)
+                                        const reverseIndex = numberOfDrafters - 1 - currentUserTurn;
+                                        if (reverseIndex >= 0 && reverseIndex < numberOfDrafters) {
+                                            currentUser = draftOrder[reverseIndex];
+                                        }
+                                    } else {
+                                        // Odd round (normal)
+                                        if (currentUserTurn >= 0 && currentUserTurn < numberOfDrafters) {
+                                            currentUser = draftOrder[currentUserTurn];
+                                        }
+                                    }
+                                }
+                                
+                                // Check if it just became the user's turn
+                                if (currentUser.toLowerCase() === storedUsername.toLowerCase() && 
+                                    (prevUserTurn !== currentUserTurn || prevDraftRound !== currentDraftRound)) {
+                                    showSuccessMessage("It's your turn to pick!");
+                                }
+                            }
+                        } catch (draftError) {
+                            console.error('Error fetching draft state:', draftError);
+                            // Don't abort polling just because draft state fetch failed
                         }
+                    } else if (prevState.draftTime && !currentPoolState.draftTime) {
+                        // If we just left draft mode, stop the timer
+                        resetDraftTimer();
                     }
                 }
             } catch (error) {
                 console.error('Error during polling:', error);
+                // Even if there's an error, we should try again on the next interval
             }
         }
     }, 5000);
