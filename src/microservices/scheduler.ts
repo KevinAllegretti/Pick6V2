@@ -1571,4 +1571,4 @@ async function processGolfPicks(golfScores) {
   }
 }
  
-fetchMockGolfScores()
+//fetchMockGolfScores()
