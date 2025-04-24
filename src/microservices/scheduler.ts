@@ -987,7 +987,263 @@ cron.schedule('27 17 * * 3', async () => {
 });
 
 
+async function fetchAndSaveMastersData(): Promise<{ success: boolean, id?: string, status?: string, error?: any }> {
+  console.log('Fetching Masters Tournament information and saving to database...');
+  
+  const tournamentId = '014'; // Masters tournament ID
+  const tournamentName = 'Masters Tournament';
+  const apiKey = 'e5859daf3amsha3927ab000fb4a3p1b5686jsndea26f3d7448';
+  const year = '2025';
+  
+  try {
+    const database = await connectToDatabase();
+    const mastersCollection = database.collection('golfTournaments');
+    
+    console.log(`Fetching Masters data with ID: ${tournamentId}...`);
+    
+    // Try to get the leaderboard for the tournament
+    const leaderboardResponse = await fetch(`https://live-golf-data.p.rapidapi.com/leaderboard?orgId=1&tournId=${tournamentId}&year=${year}`, {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
+        'x-rapidapi-key': apiKey
+      }
+    });
+    
+    // If we can get a leaderboard, process it
+    if (leaderboardResponse.ok) {
+      const leaderboardData = await leaderboardResponse.json();
+      
+      // Check if there's actual leaderboard data
+      let leaderboard: GolferData[] = [];
+      let tournamentStatus = 'upcoming';
+      
+      // Look for leaderboard data in different possible properties
+      if (Array.isArray(leaderboardData.leaderboard)) {
+        leaderboard = leaderboardData.leaderboard;
+        tournamentStatus = 'in-progress';
+      } else if (Array.isArray(leaderboardData.leaderboardRows)) {
+        leaderboard = leaderboardData.leaderboardRows;
+        tournamentStatus = 'in-progress';
+      }
+      
+      console.log(`Found ${leaderboard.length} players on leaderboard`);
+      
+      // If we have a leaderboard with players, process it
+      if (leaderboard.length > 0) {
+        // Format the leaderboard data for our database
+        const formattedLeaderboard: FormattedGolfer[] = leaderboard.map(player => {
+          // Extract score - handle different API response formats
+          let score = 0;
+          let scoreDisplay = "E"; // Default display is even par
+          
+          if (player?.total !== undefined) {
+            // Handle "E" for even par
+            if (player.total === "E") {
+              score = 0;
+              scoreDisplay = "E";
+            } else {
+              // Convert to number if it's a string with a number
+              score = typeof player.total === 'number' ? player.total : 
+                      parseInt(String(player.total).replace("+", "")) || 0;
+              
+              // Generate display format
+              scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+            }
+          } else if (player?.score !== undefined) {
+            // Parse string score ("+5", "-3", "E")
+            const scoreStr = String(player.score);
+            if (scoreStr === "E") {
+              score = 0;
+              scoreDisplay = "E";
+            } else {
+              score = parseInt(scoreStr.replace("+", "")) || 0;
+              scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+            }
+          }
+          
+          // Log each player's score for debugging
+          console.log(`${player?.firstName || ""} ${player?.lastName || ""}: Raw=${player?.total || player?.score}, Parsed=${score}, Display=${scoreDisplay}`);
+          
+          return {
+            firstName: player?.firstName || "",
+            lastName: player?.lastName || "",
+            name: `${player?.firstName || ""} ${player?.lastName || ""}`.trim(),
+            score: score,
+            scoreDisplay: scoreDisplay,
+            position: player?.position || "",
+            status: player?.status || "active"
+          };
+        });
+        
+        // Save the tournament data
+        const mastersDocument: TournamentDocument = {
+          tournamentName,
+          tournamentId,
+          year,
+          fetchedAt: new Date(),
+          status: tournamentStatus,
+          data: {
+            leaderboard: formattedLeaderboard
+          }
+        };
+        
+        // Save to database
+        const result = await mastersCollection.insertOne(mastersDocument);
+        
+        console.log(`\n==========================================`);
+        console.log(`MASTERS TOURNAMENT LEADERBOARD SAVED`);
+        console.log(`==========================================`);
+        console.log(`Tournament: ${tournamentName}`);
+        console.log(`Status: ${tournamentStatus}`);
+        console.log(`Players: ${formattedLeaderboard.length}`);
+        
+        // Show top 5 players
+        if (formattedLeaderboard.length > 0) {
+          console.log(`\nTop 5 Players:`);
+          formattedLeaderboard.slice(0, 5).forEach((player, idx) => {
+            console.log(`${idx+1}. ${player.name.padEnd(25)} ${player.scoreDisplay}`);
+          });
+        }
+        
+        // Process golf picks with this real leaderboard data
+        await processGolfPicks(formattedLeaderboard);
+        
+        return { success: true, id: result.insertedId.toString(), status: tournamentStatus };
+      }
+    }
+    
+    // If no leaderboard is available, let's create a mock leaderboard for testing
+    console.log('No leaderboard data available. Creating mock Masters leaderboard for testing.');
+    
+    // Mock leaderboard with a mix of scores (under par, over par, and even)
+    const mockLeaderboard: FormattedGolfer[] = [
+      {
+        firstName: "Scottie",
+        lastName: "Scheffler",
+        name: "Scottie Scheffler",
+        score: -12,
+        scoreDisplay: "-12",
+        position: "1",
+        status: "active"
+      },
+      {
+        firstName: "Rory",
+        lastName: "McIlroy",
+        name: "Rory McIlroy",
+        score: -7,
+        scoreDisplay: "-7",
+        position: "2",
+        status: "active"
+      },
+      {
+        firstName: "Xander",
+        lastName: "Schauffele",
+        name: "Xander Schauffele",
+        score: -10,
+        scoreDisplay: "-10",
+        position: "3",
+        status: "active"
+      },
+      {
+        firstName: "Bryson",
+        lastName: "DeChambeau",
+        name: "Bryson DeChambeau",
+        score: 4, // Over par (positive)
+        scoreDisplay: "+4",
+        position: "4",
+        status: "active"
+      },
+      {
+        firstName: "Ludwig",
+        lastName: "Åberg",
+        name: "Ludwig Åberg",
+        score: 0, // Even par
+        scoreDisplay: "E",
+        position: "5",
+        status: "active"
+      },
+      {
+        firstName: "Justin",
+        lastName: "Thomas",
+        name: "Justin Thomas",
+        score: -3,
+        scoreDisplay: "-3",
+        position: "6",
+        status: "active"
+      },
+      {
+        firstName: "Collin",
+        lastName: "Morikawa",
+        name: "Collin Morikawa",
+        score: -5,
+        scoreDisplay: "-5",
+        position: "7",
+        status: "active"
+      },
+      {
+        firstName: "Jon",
+        lastName: "Rahm",
+        name: "Jon Rahm",
+        score: 2, // Over par (positive)
+        scoreDisplay: "+2",
+        position: "8",
+        status: "active"
+      }
+    ];
+    
+    // Save the mock tournament data
+    const mockMastersDocument: TournamentDocument = {
+      tournamentName,
+      tournamentId,
+      year,
+      fetchedAt: new Date(),
+      status: 'in-progress', // Set as in-progress for testing
+      data: {
+        leaderboard: mockLeaderboard
+      }
+    };
+    
+    // Save to database
+    const result = await mastersCollection.insertOne(mockMastersDocument);
+    
+    console.log(`\n==========================================`);
+    console.log(`MOCK MASTERS LEADERBOARD SAVED`);
+    console.log(`==========================================`);
+    console.log(`Tournament: ${tournamentName}`);
+    console.log(`Status: in-progress (mock)`);
+    console.log(`Players: ${mockLeaderboard.length}`);
+    
+    // Log the mock leaderboard
+    console.log(`\nMock Leaderboard:`);
+    mockLeaderboard.forEach((player, idx) => {
+      console.log(`${idx+1}. ${player.name.padEnd(25)} ${player.scoreDisplay}`);
+    });
+    
+    // Process golf picks with the mock leaderboard data
+    console.log('\nProcessing golf picks with mock leaderboard...');
+    await processGolfPicks(mockLeaderboard);
+    
+    // Log a verification calculation
+    console.log('\nVerification of score calculation:');
+    console.log('Example for a user with all 6 golfers:');
+    console.log('- Scottie Scheffler: -12');
+    console.log('- Rory McIlroy: -7');
+    console.log('- Xander Schauffele: -10');
+    console.log('- Bryson DeChambeau: +4');
+    console.log('- Ludwig Åberg: E (0)');
+    console.log('- Justin Thomas: -3');
+    console.log('Expected total: -12 + (-7) + (-10) + 4 + 0 + (-3) = -28');
+    
+    return { success: true, id: result.insertedId.toString(), status: 'in-progress' };
+    
+  } catch (error) {
+    console.error('Error fetching and saving Masters data:', error);
+    return { success: false, error };
+  }
+}
 
+//fetchAndSaveMastersData()
 
 
 //GOLFFFF
@@ -1258,7 +1514,7 @@ async function fetchAndSavePGAChampionshipData(): Promise<{ success: boolean, id
 }
 
 // Process golf picks with real leaderboard data
-/*
+// Process golf picks with real leaderboard data
 async function processGolfPicks(golfScores: FormattedGolfer[]): Promise<void> {
   console.log('Processing golf picks with tournament data...');
   
@@ -1299,17 +1555,32 @@ async function processGolfPicks(golfScores: FormattedGolfer[]): Promise<void> {
         
         // Calculate scores for each golfer
         let totalScore = 0;
-        const golferResults:any = [];
+        const golferResults: any = [];
         
         for (const golfer of golfers) {
           const golferName = golfer.golferName;
           
-          // Find this golfer in the leaderboard data
-          const golferData = golfScores.find(entry => 
-            entry.name.toLowerCase() === golferName.toLowerCase()
-          );
+          // Find this golfer in the leaderboard data with improved name matching
+          const golferData = golfScores.find(entry => {
+            // Normalize both names for comparison to handle special characters
+            const entryNameNormalized = entry.name.toLowerCase()
+              .normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            const golferNameNormalized = golferName.toLowerCase()
+              .normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            
+            // Log comparison (debug only)
+            console.log(`Comparing: "${entryNameNormalized}" with "${golferNameNormalized}"`);
+            
+            // Check for exact match or partial inclusion
+            return entryNameNormalized === golferNameNormalized || 
+                   entryNameNormalized.includes(golferNameNormalized) || 
+                   golferNameNormalized.includes(entryNameNormalized);
+          });
           
           if (golferData) {
+            // Log successful match
+            console.log(`Found match for ${golferName}: ${golferData.name} with score ${golferData.score} (${golferData.scoreDisplay})`);
+            
             // Store golfer result
             golferResults.push({
               golferName,
@@ -1337,8 +1608,27 @@ async function processGolfPicks(golfScores: FormattedGolfer[]): Promise<void> {
             
             // Add to total score - including positive (over par) scores
             totalScore += golferData.score;
+            console.log(`Added ${golferData.score} to total. Running total: ${totalScore}`);
+          } else {
+            console.log(`⚠️ NO MATCH FOUND for ${golferName}! This golfer will be skipped in scoring.`);
+            
+            // Add to results with undefined score
+            golferResults.push({
+              golferName,
+              score: null,
+              scoreDisplay: "undefined",
+              position: "",
+              round: golfer.round
+            });
           }
         }
+        
+        // List all golfers and their scores before saving
+        console.log(`Golfer breakdown for ${username}:`);
+        golferResults.forEach((g: any) => {
+          console.log(`- ${g.golferName}: ${g.score !== null ? g.score : 'not found'} (${g.scoreDisplay})`);
+        });
+        console.log(`Final total before saving: ${totalScore}`);
         
         // Calculate average score
         const averageScore = golfers.length > 0 ? totalScore / golfers.length : 0;
@@ -1391,7 +1681,7 @@ async function processGolfPicks(golfScores: FormattedGolfer[]): Promise<void> {
   } catch (error) {
     console.error('Error processing golf picks:', error);
   }
-}*/
+}
 
 
 // Mock leaderboard data - just basic scores for popular golfers
@@ -1417,7 +1707,7 @@ const mockGolfScores = [
   { name: "Max Homa", score: 9 },
 ];
 
-
+/*
 async function fetchMockGolfScores() {
   console.log('fetchMockGolfScores function started.');
   
@@ -1569,6 +1859,6 @@ async function processGolfPicks(golfScores) {
   } catch (error) {
     console.error('Error processing golf picks:', error);
   }
-}
+}*/
  
 //fetchMockGolfScores()
