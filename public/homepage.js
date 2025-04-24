@@ -6807,34 +6807,34 @@ function createGolfPlayerRow(member, currentUsername, pool, phase) {
     return playerRow;
 }
 
-  // Function to start the draft (admin only)
-  function startGolfDraft(poolName) {
-    if (confirm(`Are you sure you want to start the draft for "${poolName}"? This cannot be undone.`)) {
-      fetch(`/api/startGolfDraft/${encodeURIComponent(poolName)}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          username: localStorage.getItem('username')
-        })
+// Function to start the draft (admin only)
+function startGolfDraft(poolName) {
+  if (confirm(`Are you sure you want to start the draft for "${poolName}"? This cannot be undone.`)) {
+    fetch(`/api/startGolfDraft/${encodeURIComponent(poolName)}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        username: localStorage.getItem('username')
       })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          alert('Draft started successfully!');
-          window.location.reload();
-        } else {
-          alert(`Error starting draft: ${data.message}`);
-        }
-      })
-      .catch(error => {
-        console.error('Error starting draft:', error);
-        alert('An error occurred while starting the draft.');
-      });
-    }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('Draft started successfully! Redirecting to the golf selection page...');
+        // Redirect to the golf selection page instead of reloading
+        window.location.href = `golfSelection.html`;
+      } else {
+        alert(`Error starting draft: ${data.message}`);
+      }
+    })
+    .catch(error => {
+      console.error('Error starting draft:', error);
+      alert('An error occurred while starting the draft.');
+    });
   }
-
+}
 
   
   // Function to redirect to golf selections page
