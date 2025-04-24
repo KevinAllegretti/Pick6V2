@@ -20,9 +20,14 @@
     <div class="controls-container">
         <div class="draft-status">
             <div class="round-indicator">Round <span id="currentRound">1</span> of 6</div>
-            <div class="turn-indicator"><span id="currentUserName">User</span>'s Turn</div>
+            <div class="turn-indicator"><span id="currentUserName">User</span> is on the clock</div>
+            <div class="timer-container">
+                <div class="timer-bar">
+                    <div id="timerProgress" class="timer-progress"></div>
+                </div>
+                <div class="timer-text"><span id="timerSeconds">60</span> seconds remaining</div>
+            </div>
         </div>
-        
         <div class="pool-selector-container">
             <label for="poolSelector" class="pool-selector-label">Select Pool:</label>
             <select id="poolSelector" class="pool-selector">

@@ -985,59 +985,406 @@ cron.schedule('27 17 * * 3', async () => {
     }
   }
 });
+/*
+async function fetchAndSaveMastersData() {
+  console.log('Fetching Masters Tournament data and saving to database...');
+  
+  // API key from your previous example
+  const apiKey = 'e5859daf3amsha3927ab000fb4a3p1b5686jsndea26f3d7448';
+  const tournId = '475'; // Using this as our default Masters tournament ID
+  const year = '2025';
+  
+  try {
+    // Connect to the database
+    const database = await connectToDatabase();
+    const mastersCollection = database.collection('mastersLeaderboard');
+    
+    console.log('Connected to database, fetching tournament data...');
+    
+    // No need to get the schedule if we're getting errors
+    // We'll just use the known tournament ID directly
+    console.log(`Using tournament ID: ${tournId} for Masters Tournament`);
+    
+    // Fetch the leaderboard with the tournament ID
+    const leaderboardResponse = await fetch(`https://live-golf-data.p.rapidapi.com/leaderboard?orgId=1&tournId=${tournId}&year=${year}`, {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
+        'x-rapidapi-key': apiKey
+      }
+    });
+    
+    if (!leaderboardResponse.ok) {
+      throw new Error(`HTTP error fetching leaderboard! Status: ${leaderboardResponse.status}`);
+    }
+    
+    const leaderboardData = await leaderboardResponse.json();
+    
+    // Log the raw data structure to help debug
+    console.log('Leaderboard data structure:', 
+      Object.keys(leaderboardData).length > 0 
+        ? Object.keys(leaderboardData)
+        : 'Empty response'
+    );
+    
+    // Create a document to save
+    const masterDocument = {
+      tournamentName: 'Masters Tournament',
+      tournamentId: tournId,
+      year,
+      fetchedAt: new Date(),
+      data: leaderboardData
+    };
+    
+    // Save to the database
+    const result = await mastersCollection.insertOne(masterDocument);
+    
+    console.log(`\n==========================================`);
+    console.log(`MASTERS TOURNAMENT DATA SAVED`);
+    console.log(`==========================================`);
+    console.log(`Tournament: Masters Tournament`);
+    console.log(`Year: ${year}`);
+    console.log(`Saved with ID: ${result.insertedId}`);
+    
+    // Display some key stats if available
+    if (leaderboardData.leaderboard && Array.isArray(leaderboardData.leaderboard) && leaderboardData.leaderboard.length > 0) {
+      console.log(`\nTop 5 Players:`);
+      leaderboardData.leaderboard.slice(0, 5).forEach((player: any, idx: number) => {
+        const name = `${player.firstName || ''} ${player.lastName || ''}`.trim();
+        const score = player.score || 'E';
+        console.log(`${idx+1}. ${name.padEnd(24)} ${score}`);
+      });
+    } else {
+      console.log('\nNo leaderboard data available yet.');
+    }
+    
+    return { success: true, id: result.insertedId };
+    
+  } catch (error) {
+    console.error('Error fetching and saving Masters Tournament data:', error);
+    return { success: false, error };
+  }
+}
 
 
-/*
-// Process playoff results at the end of each week (Sunday night)
-cron.schedule('11 20 * * 2', async () => {
-  const currentWeek = await getCurrentWeek();
+
+
+
+// Call once immediately
+fetchAndSaveMastersData();*/
+
+
+async function fetchTournamentsList() {
+  console.log('Fetching available golf tournaments...');
   
-  if (currentWeek >= 14 && currentWeek <= 17) {
-    console.log(`Processing playoff results for week ${currentWeek}`);
+  const apiKey = 'e5859daf3amsha3927ab000fb4a3p1b5686jsndea26f3d7448';
+  const year = '2025';
+  
+  try {
+    // Try the schedule endpoint which should list all tournaments for the year
+    const scheduleResponse = await fetch(`https://live-golf-data.p.rapidapi.com/schedule?year=${year}`, {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
+        'x-rapidapi-key': apiKey
+      }
+    });
+    
+    if (!scheduleResponse.ok) {
+      throw new Error(`HTTP error fetching schedule! Status: ${scheduleResponse.status}`);
+    }
+    
+    const scheduleData = await scheduleResponse.json();
+    
+    // Log the raw structure to help debug
+    console.log('Schedule data structure:', typeof scheduleData);
+    console.log('Keys if object:', typeof scheduleData === 'object' ? Object.keys(scheduleData) : 'Not an object');
+    
+    // Handle different response formats
+    let tournaments:any = [];
+    
+    if (Array.isArray(scheduleData)) {
+      tournaments = scheduleData;
+      console.log(`Found ${tournaments.length} tournaments in array format`);
+    } else if (typeof scheduleData === 'object' && scheduleData !== null) {
+      // Check if there's a tournaments/events array in the object
+      if (Array.isArray(scheduleData.tournaments)) {
+        tournaments = scheduleData.tournaments;
+      } else if (Array.isArray(scheduleData.events)) {
+        tournaments = scheduleData.events;
+      } else if (Array.isArray(scheduleData.schedule)) {
+        tournaments = scheduleData.schedule;
+      } else {
+        // If we can't find an array, use the object keys as possible tournament IDs
+        console.log('No tournament array found, attempting to use object keys');
+        tournaments = Object.keys(scheduleData).map(key => ({
+          tournId: key,
+          name: `Tournament ${key}`,
+          id: key
+        }));
+      }
+      console.log(`Found ${tournaments.length} tournaments via object extraction`);
+    } else {
+      console.log('Unexpected schedule data format. Raw data:', scheduleData);
+      return { found: false, error: 'Unexpected data format' };
+    }
+    
+    // Now try to use a direct approach to get the Masters Tournament
+    console.log('Attempting direct approach with known tournament IDs...');
+    
+    // List of potential tournament IDs to try for the Masters
+    const potentialIds = ['014', '475', '018', '026', '001', '002', '003', '007'];
+    
+    for (const id of potentialIds) {
+      console.log(`Trying tournament ID: ${id}`);
+      
+      try {
+        const tournamentResponse = await fetch(`https://live-golf-data.p.rapidapi.com/leaderboard?orgId=1&tournId=${id}&year=${year}`, {
+          method: 'GET',
+          headers: {
+            'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
+            'x-rapidapi-key': apiKey
+          }
+        });
+        
+        if (!tournamentResponse.ok) {
+          console.log(`Tournament ID ${id} returned status ${tournamentResponse.status}`);
+          continue;
+        }
+        
+        const tournamentData = await tournamentResponse.json();
+        
+        // Check if this looks like a tournament
+        const hasLeaderboard = 
+          Array.isArray(tournamentData.leaderboardRows) || 
+          Array.isArray(tournamentData.leaderboard);
+          
+        if (!hasLeaderboard) {
+          console.log(`Tournament ID ${id} does not have leaderboard data`);
+          continue;
+        }
+        
+        // Try to get tournament name
+        const name = tournamentData.tournamentName || tournamentData.name || `Tournament ${id}`;
+        
+        console.log(`Found tournament with ID ${id}: ${name}`);
+        
+        // Check if it might be the Masters
+        const isMasters = name.toLowerCase().includes('masters');
+        const courseName = tournamentData.courseName || '';
+        const isAugusta = courseName.toLowerCase().includes('augusta');
+        
+        if (isMasters || isAugusta) {
+          console.log(`This appears to be the Masters Tournament! ID: ${id}, Name: ${name}, Course: ${courseName}`);
+          
+          return {
+            found: true,
+            tournament: {
+              tournId: id,
+              name: name,
+              courseName: courseName
+            }
+          };
+        } else {
+          console.log(`Tournament ID ${id} is not the Masters: ${name}, ${courseName}`);
+        }
+      } catch (error:any) {
+        console.log(`Error checking tournament ID ${id}:`, error.message);
+      }
+    }
+    
+    return { found: false, message: 'Could not find Masters Tournament' };
+  } catch (error:any) {
+    console.error('Error fetching tournaments list:', error);
+    return { found: false, error: error.message };
+  }
+}
+
+async function fetchAndSaveTournamentData(tournamentId: string, tournamentName: string) {
+  console.log(`Fetching data for ${tournamentName} (ID: ${tournamentId})...`);
+  
+  const apiKey = 'e5859daf3amsha3927ab000fb4a3p1b5686jsndea26f3d7448';
+  const year = '2025';
+  
+  try {
+    // Connect to the database
+    const database = await connectToDatabase();
+    const tournamentsCollection = database.collection('golfTournaments');
+    
+    const leaderboardResponse = await fetch(`https://live-golf-data.p.rapidapi.com/leaderboard?orgId=1&tournId=${tournamentId}&year=${year}`, {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
+        'x-rapidapi-key': apiKey
+      }
+    });
+    
+    if (!leaderboardResponse.ok) {
+      throw new Error(`HTTP error fetching leaderboard! Status: ${leaderboardResponse.status}`);
+    }
+    
+    const leaderboardData = await leaderboardResponse.json();
+    
+    // Create a document to save
+    const tournamentDocument = {
+      tournamentName,
+      tournamentId,
+      year,
+      fetchedAt: new Date(),
+      data: leaderboardData
+    };
+    
+    // Save to the database
+    const result = await tournamentsCollection.insertOne(tournamentDocument);
+    
+    console.log(`\n==========================================`);
+    console.log(`TOURNAMENT DATA SAVED: ${tournamentName}`);
+    console.log(`==========================================`);
+    console.log(`Year: ${year}`);
+    console.log(`Tournament ID: ${tournamentId}`);
+    console.log(`Saved with DB ID: ${result.insertedId}`);
+    
+    // Display some key stats if available
+    let players = [];
+    if (Array.isArray(leaderboardData.leaderboardRows)) {
+      players = leaderboardData.leaderboardRows;
+    } else if (Array.isArray(leaderboardData.leaderboard)) {
+      players = leaderboardData.leaderboard;
+    }
+    
+    if (players.length > 0) {
+      console.log(`\nTop 5 Players:`);
+      players.slice(0, 5).forEach((player: any, idx: number) => {
+        const name = `${player.firstName || ''} ${player.lastName || ''}`.trim();
+        const score = player.total || player.score || 'E';
+        console.log(`${idx+1}. ${name.padEnd(24)} ${score}`);
+      });
+    } else {
+      console.log('No leaderboard data available.');
+      console.log('Available keys in response:', Object.keys(leaderboardData));
+    }
+    
+    return { success: true, id: result.insertedId };
+    
+  } catch (error: any) {
+    console.error(`Error fetching and saving tournament data:`, error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Main function to orchestrate the process
+async function getMastersData() {
+  try {
+    // First try to find the Masters Tournament ID
+    console.log('Step 1: Finding Masters Tournament...');
+    const tournamentsResult:any = await fetchTournamentsList();
+    
+    if (tournamentsResult.found) {
+      // Masters found, fetch and save its data
+      const mastersId = tournamentsResult.tournament.tournId;
+      const mastersName = tournamentsResult.tournament.name;
+      
+      console.log('Step 2: Fetching Masters Tournament data...');
+      await fetchAndSaveTournamentData(mastersId, mastersName);
+    } else {
+      // If we can't find the Masters, try tournament ID 014 (common Masters ID)
+      console.log('Could not definitively identify the Masters. Trying ID 014...');
+      await fetchAndSaveTournamentData('014', 'Masters Tournament');
+    }
+  } catch (error) {
+    console.error('Error in Masters data processing:', error);
+  }
+}
+
+async function findPGAChampionship() {
+  console.log('Searching for PGA Championship Tournament...');
+  
+  const apiKey = 'e5859daf3amsha3927ab000fb4a3p1b5686jsndea26f3d7448';
+  const year = '2025';
+  
+  // List of potential tournament IDs to try for the PGA Championship
+  // The PGA Championship is often ID '018' in many golf APIs
+  const potentialIds = ['015', '033', '034', '019', '020', '028'];
+  
+  for (const id of potentialIds) {
+    console.log(`Trying tournament ID: ${id}`);
+    
     try {
-      const response = await fetch(`${url6}/api/playoffs/processResults`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+      const tournamentResponse = await fetch(`https://live-golf-data.p.rapidapi.com/leaderboard?orgId=1&tournId=${id}&year=${year}`, {
+        method: 'GET',
+        headers: {
+          'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
+          'x-rapidapi-key': apiKey
+        }
       });
       
-      if (!response.ok) {
-        throw new Error(`Failed to process playoff results: ${response.status}`);
+      if (!tournamentResponse.ok) {
+        console.log(`Tournament ID ${id} returned status ${tournamentResponse.status}`);
+        continue;
       }
       
-      const data = await response.json();
-      console.log('Playoff results processing:', data);
-    } catch (error) {
-      console.error('Error processing playoff results:', error);
+      const tournamentData = await tournamentResponse.json();
+      
+      // Check if this looks like a tournament
+      const hasLeaderboard = 
+        Array.isArray(tournamentData.leaderboardRows) || 
+        Array.isArray(tournamentData.leaderboard);
+        
+      if (!hasLeaderboard) {
+        console.log(`Tournament ID ${id} does not have leaderboard data`);
+        continue;
+      }
+      
+      // Try to get tournament name
+      const name = tournamentData.tournamentName || tournamentData.name || `Tournament ${id}`;
+      
+      console.log(`Found tournament with ID ${id}: ${name}`);
+      
+      // Check if it might be the PGA Championship
+      const isPGAChampionship = 
+        name.toLowerCase().includes('pga championship') || 
+        name.toLowerCase().includes('pga champ');
+        
+      const courseName = tournamentData.courseName || '';
+      
+      if (isPGAChampionship) {
+        console.log(`This appears to be the PGA Championship! ID: ${id}, Name: ${name}, Course: ${courseName}`);
+        
+        // Get sample player data to verify
+        let players = [];
+        if (Array.isArray(tournamentData.leaderboardRows)) {
+          players = tournamentData.leaderboardRows;
+        } else if (Array.isArray(tournamentData.leaderboard)) {
+          players = tournamentData.leaderboard;
+        }
+        
+        if (players.length > 0) {
+          console.log(`\nTop 5 Players in PGA Championship:`);
+          players.slice(0, 5).forEach((player: any, idx: number) => {
+            const name = `${player.firstName || ''} ${player.lastName || ''}`.trim();
+            const score = player.total || player.score || 'E';
+            console.log(`${idx+1}. ${name.padEnd(24)} ${score}`);
+          });
+        }
+        
+        return {
+          found: true,
+          tournament: {
+            tournId: id,
+            name: name,
+            courseName: courseName
+          }
+        };
+      } else {
+        console.log(`Tournament ID ${id} is not the PGA Championship: ${name}, ${courseName}`);
+      }
+    } catch (error:any) {
+      console.log(`Error checking tournament ID ${id}:`, error.message);
     }
   }
-});*/
-// Reverse advance playoffs cron job
-// This can be placed alongside your other cron jobs
-// Note: You might want to comment this out when not in use
-/*
-// Reverse playoffs advancement (only enable when needed)
-cron.schedule('12 15 * * 2', async () => {
-  const currentWeek = await getCurrentWeek();
   
-  // Only allow reversing during playoff weeks 15-17
-  if (currentWeek >= 15 && currentWeek <= 17) {
-    console.log(`Reversing playoff advancement from week ${currentWeek} to ${currentWeek - 1}`);
-    try {
-      const response = await fetch(`${url6}/api/playoffs/reverseAdvance`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to reverse playoff advancement: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('Playoff reverse advancement result:', data);
-    } catch (error) {
-      console.error('Error reversing playoff advancement:', error);
-    }
-  } else {
-    console.log(`Not reversing playoffs: current week ${currentWeek} is not within range 15-17`);
-  }
-});*/
+  console.log('Could not find PGA Championship Tournament among tested IDs');
+  return { found: false, message: 'Could not find PGA Championship Tournament' };
+}
+
+//findPGAChampionship()

@@ -16,7 +16,8 @@ import dashRoutes from '../src/routes/dashRoutes'
 import { fetchNFLschedule } from '../src/Controllers/dashController';
 import { fetchTeamsAndWeeks, fetchGamesByFilter } from '../src/Controllers/dashController';
 import golfRoutes from '../src/routes/golfRoutes'
-
+import { connectToDatabase } from '../src/microservices/connectDB';
+import {autoSelectBestGolferForUser} from '../src/routes/golfRoutes';
 require("dotenv").config();
 
 const app = express();
@@ -115,5 +116,56 @@ if (!process.env.MONGODB_URI) {
 
 mongoose.connect('mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/Pick6', options);
 
-
+// Add this to your main server.js or app.js file
+// Draft timer checker - runs every 5 seconds
+setInterval(async () => {
+  try {
+      const database = await connectToDatabase();
+      const poolsCollection = database.collection('pools');
+      const golfDraftStateCollection = database.collection('golfDraftState');
+      
+      // Find all active drafts with expired turns
+      const now = new Date();
+      const activeDrafts = await golfDraftStateCollection.find({
+          isComplete: false,
+          turnExpiresAt: { $lt: now }  // Expired turns
+      }).toArray();
+      
+      for (const draft of activeDrafts) {
+          const pool = await poolsCollection.findOne({ 
+              name: draft.poolName, 
+              mode: 'golf', 
+              draftTime: true 
+          });
+          
+          if (!pool) continue; // Skip if pool not found or not in draft mode
+          
+          console.log(`Auto-selecting for expired turn in pool: ${draft.poolName}`);
+          
+          // Get current user for this turn
+          let currentUser = 'Unknown';
+          const numberOfDrafters = draft.draftOrder ? draft.draftOrder.length : 0;
+          
+          if (draft.draftOrder && numberOfDrafters > 0) {
+              const isEvenRound = draft.currentRound % 2 === 0;
+              
+              if (isEvenRound) {
+                  const reverseIndex = numberOfDrafters - 1 - draft.currentTurn;
+                  if (reverseIndex >= 0 && reverseIndex < numberOfDrafters) {
+                      currentUser = draft.draftOrder[reverseIndex];
+                  }
+              } else {
+                  if (draft.currentTurn >= 0 && draft.currentTurn < numberOfDrafters) {
+                      currentUser = draft.draftOrder[draft.currentTurn];
+                  }
+              }
+          }
+          
+          // Auto-select the best available golfer
+          await autoSelectBestGolferForUser(currentUser, draft.poolName, draft.currentRound);
+      }
+  } catch (error) {
+      console.error('Error in draft timer checker:', error);
+  }
+}, 5000);
 export default app;
