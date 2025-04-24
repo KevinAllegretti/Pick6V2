@@ -730,7 +730,7 @@ function updateYourTeamDisplay() {
         yourTeamContainer.appendChild(golferElement);
     });
 }
-
+/*
 function startDraftStatePolling() {
     // Poll every 5 seconds
     setInterval(async () => {
@@ -773,6 +773,114 @@ function startDraftStatePolling() {
                         
                         // If we just entered draft mode or timer isn't running, start it
                         if ((enteringDraftMode || !isTimerRunning) && currentPoolState.draftTime) {
+                            startDraftTimer();
+                        }
+                        
+                        // Only update UI if draft round or turn changed
+                        if (prevDraftRound !== currentDraftRound || 
+                            prevUserTurn !== currentUserTurn) {
+                            
+                            await fetchAllPoolPicks();
+                            renderPicksContainer();
+                            updateDraftStatus();
+                            
+                            // If it just became user's turn, notify them
+                            let currentUser = 'Unknown';
+                            const numberOfDrafters = draftOrder.length;
+                            
+                            if (draftOrder && numberOfDrafters > 0) {
+                                const isEvenRound = currentDraftRound % 2 === 0;
+                                
+                                if (isEvenRound) {
+                                    // Even round (snake)
+                                    const reverseIndex = numberOfDrafters - 1 - currentUserTurn;
+                                    if (reverseIndex >= 0 && reverseIndex < numberOfDrafters) {
+                                        currentUser = draftOrder[reverseIndex];
+                                    }
+                                } else {
+                                    // Odd round (normal)
+                                    if (currentUserTurn >= 0 && currentUserTurn < numberOfDrafters) {
+                                        currentUser = draftOrder[currentUserTurn];
+                                    }
+                                }
+                            }
+                            
+                            // Check if it just became the user's turn
+                            if (currentUser.toLowerCase() === storedUsername.toLowerCase() && 
+                                (prevUserTurn !== currentUserTurn || prevDraftRound !== currentDraftRound)) {
+                                showSuccessMessage("It's your turn to pick!");
+                            }
+                        }
+                    } else if (prevState.draftTime && !currentPoolState.draftTime) {
+                        // If we just left draft mode, stop the timer
+                        resetDraftTimer();
+                    }
+                }
+            } catch (error) {
+                console.error('Error during polling:', error);
+            }
+        }
+    }, 5000);
+}*/
+
+function startDraftStatePolling() {
+    // Keep track of previous pool state to avoid unnecessary UI updates
+    let prevPoolState = {...currentPoolState};
+    
+    // Poll every 5 seconds
+    setInterval(async () => {
+        if (selectedPool) {
+            try {
+                // First check if the pool state changed
+                const prevState = {...currentPoolState};
+                
+                // Fetch updated pool state
+                const stateResponse = await fetch(`/api/getPoolState/${selectedPool}`);
+                if (stateResponse.ok) {
+                    const state = await stateResponse.json();
+                    const newState = {
+                        idleTime: state.idleTime || false,
+                        draftTime: state.draftTime || false,
+                        playTime: state.playTime || false
+                    };
+                    
+                    // Check if we're transitioning FROM idle TO draft mode
+                    const draftJustStarted = prevState.idleTime && newState.draftTime;
+                    
+                    // Only update the UI if the pool state changed
+                    const stateChanged = 
+                        prevState.idleTime !== newState.idleTime ||
+                        prevState.draftTime !== newState.draftTime ||
+                        prevState.playTime !== newState.playTime;
+                    
+                    if (stateChanged) {
+                        console.log('Pool state changed, updating UI');
+                        currentPoolState = newState;
+                        
+                        // If draft just started, refresh the entire page
+                        if (draftJustStarted) {
+                            console.log('Draft just started! Refreshing page...');
+                            // Show a quick notification before refreshing
+                            showSuccessMessage('Draft is starting! Page will refresh...');
+                            // Give a slight delay so the message is visible
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                            return; // Exit early since we're refreshing
+                        }
+                        
+                        updateUIForPoolState();
+                    }
+                    
+                    // If in draft mode, check for changes to draft state
+                    if (currentPoolState.draftTime) {
+                        const prevDraftRound = currentDraftRound;
+                        const prevUserTurn = currentUserTurn;
+                        
+                        await fetchDraftState();
+                        
+                        // If we just entered draft mode or timer isn't running, start it
+                        if ((draftJustStarted || !isTimerRunning) && currentPoolState.draftTime) {
                             startDraftTimer();
                         }
                         
