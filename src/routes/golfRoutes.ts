@@ -643,7 +643,7 @@ router.get('/getGolfScores/:poolName', async (req, res) => {
             poolName
         }).toArray();
         
-        console.log('Golf results from DB:', golfResults); // Add this to see what's coming from DB
+       // console.log('Golf results from DB:', golfResults); // Add this to see what's coming from DB
         
         // Combine the data
         const combinedData = userPicks.map(userPick => {

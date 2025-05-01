@@ -512,9 +512,9 @@ export async function updateThursdayDeadline(): Promise<void> {
             nextThursday.setHours(nextThursday.getHours() - 4); // Convert UTC to EST (UTC-4)
         
             // Calculate Sunday reveal time (next Sunday at 12 PM EST)
-            const nextSunday = new Date(nextThursday);
-            nextSunday.setDate(nextSunday.getDate() + ((0 + 7 - nextThursday.getDay()) % 7));
-            nextSunday.setHours(12, 0, 0, 0); // 12 PM EST
+            const nextSunday = new Date(now);
+            nextSunday.setDate(nextSunday.getDate() + ((4 + 7 - now.getDay()) % 7));
+            nextSunday.setHours(19, 0, 0, 0); // 12 PM EST
             nextSunday.setMinutes(nextSunday.getMinutes() + nextSunday.getTimezoneOffset());
             nextSunday.setHours(nextSunday.getHours() - 4);
         
