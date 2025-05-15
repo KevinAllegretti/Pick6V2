@@ -241,7 +241,7 @@ cron.schedule('27 17 * * 3', async () => {
   }
 });
 
-cron.schedule('*/20 7-20 15-18 5 *', () => {
+cron.schedule('*/20 7-19 15-18 5 *', () => {
   console.log('Fetching PGA Championship data - runs every 20 minutes');
   fetchAndSavePGAChampionshipData();
 });
