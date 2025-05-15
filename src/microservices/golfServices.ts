@@ -581,7 +581,7 @@ export interface GolferData {
                 .normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
               
               // Log comparison (debug only)
-              console.log(`Comparing: "${entryNameNormalized}" with "${golferNameNormalized}"`);
+             // console.log(`Comparing: "${entryNameNormalized}" with "${golferNameNormalized}"`);
               
               // Check for exact match or partial inclusion
               return entryNameNormalized === golferNameNormalized || 
