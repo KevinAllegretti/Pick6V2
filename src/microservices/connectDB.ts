@@ -1,9 +1,7 @@
 import { MongoClient, Db } from 'mongodb';
-
-if (!process.env.MONGODB_URI) {
-  throw new Error('MONGODB_URI is not set in environment variables');
-}
-const MONGODB_URI = process.env.MONGODB_URI 
+import * as dotenv from 'dotenv';
+dotenv.config();
+const MONGODB_URI = process.env.MONGODB_URI as string;
 
 // Use a single client instance for the entire application
 let client: MongoClient | null = null;

@@ -19,6 +19,9 @@ import golfRoutes from '../src/routes/golfRoutes'
 import { connectToDatabase } from '../src/microservices/connectDB';
 import {autoSelectBestGolferForUser} from '../src/routes/golfRoutes';
 require("dotenv").config();
+import dotenv from 'dotenv';
+dotenv.config();
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -109,11 +112,9 @@ const options = {
   serverSelectionTimeoutMS: 5000, // Reduce the time the driver waits for server selection
   socketTimeoutMS: 45000, // Adjust socket timeout 
 };
-if (!process.env.MONGODB_URI) {
-  throw new Error('MONGODB_URI is not set in environment variables');
-}
-
-mongoose.connect(process.env.MONGODB_URI, options);
+console.log('MONGODB_URI:', process.env.MONGODB_URI);
+const mongoUri = process.env.MONGODB_URI as string;
+mongoose.connect(mongoUri, options);
 
 // Add this to your main server.js or app.js file
 // Draft timer checker - runs every 5 seconds

@@ -6726,7 +6726,6 @@ async function fetchGolfPicks(username, poolName) {
   }
 }
 
-
 async function displayGolfPoolContainer(pool) {
   console.log('Starting displayGolfPoolContainer for pool:', pool.name);
   
@@ -6789,7 +6788,7 @@ async function displayGolfPoolContainer(pool) {
   
   poolHeaderContainer.appendChild(headerTop);
   
-  // Create bottom row with stats
+  // Create bottom row with stats and last updated timestamp
   const headerBottom = document.createElement("div");
   headerBottom.className = "golf-header-bottom";
   
@@ -6812,18 +6811,43 @@ async function displayGolfPoolContainer(pool) {
   headerBottom.appendChild(phaseIndicator);
   headerBottom.appendChild(userCountDiv);
   
+  // Add last updated timestamp if it exists and only for Tournament phase
+  if (pool.playTime && pool.lastGolfScoresUpdate) {
+    const lastUpdateDiv = document.createElement("div");
+    lastUpdateDiv.className = "golf-last-update";
+    
+    const updateTime = new Date(pool.lastGolfScoresUpdate);
+    
+    // Format date and time in a user-friendly way
+    const options = { 
+      weekday: 'short',
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit', 
+      minute: '2-digit'
+    };
+    
+    const formattedDateTime = updateTime.toLocaleString('en-US', options);
+    
+    lastUpdateDiv.innerHTML = `
+      <i class="fas fa-sync-alt"></i>
+      <span>Scores updated: ${formattedDateTime}</span>
+    `;
+    
+    headerBottom.appendChild(lastUpdateDiv);
+  }
+  
   poolHeaderContainer.appendChild(headerBottom);
   poolWrapper.appendChild(poolHeaderContainer);
-  
 
   let golfDraftState = null; // Variable to hold draft state for this pool
-    if (pool.draftTime) {
-        console.log(`Pool ${pool.name} is in draft time, fetching state...`);
-        golfDraftState = await fetchGolfDraftState(pool.name); // Fetch state if drafting
-         if (!golfDraftState) {
-             console.warn(`Could not fetch draft state for ${pool.name}, indicator will not be shown.`);
-         }
+  if (pool.draftTime) {
+    console.log(`Pool ${pool.name} is in draft time, fetching state...`);
+    golfDraftState = await fetchGolfDraftState(pool.name); // Fetch state if drafting
+    if (!golfDraftState) {
+      console.warn(`Could not fetch draft state for ${pool.name}, indicator will not be shown.`);
     }
+  }
 
   // Create table header with improved styling
   const tableHeader = document.createElement("div");
@@ -6860,17 +6884,6 @@ async function displayGolfPoolContainer(pool) {
   
   poolScrollableContainer.appendChild(poolContainer);
   poolWrapper.appendChild(poolScrollableContainer);
-  /*
-  // Add Golf Selections button if in draft phase - improved positioning and styling
-  if (pool.draftTime) {
-    const golfSelectionsBtn = document.createElement("button");
-    golfSelectionsBtn.id = "golfPicksButton";
-    golfSelectionsBtn.className = "golf-picks-button";
-    golfSelectionsBtn.innerHTML = '<i class="fas fa-golf-ball"></i> GOLF SELECTIONS';
-    golfSelectionsBtn.addEventListener("click", () => redirectToGolfSelections(pool.name));
-    poolWrapper.appendChild(golfSelectionsBtn);
-  }*/
-  
 
   // Only update scores if the pool is in tournament phase
   if (pool.playTime && poolWrapper) {
