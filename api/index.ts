@@ -109,12 +109,11 @@ const options = {
   serverSelectionTimeoutMS: 5000, // Reduce the time the driver waits for server selection
   socketTimeoutMS: 45000, // Adjust socket timeout 
 };
-/*
 if (!process.env.MONGODB_URI) {
   throw new Error('MONGODB_URI is not set in environment variables');
-}*/
+}
 
-mongoose.connect('mongodb+srv://Kingbeats17:Yunglean17@pick6.nomxpzq.mongodb.net/Pick6', options);
+mongoose.connect(process.env.MONGODB_URI, options);
 
 // Add this to your main server.js or app.js file
 // Draft timer checker - runs every 5 seconds
