@@ -6831,7 +6831,7 @@ async function displayGolfPoolContainer(pool) {
     
     lastUpdateDiv.innerHTML = `
       <i class="fas fa-sync-alt"></i>
-      <span>Scores updated: ${formattedDateTime}</span>
+      <span>Scores last updated: ${formattedDateTime}</span>
     `;
     
     headerBottom.appendChild(lastUpdateDiv);
