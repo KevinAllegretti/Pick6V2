@@ -7056,7 +7056,7 @@ function sortPlayerRowsByScore(poolWrapper) {
 }
 
 
-// 2. createGolfPlayerRow function (async version)
+// Updated createGolfPlayerRow function to show CUT status for golfers
 async function createGolfPlayerRow(member, currentUsername, pool, phase, golfDraftState = null) {
   const playerRow = document.createElement("div");
   playerRow.className = "golf-player-row";
@@ -7068,12 +7068,12 @@ async function createGolfPlayerRow(member, currentUsername, pool, phase, golfDra
 
   // Create user section
   const userSection = document.createElement("div");
-  userSection.className = "golf-player-user"; // This div will contain pic, name, and potentially the clock icon
+  userSection.className = "golf-player-user";
 
   // Profile Pic
   const profilePic = document.createElement("div");
   profilePic.className = "golf-profile-pic";
-  profilePic.style.backgroundImage = `url('Default.png')`; // Default
+  profilePic.style.backgroundImage = `url('Default.png')`;
 
   fetchUserProfile(member.username.toLowerCase())
     .then(userProfile => {
@@ -7090,11 +7090,10 @@ async function createGolfPlayerRow(member, currentUsername, pool, phase, golfDra
   usernameSpan.className = "player-username";
   usernameSpan.textContent = member.username;
 
-  // Append Pic and Username to User Section FIRST
   userSection.appendChild(profilePic);
   userSection.appendChild(usernameSpan);
 
-  // --- Add "On the Clock" Indicator IF applicable, appended to userSection ---
+  // Add "On the Clock" Indicator if applicable
   if (phase === "Draft" && golfDraftState && golfDraftState.draftOrder && golfDraftState.draftOrder.length > 0) {
       let currentUserOnClock = 'Unknown';
       const numberOfDrafters = golfDraftState.draftOrder.length;
@@ -7111,18 +7110,15 @@ async function createGolfPlayerRow(member, currentUsername, pool, phase, golfDra
           }
       }
 
-      // Compare lowercase usernames
       if (currentUserOnClock.toLowerCase() === member.username.toLowerCase()) {
-          console.log(`Match! Adding clock icon for ${member.username}`); // Debug
+          console.log(`Match! Adding clock icon for ${member.username}`);
           const clockIcon = document.createElement('i');
-          clockIcon.className = 'fas fa-clock golf-on-the-clock'; // Added FontAwesome classes
+          clockIcon.className = 'fas fa-clock golf-on-the-clock';
           clockIcon.title = 'On the Clock';
-          userSection.appendChild(clockIcon); // *** Append icon HERE, after the username span ***
+          userSection.appendChild(clockIcon);
       }
   }
-  // --- End Indicator ---
 
-  // Append the completed userSection (Pic, Name, maybe Clock) to the row
   playerRow.appendChild(userSection);
 
   // Create picks section (Add loading indicator initially)
@@ -7141,7 +7137,6 @@ async function createGolfPlayerRow(member, currentUsername, pool, phase, golfDra
   playerRow.appendChild(sumSection);
 
   // --- ASYNCHRONOUSLY Fetch and Populate Picks/Score ---
-  // (This part runs after the initial row structure is returned)
   if (phase !== "Joining") {
       try {
           const golfPicksData = await fetchGolfPicks(member.username, pool.name);
@@ -7155,8 +7150,8 @@ async function createGolfPlayerRow(member, currentUsername, pool, phase, golfDra
               let totalScore = 0;
               let validScoresCount = 0; // Count golfers with valid scores
 
-               // Sort picks by round before displaying
-               golfPicksData.picks.sort((a, b) => (a.round || 99) - (b.round || 99));
+              // Sort picks by round before displaying
+              golfPicksData.picks.sort((a, b) => (a.round || 99) - (b.round || 99));
 
               golfPicksData.picks.forEach(pick => {
                   const pickElement = document.createElement("div");
@@ -7182,10 +7177,22 @@ async function createGolfPlayerRow(member, currentUsername, pool, phase, golfDra
                       const scoreClass = typeof pick.score !== 'number' ? 'score-tbd' : 
                                        (score > 0 ? 'score-over' : (score < 0 ? 'score-under' : 'score-even'));
 
+                      // Check for CUT status
+                      const isCut = pick.status && (pick.status.toLowerCase() === 'cut' || pick.status.toLowerCase() === 'wd');
+                      
+                      // Create the pick element HTML
                       pickElement.innerHTML = `
                           <span class="golf-pick-name">${pick.golferName}</span>
                           <span class="golf-pick-score ${scoreClass}">${scoreDisplay}</span>
                       `;
+                      
+                      // Add CUT status if golfer is cut
+                      if (isCut) {
+                          const cutStatus = document.createElement('div');
+                          cutStatus.className = 'golf-cut-status';
+                          cutStatus.textContent = 'CUT';
+                          pickElement.appendChild(cutStatus);
+                      }
                   }
                   picksContainer.appendChild(pickElement);
               });
@@ -7213,7 +7220,6 @@ async function createGolfPlayerRow(member, currentUsername, pool, phase, golfDra
               } else if (phase === "Draft") {
                    sumSection.textContent = "-"; // Show dash during draft
               }
-
           } else {
               // Handle case where picks array is empty or fetch failed but didn't throw error
               const noPicks = document.createElement("div");
@@ -7236,12 +7242,9 @@ async function createGolfPlayerRow(member, currentUsername, pool, phase, golfDra
       picksSection.appendChild(waitingDiv);
       sumSection.textContent = "-"; // Show dash during joining phase
   }
-  // --- END ASYNC PART ---
 
   return playerRow;
 }
-
-
 async function updateGolfScoresDisplay(poolWrapper) {
   const poolName = poolWrapper.getAttribute('data-pool-name');
   if (!poolName) {
@@ -7309,13 +7312,25 @@ async function updateGolfScoresDisplay(poolWrapper) {
         
         const scoreClass = score > 0 ? 'score-over' : (score < 0 ? 'score-under' : 'score-even');
         
-        // Debug to verify our variables are correct
-        console.log(`Rendering ${golferName}: score=${score}, display=${scoreDisplay}, class=${scoreClass}`);
+        // Check if golfer is cut
+        const isCut = golfer.status && (golfer.status.toLowerCase() === 'cut' || golfer.status.toLowerCase() === 'wd');
         
+        // Debug to verify our variables are correct
+        console.log(`Rendering ${golferName}: score=${score}, display=${scoreDisplay}, class=${scoreClass}, cut=${isCut}`);
+        
+        // Create the HTML for the pick
         pickElement.innerHTML = `
           <span class="golf-pick-name">${golferName}</span>
           <span class="golf-pick-score ${scoreClass}">${scoreDisplay}</span>
         `;
+        
+        // Add CUT status if golfer is cut
+        if (isCut) {
+          const cutStatus = document.createElement('div');
+          cutStatus.className = 'golf-cut-status';
+          cutStatus.textContent = 'CUT';
+          pickElement.appendChild(cutStatus);
+        }
         
         picksContainer.appendChild(pickElement);
       });

@@ -600,7 +600,9 @@ async function processGolfPicks(golfScores) {
               score: golferData.score,
               scoreDisplay: golferData.scoreDisplay,
               position: golferData.position,
-              round: golfer.round
+              round: golfer.round,
+              status: golferData.status
+              
             }); 
             
             // Store the score directly in the user's pick
@@ -614,7 +616,8 @@ async function processGolfPicks(golfScores) {
                 $set: {
                   "golfers.$.score": golferData.score,
                   "golfers.$.scoreDisplay": golferData.scoreDisplay,
-                  "golfers.$.position": golferData.position
+                  "golfers.$.position": golferData.position,
+                   "golfers.$.status": golferData.status
                 }
               }
             );
@@ -631,7 +634,8 @@ async function processGolfPicks(golfScores) {
               score: 0,
               scoreDisplay: "E",
               position: "",
-              round: golfer.round
+              round: golfer.round,
+              status: golferData.status
             });
           }
         }
