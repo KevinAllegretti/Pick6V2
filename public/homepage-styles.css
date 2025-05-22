@@ -7056,7 +7056,6 @@ input:checked + .slider:before {
 
 
 .golf-pool-name i {
-  margin-right: 8px;
   color: var(--golf-primary);
 }
 
@@ -7919,7 +7918,6 @@ margin-bottom: -10px;
 
 /* Add subtle texture to picks */
 .golf-pick::before {
-  content: "";
   position: absolute;
   top: 0;
   left: 0;
