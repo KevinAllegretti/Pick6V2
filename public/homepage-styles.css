@@ -8103,3 +8103,21 @@ margin-bottom: -10px;
   opacity: 0.4 !important;
 }
 
+/* Light red for +1 to +9 (your current over par color) */
+.score-over,
+.score-over-light {
+  color: #ff5e5e;
+  text-shadow: 0 0 5px rgba(255, 94, 94, 0.7);
+}
+
+/* Medium red for +10 to +19 */
+.score-over-medium {
+  color: #e63946;
+  text-shadow: 0 0 5px rgba(230, 57, 70, 0.8);
+}
+
+/* Dark red for +20 and over */
+.score-over-dark {
+  color: #b91c1c;
+  text-shadow: 0 0 5px rgba(185, 28, 28, 0.9);
+}

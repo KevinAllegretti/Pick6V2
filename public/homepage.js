@@ -7407,3 +7407,355 @@ function getScoreFromRow(row) {
   if (scoreText.startsWith('+')) return parseFloat(scoreText.substring(1));
   return parseFloat(scoreText);
 }
+
+// Add this function to determine the score class based on tier system
+function getGolfScoreClass(score) {
+  if (score < 0) {
+    return 'score-under'; // Green for under par
+  } else if (score === 0) {
+    return 'score-even'; // Yellow/white for even par
+  } else if (score >= 1 && score <= 9) {
+    return 'score-over-light'; // Light red for +1 to +9
+  } else if (score >= 10 && score <= 19) {
+    return 'score-over-medium'; // Medium red for +10 to +19
+  } else if (score >= 20) {
+    return 'score-over-dark'; // Dark red for +20 and over
+  }
+  return 'score-over-light'; // Default to light red
+}
+
+// Updated createGolfPlayerRow function with CUT handling and score tiers
+async function createGolfPlayerRow(member, currentUsername, pool, phase, golfDraftState = null) {
+  const playerRow = document.createElement("div");
+  playerRow.className = "golf-player-row";
+
+  // Highlight current user
+  if (member.username.toLowerCase() === currentUsername.toLowerCase()) {
+      playerRow.classList.add("current-user-row");
+  }
+
+  // Create user section
+  const userSection = document.createElement("div");
+  userSection.className = "golf-player-user";
+
+  // Profile Pic
+  const profilePic = document.createElement("div");
+  profilePic.className = "golf-profile-pic";
+  profilePic.style.backgroundImage = `url('Default.png')`;
+
+  fetchUserProfile(member.username.toLowerCase())
+    .then(userProfile => {
+      if (userProfile && userProfile.profilePicture) {
+        profilePic.style.backgroundImage = `url('${userProfile.profilePicture}')`;
+      }
+    })
+    .catch(err => {
+      console.error(`Error fetching profile for ${member.username}:`, err);
+    });
+
+  // Username Span
+  const usernameSpan = document.createElement("span");
+  usernameSpan.className = "player-username";
+  usernameSpan.textContent = member.username;
+
+  userSection.appendChild(profilePic);
+  userSection.appendChild(usernameSpan);
+
+  // Add "On the Clock" Indicator if applicable
+  if (phase === "Draft" && golfDraftState && golfDraftState.draftOrder && golfDraftState.draftOrder.length > 0) {
+      let currentUserOnClock = 'Unknown';
+      const numberOfDrafters = golfDraftState.draftOrder.length;
+      const isEvenRound = golfDraftState.currentRound % 2 === 0;
+
+      if (isEvenRound) {
+          const reverseIndex = numberOfDrafters - 1 - golfDraftState.currentTurn;
+          if (reverseIndex >= 0 && reverseIndex < numberOfDrafters) {
+              currentUserOnClock = golfDraftState.draftOrder[reverseIndex];
+          }
+      } else {
+          if (golfDraftState.currentTurn >= 0 && golfDraftState.currentTurn < numberOfDrafters) {
+              currentUserOnClock = golfDraftState.draftOrder[golfDraftState.currentTurn];
+          }
+      }
+
+      if (currentUserOnClock.toLowerCase() === member.username.toLowerCase()) {
+          console.log(`Match! Adding clock icon for ${member.username}`);
+          const clockIcon = document.createElement('i');
+          clockIcon.className = 'fas fa-clock golf-on-the-clock';
+          clockIcon.title = 'On the Clock';
+          userSection.appendChild(clockIcon);
+      }
+  }
+
+  // Add user section first
+  playerRow.appendChild(userSection);
+
+  // Create SCORE section - NOW SECOND
+  const sumSection = document.createElement("div");
+  sumSection.className = "golf-player-sum";
+  sumSection.textContent = "-"; // Default
+  playerRow.appendChild(sumSection);
+
+  // Create picks section - NOW THIRD (Add loading indicator initially)
+  const picksSection = document.createElement("div");
+  picksSection.className = "golf-player-picks";
+  const loadingDiv = document.createElement("div");
+  loadingDiv.className = "loading-picks";
+  loadingDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+  picksSection.appendChild(loadingDiv);
+  playerRow.appendChild(picksSection);
+
+  // --- ASYNCHRONOUSLY Fetch and Populate Picks/Score ---
+  if (phase !== "Joining") {
+      try {
+          const golfPicksData = await fetchGolfPicks(member.username, pool.name);
+
+          // Clear loading indicator from picks section
+          picksSection.innerHTML = '';
+
+          if (golfPicksData.success && golfPicksData.picks && golfPicksData.picks.length > 0) {
+              const picksContainer = document.createElement("div");
+              picksContainer.className = "golf-picks-container";
+              let totalScore = 0;
+              let validScoresCount = 0; // Count golfers with valid scores
+
+              // Sort picks: First by CUT status (non-cut first), then by score (lowest first)
+              golfPicksData.picks.sort((a, b) => {
+                  // Check if either golfer is cut
+                  const aIsCut = a.status && (a.status.toLowerCase() === 'cut' || a.status.toLowerCase() === 'wd');
+                  const bIsCut = b.status && (b.status.toLowerCase() === 'cut' || b.status.toLowerCase() === 'wd');
+                  
+                  // If cut status is different, sort by cut status (non-cut first)
+                  if (aIsCut !== bIsCut) {
+                      return aIsCut ? 1 : -1;
+                  }
+                  
+                  // If both have same cut status, sort by score (lowest first)
+                  const scoreA = typeof a.score === 'number' ? a.score : 999;
+                  const scoreB = typeof b.score === 'number' ? b.score : 999;
+                  return scoreA - scoreB;
+              });
+
+              golfPicksData.picks.forEach(pick => {
+                  const pickElement = document.createElement("div");
+                  pickElement.className = "golf-pick";
+
+                  // Check for CUT status
+                  const isCut = pick.status && (pick.status.toLowerCase() === 'cut' || pick.status.toLowerCase() === 'wd');
+                  
+                  // Add CUT class for styling
+                  if (isCut) {
+                      pickElement.classList.add('golf-pick-cut');
+                  }
+
+                  if (phase === "Draft") {
+                      pickElement.innerHTML = `
+                          <span class="golf-pick-round">R${pick.round || '?'}</span>
+                          <span class="golf-pick-name">${pick.golferName}</span>
+                      `;
+                  } else if (phase === "Tournament") {
+                       // Use score from fetched data if available, default to 0 otherwise
+                       const score = typeof pick.score === 'number' ? pick.score : 0;
+                       // Only include in total score calculation if it's a valid number and not cut
+                       if (typeof pick.score === 'number' && !isCut) {
+                          totalScore += score;
+                          validScoresCount++;
+                       }
+
+                      // Use "E" for even par (score of 0)
+                      const scoreDisplay = typeof pick.score !== 'number' ? 'E' : 
+                                         (score === 0 ? 'E' : (score > 0 ? `+${score}` : score));
+                      const scoreClass = typeof pick.score !== 'number' ? 'score-tbd' : getGolfScoreClass(score);
+
+                      // Create the pick element HTML without CUT status inside
+                      pickElement.innerHTML = `
+                          <div class="golf-pick-header">
+                              <span class="golf-pick-name">${pick.golferName}</span>
+                              <span class="golf-pick-score ${scoreClass}">${scoreDisplay}</span>
+                          </div>
+                      `;
+                  }
+                  
+                  picksContainer.appendChild(pickElement);
+                  
+                  // Add CUT status OUTSIDE the pick element if golfer is cut
+                  if (isCut && phase === "Tournament") {
+                      const cutIndicator = document.createElement('div');
+                      cutIndicator.className = 'golf-cut-indicator-outside';
+                      cutIndicator.textContent = 'CUT';
+                      picksContainer.appendChild(cutIndicator);
+                  }
+              });
+              
+              picksSection.appendChild(picksContainer);
+
+              // Update score section for Tournament phase using only golfers with scores (excluding cut players)
+              if (phase === "Tournament" && validScoresCount > 0) {
+                   // Calculate sum based on the best 4 scores from non-cut players
+                   const nonCutScores = golfPicksData.picks
+                      .filter(p => !(p.status && (p.status.toLowerCase() === 'cut' || p.status.toLowerCase() === 'wd')))
+                      .map(p => typeof p.score === 'number' ? p.score : Infinity)
+                      .filter(s => s !== Infinity)
+                      .sort((a, b) => a - b);
+
+                   const scoresToSum = nonCutScores.slice(0, 4); // Take the best (lowest) 4 scores
+                   const finalTotalScore = scoresToSum.reduce((sum, score) => sum + score, 0);
+
+                  // Use "E" for even par (score of 0)
+                  const formattedScore = finalTotalScore === 0 ? 'E' : 
+                                       (finalTotalScore > 0 ? `+${finalTotalScore}` : finalTotalScore);
+                  const scoreClass = getGolfScoreClass(finalTotalScore);
+                  sumSection.innerHTML = `<span class="${scoreClass}">${formattedScore}</span>`;
+              } else if (phase === "Tournament") {
+                  sumSection.textContent = "-"; // Show dash if no valid scores yet
+              } else if (phase === "Draft") {
+                   sumSection.textContent = "-"; // Show dash during draft
+              }
+          } else {
+              // Handle case where picks array is empty or fetch failed but didn't throw error
+              const noPicks = document.createElement("div");
+              noPicks.className = phase === "Draft" ? "no-picks-yet" : "no-picks";
+              noPicks.textContent = phase === "Draft" ? "No selections yet" : "No golfers selected";
+              picksSection.appendChild(noPicks);
+              sumSection.textContent = "-"; // Show dash if no picks
+          }
+      } catch (error) {
+          console.error(`Error loading picks/score for ${member.username}:`, error);
+          picksSection.innerHTML = '<div class="picks-error">Error</div>'; // Simple error in picks section
+          sumSection.textContent = "ERR"; // Indicate error in score
+      }
+  } else {
+      // If in Joining phase, clear loading and show waiting message
+      picksSection.innerHTML = '';
+      const waitingDiv = document.createElement("div");
+      waitingDiv.className = "waiting-for-draft";
+      waitingDiv.textContent = "Waiting for draft to begin";
+      picksSection.appendChild(waitingDiv);
+      sumSection.textContent = "-"; // Show dash during joining phase
+  }
+
+  return playerRow;
+}
+
+async function updateGolfScoresDisplay(poolWrapper) {
+  const poolName = poolWrapper.getAttribute('data-pool-name');
+  if (!poolName) {
+    console.error('Pool name not found on wrapper element');
+    return;
+  }
+  
+  const golfScores = await fetchGolfScores(poolName);
+  
+  if (!golfScores) {
+    console.warn(`No golf scores available for ${poolName}`);
+    return;
+  }
+  
+  console.log(`Updating display with golf scores for ${poolName}`, golfScores);
+  
+  // Update each player row
+  golfScores.forEach(userScore => {
+    const username = userScore.username;
+    console.log(`User ${username} data:`, userScore);
+    
+    // Find the player row by username
+    const playerRow = Array.from(poolWrapper.querySelectorAll('.golf-player-row')).find(row => {
+      const usernameEl = row.querySelector('.player-username');
+      return usernameEl && usernameEl.textContent.trim().toLowerCase() === username.toLowerCase();
+    });
+    
+    if (!playerRow) {
+      console.warn(`Player row not found for ${username}`);
+      return;
+    }
+    
+    // Update picks section
+    const picksSection = playerRow.querySelector('.golf-player-picks');
+    if (picksSection) {
+      // Clear existing content
+      picksSection.innerHTML = '';
+      
+      // Create container for golfer picks
+      const picksContainer = document.createElement('div');
+      picksContainer.className = 'golf-picks-container';
+      
+      // Sort golfers: First by CUT status (non-cut first), then by score (lowest first)
+      const sortedGolfers = [...(userScore.golfers || [])].sort((a, b) => {
+        // Check if either golfer is cut
+        const aIsCut = a.status && (a.status.toLowerCase() === 'cut' || a.status.toLowerCase() === 'wd');
+        const bIsCut = b.status && (b.status.toLowerCase() === 'cut' || b.status.toLowerCase() === 'wd');
+        
+        // If cut status is different, sort by cut status (non-cut first)
+        if (aIsCut !== bIsCut) {
+          return aIsCut ? 1 : -1;
+        }
+        
+        // If both have same cut status, sort by score (lowest first)
+        const scoreA = typeof a.score === 'number' ? a.score : 999;
+        const scoreB = typeof b.score === 'number' ? b.score : 999;
+        return scoreA - scoreB;
+      });
+      
+      // Add each golfer with their score
+      sortedGolfers.forEach(golfer => {
+        const pickElement = document.createElement('div');
+        pickElement.className = 'golf-pick';
+        
+        // IMPORTANT FIX: Ensure we have a name before proceeding
+        const golferName = golfer.golferName || golfer.name || "Unknown Golfer";
+        
+        // CRITICAL FIX: Always ensure score is a number, default to 0
+        const score = (typeof golfer.score === 'number') ? golfer.score : 0;
+        
+        // CRITICAL FIX: Always generate a proper display string, don't use the API's scoreDisplay
+        // This ensures "E" for even par instead of "undefined"
+        const scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+        
+        const scoreClass = getGolfScoreClass(score);
+        
+        // Check if golfer is cut
+        const isCut = golfer.status && (golfer.status.toLowerCase() === 'cut' || golfer.status.toLowerCase() === 'wd');
+        
+        // Add CUT class for styling
+        if (isCut) {
+          pickElement.classList.add('golf-pick-cut');
+        }
+        
+        // Debug to verify our variables are correct
+        console.log(`Rendering ${golferName}: score=${score}, display=${scoreDisplay}, class=${scoreClass}, cut=${isCut}`);
+        
+        // Create the HTML for the pick
+        pickElement.innerHTML = `
+          <span class="golf-pick-name">${golferName}</span>
+          <span class="golf-pick-score ${scoreClass}">${scoreDisplay}</span>
+        `;
+        
+        picksContainer.appendChild(pickElement);
+      });
+      
+      picksSection.appendChild(picksContainer);
+    }
+    
+    // Update total score section (including ALL golfers in calculation)
+    const sumSection = playerRow.querySelector('.golf-player-sum');
+    if (sumSection) {
+      // Calculate total from ALL golfers (including cut players) - sum ALL scores
+      const totalScore = (userScore.golfers || [])
+        .map(g => typeof g.score === 'number' ? g.score : 0)
+        .reduce((sum, score) => sum + score, 0);
+      
+      const scoreClass = getGolfScoreClass(totalScore);
+      
+      // CRITICAL FIX: Always generate display value, don't rely on totalScoreDisplay
+      const displayValue = totalScore === 0 ? "E" : 
+                          (totalScore > 0 ? `+${totalScore}` : `${totalScore}`);
+      
+      console.log(`Setting display value for ${username}: ${displayValue} (sum of ALL ${userScore.golfers?.length || 0} golfers)`);
+      
+      sumSection.innerHTML = `<span class="${scoreClass}">${displayValue}</span>`;
+    }
+  });
+  
+  // Sort player rows by score
+  sortPlayerRowsByScore(poolWrapper);
+}
