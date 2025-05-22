@@ -7846,7 +7846,7 @@ margin-bottom: -10px;
 
 /* Add golf flag icon to pool name */
 .golf-pool-name::before {
-  content: "⛳";
+  content: "⛳  ";
 
 }
 
