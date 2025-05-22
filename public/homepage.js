@@ -7056,6 +7056,7 @@ function sortPlayerRowsByScore(poolWrapper) {
 }
 
 
+// Updated createGolfPlayerRow function with CUT handling
 async function createGolfPlayerRow(member, currentUsername, pool, phase, golfDraftState = null) {
   const playerRow = document.createElement("div");
   playerRow.className = "golf-player-row";
@@ -7150,12 +7151,34 @@ async function createGolfPlayerRow(member, currentUsername, pool, phase, golfDra
               let totalScore = 0;
               let validScoresCount = 0; // Count golfers with valid scores
 
-              // Sort picks by round before displaying
-              golfPicksData.picks.sort((a, b) => (a.round || 99) - (b.round || 99));
+              // Sort picks: First by CUT status (non-cut first), then by score (lowest first)
+              golfPicksData.picks.sort((a, b) => {
+                  // Check if either golfer is cut
+                  const aIsCut = a.status && (a.status.toLowerCase() === 'cut' || a.status.toLowerCase() === 'wd');
+                  const bIsCut = b.status && (b.status.toLowerCase() === 'cut' || b.status.toLowerCase() === 'wd');
+                  
+                  // If cut status is different, sort by cut status (non-cut first)
+                  if (aIsCut !== bIsCut) {
+                      return aIsCut ? 1 : -1;
+                  }
+                  
+                  // If both have same cut status, sort by score (lowest first)
+                  const scoreA = typeof a.score === 'number' ? a.score : 999;
+                  const scoreB = typeof b.score === 'number' ? b.score : 999;
+                  return scoreA - scoreB;
+              });
 
               golfPicksData.picks.forEach(pick => {
                   const pickElement = document.createElement("div");
                   pickElement.className = "golf-pick";
+
+                  // Check for CUT status
+                  const isCut = pick.status && (pick.status.toLowerCase() === 'cut' || pick.status.toLowerCase() === 'wd');
+                  
+                  // Add CUT class for styling
+                  if (isCut) {
+                      pickElement.classList.add('golf-pick-cut');
+                  }
 
                   if (phase === "Draft") {
                       pickElement.innerHTML = `
@@ -7165,8 +7188,8 @@ async function createGolfPlayerRow(member, currentUsername, pool, phase, golfDra
                   } else if (phase === "Tournament") {
                        // Use score from fetched data if available, default to 0 otherwise
                        const score = typeof pick.score === 'number' ? pick.score : 0;
-                       // Only include in total score calculation if it's a valid number
-                       if (typeof pick.score === 'number') {
+                       // Only include in total score calculation if it's a valid number and not cut
+                       if (typeof pick.score === 'number' && !isCut) {
                           totalScore += score;
                           validScoresCount++;
                        }
@@ -7177,38 +7200,38 @@ async function createGolfPlayerRow(member, currentUsername, pool, phase, golfDra
                       const scoreClass = typeof pick.score !== 'number' ? 'score-tbd' : 
                                        (score > 0 ? 'score-over' : (score < 0 ? 'score-under' : 'score-even'));
 
-                      // Check for CUT status
-                      const isCut = pick.status && (pick.status.toLowerCase() === 'cut' || pick.status.toLowerCase() === 'wd');
-                      
-                      // Create the pick element HTML
+                      // Create the pick element HTML without CUT status inside
                       pickElement.innerHTML = `
                           <div class="golf-pick-header">
                               <span class="golf-pick-name">${pick.golferName}</span>
                               <span class="golf-pick-score ${scoreClass}">${scoreDisplay}</span>
                           </div>
                       `;
-                      
-                      // Add CUT status if golfer is cut
-                      if (isCut) {
-                          const cutIndicator = document.createElement('div');
-                          cutIndicator.className = 'golf-cut-indicator';
-                          cutIndicator.textContent = 'CUT';
-                          pickElement.appendChild(cutIndicator);
-                      }
                   }
+                  
                   picksContainer.appendChild(pickElement);
+                  
+                  // Add CUT status OUTSIDE the pick element if golfer is cut
+                  if (isCut && phase === "Tournament") {
+                      const cutIndicator = document.createElement('div');
+                      cutIndicator.className = 'golf-cut-indicator-outside';
+                      cutIndicator.textContent = 'CUT';
+                      picksContainer.appendChild(cutIndicator);
+                  }
               });
+              
               picksSection.appendChild(picksContainer);
 
-              // Update score section for Tournament phase using only golfers with scores
+              // Update score section for Tournament phase using only golfers with scores (excluding cut players)
               if (phase === "Tournament" && validScoresCount > 0) {
-                   // Calculate sum based on the best 4 scores if available, else all scores
-                   const scores = golfPicksData.picks
-                      .map(p => typeof p.score === 'number' ? p.score : Infinity) // Map to score or infinity
-                      .filter(s => s !== Infinity) // Filter out non-scores
-                      .sort((a, b) => a - b); // Sort scores ascending
+                   // Calculate sum based on the best 4 scores from non-cut players
+                   const nonCutScores = golfPicksData.picks
+                      .filter(p => !(p.status && (p.status.toLowerCase() === 'cut' || p.status.toLowerCase() === 'wd')))
+                      .map(p => typeof p.score === 'number' ? p.score : Infinity)
+                      .filter(s => s !== Infinity)
+                      .sort((a, b) => a - b);
 
-                   const scoresToSum = scores.slice(0, 4); // Take the best (lowest) 4 scores
+                   const scoresToSum = nonCutScores.slice(0, 4); // Take the best (lowest) 4 scores
                    const finalTotalScore = scoresToSum.reduce((sum, score) => sum + score, 0);
 
                   // Use "E" for even par (score of 0)
@@ -7289,11 +7312,20 @@ async function updateGolfScoresDisplay(poolWrapper) {
       const picksContainer = document.createElement('div');
       picksContainer.className = 'golf-picks-container';
       
-      // Sort golfers by score (best/lowest first)
+      // Sort golfers: First by CUT status (non-cut first), then by score (lowest first)
       const sortedGolfers = [...(userScore.golfers || [])].sort((a, b) => {
-        // Handle undefined scores for sorting
-        const scoreA = typeof a.score === 'number' ? a.score : 0;
-        const scoreB = typeof b.score === 'number' ? b.score : 0;
+        // Check if either golfer is cut
+        const aIsCut = a.status && (a.status.toLowerCase() === 'cut' || a.status.toLowerCase() === 'wd');
+        const bIsCut = b.status && (b.status.toLowerCase() === 'cut' || b.status.toLowerCase() === 'wd');
+        
+        // If cut status is different, sort by cut status (non-cut first)
+        if (aIsCut !== bIsCut) {
+          return aIsCut ? 1 : -1;
+        }
+        
+        // If both have same cut status, sort by score (lowest first)
+        const scoreA = typeof a.score === 'number' ? a.score : 999;
+        const scoreB = typeof b.score === 'number' ? b.score : 999;
         return scoreA - scoreB;
       });
       
@@ -7317,6 +7349,11 @@ async function updateGolfScoresDisplay(poolWrapper) {
         // Check if golfer is cut
         const isCut = golfer.status && (golfer.status.toLowerCase() === 'cut' || golfer.status.toLowerCase() === 'wd');
         
+        // Add CUT class for styling
+        if (isCut) {
+          pickElement.classList.add('golf-pick-cut');
+        }
+        
         // Debug to verify our variables are correct
         console.log(`Rendering ${golferName}: score=${score}, display=${scoreDisplay}, class=${scoreClass}, cut=${isCut}`);
         
@@ -7326,25 +7363,21 @@ async function updateGolfScoresDisplay(poolWrapper) {
           <span class="golf-pick-score ${scoreClass}">${scoreDisplay}</span>
         `;
         
-        // Add CUT status if golfer is cut
-        if (isCut) {
-          const cutStatus = document.createElement('div');
-          cutStatus.className = 'golf-cut-status';
-          cutStatus.textContent = 'CUT';
-          pickElement.appendChild(cutStatus);
-        }
-        
         picksContainer.appendChild(pickElement);
+        
+     
       });
       
       picksSection.appendChild(picksContainer);
     }
     
-    // Update total score section
+    // Update total score section (including ALL golfers in calculation)
     const sumSection = playerRow.querySelector('.golf-player-sum');
     if (sumSection) {
-      // Ensure totalScore is a number, default to 0 if undefined
-      const totalScore = typeof userScore.totalScore === 'number' ? userScore.totalScore : 0;
+      // Calculate total from ALL golfers (including cut players) - sum ALL scores
+      const totalScore = (userScore.golfers || [])
+        .map(g => typeof g.score === 'number' ? g.score : 0)
+        .reduce((sum, score) => sum + score, 0);
       
       const scoreClass = totalScore > 0 ? 'score-over' : 
                         (totalScore < 0 ? 'score-under' : 'score-even');
@@ -7353,7 +7386,7 @@ async function updateGolfScoresDisplay(poolWrapper) {
       const displayValue = totalScore === 0 ? "E" : 
                           (totalScore > 0 ? `+${totalScore}` : `${totalScore}`);
       
-      console.log(`Setting display value for ${username}: ${displayValue}`);
+      console.log(`Setting display value for ${username}: ${displayValue} (sum of ALL ${userScore.golfers?.length || 0} golfers)`);
       
       sumSection.innerHTML = `<span class="${scoreClass}">${displayValue}</span>`;
     }
@@ -7362,7 +7395,6 @@ async function updateGolfScoresDisplay(poolWrapper) {
   // Sort player rows by score
   sortPlayerRowsByScore(poolWrapper);
 }
-
 // 5. getScoreFromRow helper function - should handle "E" scores
 function getScoreFromRow(row) {
   const sumSection = row.querySelector('.golf-player-sum');
