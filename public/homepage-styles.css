@@ -6690,13 +6690,7 @@ input:checked + .slider:before {
   gap: 5px;
 }
 
-.golf-player-sum { 
-  flex: 0.5;
-  text-align: center;
-  font-family: 'Quantico', sans-serif;
-  color: #39FF14;
-  font-weight: bold;
-}
+
 
 /* Profile pic */
 .golf-profile-pic {
@@ -6816,7 +6810,6 @@ input:checked + .slider:before {
 .golf-picks-button:hover::after {
   transform: rotate(45deg) translate(50%, 50%);
 }
-
 
 
 
@@ -7151,9 +7144,7 @@ input:checked + .slider:before {
   text-align: left;
 }
 
-.golf-header-sum {
-  border-right: none;
-}
+
 
 /* Pool container */
 .golf-pool-container {
@@ -7576,7 +7567,14 @@ margin-bottom: -10px;
   font-weight: bold;
   height: 100%;
 }
-
+.golf-player-sum { 
+  flex: 0.5;
+  text-align: center;
+  font-family: 'Quantico', sans-serif;
+  color: #39FF14;
+  font-weight: bold;
+  border-right: 1px solid var(--golf-border);
+}
 
 
 /* Add special styling for player names */
@@ -7637,7 +7635,7 @@ margin-bottom: -10px;
 /* Adjust the player row layout */
 .golf-player-row, .golf-table-header {
   display: grid;
-  grid-template-columns: 0.8fr 4fr 0.6fr; /* Increased middle column width */
+  grid-template-columns: 0.8fr 0.6fr 4fr; /* Increased middle column width */
   align-items: center;
 }
 
@@ -7778,3 +7776,9 @@ margin-bottom: -10px;
         gap: 5px;
       }
     }
+
+    
+.golf-player-sum{
+  max-height: 25px;
+
+}

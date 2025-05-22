@@ -6854,8 +6854,8 @@ async function displayGolfPoolContainer(pool) {
   tableHeader.className = "golf-table-header";
   tableHeader.innerHTML = `
     <div class="golf-header-user">USER</div>
-    <div class="golf-header-picks">PICKS</div>
     <div class="golf-header-sum">SCORE</div>
+    <div class="golf-header-picks">PICKS</div>
   `;
   
   // Create scrollable container
@@ -7056,7 +7056,6 @@ function sortPlayerRowsByScore(poolWrapper) {
 }
 
 
-// Updated createGolfPlayerRow function to show CUT status for golfers
 async function createGolfPlayerRow(member, currentUsername, pool, phase, golfDraftState = null) {
   const playerRow = document.createElement("div");
   playerRow.className = "golf-player-row";
@@ -7119,9 +7118,16 @@ async function createGolfPlayerRow(member, currentUsername, pool, phase, golfDra
       }
   }
 
+  // Add user section first
   playerRow.appendChild(userSection);
 
-  // Create picks section (Add loading indicator initially)
+  // Create SCORE section - NOW SECOND
+  const sumSection = document.createElement("div");
+  sumSection.className = "golf-player-sum";
+  sumSection.textContent = "-"; // Default
+  playerRow.appendChild(sumSection);
+
+  // Create picks section - NOW THIRD (Add loading indicator initially)
   const picksSection = document.createElement("div");
   picksSection.className = "golf-player-picks";
   const loadingDiv = document.createElement("div");
@@ -7129,12 +7135,6 @@ async function createGolfPlayerRow(member, currentUsername, pool, phase, golfDra
   loadingDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
   picksSection.appendChild(loadingDiv);
   playerRow.appendChild(picksSection);
-
-  // Create SCORE section
-  const sumSection = document.createElement("div");
-  sumSection.className = "golf-player-sum";
-  sumSection.textContent = "-"; // Default
-  playerRow.appendChild(sumSection);
 
   // --- ASYNCHRONOUSLY Fetch and Populate Picks/Score ---
   if (phase !== "Joining") {
@@ -7182,16 +7182,18 @@ async function createGolfPlayerRow(member, currentUsername, pool, phase, golfDra
                       
                       // Create the pick element HTML
                       pickElement.innerHTML = `
-                          <span class="golf-pick-name">${pick.golferName}</span>
-                          <span class="golf-pick-score ${scoreClass}">${scoreDisplay}</span>
+                          <div class="golf-pick-header">
+                              <span class="golf-pick-name">${pick.golferName}</span>
+                              <span class="golf-pick-score ${scoreClass}">${scoreDisplay}</span>
+                          </div>
                       `;
                       
                       // Add CUT status if golfer is cut
                       if (isCut) {
-                          const cutStatus = document.createElement('div');
-                          cutStatus.className = 'golf-cut-status';
-                          cutStatus.textContent = 'CUT';
-                          pickElement.appendChild(cutStatus);
+                          const cutIndicator = document.createElement('div');
+                          cutIndicator.className = 'golf-cut-indicator';
+                          cutIndicator.textContent = 'CUT';
+                          pickElement.appendChild(cutIndicator);
                       }
                   }
                   picksContainer.appendChild(pickElement);
