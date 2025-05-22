@@ -6773,8 +6773,8 @@ async function displayGolfPoolContainer(pool) {
   // Pool name with golf icon
   const poolNameDiv = document.createElement("div");
   poolNameDiv.className = "golf-pool-name";
-  poolNameDiv.innerHTML = `<i class="fas fa-golf-ball"></i> ${pool.name}`;
-  
+  //poolNameDiv.innerHTML = `<i class="fas fa-golf-ball"></i> ${pool.name}`;
+    poolNameDiv.innerHTML = `${pool.name}`;
   headerTop.appendChild(poolNameDiv);
   
   // START DRAFT button - when in idle phase and user is admin

@@ -6865,7 +6865,7 @@ input:checked + .slider:before {
 
 /* Add flag icon */
 .start-draft-button::before {
-  content: '⛳';
+  content: '🏌️';
   font-size: 14px;
 }
 
@@ -7246,7 +7246,6 @@ input:checked + .slider:before {
   font-style: italic;
   color: var(--golf-text-muted);
   text-align: center;
-  animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
@@ -7808,4 +7807,283 @@ margin-bottom: -10px;
 
 .golf-player-user{
   min-width: 164px;
+}
+
+/* Enhanced Golf Pool Styling */
+
+/* Golf Pool Container - Add grass texture and course-like appearance */
+.golf-pool-container {
+  background: linear-gradient(145deg, #0a2a0c 0%, #0e4918 50%, #0a2a0c 100%);
+  border: 2px solid #39ff14;
+  border-radius: 12px;
+  box-shadow: 0 0 30px rgba(57, 255, 20, 0.3), inset 0 0 50px rgba(10, 40, 25, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Add subtle grass texture overlay */
+.golf-pool-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    linear-gradient(135deg, rgba(10, 50, 20, 0.4) 25%, transparent 25%) -10px 0,
+    linear-gradient(225deg, rgba(10, 50, 20, 0.4) 25%, transparent 25%) -10px 0,
+    linear-gradient(315deg, rgba(10, 50, 20, 0.4) 25%, transparent 25%),
+    linear-gradient(45deg, rgba(10, 50, 20, 0.4) 25%, transparent 25%);
+  background-size: 20px 20px;
+  background-color: rgba(15, 80, 30, 0.1);
+  opacity: 0.3;
+  pointer-events: none;
+  animation: grassShimmer 60s linear infinite;
+}
+
+
+
+
+/* Add golf flag icon to pool name */
+.golf-pool-name::before {
+  content: "⛳";
+
+}
+
+/* Table Header - Make it look like a scoreboard */
+.golf-table-header {
+  background: linear-gradient(to right, #0a2a12, #115c20);
+  border-top: 2px solid #39ff14;
+  border-bottom: 2px solid #39ff14;
+  padding: 5px 0;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+/* Add subtle pin stripes to header */
+.golf-table-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: linear-gradient(90deg, rgba(57, 255, 20, 0.05) 1px, transparent 1px);
+  background-size: 20px 100%;
+  pointer-events: none;
+}
+
+/* Header text styling */
+.golf-header-user,
+.golf-header-picks,
+.golf-header-sum {
+  text-transform: uppercase;
+  font-family: "Montserrat", sans-serif;
+  color: #39ff14;
+  font-size: 14px;
+  text-shadow: 0 0 5px rgba(57, 255, 20, 0.5);
+  letter-spacing: 2px;
+}
+
+/* Player Row - Add hover effect like highlighting the current player */
+.golf-player-row {
+  border-bottom: 1px solid rgba(57, 255, 20, 0.2);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+
+/* Current user row - Make it stand out more */
+.golf-player-row.current-user-row {
+  background: linear-gradient(
+    90deg,
+    rgba(57, 255, 20, 0.1) 0%,
+    rgba(57, 255, 20, 0.15) 50%,
+    rgba(57, 255, 20, 0.1) 100%
+  );
+  box-shadow: inset 0 0 15px rgba(57, 255, 20, 0.1), -5px 0 0 #39ff14;
+}
+
+
+
+
+/* Golf Pick Styling - Make them look like scorecards */
+.golf-pick {
+  background: linear-gradient(145deg, #0a2a12, #115c20);
+  border: 1px solid #39ff14;
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+
+/* Add subtle texture to picks */
+.golf-pick::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: linear-gradient(
+    45deg,
+    rgba(57, 255, 20, 0.05) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(57, 255, 20, 0.05) 50%,
+    rgba(57, 255, 20, 0.05) 75%,
+    transparent 75%
+  );
+  background-size: 4px 4px;
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+/* Golfer name styling */
+.golfer-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: white;
+  margin-bottom: 5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+/* Score styling - Make it look like a scorecard */
+.golfer-score {
+  font-family: "Quantico", sans-serif;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+/* Score colors with enhanced visibility */
+.score-under {
+  color: #5eff5e;
+  text-shadow: 0 0 5px rgba(94, 255, 94, 0.7);
+}
+
+.score-over {
+  color: #ff5e5e;
+  text-shadow: 0 0 5px rgba(255, 94, 94, 0.7);
+}
+
+.score-even {
+  color: #ffff5e;
+  text-shadow: 0 0 5px rgba(255, 255, 94, 0.7);
+}
+
+/* CUT status - Make it more prominent */
+.golf-cut-status {
+  font-size: 12px;
+  font-weight: bold;
+  color: #ff5e5e;
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin-top: 5px;
+  text-align: center;
+}
+
+
+
+
+
+
+/* User count - Style like a player counter */
+.golf-user-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid #39ff14;
+  border-radius: 20px;
+  padding: 5px 15px;
+  font-size: 13px;
+  color: #39ff14;
+  box-shadow: 0 0 10px rgba(57, 255, 20, 0.2);
+}
+
+.golf-user-count i {
+  font-size: 14px;
+  color: #39ff14;
+}
+
+
+
+/* Add golf ball icon to button */
+.golf-selections-button::before {
+  content: "🏌️";
+  position: absolute;
+  left: 90px;
+  font-size: 24px;
+}
+
+
+/* Waiting for draft message - Make it more engaging */
+.waiting-for-draft {
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  width: 100%;
+  padding: 20px;
+  font-size: 16px;
+  position: relative;
+}
+
+.waiting-for-draft::before {
+  content: "⏳";
+  display: block;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+
+
+
+/* Last update indicator - Style like a tournament update */
+.golf-last-update {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(57, 255, 20, 0.2);
+}
+
+.golf-last-update i {
+  font-size: 12px;
+  color: #39ff14;
+  animation: rotate 2s linear infinite;
+}
+
+
+/* Scrollbar styling for picks container */
+.golf-picks-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.golf-picks-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.golf-picks-container::-webkit-scrollbar-thumb {
+  background-color: #39ff14;
+  border-radius: 4px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+}
+
+.golf-picks-container::-webkit-scrollbar-thumb:hover {
+  background-color: #32cd32;
 }
