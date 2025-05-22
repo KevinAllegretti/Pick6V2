@@ -7228,7 +7228,7 @@ input:checked + .slider:before {
 }
 
 .score-over {
-  color: #ff4d4d; /* Red for over par */
+  color: #ff0000; /* Red for over par */
 }
 
 .score-under {
@@ -7464,7 +7464,7 @@ margin-bottom: -10px;
 }
 
 .score-over {
-  color: #ff5e5e;
+  color: #f94449;
 }
 
 .score-even {
@@ -7744,7 +7744,7 @@ margin-bottom: -10px;
     .golf-cut-status {
       font-size: 10px;
       font-weight: bold;
-      color: #ff4d4d;
+      color: #f94449;
       margin-top: 2px;
       text-align: center;
       border-radius: 3px;
@@ -7781,4 +7781,31 @@ margin-bottom: -10px;
 .golf-player-sum{
   max-height: 25px;
 
+}
+
+.golf-player-row,
+.golf-table-header {
+  display: grid;
+  grid-template-columns: 0.8fr 0.3fr 4fr ; /* Reduce the last column from 0.6fr to 0.3fr */
+  align-items: center;
+}
+
+.golf-header-sum,
+.golf-player-sum {
+  text-align: center; /* Keep text centered */
+  width: 100%; /* Ensure it takes full width of its grid cell */
+  display: flex;
+  justify-content: center; /* Center content horizontally */
+  align-items: center; /* Center content vertically */
+}
+
+.golf-header-sum,
+.golf-player-sum {
+  flex: 0.4 !important; /* Reduce from 0.5 to 0.3 (approximately half) */
+  min-width: auto !important; /* Remove any minimum width constraints */
+  max-width: 30px !important; /* Set a maximum width if needed */
+}
+
+.golf-player-user{
+  min-width: 164px;
 }
