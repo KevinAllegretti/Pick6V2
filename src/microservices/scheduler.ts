@@ -70,6 +70,11 @@ cron.schedule('43 11 * * 5', () => {
   console.log("It's Thursday 4:00 PM");
   saveSurvivorPicks();
 });
+
+cron.schedule('29 10 * * 5', () => {
+  console.log("Check");
+});
+
 /*
 cron.schedule('46 16 * * 4', () => {
   console.log("It's Thursday 7:05 PM, eliminating users without picks from survivor pools");
