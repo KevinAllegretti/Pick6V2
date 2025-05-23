@@ -71,7 +71,7 @@ cron.schedule('43 11 * * 5', () => {
   saveSurvivorPicks();
 });
 
-cron.schedule('29 10 * * 5', () => {
+cron.schedule('32 10 * * 5', () => {
   console.log("Check");
 });
 
