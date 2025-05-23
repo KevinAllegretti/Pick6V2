@@ -7820,25 +7820,7 @@ margin-bottom: -10px;
   overflow: hidden;
 }
 
-/* Add subtle grass texture overlay */
-.golf-pool-container::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    linear-gradient(135deg, rgba(10, 50, 20, 0.4) 25%, transparent 25%) -10px 0,
-    linear-gradient(225deg, rgba(10, 50, 20, 0.4) 25%, transparent 25%) -10px 0,
-    linear-gradient(315deg, rgba(10, 50, 20, 0.4) 25%, transparent 25%),
-    linear-gradient(45deg, rgba(10, 50, 20, 0.4) 25%, transparent 25%);
-  background-size: 20px 20px;
-  background-color: rgba(15, 80, 30, 0.1);
-  opacity: 0.3;
-  pointer-events: none;
-  animation: grassShimmer 60s linear infinite;
-}
+
 
 
 

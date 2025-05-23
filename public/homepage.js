@@ -7759,3 +7759,4 @@ async function updateGolfScoresDisplay(poolWrapper) {
   // Sort player rows by score
   sortPlayerRowsByScore(poolWrapper);
 }
+
