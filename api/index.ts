@@ -116,7 +116,7 @@ console.log('MONGODB_URI:', process.env.MONGODB_URI);
 const mongoUri = process.env.MONGODB_URI as string;
 mongoose.connect(mongoUri, options);
 
-// Add this to your main server.js or app.js file
+
 // Draft timer checker - runs every 5 seconds
 setInterval(async () => {
   try {
