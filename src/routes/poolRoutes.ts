@@ -1591,14 +1591,16 @@ router.get('/api/getVendingSpotlight', async (req, res) => {
         const database = await connectToDatabase();
         const vendingCollection = database.collection('vendingMachinePoints');
         
-        // Use current week if not specified
+        // Use previous week if not specified (current week - 1)
         let targetWeek: any = week;
         if (!targetWeek) {
             const currentWeek = await getCurrentWeek();
-            targetWeek = currentWeek;
+            targetWeek = Math.max(1, currentWeek - 1); // Ensure we don't go below week 1
         } else {
             targetWeek = parseInt(targetWeek);
         }
+        
+        console.log(`API: Getting vending spotlight for pool ${poolName}, week ${targetWeek}`);
         
         // Get hottest picker for this pool and week
         const hottest = await vendingCollection.findOne({

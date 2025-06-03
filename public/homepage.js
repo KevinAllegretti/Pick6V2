@@ -3971,7 +3971,6 @@ function switchVendingMode(poolName) {
     }
 }
 
-// Update the vending spotlight display
 async function updateVendingSpotlightDisplay(poolName) {
     const spotlightElement = getVendingSpotlightElement(poolName);
     if (!spotlightElement) return;
@@ -3992,13 +3991,14 @@ async function updateVendingSpotlightDisplay(poolName) {
         return;
     }
     
-    // Get current week for display
-    let currentWeek = 1;
+    // Get current week for display (showing previous week's data)
+    let displayWeek = 1;
     try {
         const weekResponse = await fetch('/getCurrentWeek');
         if (weekResponse.ok) {
             const weekData = await weekResponse.json();
-            currentWeek = parseInt(weekData.week) || 1;
+            const currentWeek = parseInt(weekData.week) || 1;
+            displayWeek = Math.max(1, currentWeek - 1); // Show previous week
         }
     } catch (error) {
         console.warn('Could not fetch current week:', error);
@@ -4010,18 +4010,18 @@ async function updateVendingSpotlightDisplay(poolName) {
     
     if (currentMode === 'hottest' && spotlightData.hottest) {
         dataToShow = spotlightData.hottest;
-        title = `Hottest Picker of Week ${currentWeek}!`;
+        title = `Hottest Picker of Week ${displayWeek}!`;
     } else if (currentMode === 'biggest_loser' && spotlightData.biggestLoser) {
         dataToShow = spotlightData.biggestLoser;
-        title = `Biggest Loser of Week ${currentWeek}!`;
+        title = `Biggest Loser of Week ${displayWeek}!`;
     } else {
         // Fallback to whichever data we have
         if (spotlightData.hottest) {
             dataToShow = spotlightData.hottest;
-            title = `Hottest Picker of Week ${currentWeek}!`;
+            title = `Hottest Picker of Week ${displayWeek}!`;
         } else if (spotlightData.biggestLoser) {
             dataToShow = spotlightData.biggestLoser;
-            title = `Biggest Loser of Week ${currentWeek}!`;
+            title = `Biggest Loser of Week ${displayWeek}!`;
         }
     }
     

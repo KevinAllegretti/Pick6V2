@@ -871,8 +871,14 @@ export async function getVendingSpotlightData(poolName: string, week?: number): 
     const database = await connectToDatabase();
     const vendingCollection = database.collection('vendingMachinePoints');
     
-    // Use current week if not specified
-    const targetWeek = week || await getCurrentWeek();
+    // Use previous week if not specified (current week - 1)
+    let targetWeek = week;
+    if (!targetWeek) {
+      const currentWeek = await getCurrentWeek();
+      targetWeek = Math.max(1, currentWeek - 1); // Ensure we don't go below week 1
+    }
+    
+    console.log(`Getting vending spotlight data for pool ${poolName}, week ${targetWeek}`);
     
     // Get hottest picker for this pool and week
     const hottest = await vendingCollection.findOne({
