@@ -8333,7 +8333,7 @@ font-family: 'Russo One', sans-serif;
 
 .vending-user-info {
     display: flex;
-    align-items: flex-end;
+
     gap: 8px;
     flex: 1;
     min-width: 0;
@@ -8352,17 +8352,6 @@ white-space: normal; /* Changed from nowrap */
 
 }
 
-.vending-points {
-    font-size: 11px;
-    font-weight: bold;
-    white-space: nowrap;
-    flex-shrink: 0;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-    letter-spacing: -0.5px;
-    font-family: 'Courier New', monospace;
-    line-height: 1;
-       margin-bottom: 6px;
-}
 
 .vending-points {
     font-size: 11px;
@@ -8414,7 +8403,7 @@ white-space: normal; /* Changed from nowrap */
   left: 8px;
   right: 8px;
   display: flex;
-  align-items: flex-end;
+
   gap: 6px;
   transition: all 0.5s ease;
   z-index: 2;
