@@ -3794,8 +3794,9 @@ async function displayNewPoolContainer(pool, includePlayoffBracket = false, curr
 const vendingSpotlight = document.createElement("div")
 vendingSpotlight.className = "vending-spotlight"
 vendingSpotlight.innerHTML = `
+ <div class="title-header-bar">Hottest Picker of Week _!</div>
   <div class="spotlight-content">
-
+  
   </div>
   <div class="spotlight-glow"></div>
   <div class="spotlight-scanlines"></div>
