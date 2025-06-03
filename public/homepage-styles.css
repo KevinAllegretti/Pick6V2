@@ -8262,3 +8262,68 @@ font-family: 'Russo One', sans-serif;
   z-index: 3;
 }
 
+        
+
+        .spotlight-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            transition: all 0.5s ease;
+        }
+        
+        .vending-profile-pic {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            border: 2px solid #33d9ff;
+            box-shadow: 0 0 10px rgba(51, 217, 255, 0.5);
+            flex-shrink: 0;
+        }
+        
+        .vending-user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .vending-username {
+            font-size: 14px;
+            font-weight: bold;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-shrink: 1;
+        }
+        
+        .vending-points {
+            font-size: 14px;
+            font-weight: bold;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .positive-points {
+            color: #39FF14;
+        }
+        
+        .negative-points {
+            color: #ff4757;
+        }
+        
+ 
+
+        
+        .vending-update {
+            transform: scale(1.05);
+        }
+        
+        @keyframes glow-pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }

@@ -1,4 +1,8 @@
-// Call this function when the page loads
+
+// Global variables for vending spotlight - using Maps to handle multiple pools
+const vendingSpotlightIntervals = new Map();
+const currentVendingModes = new Map();
+const vendingSpotlightDataCache = new Map();// Call this function when the page loads
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the playoff picks panel
     initializePlayoffPicksPanel();
@@ -3877,6 +3881,7 @@ vendingSpotlight.innerHTML = `
         checkCurrentTimeWindow()
       }, 50)
 
+      initializePoolVendingSpotlight(pool.name);
       // Update pool actions list after adding pool
       updatePoolActionsList()
     })
@@ -3885,10 +3890,258 @@ vendingSpotlight.innerHTML = `
     })
 }
 
+// Frontend VendingSpotlight functionality
 
 
 
+// Initialize VendingSpotlight for a specific pool
+async function initializeVendingSpotlight(poolName) {
+    console.log(`Initializing VendingSpotlight for pool: ${poolName}`);
+    
+    try {
+        // Fetch vending spotlight data
+        const response = await fetch(`/api/getVendingSpotlight?poolName=${encodeURIComponent(poolName)}`);
+        const data = await response.json();
+        
+        if (!data.success) {
+            console.warn('Failed to fetch vending spotlight data:', data.message);
+            hideVendingSpotlight(poolName);
+            return;
+        }
+        
+        vendingSpotlightDataCache.set(poolName, data.data);
+        
+        // Check if we have data to display
+        const spotlightData = vendingSpotlightDataCache.get(poolName);
+        if (!spotlightData.hottest && !spotlightData.biggestLoser) {
+            console.log('No vending spotlight data available for this week');
+            hideVendingSpotlight(poolName);
+            return;
+        }
+        
+        // Start the spotlight animation
+        startVendingSpotlight(poolName);
+        
+    } catch (error) {
+        console.error('Error initializing vending spotlight:', error);
+        hideVendingSpotlight(poolName);
+    }
+}
 
+// Start the vending spotlight animation
+function startVendingSpotlight(poolName) {
+    const spotlightElement = getVendingSpotlightElement(poolName);
+    if (!spotlightElement) {
+        console.error('VendingSpotlight element not found for pool:', poolName);
+        return;
+    }
+    
+    // Show the spotlight
+    spotlightElement.style.display = 'block';
+    
+    // Initialize mode for this pool
+    currentVendingModes.set(poolName, 'hottest');
+    
+    // Display initial mode (hottest picker)
+    updateVendingSpotlightDisplay(poolName);
+    
+    // Clear any existing interval for this pool
+    if (vendingSpotlightIntervals.has(poolName)) {
+        clearInterval(vendingSpotlightIntervals.get(poolName));
+    }
+    
+    // Set up interval to switch between hottest and biggest loser every 8 seconds
+    const interval = setInterval(() => {
+        switchVendingMode(poolName);
+    }, 8000);
+    
+    vendingSpotlightIntervals.set(poolName, interval);
+}
+
+// Switch between hottest picker and biggest loser
+function switchVendingMode(poolName) {
+    const spotlightData = vendingSpotlightDataCache.get(poolName);
+    const currentMode = currentVendingModes.get(poolName);
+    
+    // Only switch if we have both types of data
+    if (spotlightData && spotlightData.hottest && spotlightData.biggestLoser) {
+        const newMode = currentMode === 'hottest' ? 'biggest_loser' : 'hottest';
+        currentVendingModes.set(poolName, newMode);
+        updateVendingSpotlightDisplay(poolName);
+    }
+}
+
+// Update the vending spotlight display
+async function updateVendingSpotlightDisplay(poolName) {
+    const spotlightElement = getVendingSpotlightElement(poolName);
+    if (!spotlightElement) return;
+    
+    const titleElement = spotlightElement.querySelector('.title-header-bar');
+    const contentElement = spotlightElement.querySelector('.spotlight-content');
+    
+    if (!titleElement || !contentElement) {
+        console.error('VendingSpotlight sub-elements not found for pool:', poolName);
+        return;
+    }
+    
+    const spotlightData = vendingSpotlightDataCache.get(poolName);
+    const currentMode = currentVendingModes.get(poolName) || 'hottest';
+    
+    if (!spotlightData) {
+        console.error('No spotlight data found for pool:', poolName);
+        return;
+    }
+    
+    // Get current week for display
+    let currentWeek = 1;
+    try {
+        const weekResponse = await fetch('/getCurrentWeek');
+        if (weekResponse.ok) {
+            const weekData = await weekResponse.json();
+            currentWeek = parseInt(weekData.week) || 1;
+        }
+    } catch (error) {
+        console.warn('Could not fetch current week:', error);
+    }
+    
+    // Determine what data to show based on current mode
+    let dataToShow = null;
+    let title = '';
+    
+    if (currentMode === 'hottest' && spotlightData.hottest) {
+        dataToShow = spotlightData.hottest;
+        title = `Hottest Picker of Week ${currentWeek}!`;
+    } else if (currentMode === 'biggest_loser' && spotlightData.biggestLoser) {
+        dataToShow = spotlightData.biggestLoser;
+        title = `Biggest Loser of Week ${currentWeek}!`;
+    } else {
+        // Fallback to whichever data we have
+        if (spotlightData.hottest) {
+            dataToShow = spotlightData.hottest;
+            title = `Hottest Picker of Week ${currentWeek}!`;
+        } else if (spotlightData.biggestLoser) {
+            dataToShow = spotlightData.biggestLoser;
+            title = `Biggest Loser of Week ${currentWeek}!`;
+        }
+    }
+    
+    if (!dataToShow) {
+        hideVendingSpotlight(poolName);
+        return;
+    }
+    
+    // Update title
+    titleElement.textContent = title;
+    
+    // Get user profile picture
+    let profilePicture = 'Default.png';
+    try {
+        const profileResponse = await fetch(`/api/getUserProfile/${encodeURIComponent(dataToShow.username.toLowerCase())}`);
+        if (profileResponse.ok) {
+            const profileData = await profileResponse.json();
+            profilePicture = profileData.profilePicture || 'Default.png';
+        }
+    } catch (error) {
+        console.warn('Could not fetch profile picture:', error);
+    }
+    
+    // Format points display
+    const pointsDisplay = dataToShow.points > 0 ? `+${dataToShow.points}` : `${dataToShow.points}`;
+    const pointsClass = dataToShow.points > 0 ? 'positive-points' : 'negative-points';
+    
+    // Update content
+    contentElement.innerHTML = `
+        <div class="vending-profile-pic" style="background-image: url('${profilePicture}')"></div>
+        <div class="vending-user-info">
+            <div class="vending-username">${dataToShow.username}</div>
+            <div class="vending-points ${pointsClass}">${pointsDisplay} pts</div>
+        </div>
+    `;
+    
+    // Add animation class for smooth transitions
+    contentElement.classList.add('vending-update');
+    setTimeout(() => {
+        contentElement.classList.remove('vending-update');
+    }, 500);
+}
+
+// Hide the vending spotlight
+function hideVendingSpotlight(poolName) {
+    const spotlightElement = getVendingSpotlightElement(poolName);
+    if (spotlightElement) {
+        spotlightElement.style.display = 'none';
+    }
+    
+    // Clear interval for this specific pool
+    if (vendingSpotlightIntervals.has(poolName)) {
+        clearInterval(vendingSpotlightIntervals.get(poolName));
+        vendingSpotlightIntervals.delete(poolName);
+    }
+    
+    // Clean up data for this pool
+    vendingSpotlightDataCache.delete(poolName);
+    currentVendingModes.delete(poolName);
+}
+
+// Get the vending spotlight element for a specific pool
+function getVendingSpotlightElement(poolName) {
+    // Find the pool wrapper first
+    const poolWrapper = document.querySelector(`[data-pool-name="${CSS.escape(poolName)}"]`);
+    if (!poolWrapper) {
+        console.error(`Pool wrapper not found for: ${poolName}`);
+        return null;
+    }
+    
+    // Find the vending spotlight within this pool
+    return poolWrapper.querySelector('.vending-spotlight');
+}
+
+// Function to initialize vending spotlight for all pools
+function initializeAllVendingSpotlights() {
+    const poolWrappers = document.querySelectorAll('.pool-wrapper:not(.survivor-mode):not(.golf-mode)');
+    
+    poolWrappers.forEach(poolWrapper => {
+        const poolName = poolWrapper.getAttribute('data-pool-name');
+        if (poolName) {
+            // Add a small delay to stagger the requests
+            setTimeout(() => {
+                initializeVendingSpotlight(poolName);
+            }, Math.random() * 1000);
+        }
+    });
+}
+
+// Function to initialize vending spotlight for a single pool (called from displayNewPoolContainer)
+function initializePoolVendingSpotlight(poolName) {
+    // Add a small delay to ensure the DOM is ready
+    setTimeout(() => {
+        initializeVendingSpotlight(poolName);
+    }, 500);
+}
+
+// Cleanup function to clear all vending spotlight intervals
+function cleanupVendingSpotlights() {
+    vendingSpotlightIntervals.forEach((interval, poolName) => {
+        clearInterval(interval);
+    });
+    vendingSpotlightIntervals.clear();
+    vendingSpotlightDataCache.clear();
+    currentVendingModes.clear();
+}
+
+
+// Initialize styles and event listeners
+document.addEventListener('DOMContentLoaded', function() {
+
+    
+    // Initialize vending spotlights after pools are loaded
+    setTimeout(() => {
+        initializeAllVendingSpotlights();
+    }, 2000);
+});
+
+// Cleanup when page unloads
+window.addEventListener('beforeunload', cleanupVendingSpotlights);
 
 // New function to display only the playoff bracket without the regular pool
 async function displayPlayoffBracketOnly(pool) {

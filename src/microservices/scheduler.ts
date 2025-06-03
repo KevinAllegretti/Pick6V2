@@ -14,9 +14,10 @@ import { connectToDatabase } from './connectDB';
 import { eliminateUsersWithoutPicks } from './serverUtils';
 import{mockFetchNFLScores, fetchNFLScores, fetchNFLDataOneWeekOut} from './nflServices';
 import { fetchAndSaveMastersData, fetchAndSavePGAChampionshipData, fetchAndSavePGAChampionshipOdds } from './golfServices';
+import { saveVendingMachinePoints } from './serverUtils';
 let gameScores: any[] = [];
 
-
+//saveVendingMachinePoints()
 /*
 // Set up cron job to run weekly
 cron.schedule('41 14 * * 2', () => {

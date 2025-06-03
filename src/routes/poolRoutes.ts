@@ -6,7 +6,7 @@ import Pool from '../models/Pool';
 import { connectToDatabase } from '../microservices/connectDB';
 import { getCurrentWeek } from '../microservices/serverUtils';
 import { ObjectId } from 'mongodb';
-
+import { saveVendingMachinePoints, getVendingSpotlightData } from '../microservices/serverUtils';
 
 const router = express.Router();
 
@@ -1573,6 +1573,162 @@ async function normalizePoolOrder(poolsCollection: any, username: string) {
         return false;
     }
 }
+// API routes for VendingSpotlight feature
+// Add these routes to your Express server
+
+// Route to get vending spotlight data for a specific pool
+router.get('/api/getVendingSpotlight', async (req, res) => {
+    try {
+        const { poolName, week } = req.query;
+        
+        if (!poolName) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Pool name is required' 
+            });
+        }
+        
+        const database = await connectToDatabase();
+        const vendingCollection = database.collection('vendingMachinePoints');
+        
+        // Use current week if not specified
+        let targetWeek: any = week;
+        if (!targetWeek) {
+            const currentWeek = await getCurrentWeek();
+            targetWeek = currentWeek;
+        } else {
+            targetWeek = parseInt(targetWeek);
+        }
+        
+        // Get hottest picker for this pool and week
+        const hottest = await vendingCollection.findOne({
+            poolName,
+            week: targetWeek,
+            type: 'hottest'
+        });
+        
+        // Get biggest loser for this pool and week
+        const biggestLoser = await vendingCollection.findOne({
+            poolName,
+            week: targetWeek,
+            type: 'biggest_loser'
+        });
+        
+        res.json({
+            success: true,
+            data: {
+                hottest,
+                biggestLoser,
+                week: targetWeek
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error in getVendingSpotlight API:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Internal server error' 
+        });
+    }
+});
+
+// Route to manually trigger vending machine points calculation (for testing)
+router.post('/api/calculateVendingPoints', async (req, res) => {
+    try {
+        await saveVendingMachinePoints();
+        
+        res.json({
+            success: true,
+            message: 'Vending machine points calculated and saved successfully'
+        });
+        
+    } catch (error) {
+        console.error('Error calculating vending points:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to calculate vending points'
+        });
+    }
+});
+
+// Route to get vending spotlight data for all pools (admin use)
+router.get('/api/getAllVendingSpotlight', async (req, res) => {
+    try {
+        const { week } = req.query;
+        
+        const database = await connectToDatabase();
+        const vendingCollection = database.collection('vendingMachinePoints');
+        
+        // Use current week if not specified
+        let targetWeek: any = week;
+        if (!targetWeek) {
+            const currentWeek = await getCurrentWeek();
+            targetWeek = currentWeek;
+        } else {
+            targetWeek = parseInt(targetWeek);
+        }
+        
+        // Get all vending data for the specified week
+        const vendingData = await vendingCollection.find({
+            week: targetWeek
+        }).toArray();
+        
+        // Group by pool name
+        const groupedData = {};
+        vendingData.forEach(item => {
+            if (!groupedData[item.poolName]) {
+                groupedData[item.poolName] = {};
+            }
+            groupedData[item.poolName][item.type] = item;
+        });
+        
+        res.json({
+            success: true,
+            data: groupedData,
+            week: targetWeek
+        });
+        
+    } catch (error) {
+        console.error('Error in getAllVendingSpotlight API:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+});
+
+// Route to clear vending machine data for a specific week (admin use)
+router.delete('/api/clearVendingData/:week', async (req, res) => {
+    try {
+        const { week } = req.params;
+        const targetWeek = parseInt(week);
+        
+        if (isNaN(targetWeek)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid week number'
+            });
+        }
+        
+        const database = await connectToDatabase();
+        const vendingCollection = database.collection('vendingMachinePoints');
+        
+        const result = await vendingCollection.deleteMany({ week: targetWeek });
+        
+        res.json({
+            success: true,
+            message: `Cleared ${result.deletedCount} vending records for week ${targetWeek}`
+        });
+        
+    } catch (error) {
+        console.error('Error clearing vending data:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to clear vending data'
+        });
+    }
+});
+
 
 
 export default router;

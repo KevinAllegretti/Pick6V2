@@ -750,3 +750,174 @@ export async function eliminateUsersWithoutPicks(): Promise<void> {
       throw new Error('Failed to eliminate users without picks');
     }
   }
+
+  // Interface for VendingMachinePoints document
+interface VendingMachinePoint {
+  username: string;
+  poolName: string;
+  points: number;
+  week: number;
+  type: 'hottest' | 'biggest_loser';
+}
+
+// Save function to calculate and store weekly points for VendingSpotlight
+export async function saveVendingMachinePoints(): Promise<void> {
+  console.log('Starting VendingMachine points calculation...');
+  
+  try {
+    const database = await connectToDatabase();
+    const betResultsCollection = database.collection('betResultsGlobal');
+    const vendingCollection = database.collection('vendingMachinePoints');
+    const currentWeek = await getCurrentWeek();
+    
+    console.log(`Processing week ${currentWeek} for VendingSpotlight`);
+    
+    // Get all bet results for current week
+    const betResults = await betResultsCollection.findOne({ identifier: 'currentResults' });
+    
+    if (!betResults || !betResults.results) {
+      console.log('No bet results found for current week');
+      return;
+    }
+    
+    // Group results by pool and user, summing up points
+    const poolUserPoints = new Map<string, Map<string, number>>();
+    
+    betResults.results.forEach((result: any) => {
+      const { username, poolName, points } = result;
+      
+      // Skip playoff pools for now (they have their own tracking)
+      if (poolName.startsWith('playoff_')) {
+        return;
+      }
+      
+      if (!poolUserPoints.has(poolName)) {
+        poolUserPoints.set(poolName, new Map());
+      }
+      
+      const userPoints = poolUserPoints.get(poolName)!;
+      const currentPoints = userPoints.get(username) || 0;
+      userPoints.set(username, currentPoints + (points || 0));
+    });
+    
+    console.log(`Found ${poolUserPoints.size} pools to process`);
+    
+    // Process each pool to find hottest picker and biggest loser
+    const vendingData: VendingMachinePoint[] = [];
+    
+    for (const [poolName, userPointsMap] of poolUserPoints) {
+      const userPointsArray = Array.from(userPointsMap.entries())
+        .map(([username, points]) => ({ username, points }))
+        .filter(user => user.points !== 0); // Only include users with non-zero points
+      
+      if (userPointsArray.length === 0) {
+        console.log(`No valid points found for pool: ${poolName}`);
+        continue;
+      }
+      
+      // Sort by points (highest first for hottest, lowest first for biggest loser)
+      userPointsArray.sort((a, b) => b.points - a.points);
+      
+      // Get hottest picker (highest points)
+      const hottestPicker = userPointsArray[0];
+      if (hottestPicker && hottestPicker.points > 0) {
+        vendingData.push({
+          username: hottestPicker.username,
+          poolName,
+          points: hottestPicker.points,
+          week: currentWeek,
+          type: 'hottest'
+        });
+      }
+      
+      // Get biggest loser (lowest points - can be negative OR positive, just the worst performer)
+      const biggestLoser = userPointsArray[userPointsArray.length - 1];
+      if (biggestLoser && biggestLoser.username !== hottestPicker.username) {
+        vendingData.push({
+          username: biggestLoser.username,
+          poolName,
+          points: biggestLoser.points,
+          week: currentWeek,
+          type: 'biggest_loser'
+        });
+      }
+      
+      console.log(`Pool ${poolName}: Hottest picker: ${hottestPicker?.username} (${hottestPicker?.points}), Biggest loser: ${biggestLoser?.username} (${biggestLoser?.points})`);
+    }
+    
+    // Clear existing data for this week (in case we're re-running)
+    await vendingCollection.deleteMany({ week: currentWeek });
+    
+    // Insert new vending machine data
+    if (vendingData.length > 0) {
+      await vendingCollection.insertMany(vendingData);
+      console.log(`Saved ${vendingData.length} vending machine records for week ${currentWeek}`);
+    } else {
+      console.log('No vending machine data to save for this week');
+    }
+    
+  } catch (error) {
+    console.error('Error saving vending machine points:', error);
+    throw error;
+  }
+}
+
+// Get VendingSpotlight data for a specific pool and week
+export async function getVendingSpotlightData(poolName: string, week?: number): Promise<{
+  hottest: VendingMachinePoint | null;
+  biggestLoser: VendingMachinePoint | null;
+}> {
+  try {
+    const database = await connectToDatabase();
+    const vendingCollection = database.collection('vendingMachinePoints');
+    
+    // Use current week if not specified
+    const targetWeek = week || await getCurrentWeek();
+    
+    // Get hottest picker for this pool and week
+    const hottest = await vendingCollection.findOne({
+      poolName,
+      week: targetWeek,
+      type: 'hottest'
+    });
+    
+    // Get biggest loser for this pool and week
+    const biggestLoser = await vendingCollection.findOne({
+      poolName,
+      week: targetWeek,
+      type: 'biggest_loser'
+    });
+    
+    return {
+      hottest: hottest as VendingMachinePoint | null,
+      biggestLoser: biggestLoser as VendingMachinePoint | null
+    };
+    
+  } catch (error) {
+    console.error('Error getting vending spotlight data:', error);
+    return { hottest: null, biggestLoser: null };
+  }
+}
+
+// API endpoint handler for getting vending spotlight data
+export async function handleGetVendingSpotlight(req: any, res: any): Promise<void> {
+  try {
+    const { poolName, week } = req.query;
+    
+    if (!poolName) {
+      res.status(400).json({ success: false, message: 'Pool name is required' });
+      return;
+    }
+    
+    const data = await getVendingSpotlightData(poolName, week ? parseInt(week) : undefined);
+    
+    res.json({
+      success: true,
+      data
+    });
+    
+  } catch (error) {
+    console.error('Error in vending spotlight API:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+}
