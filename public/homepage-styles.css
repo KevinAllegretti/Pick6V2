@@ -8121,7 +8121,7 @@ margin-bottom: -10px;
   border-top: 3px solid #33d9ff;
   border-left: 3px solid #33d9ff;
   border-right: 3px solid #33d9ff;
-  border-bottom: 2px solid #2299cc;
+  border-bottom: 3px solid #2299cc;
   box-shadow: 0 0 15px rgba(51, 217, 255, 0.4), inset 0 2px 4px rgba(51, 217, 255, 0.1), inset 0 -2px 4px
     rgba(0, 0, 0, 0.3);
   display: flex;
@@ -8136,6 +8136,7 @@ margin-bottom: -10px;
   transition: all 0.3s ease;
   overflow: hidden;
   flex-shrink: 0;
+  margin-bottom: 4px;
 }
 
 .vending-spotlight:hover {
