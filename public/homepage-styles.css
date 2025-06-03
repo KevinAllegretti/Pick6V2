@@ -8320,12 +8320,12 @@ font-family: 'Russo One', sans-serif;
         */
 
 .vending-profile-pic {
-    width: 24px;
-    height: 24px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     background-size: cover;
     background-position: center;
-    border: 2px solid #33d9ff;
+    border: 1px solid #33d9ff;
     box-shadow: 0 0 8px rgba(51, 217, 255, 0.7);
     flex-shrink: 0;
     margin-bottom: 0;
