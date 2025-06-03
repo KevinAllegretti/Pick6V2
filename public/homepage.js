@@ -3568,6 +3568,7 @@ function displayGolfSelectionButton() {
     }
 }
 // Modified displayNewPoolContainer to include the playoff bracket
+// Modified displayNewPoolContainer function with VendingSpotlight
 async function displayNewPoolContainer(pool, includePlayoffBracket = false, currentweek) {
   const teamLogos = {
     "Arizona Cardinals": "/ARILogo.png",
@@ -3784,6 +3785,26 @@ async function displayNewPoolContainer(pool, includePlayoffBracket = false, curr
   // Finally add poolControls to poolNameContainer
   poolNameContainer.appendChild(poolControls)
 
+  // CREATE VENDING SPOTLIGHT AND WRAPPER
+  // Create a wrapper that will hold both the pool-name-container and VendingSpotlight
+  const poolHeaderWrapper = document.createElement("div")
+  poolHeaderWrapper.className = "pool-header-wrapper"
+
+// Create the VendingSpotlight section
+const vendingSpotlight = document.createElement("div")
+vendingSpotlight.className = "vending-spotlight"
+vendingSpotlight.innerHTML = `
+  <div class="spotlight-content">
+
+  </div>
+  <div class="spotlight-glow"></div>
+  <div class="spotlight-scanlines"></div>
+`
+
+  // Add both the original container and the new spotlight to the wrapper
+  poolHeaderWrapper.appendChild(poolNameContainer)
+  poolHeaderWrapper.appendChild(vendingSpotlight)
+
   const poolScrollableContainer = document.createElement("div")
   poolScrollableContainer.className = "pool-scrollable-container"
 
@@ -3827,7 +3848,9 @@ async function displayNewPoolContainer(pool, includePlayoffBracket = false, curr
       })
 
       poolScrollableContainer.appendChild(poolContainer)
-      poolWrapper.appendChild(poolNameContainer)
+      
+      // Add the wrapper instead of the original poolNameContainer
+      poolWrapper.appendChild(poolHeaderWrapper)
       poolWrapper.appendChild(poolScrollableContainer)
 
       // Append chat container from template

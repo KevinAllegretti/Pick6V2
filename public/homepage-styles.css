@@ -8103,3 +8103,153 @@ margin-bottom: -10px;
   color: #b91c1c;
   text-shadow: 0 0 5px rgba(185, 28, 28, 0.9);
 }
+/* VendingSpotlight CSS - Add this to your CSS file */
+/* VendingSpotlight CSS - Add this to your CSS file */
+
+/* Wrapper for pool header and spotlight */
+.pool-header-wrapper {
+  display: flex;
+  align-items: flex-end; /* Align to bottom so spotlight aligns with controls */
+  width: 100%;
+  gap: 15px;
+}
+.vending-spotlight {
+  position: relative;
+  width: 160px;
+  height: 50px;
+  background: linear-gradient(145deg, #1a2a3a, #0f1a2a);
+  border-top: 3px solid #33d9ff;
+  border-left: 3px solid #33d9ff;
+  border-right: 3px solid #33d9ff;
+  border-bottom: 2px solid #2299cc;
+  box-shadow: 0 0 15px rgba(51, 217, 255, 0.4), inset 0 2px 4px rgba(51, 217, 255, 0.1), inset 0 -2px 4px
+    rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #33d9ff;
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.vending-spotlight:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(51, 217, 255, 0.6), inset 0 2px 4px rgba(51, 217, 255, 0.2), inset 0 -2px 4px
+    rgba(0, 0, 0, 0.4);
+  border-top-color: #66eeff;
+  border-left-color: #66eeff;
+  border-right-color: #66eeff;
+}
+
+.spotlight-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.spotlight-text {
+  font-size: 11px;
+  margin-bottom: 2px;
+  text-shadow: 0 0 8px rgba(51, 217, 255, 0.8);
+}
+
+.spotlight-price {
+  font-size: 14px;
+  color: #00ff88;
+  text-shadow: 0 0 6px rgba(0, 255, 136, 0.6);
+  font-weight: 900;
+}
+
+.spotlight-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at center, rgba(51, 217, 255, 0.1) 0%, transparent 70%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.spotlight-scanlines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(51, 217, 255, 0.05) 2px,
+    rgba(51, 217, 255, 0.05) 4px
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Alternative variant styles */
+.vending-spotlight-alt {
+  position: relative;
+  width: 180px;
+  height: 90px;
+  background: linear-gradient(145deg, #1a2a3a, #0f1a2a);
+  border: 2px solid #33d9ff;
+  border-radius: 4px;
+  box-shadow: 0 0 20px rgba(51, 217, 255, 0.3), inset 0 2px 4px rgba(51, 217, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #33d9ff;
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.vending-spotlight-alt:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 25px rgba(51, 217, 255, 0.4), inset 0 2px 4px rgba(51, 217, 255, 0.2);
+}
+
+.alt-header {
+  font-size: 9px;
+  color: #66ccff;
+  margin-bottom: 4px;
+  letter-spacing: 1px;
+}
+
+.alt-main {
+  font-size: 12px;
+  color: #33d9ff;
+  text-shadow: 0 0 8px rgba(51, 217, 255, 0.6);
+  margin-bottom: 4px;
+}
+
+.alt-timer {
+  font-size: 8px;
+  color: #ff3366;
+  text-shadow: 0 0 6px rgba(255, 51, 102, 0.8);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+
