@@ -8216,7 +8216,7 @@ margin-bottom: -10px;
 
 
 
-.title-header-bar {
+.title-header-bar-cold {
   position: absolute;
 font-family: 'Russo One', sans-serif;
   top: 0;
@@ -8225,7 +8225,7 @@ font-family: 'Russo One', sans-serif;
   height: 15px; /* Adjust as needed */
   background: linear-gradient(90deg, #2299cc, #33d9ff, #2299cc);
   border-bottom: 1px solid #66eeff;
-  font-size: 8px;
+  font-size: 10px;
   letter-spacing: 1px;
   color: #0f1a2a;
   text-shadow: none;
@@ -8237,7 +8237,7 @@ font-family: 'Russo One', sans-serif;
 }
 
 
-.title-header-bar {
+.title-header-bar-hot {
   position: absolute;
   font-family: 'Russo One', sans-serif;
   top: 0;
@@ -8246,7 +8246,7 @@ font-family: 'Russo One', sans-serif;
   height: 15px;
   background: linear-gradient(90deg, #cc2200, #ff4400, #ff6622, #ff8844, #ffaa22, #ff8844, #ff6622, #ff4400, #cc2200);
   border-bottom: 1px solid #ff8844;
-  font-size: 8px;
+  font-size: 10px;
   letter-spacing: 1px;
   color: #1a0a00;
   text-shadow: none;
@@ -8279,13 +8279,13 @@ font-family: 'Russo One', sans-serif;
         }
         
         .vending-username {
-            font-size: 14px;
-            font-weight: bold;
+
             color: #ffffff;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             flex-shrink: 1;
+                    font-family: 'sans-serif', 'montserrat';
         }
         
         .vending-points {
@@ -8340,8 +8340,7 @@ font-family: 'Russo One', sans-serif;
 }
 
 .vending-username {
-    font-size: 12px;
-    font-weight: bold;
+    font-size: 10px;
     color: #ffffff;
 white-space: normal; /* Changed from nowrap */
     overflow: hidden;
@@ -8355,12 +8354,12 @@ white-space: normal; /* Changed from nowrap */
 
 .vending-points {
     font-size: 11px;
-    font-weight: bold;
+
     white-space: nowrap;
     flex-shrink: 0;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     letter-spacing: -0.5px;
-    font-family: 'Courier New', monospace;
+      font-family: 'montserrat', sans-serif;
     line-height: 1;
 }
 

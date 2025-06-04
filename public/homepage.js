@@ -3970,12 +3970,12 @@ function switchVendingMode(poolName) {
         updateVendingSpotlightDisplay(poolName);
     }
 }
-
 async function updateVendingSpotlightDisplay(poolName) {
     const spotlightElement = getVendingSpotlightElement(poolName);
     if (!spotlightElement) return;
     
-    const titleElement = spotlightElement.querySelector('.title-header-bar');
+    // Instead of looking for '.title-header-bar', look for any title header bar
+const titleElement = spotlightElement.querySelector('[class*="title-header-bar"]');
     const contentElement = spotlightElement.querySelector('.spotlight-content');
     
     if (!titleElement || !contentElement) {
@@ -4007,21 +4007,26 @@ async function updateVendingSpotlightDisplay(poolName) {
     // Determine what data to show based on current mode
     let dataToShow = null;
     let title = '';
+    let isHotMode = false; // Track which mode we're in
     
     if (currentMode === 'hottest' && spotlightData.hottest) {
         dataToShow = spotlightData.hottest;
-        title = `Hottest Picker of Week ${displayWeek}!`;
+        title = `🔥 Hottest of Week ${displayWeek}!`;
+        isHotMode = true;
     } else if (currentMode === 'biggest_loser' && spotlightData.biggestLoser) {
         dataToShow = spotlightData.biggestLoser;
-        title = `Biggest Loser of Week ${displayWeek}!`;
+        title = `❄️ Coldest of Week ${displayWeek}!`;
+        isHotMode = false;
     } else {
         // Fallback to whichever data we have
         if (spotlightData.hottest) {
             dataToShow = spotlightData.hottest;
-            title = `Hottest Picker of Week ${displayWeek}!`;
+            title = `🔥 Hottest of Week ${displayWeek}!`;
+            isHotMode = true;
         } else if (spotlightData.biggestLoser) {
             dataToShow = spotlightData.biggestLoser;
-            title = `Biggest Loser of Week ${displayWeek}!`;
+            title = `❄️ Biggest Loser of Week ${displayWeek}!`;
+            isHotMode = false;
         }
     }
     
@@ -4030,10 +4035,11 @@ async function updateVendingSpotlightDisplay(poolName) {
         return;
     }
     
-    // Update title
+    // Update title element class and content based on mode
+    titleElement.className = isHotMode ? 'title-header-bar-hot' : 'title-header-bar-cold';
     titleElement.textContent = title;
     
-    // Get user profile picture
+    // Rest of your existing code for profile picture and content...
     let profilePicture = 'Default.png';
     try {
         const profileResponse = await fetch(`/api/getUserProfile/${encodeURIComponent(dataToShow.username.toLowerCase())}`);
