@@ -255,6 +255,9 @@ function clearStatusMessages() {
 /**
  * Fetch available golfers from the database
  */
+/**
+ * Fetch available golfers from the database
+ */
 async function fetchGolfers() {
     try {
         const response = await fetch('/api/getTournamentGolfers');
@@ -262,11 +265,27 @@ async function fetchGolfers() {
             throw new Error('Failed to fetch golfers');
         }
         
-        golferOptions = await response.json();
+        const data = await response.json();
+        
+        // Handle the new response format
+        if (data.golfers && Array.isArray(data.golfers)) {
+            // New format with tournament info
+            golferOptions = data.golfers;
+            console.log(`Loaded ${golferOptions.length} golfers from ${data.tournament || 'tournament'}`);
+        } else if (Array.isArray(data)) {
+            // Old format (just golfers array)
+            golferOptions = data;
+            console.log(`Loaded ${golferOptions.length} golfers`);
+        } else {
+            // Unexpected format
+            console.error('Unexpected response format:', data);
+            golferOptions = [];
+        }
         
     } catch (error) {
         console.error('Error fetching golfers:', error);
         showErrorMessage('Failed to load golfers. Please try again.');
+        golferOptions = [];
     }
 }
 

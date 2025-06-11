@@ -12,16 +12,63 @@ router.get('/test-golf-route', (req, res) => {
  * Get tournament golfers from pgaChampionshipOdds collection
  * @route GET /api/getTournamentGolfers
  */
-router.get('/getTournamentGolfers', async (req, res) => {
+router.get('/getTournamentGolfers', async (req: any, res: any) => {
     try {
-        const database = await connectToDatabase();
-        const pgaChampionshipOdds = database.collection('pgaChampionshipOdds');
+        const database: any = await connectToDatabase();
+        const pgaChampionshipOdds: any = database.collection('pgaChampionshipOdds');
         
-        // Changed tournamentName to tournament
-        const tournament = await pgaChampionshipOdds.findOne(
-            { tournament: "PGA Championship Winner" }, 
-            { sort: { fetchedAt: -1 } }
-        );
+        // Look for US Open tournament - try multiple possible tournament names
+        const possibleTournamentNames: string[] = [
+            "U.S. Open",
+            "US Open", 
+            "United States Open",
+            "U.S. Open Golf Championship",
+            "US Open Golf",
+            "Golf - U.S. Open"
+        ];
+        
+        let tournament: any = null;
+        
+        // Try to find the tournament with any of the possible names
+        for (const tournamentName of possibleTournamentNames) {
+            tournament = await pgaChampionshipOdds.findOne(
+                { tournament: tournamentName }, 
+                { sort: { fetchedAt: -1 } }
+            );
+            
+            if (tournament) {
+                console.log(`Found tournament data with name: "${tournamentName}"`);
+                break;
+            }
+        }
+        
+        // If not found with specific names, try a more flexible search
+        if (!tournament) {
+            tournament = await pgaChampionshipOdds.findOne(
+                { 
+                    tournament: { 
+                        $regex: /us.*open|u\.s\..*open/i 
+                    } 
+                }, 
+                { sort: { fetchedAt: -1 } }
+            );
+            
+            if (tournament) {
+                console.log(`Found tournament data with regex search: "${tournament.tournament}"`);
+            }
+        }
+        
+        // If still not found, get the most recent tournament (fallback)
+        if (!tournament) {
+            tournament = await pgaChampionshipOdds.findOne(
+                {}, 
+                { sort: { fetchedAt: -1 } }
+            );
+            
+            if (tournament) {
+                console.log(`Using most recent tournament as fallback: "${tournament.tournament}"`);
+            }
+        }
         
         if (!tournament) {
             console.error('No tournament data found in pgaChampionshipOdds collection');
@@ -34,8 +81,8 @@ router.get('/getTournamentGolfers', async (req, res) => {
         console.log(`Found tournament data: ${tournament.tournament} with ${tournament.golferOdds?.length || 0} golfers`);
         
         // Extract golfer data from the tournament
-        const golfers = Array.isArray(tournament.golferOdds) 
-            ? tournament.golferOdds.map((golfer) => ({
+        const golfers: any[] = Array.isArray(tournament.golferOdds) 
+            ? tournament.golferOdds.map((golfer: any) => ({
                 name: golfer.name,
                 odds: golfer.odds,
                 oddsDisplay: golfer.oddsDisplay
@@ -43,14 +90,20 @@ router.get('/getTournamentGolfers', async (req, res) => {
             : [];
         
         // Sort golfers by odds (lowest to highest - better odds first)
-        golfers.sort((a, b) => {
-            const oddsA = parseInt(a.odds);
-            const oddsB = parseInt(b.odds);
+        golfers.sort((a: any, b: any) => {
+            const oddsA: number = parseInt(a.odds);
+            const oddsB: number = parseInt(b.odds);
             return oddsA - oddsB;
         });
         
-        res.json(golfers);
-    } catch (error) {
+        // Add tournament info to response for debugging
+        res.json({
+            tournament: tournament.tournament,
+            bookmaker: tournament.bookmaker,
+            fetchedAt: tournament.fetchedAt,
+            golfers: golfers
+        });
+    } catch (error: any) {
         console.error('Error fetching tournament golfers:', error);
         res.status(500).json({ 
             success: false, 
@@ -58,7 +111,6 @@ router.get('/getTournamentGolfers', async (req, res) => {
         });
     }
 });
-
 /**
  * Get pool state (IdleTime, DraftTime, PlayTime)
  * @route GET /api/getPoolState/:poolName

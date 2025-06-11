@@ -1086,3 +1086,227 @@ export async function fetchAndSavePGAChampionshipOdds() {
     };
   }
 }
+
+// Modified function to fetch US Open odds instead of PGA Championship
+export async function fetchAndSaveUSOpenOdds() {
+  console.log('Fetching US Open odds from FanDuel...');
+  
+  const apiKey = 'e22c201b39907f6f0b2cb61e9edb6e64';
+  
+  try {
+    // Step 1: Get available sports
+    const sportsResponse = await fetch(`https://api.the-odds-api.com/v4/sports/?apiKey=${apiKey}`);
+    
+    if (!sportsResponse.ok) {
+      throw new Error(`HTTP error! Status: ${sportsResponse.status}`);
+    }
+    
+    const sportsData: any[] = await sportsResponse.json();
+    
+    // Find US Open - look for various possible keys
+    const usOpen = sportsData.find((sport) => 
+      sport.key.includes('us_open') || 
+      sport.key.includes('usopen') ||
+      sport.key.includes('golf_us_open') ||
+      (sport.title && (
+        sport.title.includes('U.S. Open') ||
+        sport.title.includes('US Open') ||
+        sport.title.includes('United States Open')
+      ))
+    );
+    
+    if (!usOpen) {
+      console.log('US Open not found in available tournaments.');
+      console.log('Available golf tournaments:');
+      sportsData
+        .filter(sport => sport.group === 'Golf' || sport.title.toLowerCase().includes('golf'))
+        .forEach(sport => console.log(`- ${sport.title} (key: ${sport.key})`));
+      return null;
+    }
+    
+    console.log(`Found US Open: ${usOpen.title}, key: ${usOpen.key}`);
+    
+    // Fetch odds
+    const market = 'outrights';
+    console.log(`Fetching ${usOpen.title} odds with market: ${market}`);
+    
+    const oddsResponse = await fetch(`https://api.the-odds-api.com/v4/sports/${usOpen.key}/odds/?apiKey=${apiKey}&regions=us&markets=${market}&oddsFormat=american`);
+    
+    if (!oddsResponse.ok) {
+      throw new Error(`HTTP error fetching odds! Status: ${oddsResponse.status}`);
+    }
+    
+    const oddsData: any[] = await oddsResponse.json();
+    
+    if (oddsData.length === 0) {
+      console.log(`No odds data available for market '${market}'.`);
+      return null;
+    }
+    
+    console.log(`==========================================`);
+    console.log(`ODDS FOR: ${usOpen.title.toUpperCase()}`);
+    console.log(`==========================================`);
+    console.log(`Retrieved data for ${oddsData.length} events`);
+    
+    // Process the odds data - check ALL bookmakers
+    const allBookmakers = new Set<string>();
+    let selectedBookmaker: any = null;
+    let selectedBookmakerName = '';
+    
+    // Process each event
+    oddsData.forEach((event: any) => {
+      console.log(`\nEvent: ${event.sport_key}`);
+      if (event.commence_time) {
+        console.log(`Start time: ${new Date(event.commence_time).toLocaleString()}`);
+      }
+      if (event.home_team) console.log(`Home team: ${event.home_team}`);
+      if (event.away_team) console.log(`Away team: ${event.away_team || 'N/A'}`);
+      
+      // List ALL available bookmakers
+      console.log(`\nAll available bookmakers (${event.bookmakers.length}):`);
+      event.bookmakers.forEach((bm: any) => {
+        allBookmakers.add(bm.title);
+        console.log(`- ${bm.title} (key: ${bm.key})`);
+      });
+      
+      // Look for FanDuel specifically
+      const fanduel = event.bookmakers.find((bm: any) => 
+        bm.key === 'fanduel' || 
+        bm.title.toLowerCase().includes('fanduel')
+      );
+      
+      if (fanduel) {
+        console.log('\nFOUND FANDUEL ODDS!');
+        selectedBookmaker = fanduel;
+        selectedBookmakerName = 'FanDuel';
+      } else {
+        // If no FanDuel, try other major bookmakers
+        const preferredBookmakers = [
+          { name: 'DraftKings', keys: ['draftkings'] },
+          { name: 'BetMGM', keys: ['betmgm'] },
+          { name: 'Caesars', keys: ['caesars'] },
+          { name: 'PointsBet', keys: ['pointsbet'] }
+        ];
+        
+        for (const preferred of preferredBookmakers) {
+          const bookmaker = event.bookmakers.find((bm: any) => 
+            preferred.keys.includes(bm.key.toLowerCase()) || 
+            preferred.keys.some((key: string) => bm.title.toLowerCase().includes(key))
+          );
+          
+          if (bookmaker) {
+            console.log(`\nUsing ${preferred.name} odds instead of FanDuel.`);
+            selectedBookmaker = bookmaker;
+            selectedBookmakerName = preferred.name;
+            break;
+          }
+        }
+        
+        // If still no bookmaker found, use the first one available
+        if (!selectedBookmaker && event.bookmakers.length > 0) {
+          selectedBookmaker = event.bookmakers[0];
+          selectedBookmakerName = selectedBookmaker.title;
+          console.log(`\nUsing ${selectedBookmakerName} odds as fallback.`);
+        }
+      }
+    });
+    
+    if (!selectedBookmaker) {
+      console.log('No bookmaker data found for this event.');
+      return null;
+    }
+    
+    console.log(`\nSelected Bookmaker: ${selectedBookmakerName}`);
+    if (selectedBookmaker.last_update) {
+      console.log(`Last update: ${new Date(selectedBookmaker.last_update).toLocaleString()}`);
+    }
+    
+    // Process markets from the selected bookmaker
+    console.log(`\nAvailable markets (${selectedBookmaker.markets.length}):`);
+    selectedBookmaker.markets.forEach((market: any) => {
+      console.log(`- ${market.key} (outcomes: ${market.outcomes.length})`);
+    });
+    
+    // Select the appropriate market
+    const targetMarket = selectedBookmaker.markets.find((m: any) => 
+      m.key === 'outrights' || m.key === 'h2h' || m.key.includes('winner')
+    ) || selectedBookmaker.markets[0];
+    
+    if (!targetMarket) {
+      console.log('No suitable market found.');
+      return null;
+    }
+    
+    console.log(`\nSelected Market: ${targetMarket.key}`);
+    
+    // Sort outcomes by odds
+    const sortedOutcomes = [...targetMarket.outcomes].sort((a: any, b: any) => {
+      const aOdds = parseInt(a.price);
+      const bOdds = parseInt(b.price);
+      
+      if (aOdds > 0 && bOdds > 0) {
+        return aOdds - bOdds;
+      } else if (aOdds < 0 && bOdds < 0) {
+        return bOdds - aOdds;
+      } else {
+        return aOdds < 0 ? -1 : 1;
+      }
+    });
+    
+    // Populate golfer odds array
+    const golferOdds = sortedOutcomes.map((outcome: any, idx: number) => {
+      const oddsValue = `${outcome.price > 0 ? '+' : ''}${outcome.price}`;
+      console.log(`${idx+1}. ${outcome.name.padEnd(30)}: ${oddsValue}`);
+      
+      return {
+        rank: idx + 1,
+        name: outcome.name,
+        odds: outcome.price,
+        oddsDisplay: oddsValue,
+        bookmaker: selectedBookmakerName
+      };
+    });
+    
+    if (golferOdds.length === 0) {
+      console.log('No golfer odds available.');
+      return null;
+    }
+    
+    // Save to database (keeping same collection name as requested)
+    const database = await connectToDatabase();
+    const pgaOddsCollection = database.collection('pgaChampionshipOdds');
+    
+    // Create document
+    const oddsDocument = {
+      tournament: usOpen.title,
+      tournamentKey: usOpen.key,
+      bookmaker: selectedBookmakerName,
+      marketKey: targetMarket.key,
+      startTime: oddsData[0].commence_time ? new Date(oddsData[0].commence_time) : new Date(),
+      fetchedAt: new Date(),
+      golferOdds: golferOdds,
+      availableBookmakers: Array.from(allBookmakers)
+    };
+    
+    // Save to database
+    const result = await pgaOddsCollection.insertOne(oddsDocument);
+    
+    console.log(`\nSaved ${selectedBookmakerName} odds for ${usOpen.title} to database with ID: ${result.insertedId}`);
+    
+    return {
+      success: true,
+      id: result.insertedId.toString(),
+      bookmaker: selectedBookmakerName,
+      tournament: usOpen.title,
+      oddsCount: golferOdds.length
+    };
+    
+  } catch (error: any) {
+    console.error('Error fetching US Open odds:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
