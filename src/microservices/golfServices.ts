@@ -771,7 +771,7 @@ export interface GolferData {
       return { success: false, error };
     }
   }
-  
+  /*
 async function processGolfPicks(golfScores) {
   console.log('Processing golf picks with tournament data...');
   
@@ -940,8 +940,193 @@ async function processGolfPicks(golfScores) {
     console.error('Error processing golf picks:', error);
   }
 }
-  
+  */
 
+async function processGolfPicks(golfScores: any[]) {
+  console.log('Processing golf picks with tournament data...');
+  
+  try {
+    const database = await connectToDatabase();
+    const userGolfPicksCollection = database.collection('userGolfPicks');
+    const golfResultsCollection = database.collection('golfBetResults');
+    const poolsCollection = database.collection('pools');
+    
+    // Get all golf pools that are in playTime phase
+    const golfPools = await poolsCollection.find({
+      mode: 'golf',
+      playTime: true
+    }).toArray();
+    
+    console.log(`Found ${golfPools.length} golf pools in play phase`);
+    
+    // Current timestamp for when scores are updated
+    const updateTimestamp = new Date();
+    
+    // Process each pool
+    for (const pool of golfPools) {
+      console.log(`Processing pool: ${pool.name}`);
+      
+      // Add the last updated timestamp to the pool document
+      await poolsCollection.updateOne(
+        { name: pool.name },
+        { $set: { lastGolfScoresUpdate: updateTimestamp } }
+      );
+      
+      // Get all user picks for this pool
+      const allUserPicks = await userGolfPicksCollection.find({
+        poolName: pool.name
+      }).toArray();
+      
+      console.log(`Found ${allUserPicks.length} users with picks in pool ${pool.name}`);
+      
+      // Process each user's picks
+      for (const userPick of allUserPicks) {
+        const username = userPick.username;
+        const golfers = userPick.golfers || [];
+        
+        console.log(`Processing ${golfers.length} golfers for user ${username}`);
+        
+        // Skip if no golfers selected
+        if (golfers.length === 0) continue;
+        
+        // Calculate scores for each golfer
+        let totalScore = 0;
+        const golferResults: any[] = [];
+        
+        for (const golfer of golfers) {
+          const golferName = golfer.golferName;
+          
+          // Find this golfer in the leaderboard data
+          const golferData = golfScores.find(entry => {
+            const entryNameNormalized = entry.name.toLowerCase()
+              .normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            const golferNameNormalized = golferName.toLowerCase()
+              .normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            
+            return entryNameNormalized === golferNameNormalized || 
+                   entryNameNormalized.includes(golferNameNormalized) || 
+                   golferNameNormalized.includes(entryNameNormalized);
+          });
+          
+          if (golferData) {
+            console.log(`Found match for ${golferName}: ${golferData.name} with score ${golferData.score} (${golferData.scoreDisplay})`);
+            
+            // Store golfer result
+            golferResults.push({
+              golferName,
+              score: golferData.score,
+              scoreDisplay: golferData.scoreDisplay,
+              position: golferData.position,
+              round: golfer.round,
+              status: golferData.status || 'active' // Use golferData.status since golferData exists
+            }); 
+            
+            // Store the score directly in the user's pick
+            await userGolfPicksCollection.updateOne(
+              { 
+                username: username.toLowerCase(),
+                poolName: pool.name,
+                "golfers.golferName": golferName
+              },
+              {
+                $set: {
+                  "golfers.$.score": golferData.score,
+                  "golfers.$.scoreDisplay": golferData.scoreDisplay,
+                  "golfers.$.position": golferData.position,
+                  "golfers.$.status": golferData.status || 'active'
+                }
+              }
+            );
+            
+            // Add to total score
+            totalScore += golferData.score;
+            console.log(`Added ${golferData.score} to total. Running total: ${totalScore}`);
+          } else {
+            console.log(`⚠️ NO MATCH FOUND for ${golferName}! This golfer will be skipped in scoring.`);
+            
+            // Add to results with default values when no match found
+            golferResults.push({
+              golferName,
+              score: 0,
+              scoreDisplay: "E",
+              position: "",
+              round: golfer.round,
+              status: "active" // Default status when no match found
+            });
+            
+            // Update the user's pick with default values
+            await userGolfPicksCollection.updateOne(
+              { 
+                username: username.toLowerCase(),
+                poolName: pool.name,
+                "golfers.golferName": golferName
+              },
+              {
+                $set: {
+                  "golfers.$.score": 0,
+                  "golfers.$.scoreDisplay": "E",
+                  "golfers.$.position": "",
+                  "golfers.$.status": "active"
+                }
+              }
+            );
+          }
+        }
+        
+        // Calculate average score
+        const averageScore = golfers.length > 0 ? totalScore / golfers.length : 0;
+        
+        // Create score display format for total
+        const totalScoreDisplay = totalScore === 0 ? "E" : 
+                                (totalScore > 0 ? `+${totalScore}` : 
+                                `${totalScore}`);
+        
+        // Save results to golfBetResults collection
+        await golfResultsCollection.updateOne(
+          { 
+            username: username.toLowerCase(), 
+            poolName: pool.name 
+          },
+          {
+            $set: {
+              username: username.toLowerCase(),
+              poolName: pool.name,
+              totalScore,
+              totalScoreDisplay,
+              averageScore,
+              golferResults,
+              timestamp: updateTimestamp
+            }
+          },
+          { upsert: true }
+        );
+        
+        // Update pool member's total score
+        await poolsCollection.updateOne(
+          {
+            name: pool.name,
+            'members.username': username.toLowerCase()
+          },
+          {
+            $set: {
+              'members.$.golfScore': totalScore,
+              'members.$.golfScoreDisplay': totalScoreDisplay,
+              'members.$.golfSelections': golferResults
+            }
+          }
+        );
+        
+        console.log(`Updated scores for ${username} in pool ${pool.name}. Total: ${totalScoreDisplay}`);
+      }
+    }
+    
+    console.log('Golf scores processed successfully.');
+    return updateTimestamp;
+  } catch (error) {
+    console.error('Error processing golf picks:', error);
+    throw error; // Re-throw so the calling function knows there was an error
+  }
+}
 // Mock leaderboard data - just basic scores for popular golfers
 export const mockGolfScores = [
     { name: "Scottie Scheffler", score: -12 },

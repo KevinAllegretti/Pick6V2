@@ -256,3 +256,4 @@ cron.schedule('*/20 11-23 12-15 6 *', () => {
   console.log('Fetching US Open data - runs every 20 minutes during tournament days');
  fetchAndSaveUSOpenData();
 });
+ //fetchAndSaveUSOpenData();
