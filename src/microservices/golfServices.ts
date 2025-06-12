@@ -941,7 +941,7 @@ async function processGolfPicks(golfScores) {
   }
 }
   */
-
+/*
 async function processGolfPicks(golfScores: any[]) {
   console.log('Processing golf picks with tournament data...');
   
@@ -1126,7 +1126,7 @@ async function processGolfPicks(golfScores: any[]) {
     console.error('Error processing golf picks:', error);
     throw error; // Re-throw so the calling function knows there was an error
   }
-}
+}*/
 // Mock leaderboard data - just basic scores for popular golfers
 export const mockGolfScores = [
     { name: "Scottie Scheffler", score: -12 },
@@ -1742,3 +1742,336 @@ export async function fetchAndSaveUSOpenOdds() {
   }
 }
 
+// Enhanced name matching function that handles accents, special characters, and name variations
+function findGolferMatch(golferName: string, golfScores: any[]): any {
+  const golferNameLower = golferName.toLowerCase().trim();
+  
+  // Helper function to normalize names (remove accents and special characters)
+  function normalizeName(name: string): string {
+    return name
+      .toLowerCase()
+      .normalize("NFD") // Decompose accented characters
+      .replace(/[\u0300-\u036f]/g, "") // Remove accent marks
+      .replace(/[åä]/g, 'a') // Swedish/Nordic characters
+      .replace(/[øö]/g, 'o') // Swedish/Nordic characters  
+      .replace(/[æ]/g, 'ae') // Nordic characters
+      .replace(/[ß]/g, 'ss') // German characters
+      .replace(/[ñ]/g, 'n') // Spanish characters
+      .replace(/[ç]/g, 'c') // French/Portuguese characters
+      .replace(/[ü]/g, 'u') // German characters
+      .replace(/[ë]/g, 'e') // Various languages
+      .replace(/[ï]/g, 'i') // Various languages
+      .replace(/[ÿ]/g, 'y') // Various languages
+      .trim();
+  }
+  
+  // Strategy 1: Exact match
+  let golferData = golfScores.find(entry => {
+    return entry.name.toLowerCase().trim() === golferNameLower;
+  });
+  
+  if (golferData) return golferData;
+  
+  // Strategy 2: Normalized match (remove accents and special characters)
+  const normalizedGolferName = normalizeName(golferName);
+  golferData = golfScores.find(entry => {
+    const normalizedEntryName = normalizeName(entry.name);
+    return normalizedEntryName === normalizedGolferName;
+  });
+  
+  if (golferData) {
+    console.log(`🔤 Found match via normalization: "${golferName}" → "${golferData.name}"`);
+    return golferData;
+  }
+  
+  // Strategy 3: Handle common name variations (Matt/Matthew, etc.)
+  const nameVariations = {
+    'matthew': ['matt', 'matthew'],
+    'matt': ['matt', 'matthew'],
+    'michael': ['mike', 'michael'],
+    'mike': ['mike', 'michael'],
+    'william': ['will', 'bill', 'william'],
+    'robert': ['rob', 'bob', 'robert'],
+    'christopher': ['chris', 'christopher'],
+    'anthony': ['tony', 'anthony'],
+    'thomas': ['tom', 'thomas'],
+    'james': ['jim', 'jimmy', 'james'],
+    'richard': ['rick', 'dick', 'richard'],
+    'daniel': ['dan', 'danny', 'daniel'],
+    'alexander': ['alex', 'alexander'],
+    'benjamin': ['ben', 'benjamin'],
+    'nicholas': ['nick', 'nicholas'],
+    'jonathan': ['jon', 'jonathan'],
+    'andrew': ['andy', 'andrew'],
+    'ludvig': ['ludvig', 'ludwig'], // Nordic variation
+    'viktor': ['viktor', 'victor'], // Nordic/European variation
+  };
+  
+  // Split the name into parts
+  const golferNameParts = normalizedGolferName.split(' ');
+  
+  // Try name variations with normalized names
+  golferData = golfScores.find(entry => {
+    const normalizedEntryName = normalizeName(entry.name);
+    const entryNameParts = normalizedEntryName.split(' ');
+    
+    // If different number of name parts, skip
+    if (golferNameParts.length !== entryNameParts.length) return false;
+    
+    // Check each part
+    for (let i = 0; i < golferNameParts.length; i++) {
+      const golferPart = golferNameParts[i];
+      const entryPart = entryNameParts[i];
+      
+      // If exact match, continue
+      if (golferPart === entryPart) continue;
+      
+      // Check if they're name variations
+      const golferVariations = nameVariations[golferPart] || [golferPart];
+      const entryVariations = nameVariations[entryPart] || [entryPart];
+      
+      // If no variation matches, this isn't a match
+      if (!golferVariations.some(variant => entryVariations.includes(variant))) {
+        return false;
+      }
+    }
+    
+    return true; // All parts matched
+  });
+  
+  if (golferData) {
+    console.log(`🔄 Found match via name variation: "${golferName}" → "${golferData.name}"`);
+    return golferData;
+  }
+  
+  // Strategy 4: Partial match on last name (for cases where first names are very different)
+  const golferLastName = golferNameParts[golferNameParts.length - 1];
+  if (golferLastName && golferLastName.length >= 3) { // Only try if last name is meaningful
+    golferData = golfScores.find(entry => {
+      const normalizedEntryName = normalizeName(entry.name);
+      const entryNameParts = normalizedEntryName.split(' ');
+      const entryLastName = entryNameParts[entryNameParts.length - 1];
+      
+      return entryLastName === golferLastName;
+    });
+    
+    if (golferData) {
+      console.log(`👥 Found match via last name: "${golferName}" → "${golferData.name}"`);
+      return golferData;
+    }
+  }
+  
+  // Strategy 5: Partial match (contains) - last resort
+  golferData = golfScores.find(entry => {
+    const normalizedEntryName = normalizeName(entry.name);
+    
+    return normalizedEntryName.includes(normalizedGolferName) || 
+           normalizedGolferName.includes(normalizedEntryName);
+  });
+  
+  if (golferData) {
+    console.log(`🔍 Found match via partial match: "${golferName}" → "${golferData.name}"`);
+    return golferData;
+  }
+  
+  return null;
+}
+
+// Updated processGolfPicks with enhanced debugging for specific problematic names
+async function processGolfPicks(golfScores: any[]) {
+  console.log('Processing golf picks with tournament data...');
+  
+  // Debug: Check for Ludvig variations
+  console.log('\n=== DEBUG: Searching for Ludvig variations ===');
+  const ludvigVariations = golfScores.filter(golfer => 
+    golfer.name.toLowerCase().includes('ludvig') || 
+    golfer.name.toLowerCase().includes('aberg') ||
+    golfer.name.toLowerCase().includes('åberg')
+  );
+  console.log('Found golfers with Ludvig/Aberg variations:', ludvigVariations.map(g => g.name));
+  
+  try {
+    const database = await connectToDatabase();
+    const userGolfPicksCollection = database.collection('userGolfPicks');
+    const golfResultsCollection = database.collection('golfBetResults');
+    const poolsCollection = database.collection('pools');
+    
+    // Get all golf pools that are in playTime phase
+    const golfPools = await poolsCollection.find({
+      mode: 'golf',
+      playTime: true
+    }).toArray();
+    
+    console.log(`Found ${golfPools.length} golf pools in play phase`);
+    
+    // Current timestamp for when scores are updated
+    const updateTimestamp = new Date();
+    
+    // Process each pool
+    for (const pool of golfPools) {
+      console.log(`Processing pool: ${pool.name}`);
+      
+      // Add the last updated timestamp to the pool document
+      await poolsCollection.updateOne(
+        { name: pool.name },
+        { $set: { lastGolfScoresUpdate: updateTimestamp } }
+      );
+      
+      // Get all user picks for this pool
+      const allUserPicks = await userGolfPicksCollection.find({
+        poolName: pool.name
+      }).toArray();
+      
+      console.log(`Found ${allUserPicks.length} users with picks in pool ${pool.name}`);
+      
+      // Process each user's picks
+      for (const userPick of allUserPicks) {
+        const username = userPick.username;
+        const golfers = userPick.golfers || [];
+        
+        console.log(`Processing ${golfers.length} golfers for user ${username}`);
+        
+        // Skip if no golfers selected
+        if (golfers.length === 0) continue;
+        
+        // Calculate scores for each golfer
+        let totalScore = 0;
+        const golferResults: any[] = [];
+        
+        for (const golfer of golfers) {
+          const golferName = golfer.golferName;
+          
+          // Use the enhanced name matching function
+          const golferData = findGolferMatch(golferName, golfScores);
+          
+          // Special debug logging for problematic names
+          if (golferName.toLowerCase().includes('ludvig') || golferName.toLowerCase().includes('aberg')) {
+            console.log(`\n🔍 DEBUGGING LUDVIG MATCH:`);
+            console.log(`Looking for: "${golferName}"`);
+            console.log(`Found match: ${golferData ? golferData.name : 'NONE'}`);
+            
+            if (!golferData) {
+              console.log('Available Ludvig/Aberg names in leaderboard:');
+              ludvigVariations.forEach(entry => console.log(`  - ${entry.name}`));
+            }
+          }
+          
+          if (golferData) {
+            console.log(`✅ Found match for ${golferName}: ${golferData.name} with score ${golferData.score} (${golferData.scoreDisplay})`);
+            
+            // Store golfer result
+            golferResults.push({
+              golferName,
+              score: golferData.score,
+              scoreDisplay: golferData.scoreDisplay,
+              position: golferData.position,
+              round: golfer.round,
+              status: golferData.status || 'active'
+            }); 
+            
+            // Store the score directly in the user's pick
+            await userGolfPicksCollection.updateOne(
+              { 
+                username: username.toLowerCase(),
+                poolName: pool.name,
+                "golfers.golferName": golferName
+              },
+              {
+                $set: {
+                  "golfers.$.score": golferData.score,
+                  "golfers.$.scoreDisplay": golferData.scoreDisplay,
+                  "golfers.$.position": golferData.position,
+                  "golfers.$.status": golferData.status || 'active'
+                }
+              }
+            );
+            
+            // Add to total score
+            totalScore += golferData.score;
+            console.log(`Added ${golferData.score} to total. Running total: ${totalScore}`);
+          } else {
+            console.log(`❌ NO MATCH FOUND for ${golferName}! This golfer will be skipped in scoring.`);
+            
+            // Add to results with default values when no match found
+            golferResults.push({
+              golferName,
+              score: 0,
+              scoreDisplay: "E",
+              position: "",
+              round: golfer.round,
+              status: "active"
+            });
+            
+            // Update the user's pick with default values
+            await userGolfPicksCollection.updateOne(
+              { 
+                username: username.toLowerCase(),
+                poolName: pool.name,
+                "golfers.golferName": golferName
+              },
+              {
+                $set: {
+                  "golfers.$.score": 0,
+                  "golfers.$.scoreDisplay": "E",
+                  "golfers.$.position": "",
+                  "golfers.$.status": "active"
+                }
+              }
+            );
+          }
+        }
+        
+        // Calculate average score
+        const averageScore = golfers.length > 0 ? totalScore / golfers.length : 0;
+        
+        // Create score display format for total
+        const totalScoreDisplay = totalScore === 0 ? "E" : 
+                                (totalScore > 0 ? `+${totalScore}` : 
+                                `${totalScore}`);
+        
+        // Save results to golfBetResults collection
+        await golfResultsCollection.updateOne(
+          { 
+            username: username.toLowerCase(), 
+            poolName: pool.name 
+          },
+          {
+            $set: {
+              username: username.toLowerCase(),
+              poolName: pool.name,
+              totalScore,
+              totalScoreDisplay,
+              averageScore,
+              golferResults,
+              timestamp: updateTimestamp
+            }
+          },
+          { upsert: true }
+        );
+        
+        // Update pool member's total score
+        await poolsCollection.updateOne(
+          {
+            name: pool.name,
+            'members.username': username.toLowerCase()
+          },
+          {
+            $set: {
+              'members.$.golfScore': totalScore,
+              'members.$.golfScoreDisplay': totalScoreDisplay,
+              'members.$.golfSelections': golferResults
+            }
+          }
+        );
+        
+        console.log(`Updated scores for ${username} in pool ${pool.name}. Total: ${totalScoreDisplay}`);
+      }
+    }
+    
+    console.log('Golf scores processed successfully.');
+    return updateTimestamp;
+  } catch (error) {
+    console.error('Error processing golf picks:', error);
+    throw error;
+  }
+}
