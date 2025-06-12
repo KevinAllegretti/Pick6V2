@@ -298,7 +298,254 @@ export interface GolferData {
     tournamentInfo?: TournamentInfo;
     data: any;
   }
+  export async function fetchAndSaveUSOpenData(): Promise<{ success: boolean, id?: string, status?: string, error?: any }> {
+  console.log('Fetching US Open Tournament information and saving to database...');
   
+  const tournamentId = '026';
+  const tournamentName = 'U.S. Open';
+  const apiKey = 'e5859daf3amsha3927ab000fb4a3p1b5686jsndea26f3d7448';
+  const year = '2025';
+  
+  try {
+    const database = await connectToDatabase();
+    const golfTournamentsCollection = database.collection('golfTournaments');
+    
+    console.log(`Fetching US Open data with ID: ${tournamentId}...`);
+    
+    // Try to get the leaderboard for the tournament
+    const leaderboardResponse = await fetch(`https://live-golf-data.p.rapidapi.com/leaderboard?orgId=1&tournId=${tournamentId}&year=${year}`, {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
+        'x-rapidapi-key': apiKey
+      }
+    });
+    
+    // If we can get a leaderboard, process it
+    if (leaderboardResponse.ok) {
+      const leaderboardData = await leaderboardResponse.json();
+      
+      // Check if there's actual leaderboard data
+      let leaderboard: any[] = [];
+      let tournamentStatus = 'upcoming';
+      
+      // Look for leaderboard data in different possible properties
+      if (Array.isArray(leaderboardData.leaderboard)) {
+        leaderboard = leaderboardData.leaderboard;
+        tournamentStatus = 'in-progress';
+      } else if (Array.isArray(leaderboardData.leaderboardRows)) {
+        leaderboard = leaderboardData.leaderboardRows;
+        tournamentStatus = 'in-progress';
+      }
+      
+      console.log(`Found ${leaderboard.length} players on leaderboard`);
+      
+      // If we have a leaderboard with players, process it
+      if (leaderboard.length > 0) {
+        // Format the leaderboard data for our database
+        const formattedLeaderboard: any[] = leaderboard.map((player: any) => {
+          // Extract score - handle different API response formats
+          let score = 0;
+          let scoreDisplay = "E"; // Default display is even par
+          
+          if (player?.total !== undefined) {
+            // Handle "E" for even par
+            if (player.total === "E") {
+              score = 0;
+              scoreDisplay = "E";
+            } else {
+              // Convert to number if it's a string with a number
+              score = typeof player.total === 'number' ? player.total : 
+                      parseInt(String(player.total).replace("+", "")) || 0;
+              
+              // Generate display format
+              scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+            }
+          } else if (player?.score !== undefined) {
+            // Parse string score ("+5", "-3", "E")
+            const scoreStr = String(player.score);
+            if (scoreStr === "E") {
+              score = 0;
+              scoreDisplay = "E";
+            } else {
+              score = parseInt(scoreStr.replace("+", "")) || 0;
+              scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+            }
+          }
+          
+          return {
+            firstName: player?.firstName || "",
+            lastName: player?.lastName || "",
+            name: `${player?.firstName || ""} ${player?.lastName || ""}`.trim(),
+            score: score,
+            scoreDisplay: scoreDisplay,
+            position: player?.position || "",
+            status: player?.status || "active"
+          };
+        });
+        
+        // Create the tournament document for upserting
+        const usOpenDocument: any = {
+          tournamentName,
+          tournamentId,
+          year,
+          fetchedAt: new Date(),
+          status: tournamentStatus,
+          data: {
+            leaderboard: formattedLeaderboard
+          }
+        };
+        
+        // Use upsert to update existing record or create new one
+        const result = await golfTournamentsCollection.replaceOne(
+          { 
+            tournamentId: tournamentId,
+            year: year 
+          },
+          usOpenDocument,
+          { upsert: true }
+        );
+        
+        console.log(`\n==========================================`);
+        console.log(`US OPEN LEADERBOARD SAVED`);
+        console.log(`==========================================`);
+        console.log(`Tournament: ${tournamentName}`);
+        console.log(`Status: ${tournamentStatus}`);
+        console.log(`Players: ${formattedLeaderboard.length}`);
+        console.log(`Operation: ${result.upsertedId ? 'Created new record' : 'Updated existing record'}`);
+        
+        // Show top 5 players
+        if (formattedLeaderboard.length > 0) {
+          console.log(`\nTop 5 Players:`);
+          formattedLeaderboard.slice(0, 5).forEach((player: any, idx: number) => {
+            console.log(`${idx+1}. ${player.name.padEnd(25)} ${player.scoreDisplay}`);
+          });
+        }
+        
+        // Process golf picks with this real leaderboard data
+        await processGolfPicks(formattedLeaderboard);
+        
+        return { 
+          success: true, 
+          id: result.upsertedId?.toString() || 'updated', 
+          status: tournamentStatus 
+        };
+      }
+    }
+    
+    // If no leaderboard is available yet, proceed with scheduled info
+    console.log('No leaderboard data available. Saving tournament schedule info.');
+    
+    // Get schedule info
+    const scheduleResponse = await fetch(`https://live-golf-data.p.rapidapi.com/schedule?year=${year}`, {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
+        'x-rapidapi-key': apiKey
+      }
+    });
+    
+    if (!scheduleResponse.ok) {
+      throw new Error(`HTTP error fetching schedule! Status: ${scheduleResponse.status}`);
+    }
+    
+    const scheduleData = await scheduleResponse.json();
+    
+    // Initialize with default values for US Open dates
+    const defaultTournamentInfo: any = {
+      tournId: tournamentId,
+      name: tournamentName,
+      status: 'upcoming',
+      dates: {
+        start: '2025-06-12T00:00:00Z',
+        end: '2025-06-15T00:00:00Z'
+      }
+    };
+    
+    // Find US Open in the schedule
+    let usOpenTournamentInfo: any = defaultTournamentInfo;
+    let found = false;
+    
+    if (Array.isArray(scheduleData)) {
+      const foundItem = scheduleData.find((t: any) => t.tournId === tournamentId);
+      if (foundItem) {
+        usOpenTournamentInfo = {
+          tournId: foundItem.tournId || tournamentId,
+          name: foundItem.name || tournamentName,
+          status: foundItem.status || 'upcoming',
+          dates: {
+            start: foundItem.dates?.start || '2025-06-12T00:00:00Z',
+            end: foundItem.dates?.end || '2025-06-15T00:00:00Z'
+          }
+        };
+        found = true;
+      }
+    } else if (scheduleData && typeof scheduleData === 'object') {
+      for (const key in scheduleData) {
+        if (Array.isArray(scheduleData[key])) {
+          const foundItem = scheduleData[key].find((t: any) => t.tournId === tournamentId);
+          if (foundItem) {
+            usOpenTournamentInfo = {
+              tournId: foundItem.tournId || tournamentId,
+              name: foundItem.name || tournamentName,
+              status: foundItem.status || 'upcoming',
+              dates: {
+                start: foundItem.dates?.start || '2025-06-12T00:00:00Z',
+                end: foundItem.dates?.end || '2025-06-15T00:00:00Z'
+              }
+            };
+            found = true;
+            break;
+          }
+        }
+      }
+    }
+    
+    if (!found) {
+      console.log('Could not find US Open details in schedule. Using placeholder record.');
+    }
+    
+    // Create a document to save with the schedule information
+    const usOpenDocument: any = {
+      tournamentName,
+      tournamentId,
+      year,
+      fetchedAt: new Date(),
+      status: 'upcoming',
+      tournamentInfo: usOpenTournamentInfo,
+      data: { message: 'No leaderboard data available yet. Tournament is scheduled for the future.' }
+    };
+    
+    // Use upsert to update existing record or create new one
+    const result = await golfTournamentsCollection.replaceOne(
+      { 
+        tournamentId: tournamentId,
+        year: year 
+      },
+      usOpenDocument,
+      { upsert: true }
+    );
+    
+    console.log(`\n==========================================`);
+    console.log(`US OPEN INFO SAVED`);
+    console.log(`==========================================`);
+    console.log(`Tournament: ${tournamentName}`);
+    console.log(`Tournament ID: ${tournamentId}`);
+    console.log(`Year: ${year}`);
+    console.log(`Status: Upcoming - Scheduled for June 12-15, 2025`);
+    console.log(`Operation: ${result.upsertedId ? 'Created new record' : 'Updated existing record'}`);
+    
+    return { 
+      success: true, 
+      id: result.upsertedId?.toString() || 'updated', 
+      status: 'upcoming' 
+    };
+    
+  } catch (error: any) {
+    console.error('Error fetching and saving US Open data:', error);
+    return { success: false, error };
+  }
+}
   export async function fetchAndSavePGAChampionshipData(): Promise<{ success: boolean, id?: string, status?: string, error?: any }> {
     console.log('Fetching PGA Championship Tournament information and saving to database...');
     

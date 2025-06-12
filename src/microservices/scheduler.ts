@@ -13,7 +13,7 @@ import { updateUserPoints, updateUserStats, saveResultsToServer,
 import { connectToDatabase } from './connectDB';
 import { eliminateUsersWithoutPicks } from './serverUtils';
 import{mockFetchNFLScores, fetchNFLScores, fetchNFLDataOneWeekOut} from './nflServices';
-import { fetchAndSaveMastersData, fetchAndSavePGAChampionshipData, fetchAndSavePGAChampionshipOdds } from './golfServices';
+import { fetchAndSaveMastersData, fetchAndSavePGAChampionshipData, fetchAndSaveUSOpenData, fetchAndSavePGAChampionshipOdds } from './golfServices';
 import { saveVendingMachinePoints } from './serverUtils';
 let gameScores: any[] = [];
 
@@ -250,4 +250,9 @@ cron.schedule('27 17 * * 3', async () => {
 cron.schedule('*/20 11-23 15-18 5 *', () => {
   console.log('Fetching PGA Championship data - runs every 20 minutes');
   fetchAndSavePGAChampionshipData();
+});
+
+cron.schedule('*/20 11-23 12-15 6 *', () => {
+  console.log('Fetching US Open data - runs every 20 minutes during tournament days');
+ fetchAndSaveUSOpenData();
 });
