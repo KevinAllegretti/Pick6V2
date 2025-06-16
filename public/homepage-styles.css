@@ -8425,3 +8425,32 @@ white-space: normal; /* Changed from nowrap */
     transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     z-index: 2;
 }
+
+.classic-last-update {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  color: #FFF;
+  background: rgba(51, 217, 255, 0.1);
+  padding: 4px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(51, 217, 255, 0.2);
+  max-width: 180px;
+}
+
+.classic-last-update i {
+  color: #33d9ff;
+  font-size: 9px;
+}
+
+.classic-last-update span {
+  white-space: nowrap;
+}
+
+/* Make sure the pool controls can handle the extra element */
+.pool-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}

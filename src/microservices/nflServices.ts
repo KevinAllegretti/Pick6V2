@@ -68,7 +68,7 @@ export   async function fetchNFLScores() {
       }
     }
     
-
+/*
     export   async function updateScores(gameScores) {
       console.log('gameScores at update:', gameScores);
       let allResults = []; // Store all results for the current session
@@ -107,8 +107,78 @@ export   async function fetchNFLScores() {
     
       // Save results to the server
       await saveResultsToServer(allResults);
+    }*/
+
+export async function updateScores(gameScores: any) {
+  console.log('gameScores at update:', gameScores);
+  let allResults: any[] = []; // Store all results for the current session
+
+  // Get all picks, including playoff picks
+  const allPicks = await getAllPicks();
+  
+  console.log('All picks retrieved, including playoff picks:', allPicks.length);
+  
+  // Log how many playoff picks we found
+  const playoffPicks = allPicks.filter((pick: any) => pick.poolName.startsWith('playoff_'));
+  console.log('Playoff picks found:', playoffPicks.length);
+
+  const database = await connectToDatabase();
+  const resultsCollection = database.collection('betResultsGlobal');
+  const poolsCollection = database.collection('pools'); // ADD THIS LINE
+
+  // Add timestamp for when scores are updated
+  const updateTimestamp = new Date(); // ADD THIS LINE
+
+  for (const pick of allPicks) {
+    const { username, poolName, picks, immortalLock } = pick;
+    
+    // Check if this is a playoff pick
+    const isPlayoffPick = poolName.startsWith('playoff_');
+    console.log(`Processing picks for ${username} in pool ${poolName} (Playoff: ${isPlayoffPick})`);
+
+    // Process normal picks
+    for (const pickEntry of picks) {
+      await processPick(username, poolName, pickEntry, gameScores, allResults, resultsCollection, false, isPlayoffPick);
     }
 
+    // Process immortal lock pick
+    if (immortalLock && immortalLock.length > 0) {
+      await processPick(username, poolName, immortalLock[0], gameScores, allResults, resultsCollection, true, isPlayoffPick);
+    }
+  }
+
+  console.log('All Results:', allResults);
+
+  // Save results to the server
+  await saveResultsToServer(allResults);
+  
+  // NEW: Update lastScoresUpdate timestamp for all classic pools that had results
+  const classicPoolsWithResults = new Set<string>();
+  allResults.forEach((result: any) => {
+    // Only add classic pools (not playoff, survivor, or golf)
+    if (!result.poolName.startsWith('playoff_') && 
+        result.poolName !== 'survivor' && 
+        !result.poolName.endsWith('_golf')) {
+      classicPoolsWithResults.add(result.poolName);
+    }
+  });
+  
+  // Update timestamp for each classic pool that had score updates
+  for (const poolName of classicPoolsWithResults) {
+    try {
+      await poolsCollection.updateOne(
+        { 
+          name: poolName, 
+          mode: 'classic' // Only update classic mode pools
+        },
+        { $set: { lastScoresUpdate: updateTimestamp } }
+      );
+      console.log(`Updated lastScoresUpdate for classic pool: ${poolName}`);
+    } catch (error) {
+      console.error(`Error updating timestamp for pool ${poolName}:`, error);
+    }
+  }
+}
 
 
 // In your cron job file

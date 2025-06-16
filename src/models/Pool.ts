@@ -75,6 +75,9 @@ const poolSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  lastScoresUpdate: {
+  type: Date
+},
   members: {
     type: [mongoose.Schema.Types.Mixed],
     required: true,

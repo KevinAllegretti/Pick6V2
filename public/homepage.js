@@ -2986,7 +2986,7 @@ async function displaySurvivorPool(pool) {
     const poolNameDiv = document.createElement('div');
     poolNameDiv.className = 'survivor-pool-name';
     poolNameDiv.innerText = pool.name;
-
+ 
     // Stats container for counts
     const statsContainer = document.createElement('div');
     statsContainer.className = 'survivor-stats-container';
@@ -3778,7 +3778,6 @@ async function displayNewPoolContainer(pool, includePlayoffBracket = false, curr
       }
     }, 100)
   })
-
   // Modified structure: First add poolNameDiv to poolNameContainer
   poolNameContainer.appendChild(poolNameDiv)
 
@@ -3786,6 +3785,31 @@ async function displayNewPoolContainer(pool, includePlayoffBracket = false, curr
   poolControls.appendChild(userCountDiv)
   poolControls.appendChild(viewDropdown)
 
+// ADD TIMESTAMP DISPLAY HERE - Add this new section after userCountDiv
+if ((pool ).lastScoresUpdate) {
+  const lastUpdateDiv = document.createElement("div");
+  lastUpdateDiv.className = "classic-last-update";
+  
+  const updateTime = new Date((pool).lastScoresUpdate);
+  
+  // Format date and time in a user-friendly way
+  const options = { 
+    weekday: 'short',
+    month: 'short', 
+    day: 'numeric',
+    hour: '2-digit', 
+    minute: '2-digit'
+  };
+  
+  const formattedDateTime = updateTime.toLocaleString('en-US', options);
+  
+  lastUpdateDiv.innerHTML = `
+    <i class="fas fa-sync-alt"></i>
+    <span>Scores updated: ${formattedDateTime}</span>
+  `;
+  
+  poolControls.appendChild(lastUpdateDiv);
+}
   // Finally add poolControls to poolNameContainer
   poolNameContainer.appendChild(poolControls)
 
