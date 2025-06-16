@@ -8136,6 +8136,7 @@ margin-bottom: -10px;
   overflow: hidden;
   flex-shrink: 0;
   margin-bottom: 4px;
+  margin-right:3px;
   animation: pulseGlow 1.5s ease-in-out infinite alternate;
 }
 
