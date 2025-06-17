@@ -39,9 +39,9 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         } else if (data.redirect) {
             // LOGIN SUCCESS - Show notification prompt before redirect
             console.log('Login successful, checking for notification prompt...');
-            /*
+            
             if (window.showNotificationPrompt) {
-                console.log('Showing notification prompt...');
+               /* console.log('Showing notification prompt...');
                 setTimeout(() => {
                     window.showNotificationPrompt();
                 }, 500); // Small delay before showing prompt
