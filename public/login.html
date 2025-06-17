@@ -97,19 +97,9 @@
     <!-- Stylesheets -->
     <link rel="stylesheet" href="loginStyles.css">
     <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
+    
+    <!-- OneSignal SDK -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "c0849e89-f474-4aea-8de1-290715275d14",
-      safari_web_id: "web.onesignal.auto.2fc72fe0-a0df-475b-ad9a-b2dac840a493",
-      notifyButton: {
-        enable: true,
-      },
-    });
-  });
-</script>
 </head>
 <body>
     <!-- Install Banner for Android/Desktop (hidden by default) -->
@@ -309,6 +299,157 @@
         window.addEventListener('beforeinstallprompt', () => {
             dismissIOSBanner();
         });
+    </script>
+
+    <!-- OneSignal Integration -->
+    <script>
+        // OneSignal initialization
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        OneSignalDeferred.push(async function(OneSignal) {
+            await OneSignal.init({
+                appId: "c0849e89-f474-4aea-8de1-290715275d14", // Your OneSignal App ID
+                safari_web_id: "web.onesignal.auto.2fc72fe0-a0df-475b-ad9a-b2dac840a493", // Your Safari Web ID
+                notifyButton: {
+                    enable: false, // We'll use custom prompts instead
+                },
+            });
+            
+            console.log('OneSignal initialized');
+            
+            // Only show notification prompts for iOS users who have installed the PWA
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isStandalone = window.navigator.standalone;
+            
+            if (isIOS && isStandalone) {
+                // User has installed PWA on iOS - they can receive notifications
+                console.log('iOS PWA detected - notifications available');
+                
+                // Check if already subscribed
+                const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
+                if (!isSubscribed) {
+                    // Show your custom notification prompt after login
+                    setupNotificationPrompt();
+                }
+            } else if (!isIOS) {
+                // Android/Desktop - notifications work in browser
+                console.log('Non-iOS device - notifications available');
+                const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
+                if (!isSubscribed) {
+                    setupNotificationPrompt();
+                }
+            } else {
+                console.log('iOS browser - user needs to install PWA first for notifications');
+            }
+        });
+
+        function setupNotificationPrompt() {
+            // Wait for user to login, then show notification prompt
+            // You'll call this from your login success handler
+            window.showNotificationPrompt = showNotificationPrompt;
+        }
+
+        function showNotificationPrompt() {
+            const promptHTML = `
+                <div id="notificationPrompt" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0,0,0,0.7);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10000;
+                ">
+                    <div style="
+                        background: linear-gradient(135deg, #112240 0%, #233554 100%);
+                        color: #CCD6F6;
+                        padding: 30px;
+                        border-radius: 10px;
+                        max-width: 300px;
+                        text-align: center;
+                        border: 2px solid #33d9ff;
+                    ">
+                        <div style="font-size: 40px; margin-bottom: 15px;">🔔</div>
+                        <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">Stay Updated!</div>
+                        <div style="font-size: 14px; margin-bottom: 20px; line-height: 1.4;">
+                            Get notified when games start, end, and when your picks win!
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button id="enableNotifications" style="
+                                background: #33d9ff;
+                                color: #0A192F;
+                                border: none;
+                                padding: 12px 20px;
+                                border-radius: 5px;
+                                font-weight: bold;
+                                cursor: pointer;
+                                flex: 1;
+                            ">Enable</button>
+                            <button id="skipNotifications" style="
+                                background: transparent;
+                                color: #CCD6F6;
+                                border: 2px solid #33d9ff;
+                                padding: 12px 20px;
+                                border-radius: 5px;
+                                cursor: pointer;
+                                flex: 1;
+                            ">Skip</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend', promptHTML);
+
+            document.getElementById('enableNotifications').onclick = async () => {
+                try {
+                    await OneSignal.Slidedown.promptPush();
+                    document.getElementById('notificationPrompt').remove();
+                    
+                    // Show success message
+                    showSuccessMessage();
+                } catch (error) {
+                    console.error('Error requesting notification permission:', error);
+                    alert('Unable to enable notifications. Please try again.');
+                    document.getElementById('notificationPrompt').remove();
+                }
+            };
+
+            document.getElementById('skipNotifications').onclick = () => {
+                document.getElementById('notificationPrompt').remove();
+            };
+        }
+
+        function showSuccessMessage() {
+            const successHTML = `
+                <div style="
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #33d9ff;
+                    color: #0A192F;
+                    padding: 15px 20px;
+                    border-radius: 5px;
+                    font-weight: bold;
+                    z-index: 10000;
+                ">
+                    ✅ Notifications enabled! You'll get updates about your picks.
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', successHTML);
+            
+            setTimeout(() => {
+                const successEl = document.querySelector('[style*="Notifications enabled"]');
+                if (successEl) successEl.remove();
+            }, 4000);
+        }
+
+        // Make showNotificationPrompt available globally
+        // Call this from your login.js after successful login
+        window.showNotificationPrompt = showNotificationPrompt;
     </script>
     
 </body>
