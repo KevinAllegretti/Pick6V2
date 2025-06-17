@@ -15,18 +15,6 @@ document.getElementById('show-login').addEventListener('click', function() {
     console.log('Login form class:', document.querySelector('.form.login').className);
 });
 
-/*
-document.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const status = urlParams.get('status');
-    
-    if (status === 'success') {
-        alert('Email verified successfully! You can now log in.');
-    } else if (status === 'failed') {
-        alert('Email verification failed. Please try again or contact support.');
-    }
-});*/
-
 // Handle login form submission
 document.getElementById('login-form').addEventListener('submit', function(event) {
     event.preventDefault();
@@ -49,7 +37,24 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         if (data.error) {
             alert(data.message); // Show error message
         } else if (data.redirect) {
-            window.location.href = data.redirect; // Perform redirection
+            // LOGIN SUCCESS - Show notification prompt before redirect
+            console.log('Login successful, checking for notification prompt...');
+            
+            if (window.showNotificationPrompt) {
+                console.log('Showing notification prompt...');
+                setTimeout(() => {
+                    window.showNotificationPrompt();
+                }, 500); // Small delay before showing prompt
+                
+                // Redirect after showing prompt (or if user dismisses quickly)
+                setTimeout(() => {
+                    window.location.href = data.redirect;
+                }, 2000); // Wait 2 seconds before redirect
+            } else {
+                console.log('showNotificationPrompt not available');
+                // If notification prompt not available, redirect immediately
+                window.location.href = data.redirect;
+            }
         }
     })
     .catch(error => {
@@ -88,11 +93,3 @@ document.getElementById('registration-form').addEventListener('submit', function
         alert('An error occurred during the registration process. Please try again.');
     });
 });
-
-
-// After login success
-if (window.showNotificationPrompt) {
-    setTimeout(() => {
-        showNotificationPrompt();
-    }, 1000); // Show notification prompt 1 second after login
-}
