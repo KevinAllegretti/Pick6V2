@@ -4243,13 +4243,7 @@ function updateButtonsBasedOnEligibility(eligibility) {
             const existingMsg = document.getElementById('playoff-eligibility-message');
             if (existingMsg) existingMsg.remove();
             
-            // Add new message
-            const eligibilityMsg = document.createElement('div');
-            eligibilityMsg.id = 'playoff-eligibility-message';
-            eligibilityMsg.className = 'playoff-indicator';
-            eligibilityMsg.style.backgroundColor = '#ff5252';
-            eligibilityMsg.textContent = `Playoff status: ${eligibility.reason}`;
-            
+    
             // Insert at the top of the container
             picksContainer.insertBefore(eligibilityMsg, picksContainer.firstChild);
         }
@@ -4411,13 +4405,7 @@ function updateButtonsBasedOnEligibility(eligibility) {
             const existingMsg = document.getElementById('playoff-eligibility-message');
             if (existingMsg) existingMsg.remove();
             
-            // Add new message
-            const eligibilityMsg = document.createElement('div');
-            eligibilityMsg.id = 'playoff-eligibility-message';
-            eligibilityMsg.className = 'playoff-indicator';
-            eligibilityMsg.style.backgroundColor = '#ff5252';
-            eligibilityMsg.textContent = `Playoff status: ${eligibility.reason}`;
-            
+
             // Insert at the top of the container
             picksContainer.insertBefore(eligibilityMsg, picksContainer.firstChild);
         }

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!--<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -19,10 +19,10 @@
         <div class="card">
             <div class="card-content">
                 <div class="forms">
-                    <!-- Login Form -->
+                    
                     <div class="form login active">
                         <span class="title"> Pick 6: Login</span>
-                        <form id="login-form"> <!-- Added id for the login form -->
+                        <form id="login-form"> 
                             <div class="input-field">
                                 <input type="text" name="username" placeholder="Username" required>
                             </div>
@@ -37,17 +37,17 @@
                             <span>Don't have an account? <a href="#" id="show-register">Register here</a></span>
                         </div>
                     </div>
-                    <!-- Registration Form -->
+                  
                     <div class="form register" id="registration-container" style="display:none;">
                         <span class="title">Register</span>
-                        <form id="registration-form"> <!-- Updated to use id for JS targeting -->
+                        <form id="registration-form"> 
                             <div class="input-field">
                                 <input type="text" name="username" placeholder="Username" required>
                             </div>
 <!--
                             <div class="input-field">
                                 <input type="email" name="email" placeholder="Email" required> 
-                            </div>-->
+                            </div>
                             
                             <div class="input-field">
                                 <input type="password" name="password" placeholder="Password" required>
@@ -69,64 +69,161 @@
 </body>
 </html>
 
-
-<!--
+-->
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Login - Pick 6</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Make your fantasy sports picks and earn points with Pick 6">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Pick 6">
+    
+    <!-- Icons -->
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="shortcut icon" sizes="32x32" href="favicon.png" type="image/x-icon">
+    <link rel="apple-touch-icon" href="aiP6.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="favicon.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="aiP6.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="loginStyles.css">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="login-container">
-        <h1>Pick 6 Login</h1>
+    <!-- Install Banner (hidden by default) -->
+    <div id="installBanner" style="display: none; position: fixed; top: 0; left: 0; right: 0; background: #007AFF; color: white; padding: 10px; text-align: center; z-index: 1000;">
+        <span>Install Pick 6 for the best experience!</span>
+        <button id="installBtn" style="margin-left: 10px; background: white; color: #007AFF; border: none; padding: 5px 10px; border-radius: 4px;">Install</button>
+        <button id="dismissBtn" style="margin-left: 5px; background: transparent; color: white; border: 1px solid white; padding: 5px 10px; border-radius: 4px;">Later</button>
+    </div>
 
-        <form action="/users/login" method="post">
-            <div class="input-field">
-                <input type="text" name="username" placeholder="Username" required>
+    <div class="container">
+        <div class="Logo">
+            <img src="aiP6.png" alt="Pick 6 Logo">
+        </div>
+        <div class="card">
+            <div class="card-content">
+                <div class="forms">
+                    <!-- Login Form -->
+                    <div class="form login active">
+                        <span class="title">Pick 6: Login</span>
+                        <form id="login-form">
+                            <div class="input-field">
+                                <input type="text" name="username" placeholder="Username" required>
+                            </div>
+                            <div class="input-field">
+                                <input type="password" name="password" placeholder="Password" required>
+                            </div>
+                            <div class="action">
+                                <button type="submit">Login</button>
+                            </div>
+                        </form>
+                        <div class="form-link">
+                            <span>Don't have an account? <a href="#" id="show-register">Register here</a></span>
+                        </div>
+                    </div>
+                    <!-- Registration Form -->
+                    <div class="form register" id="registration-container" style="display:none;">
+                        <span class="title">Register</span>
+                        <form id="registration-form">
+                            <div class="input-field">
+                                <input type="text" name="username" placeholder="Username" required>
+                            </div>
+                            <div class="input-field">
+                                <input type="password" name="password" placeholder="Password" required>
+                            </div>
+                            <div class="action">
+                                <button type="submit">Register</button>
+                            </div>
+                        </form>
+                        <div class="form-link">
+                            <span>Already have an account? <a href="#" id="show-login">Login here</a></span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="input-field">
-                <input type="password" name="password" placeholder="Password" required>
-            </div>
-            <button type="submit">Login</button>
-        </form>
+        </div>
     </div>
-    <div class="form-toggle">
-        <button type="button" onclick="toggleForms()">Register</button>
-    </div>
+
+    <!-- Scripts -->
+    <script src="login.js"></script>
     
-    <div class="login-container" id="registration-container" style="display:none;">
-        <h1>Register</h1>
-        <form action="/users/register" method="post">
-            <div class="input-field">
-                <input type="text" name="username" placeholder="Username" required>
-            </div>
-            <div class="input-field">
-                <input type="password" name="password" placeholder="Password" required>
-            </div>
-            <div class="input-field">
-                <input type="email" name="email" placeholder="Email" required>
-            </div>
-            <button type="submit">Register</button>
-        </form>
-    </div>
+    <!-- PWA Installation Script -->
     <script>
-        function toggleForms() {
-            const loginContainer = document.querySelector('.login-container');
-            const registrationContainer = document.getElementById('registration-container');
-            loginContainer.style.display = loginContainer.style.display === 'none' ? 'block' : 'none';
-            registrationContainer.style.display = registrationContainer.style.display === 'block' ? 'none' : 'block';
-        }
-        </script>
-        
+        let deferredPrompt;
+        const installBanner = document.getElementById('installBanner');
+        const installBtn = document.getElementById('installBtn');
+        const dismissBtn = document.getElementById('dismissBtn');
 
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch((registrationError) => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+
+        // Handle PWA install prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBanner.style.display = 'block';
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                deferredPrompt = null;
+                installBanner.style.display = 'none';
+            }
+        });
+
+        dismissBtn.addEventListener('click', () => {
+            installBanner.style.display = 'none';
+        });
+
+        // Hide install banner if already installed
+        window.addEventListener('appinstalled', () => {
+            installBanner.style.display = 'none';
+            console.log('PWA was installed');
+        });
+
+        // Handle iOS Safari install instructions
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isStandalone = window.navigator.standalone;
+        
+        if (isIOS && !isStandalone) {
+            // Show iOS-specific install instructions
+            setTimeout(() => {
+                if (!document.getElementById('iosInstallBanner')) {
+                    const iosInstallBanner = document.createElement('div');
+                    iosInstallBanner.id = 'iosInstallBanner';
+                    iosInstallBanner.innerHTML = `
+                        <div style="position: fixed; bottom: 0; left: 0; right: 0; background: #007AFF; color: white; padding: 15px; text-align: center; z-index: 1000;">
+                            <div>Install Pick 6: Tap <span style="font-size: 18px;">⬆️</span> then "Add to Home Screen"</div>
+                            <button onclick="this.parentElement.parentElement.remove()" style="margin-top: 10px; background: white; color: #007AFF; border: none; padding: 8px 16px; border-radius: 4px;">Got it</button>
+                        </div>
+                    `;
+                    document.body.appendChild(iosInstallBanner);
+                }
+            }, 3000);
+        }
+    </script>
 </body>
 </html>
-
-
-
-    
--->
