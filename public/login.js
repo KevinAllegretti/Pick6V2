@@ -88,3 +88,11 @@ document.getElementById('registration-form').addEventListener('submit', function
         alert('An error occurred during the registration process. Please try again.');
     });
 });
+
+
+// After login success
+if (window.showNotificationPrompt) {
+    setTimeout(() => {
+        showNotificationPrompt();
+    }, 1000); // Show notification prompt 1 second after login
+}
