@@ -204,24 +204,38 @@
             console.log('PWA was installed');
         });
 
-        // Handle iOS Safari install instructions with custom styling
+        // Debug iOS detection
+        console.log('User Agent:', navigator.userAgent);
+        console.log('Is iOS:', /iPad|iPhone|iPod/.test(navigator.userAgent));
+        console.log('Is Standalone:', window.navigator.standalone);
+
+        // Handle iOS Safari install instructions
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
         const isStandalone = window.navigator.standalone;
         
-        if (isIOS && !isStandalone) {
+        // Force show for testing (remove this line once working)
+        const forceShow = true; // REMOVE THIS LINE AFTER TESTING
+        
+        if ((isIOS && !isStandalone) || forceShow) {
+            console.log('Showing iOS install banner...');
+            
             // Check if user has dismissed the banner recently
             const dismissedTime = localStorage.getItem('iosInstallDismissed');
             const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
             
-            if (!dismissedTime || parseInt(dismissedTime) < oneDayAgo) {
+            if (!dismissedTime || parseInt(dismissedTime) < oneDayAgo || forceShow) {
                 setTimeout(() => {
                     showIOSInstallBanner();
-                }, 3000); // Show after 3 seconds
+                }, 2000); // Show after 2 seconds for testing
             }
+        } else {
+            console.log('Not showing iOS banner - not iOS or already standalone');
         }
 
         function showIOSInstallBanner() {
             if (document.getElementById('iosInstallBanner')) return;
+            
+            console.log('Creating iOS install banner...');
             
             const banner = document.createElement('div');
             banner.id = 'iosInstallBanner';
@@ -252,23 +266,28 @@
             `;
             
             document.body.appendChild(banner);
+            console.log('Banner added to DOM');
             
             // Trigger slide down animation
             setTimeout(() => {
                 banner.style.transform = 'translateY(0)';
+                console.log('Banner animated down');
             }, 100);
         }
 
         function dismissIOSBanner(rememberChoice = false) {
+            console.log('Dismissing iOS banner...');
             const banner = document.getElementById('iosInstallBanner');
             if (banner) {
                 banner.style.transform = 'translateY(-100%)';
                 setTimeout(() => {
                     banner.remove();
+                    console.log('Banner removed');
                 }, 300);
                 
                 if (rememberChoice) {
                     localStorage.setItem('iosInstallDismissed', Date.now().toString());
+                    console.log('Dismissed time saved');
                 }
             }
         }
