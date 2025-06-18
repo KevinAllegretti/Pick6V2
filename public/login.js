@@ -451,13 +451,12 @@ window.handleNotificationToggle = handleNotificationToggle;
 window.addNotificationToggleToPage = addNotificationToggleToPage;
 // Call this when the page loads
 addNotificationToggleToPage('notificationToggleContainer');
-
 // Add debug overlay to PWA for iPhone testing
 function createDebugOverlay() {
     const debugHTML = `
         <div id="debugOverlay" style="
             position: fixed;
-                   margin-top: 80px;
+            top: 80px;
             right: 10px;
             background: rgba(0,0,0,0.9);
             color: #00ff00;
@@ -663,8 +662,38 @@ document.addEventListener('DOMContentLoaded', function() {
     if (isPWA) {
         createDebugOverlay();
         debugLog('Debug overlay loaded');
+        
+        // Force reconnect the toggle button with debug handler
+        setTimeout(() => {
+            const toggleBtn = document.getElementById('notificationToggleBtn');
+            if (toggleBtn) {
+                debugLog('Found toggle button - connecting debug handler');
+                toggleBtn.onclick = handleNotificationToggleDebug;
+                debugLog('Debug handler connected');
+            } else {
+                debugLog('Toggle button not found!');
+            }
+        }, 1000);
     }
 });
 
 // Replace the normal toggle handler with debug version
 window.handleNotificationToggle = handleNotificationToggleDebug;
+
+// Also override the original function to ensure debug version is used
+setTimeout(() => {
+    if (window.addNotificationToggleToPage) {
+        const originalAdd = window.addNotificationToggleToPage;
+        window.addNotificationToggleToPage = function(containerId) {
+            originalAdd(containerId);
+            // Reconnect with debug handler
+            setTimeout(() => {
+                const toggleBtn = document.getElementById('notificationToggleBtn');
+                if (toggleBtn) {
+                    debugLog('Reconnecting toggle with debug handler');
+                    toggleBtn.onclick = handleNotificationToggleDebug;
+                }
+            }, 100);
+        };
+    }
+}, 2000);
