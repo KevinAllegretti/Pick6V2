@@ -1,75 +1,3 @@
-<!--<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Pick 6</title>
-    <link rel="stylesheet" href="loginStyles.css">
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
-    <link rel="icon" href="favicon.png" type="image/png">
-
-    <link rel="shortcut icon" sizes="32x32" href="favicon.png" type="image/x-icon">
-</head>
-<body>
-    <div class="container">
-        <div class = "Logo">
-            <img src = "aiP6.png">
-
-        </div>
-        <div class="card">
-            <div class="card-content">
-                <div class="forms">
-                    
-                    <div class="form login active">
-                        <span class="title"> Pick 6: Login</span>
-                        <form id="login-form"> 
-                            <div class="input-field">
-                                <input type="text" name="username" placeholder="Username" required>
-                            </div>
-                            <div class="input-field">
-                                <input type="password" name="password" placeholder="Password" required>
-                            </div>
-                            <div class="action">
-                                <button type="submit">Login</button>
-                            </div>
-                        </form>
-                        <div class="form-link">
-                            <span>Don't have an account? <a href="#" id="show-register">Register here</a></span>
-                        </div>
-                    </div>
-                  
-                    <div class="form register" id="registration-container" style="display:none;">
-                        <span class="title">Register</span>
-                        <form id="registration-form"> 
-                            <div class="input-field">
-                                <input type="text" name="username" placeholder="Username" required>
-                            </div>
-<!--
-                            <div class="input-field">
-                                <input type="email" name="email" placeholder="Email" required> 
-                            </div>
-                            
-                            <div class="input-field">
-                                <input type="password" name="password" placeholder="Password" required>
-                            </div>
-
-                            <div class="action">
-                                <button type="submit">Register</button>
-                            </div>
-                        </form>
-                        <div class="form-link">
-                            <span>Already have an account? <a href="#" id="show-login">Login here</a></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script src="login.js"></script>
-</body>
-</html>
-
--->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -102,13 +30,6 @@
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 </head>
 <body>
-    <!-- Install Banner for Android/Desktop (hidden by default) -->
-    <div id="installBanner" style="display: none; position: fixed; top: 0; left: 0; right: 0; background: #112240; color: #CCD6F6; padding: 10px; text-align: center; z-index: 1000; border-bottom: 2px solid #33d9ff;">
-        <span>Install Pick 6 for the best experience!</span>
-        <button id="installBtn" style="margin-left: 10px; background: #33d9ff; color: #0A192F; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold;">Install</button>
-        <button id="dismissBtn" style="margin-left: 5px; background: transparent; color: #CCD6F6; border: 1px solid #33d9ff; padding: 5px 10px; border-radius: 4px;">Later</button>
-    </div>
-
     <div class="container">
         <div class="Logo">
             <img src="aiP6.png" alt="Pick 6 Logo">
@@ -160,145 +81,19 @@
     <!-- Scripts -->
     <script src="login.js"></script>
     
-    <!-- PWA Installation Script -->
+    <!-- Service Worker Registration -->
     <script>
-        let deferredPrompt;
-        const installBanner = document.getElementById('installBanner');
-        const installBtn = document.getElementById('installBtn');
-        const dismissBtn = document.getElementById('dismissBtn');
-
-       // Replace your current service worker registration with:
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-                console.log('SW registered: ', registration);
-            })
-            .catch((registrationError) => {
-                console.log('SW registration failed: ', registrationError);
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch((registrationError) => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
             });
-    });
-}
-
-        // Handle PWA install prompt for Android/Desktop
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBanner.style.display = 'block';
-        });
-
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log(`User response to the install prompt: ${outcome}`);
-                deferredPrompt = null;
-                installBanner.style.display = 'none';
-            }
-        });
-
-        dismissBtn.addEventListener('click', () => {
-            installBanner.style.display = 'none';
-        });
-
-        // Hide install banner if already installed
-        window.addEventListener('appinstalled', () => {
-            installBanner.style.display = 'none';
-            console.log('PWA was installed');
-        });
-
-        // Debug iOS detection
-        console.log('User Agent:', navigator.userAgent);
-        console.log('Is iOS:', /iPad|iPhone|iPod/.test(navigator.userAgent));
-        console.log('Is Standalone:', window.navigator.standalone);
-
-        // Handle iOS Safari install instructions
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        const isStandalone = window.navigator.standalone;
-        
-        // Force show for testing (remove this line once working)
-        const forceShow = true; // REMOVE THIS LINE AFTER TESTING
-        
-        if ((isIOS && !isStandalone) || forceShow) {
-            console.log('Showing iOS install banner...');
-            
-            // Check if user has dismissed the banner recently
-            const dismissedTime = localStorage.getItem('iosInstallDismissed');
-            const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
-            
-            if (!dismissedTime || parseInt(dismissedTime) < oneDayAgo || forceShow) {
-                setTimeout(() => {
-                    showIOSInstallBanner();
-                }, 2000); // Show after 2 seconds for testing
-            }
-        } else {
-            console.log('Not showing iOS banner - not iOS or already standalone');
         }
-
-        function showIOSInstallBanner() {
-            if (document.getElementById('iosInstallBanner')) return;
-            
-            console.log('Creating iOS install banner...');
-            
-            const banner = document.createElement('div');
-            banner.id = 'iosInstallBanner';
-            banner.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                background: linear-gradient(135deg, #112240 0%, #233554 100%);
-                color: #CCD6F6;
-                padding: 12px 15px;
-                text-align: center;
-                z-index: 1000;
-                border-bottom: 1px solid #33d9ff;
-                font-size: 13px;
-                line-height: 1.3;
-                transform: translateY(-100%);
-                transition: transform 0.3s ease-out;
-            `;
-            
-            banner.innerHTML = `
-                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;">
-                    <span>📱 Install Pick 6: Tap</span>
-                    <span style="background: #233554; border: 1px solid #33d9ff; padding: 2px 6px; border-radius: 3px; font-size: 12px;">Share ⬆️</span>
-                    <span>then "Add to Home Screen"</span>
-                    <button onclick="dismissIOSBanner()" style="background: #33d9ff; color: #0A192F; border: none; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: bold; margin-left: 8px; cursor: pointer;">Got it</button>
-                </div>
-            `;
-            
-            document.body.appendChild(banner);
-            console.log('Banner added to DOM');
-            
-            // Trigger slide down animation
-            setTimeout(() => {
-                banner.style.transform = 'translateY(0)';
-                console.log('Banner animated down');
-            }, 100);
-        }
-
-        function dismissIOSBanner(rememberChoice = false) {
-            console.log('Dismissing iOS banner...');
-            const banner = document.getElementById('iosInstallBanner');
-            if (banner) {
-                banner.style.transform = 'translateY(-100%)';
-                setTimeout(() => {
-                    banner.remove();
-                    console.log('Banner removed');
-                }, 300);
-                
-                if (rememberChoice) {
-                    localStorage.setItem('iosInstallDismissed', Date.now().toString());
-                    console.log('Dismissed time saved');
-                }
-            }
-        }
-
-        // Also dismiss if user actually adds to home screen
-        window.addEventListener('beforeinstallprompt', () => {
-            dismissIOSBanner();
-        });
     </script>
 
     <!-- OneSignal Integration -->
@@ -316,39 +111,34 @@ if ('serviceWorker' in navigator) {
             
             console.log('OneSignal initialized');
             
-            // Only show notification prompts for iOS users who have installed the PWA
+            // Check if notifications are available for this platform
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
             const isStandalone = window.navigator.standalone;
             
-            if (isIOS && isStandalone) {
-                // User has installed PWA on iOS - they can receive notifications
-                console.log('iOS PWA detected - notifications available');
-                
-                // Check if already subscribed
-                const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
-                if (!isSubscribed) {
-                    // Show your custom notification prompt after login
-                    setupNotificationPrompt();
-                }
-            } else if (!isIOS) {
-                // Android/Desktop - notifications work in browser
-                console.log('Non-iOS device - notifications available');
+            if ((isIOS && isStandalone) || !isIOS) {
+                // Notifications available - setup prompt
                 const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
                 if (!isSubscribed) {
                     setupNotificationPrompt();
                 }
             } else {
-                console.log('iOS browser - user needs to install PWA first for notifications');
+                console.log('iOS browser - notifications not available');
             }
         });
 
         function setupNotificationPrompt() {
-            // Wait for user to login, then show notification prompt
-            // You'll call this from your login success handler
             window.showNotificationPrompt = showNotificationPrompt;
         }
 
-        function showNotificationPrompt() {
+        function showNotificationPrompt(onComplete) {
+            // If prompt already exists, don't show another
+            if (document.getElementById('notificationPrompt')) {
+                if (onComplete) onComplete();
+                return;
+            }
+            
+            console.log('Creating notification prompt...');
+            
             const promptHTML = `
                 <div id="notificationPrompt" style="
                     position: fixed;
@@ -356,20 +146,22 @@ if ('serviceWorker' in navigator) {
                     left: 0;
                     right: 0;
                     bottom: 0;
-                    background: rgba(0,0,0,0.7);
+                    background: rgba(0,0,0,0.8);
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     z-index: 10000;
+                    animation: fadeIn 0.3s ease-in;
                 ">
                     <div style="
                         background: linear-gradient(135deg, #112240 0%, #233554 100%);
                         color: #CCD6F6;
                         padding: 30px;
                         border-radius: 10px;
-                        max-width: 300px;
+                        max-width: 320px;
                         text-align: center;
                         border: 2px solid #33d9ff;
+                        animation: slideUp 0.3s ease-out;
                     ">
                         <div style="font-size: 40px; margin-bottom: 15px;">🔔</div>
                         <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">Stay Updated!</div>
@@ -399,26 +191,55 @@ if ('serviceWorker' in navigator) {
                         </div>
                     </div>
                 </div>
+                <style>
+                    @keyframes fadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
+                    @keyframes slideUp {
+                        from { transform: translateY(50px); opacity: 0; }
+                        to { transform: translateY(0); opacity: 1; }
+                    }
+                    @keyframes fadeOut {
+                        from { opacity: 1; }
+                        to { opacity: 0; }
+                    }
+                </style>
             `;
 
             document.body.insertAdjacentHTML('beforeend', promptHTML);
 
+            const removePrompt = () => {
+                const prompt = document.getElementById('notificationPrompt');
+                if (prompt) {
+                    prompt.style.animation = 'fadeOut 0.3s ease-out forwards';
+                    setTimeout(() => {
+                        prompt.remove();
+                        if (onComplete) onComplete();
+                    }, 300);
+                }
+            };
+
             document.getElementById('enableNotifications').onclick = async () => {
                 try {
+                    console.log('User clicked enable notifications');
                     await OneSignal.Slidedown.promptPush();
-                    document.getElementById('notificationPrompt').remove();
                     
                     // Show success message
                     showSuccessMessage();
+                    removePrompt();
                 } catch (error) {
                     console.error('Error requesting notification permission:', error);
                     alert('Unable to enable notifications. Please try again.');
-                    document.getElementById('notificationPrompt').remove();
+                    removePrompt();
                 }
             };
 
             document.getElementById('skipNotifications').onclick = () => {
-                document.getElementById('notificationPrompt').remove();
+                console.log('User skipped notifications');
+                // Remember that user dismissed (don't ask for 7 days)
+                localStorage.setItem('notificationDismissed', Date.now().toString());
+                removePrompt();
             };
         }
 
@@ -448,7 +269,6 @@ if ('serviceWorker' in navigator) {
         }
 
         // Make showNotificationPrompt available globally
-        // Call this from your login.js after successful login
         window.showNotificationPrompt = showNotificationPrompt;
     </script>
     
