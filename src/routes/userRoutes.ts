@@ -346,13 +346,22 @@ router.post('/register', async (req, res) => {
             return res.status(409).json({ message: "Username is already taken", type: "error" });
         }
 
+        /*
         // Create user
         const encryptedPassword = await bcrypt.hash(password, saltRounds);
         const userResult = await usersCollection.insertOne({
             username: username.toLowerCase(),
             password: encryptedPassword,
+        });*/
+        
+ const encryptedPassword = await bcrypt.hash(password, saltRounds);
+        const userResult = await usersCollection.insertOne({
+       username: username.toLowerCase(),
+            password: encryptedPassword,
+            notificationsEnabled: false, // Default to false - user can enable later
+            notificationUpdated: new Date(),
+            createdAt: new Date()
         });
-
         // Check if Global pool exists
         let globalPool = await poolsCollection.findOne({ name: "Global" });
         
@@ -461,4 +470,63 @@ router.post('/login', async (req, res) => {
     }
 });
 
+
+// Enable/disable notifications for a user
+router.post('/notifications/toggle/:username', async (req, res) => {
+    const { username } = req.params;
+    const { enabled } = req.body;
+    
+    try {
+        const db = await connectToDatabase();
+        const usersCollection = db.collection("users");
+        
+        const result = await usersCollection.updateOne(
+            { username: username.toLowerCase() },
+            { 
+                $set: { 
+                    notificationsEnabled: enabled,
+                    notificationUpdated: new Date()
+                }
+            }
+        );
+        
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ success: false, error: 'User not found' });
+        }
+        
+        console.log(`Notifications ${enabled ? 'enabled' : 'disabled'} for user: ${username}`);
+        
+        res.json({ 
+            success: true, 
+            message: `Notifications ${enabled ? 'enabled' : 'disabled'} for ${username}` 
+        });
+    } catch (error: any) {
+        console.error('Error updating notification settings:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Get notification status for a user
+router.get('/notifications/status/:username', async (req, res) => {
+    const { username } = req.params;
+    
+    try {
+        const db = await connectToDatabase();
+        const usersCollection = db.collection("users");
+        const user = await usersCollection.findOne({ username: username.toLowerCase() });
+        
+        if (!user) {
+            return res.status(404).json({ success: false, error: 'User not found' });
+        }
+        
+        res.json({ 
+            success: true, 
+            notificationsEnabled: user.notificationsEnabled || false,
+            lastUpdated: user.notificationUpdated
+        });
+    } catch (error: any) {
+        console.error('Error getting notification status:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 export default router;

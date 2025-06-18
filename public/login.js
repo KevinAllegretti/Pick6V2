@@ -766,3 +766,156 @@ setTimeout(() => {
         };
     }
 }, 2000);
+
+// Add this function to sync frontend toggle with backend
+async function syncNotificationSettingWithBackend(username, enabled) {
+    try {
+        const response = await fetch(`/users/notifications/toggle/${username}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ enabled })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            console.log('Backend notification setting updated:', result.message);
+        } else {
+            console.error('Failed to update backend:', result.error);
+        }
+        
+        return result.success;
+    } catch (error) {
+        console.error('Error syncing with backend:', error);
+        return false;
+    }
+}
+
+// Get username from URL (your existing pattern)
+function getCurrentUsername() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('username');
+}
+
+// Updated notification toggle function that syncs with backend
+async function handleNotificationToggleWithBackend() {
+    const isPWA = window.navigator.standalone === true || 
+                  window.matchMedia('(display-mode: standalone)').matches;
+    
+    if (!isPWA) {
+        showInstallPrompt();
+        return;
+    }
+    
+    const currentPermission = Notification.permission;
+    const isCurrentlyEnabled = localStorage.getItem('notificationsEnabled') === 'true';
+    const username = getCurrentUsername();
+    
+    if (!username) {
+        showNotificationMessage('Error: Username not found', 'error');
+        return;
+    }
+    
+    if (isCurrentlyEnabled) {
+        // Turn OFF notifications
+        localStorage.setItem('notificationsEnabled', 'false');
+        updateToggleUI(false);
+        
+        // Sync with backend
+        const backendSuccess = await syncNotificationSettingWithBackend(username, false);
+        
+        if (backendSuccess) {
+            showNotificationMessage('🔕 Notifications turned off', 'success');
+        } else {
+            showNotificationMessage('🔕 Notifications disabled (local only)', 'success');
+        }
+        
+        // Try OneSignal opt-out in background
+        if (typeof OneSignal !== 'undefined') {
+            OneSignal.User.PushSubscription.optOut().catch(console.error);
+        }
+        
+    } else {
+        // Turn ON notifications
+        if (currentPermission === 'denied') {
+            showNotificationMessage('Notifications are blocked. Go to Settings > Pick 6 > Notifications to enable them.', 'error');
+            return;
+        }
+        
+        if (currentPermission === 'default') {
+            // Request permission first
+            try {
+                const permission = await Notification.requestPermission();
+                
+                if (permission !== 'granted') {
+                    showNotificationMessage('Notifications were denied. Check your browser settings.', 'error');
+                    return;
+                }
+            } catch (error) {
+                showNotificationMessage('Unable to enable notifications. Please try again.', 'error');
+                return;
+            }
+        }
+        
+        // Permission granted - enable notifications
+        localStorage.setItem('notificationsEnabled', 'true');
+        updateToggleUI(true);
+        
+        // Sync with backend
+        const backendSuccess = await syncNotificationSettingWithBackend(username, true);
+        
+        if (backendSuccess) {
+            showNotificationMessage('🔔 Notifications enabled!', 'success');
+        } else {
+            showNotificationMessage('🔔 Notifications enabled (local only)', 'success');
+        }
+        
+        // Try OneSignal opt-in in background
+        if (typeof OneSignal !== 'undefined') {
+            OneSignal.User.PushSubscription.optIn().catch(console.error);
+        }
+    }
+}
+
+// Load user's notification preference from backend on page load
+async function loadNotificationSettingFromBackend() {
+    const username = getCurrentUsername();
+    if (!username) return;
+    
+    try {
+        const response = await fetch(`/users/notifications/status/${username}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            // Update localStorage to match backend
+            localStorage.setItem('notificationsEnabled', result.notificationsEnabled.toString());
+            
+            // Update UI if toggle exists
+            updateToggleUI(result.notificationsEnabled);
+            
+            console.log('Loaded notification setting from backend:', result.notificationsEnabled);
+        }
+    } catch (error) {
+        console.error('Error loading notification setting from backend:', error);
+    }
+}
+
+// Update your existing toggle creation to use the new handler
+function addNotificationToggleToPageWithBackend(containerId) {
+    const container = document.getElementById(containerId);
+    if (container) {
+        container.innerHTML = createNotificationToggle();
+        
+        // Use the new handler that syncs with backend
+        document.getElementById('notificationToggleBtn').onclick = handleNotificationToggleWithBackend;
+        
+        // Load setting from backend
+        loadNotificationSettingFromBackend();
+    }
+}
+
+// Make functions globally available
+window.addNotificationToggleToPageWithBackend = addNotificationToggleToPageWithBackend;
+window.syncNotificationSettingWithBackend = syncNotificationSettingWithBackend;

@@ -18,6 +18,7 @@ import { fetchTeamsAndWeeks, fetchGamesByFilter } from '../src/Controllers/dashC
 import golfRoutes from '../src/routes/golfRoutes'
 import { connectToDatabase } from '../src/microservices/connectDB';
 import {autoSelectBestGolferForUser} from '../src/routes/golfRoutes';
+import notificationsRoutes from '../src/routes/notificationsRoutes';
 require("dotenv").config();
 import dotenv from 'dotenv';
 dotenv.config();
@@ -49,6 +50,7 @@ app.use(express.static('public/logos/'));
 app.use(express.static('public/infoPics/'));
 app.use(express.static('public/CallingCards/'));
 app.use(express.static('public/halloweenPics/'));
+app.use('/api/notifications', notificationsRoutes);
 // 2. Logging middleware\
 /*
 app.use((req: Request, res: Response, next: NextFunction) => {
