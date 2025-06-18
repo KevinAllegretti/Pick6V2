@@ -606,8 +606,13 @@ async function handleNotificationToggleDebug() {
                     
                     if (typeof OneSignal !== 'undefined') {
                         debugLog('OneSignal available - opting in');
-                        await OneSignal.User.PushSubscription.optIn();
-                        debugLog('OneSignal opt-in successful');
+                        try {
+                            await OneSignal.User.PushSubscription.optIn();
+                            debugLog('OneSignal opt-in successful');
+                        } catch (optInError) {
+                            debugLog(`OneSignal opt-in failed: ${optInError.message}`);
+                            debugLog(`Error details: ${JSON.stringify(optInError)}`);
+                        }
                     } else {
                         debugLog('OneSignal not available');
                     }
@@ -632,8 +637,13 @@ async function handleNotificationToggleDebug() {
             try {
                 if (typeof OneSignal !== 'undefined') {
                     debugLog('OneSignal available - opting in');
-                    await OneSignal.User.PushSubscription.optIn();
-                    debugLog('OneSignal opt-in successful');
+                    try {
+                        await OneSignal.User.PushSubscription.optIn();
+                        debugLog('OneSignal opt-in successful');
+                    } catch (optInError) {
+                        debugLog(`OneSignal opt-in failed: ${optInError.message}`);
+                        debugLog(`Error details: ${JSON.stringify(optInError)}`);
+                    }
                 } else {
                     debugLog('OneSignal not available');
                 }
