@@ -452,6 +452,7 @@ window.addNotificationToggleToPage = addNotificationToggleToPage;
 // Call this when the page loads
 addNotificationToggleToPage('notificationToggleContainer');
 // Add debug overlay to PWA for iPhone testing
+// Add debug overlay to PWA for iPhone testing
 function createDebugOverlay() {
     const debugHTML = `
         <div id="debugOverlay" style="
@@ -636,25 +637,45 @@ async function handleNotificationToggleDebug() {
             debugLog('Permission already granted - subscribing');
             try {
                 if (typeof OneSignal !== 'undefined') {
-                    debugLog('OneSignal available - opting in');
+                    debugLog('OneSignal available - trying multiple methods');
+                    
+                    // Try with timeout
+                    const subscriptionPromise = Promise.race([
+                        OneSignal.User.PushSubscription.optIn(),
+                        new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('OneSignal timeout')), 5000)
+                        )
+                    ]);
+                    
                     try {
-                        await OneSignal.User.PushSubscription.optIn();
+                        await subscriptionPromise;
                         debugLog('OneSignal opt-in successful');
-                    } catch (optInError) {
-                        debugLog(`OneSignal opt-in failed: ${optInError.message}`);
-                        debugLog(`Error details: ${JSON.stringify(optInError)}`);
+                    } catch (timeoutError) {
+                        debugLog(`OneSignal opt-in failed: ${timeoutError.message}`);
+                        
+                        // Try alternative method
+                        debugLog('Trying alternative OneSignal method');
+                        try {
+                            await OneSignal.Slidedown.promptPush();
+                            debugLog('Alternative OneSignal method worked');
+                        } catch (altError) {
+                            debugLog(`Alternative method failed: ${altError.message}`);
+                            debugLog('Proceeding without OneSignal subscription');
+                        }
                     }
                 } else {
                     debugLog('OneSignal not available');
                 }
                 
+                // Set as enabled regardless of OneSignal success
                 localStorage.setItem('notificationsEnabled', 'true');
                 updateToggleUI(true);
-                debugLog('Notifications enabled successfully');
+                debugLog('Notifications enabled (UI updated)');
                 showNotificationMessage('🔔 Notifications enabled!', 'success');
                 
             } catch (error) {
-                debugLog(`Error enabling notifications: ${error.message}`);
+                debugLog(`General error: ${error.message}`);
+                // Still enable the toggle since permission is granted
                 localStorage.setItem('notificationsEnabled', 'true');
                 updateToggleUI(true);
                 showNotificationMessage('🔔 Notifications enabled!', 'success');
