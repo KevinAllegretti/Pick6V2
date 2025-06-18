@@ -16,6 +16,7 @@ document.getElementById('show-login').addEventListener('click', function() {
 });
 
 // Handle login form submission
+/*
 document.getElementById('login-form').addEventListener('submit', function(event) {
     event.preventDefault();
     var formData = new FormData(this);
@@ -71,6 +72,74 @@ document.getElementById('login-form').addEventListener('submit', function(event)
             } else {
                 console.log('showNotificationPrompt not available');
                 // If notification prompt not available, redirect immediately
+                window.location.href = data.redirect;
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred during the login process. Please try again.');
+    });
+});*/
+
+document.getElementById('login-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    var formData = new FormData(this);
+    var object = {};
+    formData.forEach(function(value, key){
+        object[key] = value;
+    });
+    var json = JSON.stringify(object);
+
+    fetch('/users/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: json,
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.message);
+        } else if (data.redirect) {
+            // Check URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const showInstall = urlParams.get('showInstall');
+            const returnTo = urlParams.get('returnTo');
+            
+            console.log('URL params:', { showInstall, returnTo }); // Debug log
+            
+            if (showInstall === 'true') {
+                // Show install prompt
+                console.log('Showing install prompt');
+                setTimeout(() => {
+                    if (window.showInstallPrompt) {
+                        window.showInstallPrompt();
+                    } else {
+                        showInstallPrompt();
+                    }
+                }, 500);
+                
+                if (returnTo) {
+                    // Redirect back after install prompt
+                    console.log('Will redirect to:', returnTo);
+                    setTimeout(() => {
+                        window.location.href = decodeURIComponent(returnTo);
+                    }, 3000); // Give user time to see install prompt
+                } else {
+                    // No return URL, use normal redirect after install prompt
+                    setTimeout(() => {
+                        window.location.href = data.redirect;
+                    }, 3000);
+                }
+            } else if (returnTo) {
+                // Direct redirect back without install prompt
+                console.log('Direct redirect to:', returnTo);
+                window.location.href = decodeURIComponent(returnTo);
+            } else {
+                // Normal login flow
+                console.log('Normal redirect to:', data.redirect);
                 window.location.href = data.redirect;
             }
         }
@@ -919,3 +988,50 @@ function addNotificationToggleToPageWithBackend(containerId) {
 // Make functions globally available
 window.addNotificationToggleToPageWithBackend = addNotificationToggleToPageWithBackend;
 window.syncNotificationSettingWithBackend = syncNotificationSettingWithBackend;
+
+// Add this to your existing login.js
+
+// Check for install prompt flag on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const showInstall = urlParams.get('showInstall');
+    
+    if (showInstall === 'true') {
+        // Small delay to let page load
+        setTimeout(() => {
+            // Use your existing install prompt function
+            if (window.showInstallPrompt) {
+                window.showInstallPrompt();
+            } else {
+                // Fallback to your existing install prompt
+                showInstallPrompt();
+            }
+        }, 500);
+    }
+});
+
+// Update your existing login success handler
+// In your login form submission success block:
+// Add this to your existing login success handler
+if (data.redirect) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const showInstall = urlParams.get('showInstall');
+    const returnTo = urlParams.get('returnTo');
+    
+    if (showInstall === 'true') {
+        // Show install prompt first
+        setTimeout(() => {
+            showInstallPrompt();
+        }, 500);
+    }
+    
+    if (returnTo) {
+        // User came from notification toggle - redirect back after delay
+        setTimeout(() => {
+            window.location.href = decodeURIComponent(returnTo);
+        }, 2000);
+    } else {
+        // Normal login flow
+        window.location.href = data.redirect;
+    }
+}

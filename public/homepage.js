@@ -3,6 +3,14 @@
 const vendingSpotlightIntervals = new Map();
 const currentVendingModes = new Map();
 const vendingSpotlightDataCache = new Map();// Call this function when the page loads
+// Initialize notification toggle on page load
+document.addEventListener('DOMContentLoaded', function() {
+setTimeout(() => {
+    console.log('⏰ Timeout fired - trying initialization as backup');
+    initializeNotificationToggle();
+}, 1000);
+
+});
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the playoff picks panel
     initializePlayoffPicksPanel();
@@ -8067,3 +8075,292 @@ async function updateGolfScoresDisplay(poolWrapper) {
   sortPlayerRowsByScore(poolWrapper);
 }
 
+
+function initializeNotificationToggle() {
+    console.log('🔧 Starting initializeNotificationToggle');
+    
+    const toggle = document.getElementById('notificationCheck');
+    const label = document.querySelector('label[for="notificationCheck"]');
+    const container = document.getElementById('notificationOption');
+    const span = document.querySelector('#notificationOption span');
+    
+    console.log('🔍 Found elements:', {
+        toggle: !!toggle,
+        label: !!label,
+        container: !!container,
+        span: !!span
+    });
+    
+    if (!toggle || !label) {
+        console.error('❌ Missing elements - toggle or label not found');
+        return;
+    }
+    
+    console.log('✅ Elements found, setting up event listeners');
+    
+    // Load current state
+    loadNotificationState();
+    
+    // Add click handler to the label (the visual toggle)
+    label.addEventListener('click', function(e) {
+        console.log('🔘 Label clicked');
+        e.preventDefault(); // Prevent default label behavior
+        
+        // Manually toggle the checkbox
+        toggle.checked = !toggle.checked;
+        console.log('🔔 Checkbox toggled to:', toggle.checked);
+        
+        // Handle the toggle
+        handleNotificationToggle();
+    });
+    
+    // Add click handler to the span text
+    if (span) {
+        span.addEventListener('click', function(e) {
+            console.log('📝 Span clicked');
+            label.click(); // Trigger the label click
+        });
+    }
+    
+    // Also listen to the actual checkbox change (as backup)
+    toggle.addEventListener('change', function(e) {
+        console.log('🔔 Checkbox change event fired, checked:', e.target.checked);
+        // Don't call handleNotificationToggle here to avoid double-firing
+    });
+    
+    console.log('✅ Event listeners added successfully');
+}
+
+async function loadNotificationState() {
+    console.log('📥 Loading notification state');
+    
+    const username = getCurrentUsername();
+    const toggle = document.getElementById('notificationCheck');
+    
+    console.log('👤 Username:', username);
+    console.log('🔘 Toggle element:', !!toggle);
+    
+    if (!username || !toggle) {
+        console.error('❌ Missing username or toggle for loading state');
+        if (!username) {
+            console.log('🔗 Current URL:', window.location.href);
+            console.log('🔗 URL search params:', window.location.search);
+        }
+        return;
+    }
+    
+    try {
+        console.log('🌐 Fetching notification status from backend');
+        const response = await fetch(`/users/notifications/status/${username}`);
+        const result = await response.json();
+        
+        console.log('📡 Backend response:', result);
+        
+        if (result.success) {
+            toggle.checked = result.notificationsEnabled;
+            console.log('✅ Set toggle from backend:', result.notificationsEnabled);
+        } else {
+            const localState = localStorage.getItem('notificationsEnabled') === 'true';
+            toggle.checked = localState;
+            console.log('📱 Set toggle from localStorage:', localState);
+        }
+    } catch (error) {
+        console.error('❌ Error loading notification state:', error);
+        const localState = localStorage.getItem('notificationsEnabled') === 'true';
+        toggle.checked = localState;
+        console.log('📱 Fallback to localStorage:', localState);
+    }
+}
+
+async function handleNotificationToggle() {
+    console.log('🎯 handleNotificationToggle called');
+    
+    const toggle = document.getElementById('notificationCheck');
+    const isEnabled = toggle.checked;
+    const username = getCurrentUsername();
+    
+    console.log('📊 Toggle state:', {
+        isEnabled,
+        username,
+        toggleExists: !!toggle
+    });
+    
+    if (!username) {
+        console.error('❌ No username found in URL');
+        console.log('🔗 Current URL:', window.location.href);
+        console.log('🔗 URL search params:', window.location.search);
+        
+        showNotificationMessage('Error: Please log in first', 'error');
+        toggle.checked = !isEnabled; // Revert toggle
+        return;
+    }
+    
+    // Check if we're in PWA mode
+    const isPWA = window.navigator.standalone === true || 
+                  window.matchMedia('(display-mode: standalone)').matches;
+    
+    console.log('📱 Platform check:', {
+        isPWA,
+        standalone: window.navigator.standalone,
+        displayMode: window.matchMedia('(display-mode: standalone)').matches
+    });
+    
+    if (!isPWA && isEnabled) {
+        console.log('🌐 Browser user trying to enable - redirecting to login');
+        toggle.checked = false; // Revert toggle
+        
+        const redirectUrl = `/login.html?showInstall=true&returnTo=${encodeURIComponent(window.location.href)}`;
+        console.log('🔗 Redirect URL:', redirectUrl);
+        
+        window.location.href = redirectUrl;
+        return;
+    }
+    
+    if (isEnabled) {
+        console.log('🔛 Enabling notifications');
+        
+        const permission = Notification.permission;
+        console.log('🔐 Current permission:', permission);
+        
+        if (permission === 'denied') {
+            console.log('🚫 Permission denied');
+            toggle.checked = false;
+            showNotificationMessage('Notifications blocked. Enable in Settings > Pick 6 > Notifications', 'error');
+            return;
+        }
+        
+        if (permission === 'default') {
+            console.log('❓ Permission default - requesting permission');
+            try {
+                const newPermission = await Notification.requestPermission();
+                console.log('✅ Permission result:', newPermission);
+                
+                if (newPermission !== 'granted') {
+                    console.log('❌ Permission not granted');
+                    toggle.checked = false;
+                    showNotificationMessage('Notification permission denied', 'error');
+                    return;
+                }
+            } catch (error) {
+                console.error('❌ Error requesting permission:', error);
+                toggle.checked = false;
+                showNotificationMessage('Error requesting permission', 'error');
+                return;
+            }
+        }
+        
+        console.log('✅ Enabling notifications - updating storage');
+        localStorage.setItem('notificationsEnabled', 'true');
+        
+        console.log('🔄 Syncing with backend');
+        const backendResult = await syncWithBackend(username, true);
+        console.log('📡 Backend sync result:', backendResult);
+        
+        showNotificationMessage('🔔 Notifications enabled!', 'success');
+        
+    } else {
+        console.log('🔕 Disabling notifications');
+        
+        localStorage.setItem('notificationsEnabled', 'false');
+        
+        console.log('🔄 Syncing with backend');
+        const backendResult = await syncWithBackend(username, false);
+        console.log('📡 Backend sync result:', backendResult);
+        
+        showNotificationMessage('🔕 Notifications disabled', 'success');
+    }
+}
+function getCurrentUsername() {
+    // Get username from local storage
+    const username = localStorage.getItem('username');
+    console.log('👤 getCurrentUsername from localStorage:', username);
+    
+    if (!username) {
+        console.error('❌ Username not found in localStorage');
+        return null;
+    }
+    
+    // Return lowercase
+    const result = username.toLowerCase();
+    console.log('👤 getCurrentUsername result:', result);
+    return result;
+}
+
+
+function showNotificationMessage(message, type = 'info') {
+    console.log('💬 Showing message:', { message, type });
+    
+    const bgColor = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6';
+    
+    const messageHTML = `
+        <div id="notificationMessage" style="
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: ${bgColor};
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: bold;
+            z-index: 10001;
+            max-width: 90%;
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.4;
+        ">${message}</div>
+    `;
+    
+    const existing = document.getElementById('notificationMessage');
+    if (existing) {
+        console.log('🗑️ Removing existing message');
+        existing.remove();
+    }
+    
+    document.body.insertAdjacentHTML('beforeend', messageHTML);
+    console.log('✅ Message added to DOM');
+    
+    setTimeout(() => {
+        const messageEl = document.getElementById('notificationMessage');
+        if (messageEl) {
+            console.log('🗑️ Removing message after timeout');
+            messageEl.remove();
+        }
+    }, 4000);
+}
+
+async function syncWithBackend(username, enabled) {
+    console.log('📡 syncWithBackend called:', { username, enabled });
+    
+    if (!username) {
+        console.error('❌ No username provided to syncWithBackend');
+        return false;
+    }
+    
+    try {
+        const url = `/users/notifications/toggle/${username}`;
+        const body = JSON.stringify({ enabled });
+        
+        console.log('🌐 Making request to:', url);
+        console.log('📦 Request body:', body);
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: body
+        });
+        
+        console.log('📡 Response status:', response.status);
+        
+        const result = await response.json();
+        console.log('📡 Response data:', result);
+        
+        const success = result.success;
+        console.log('✅ Backend sync result:', success ? 'success' : 'failed');
+        
+        return success;
+    } catch (error) {
+        console.error('❌ Backend sync error:', error);
+        return false;
+    }
+}

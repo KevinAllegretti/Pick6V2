@@ -8455,3 +8455,53 @@ white-space: normal; /* Changed from nowrap */
   align-items: center;
   flex-wrap: wrap;
 }
+
+#notificationOption {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.2em;
+    padding: 10px 0;
+}
+
+#notificationCheck + label {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 25px;
+    background: #1e1e1e;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    border: 2px solid #fffc68; /* Golden border */
+}
+
+#notificationCheck + label::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 21px;
+    height: 21px;
+    background: #ffffff;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+
+#notificationCheck:checked + label {
+    background: #fffc68; /* Golden background when checked */
+}
+
+#notificationCheck:checked + label::before {
+    transform: translateX(25px);
+}
+
+#notificationOption span {
+    cursor: pointer;
+    margin-left: 10px;
+    color: #fffc68; /* Golden text */
+    font-weight: bold;
+}
