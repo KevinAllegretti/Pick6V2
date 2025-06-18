@@ -99,375 +99,213 @@
     <!-- OneSignal Integration -->
     <script>
 // Enhanced OneSignal initialization for iOS PWA
-window.OneSignalDeferred = window.OneSignalDeferred || [];
-OneSignalDeferred.push(async function(OneSignal) {
-    try {
-        await OneSignal.init({
-            appId: "c0849e89-f474-4aea-8de1-290715275d14",
-            safari_web_id: "web.onesignal.auto.2fc72fe0-a0df-475b-ad9a-b2dac840a493",
-            
-            // Enhanced settings for iOS PWA
-            allowLocalhostAsSecureOrigin: true,
-            autoRegister: false,
-            autoResubscribe: true,
-            
-            // Disable OneSignal's built-in prompts - we'll handle manually
-            notifyButton: {
-                enable: false,
-            },
-            
-            // Simplified prompt configuration
-            promptOptions: {
-                slidedown: {
-                    autoPrompt: false,
-                    actionMessage: "We'd like to send you notifications about your picks and game updates.",
-                    acceptButton: "Allow",
-                    cancelButton: "Cancel"
-                }
-            }
-        });
-        
-        console.log('OneSignal initialized successfully');
-        
-        // Better platform detection
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        const isPWA = window.navigator.standalone === true;
-        const isInBrowser = !isPWA && isIOS;
-        
-        console.log('Platform info:', {
-            isIOS,
-            isPWA,
-            isInBrowser,
-            userAgent: navigator.userAgent,
-            standalone: window.navigator.standalone
-        });
-        
-        // Only setup notifications for supported scenarios
-        if (isIOS && isPWA) {
-            console.log('iOS PWA detected - setting up notifications');
-            await setupIOSPWANotifications();
-        } else if (!isIOS) {
-            console.log('Non-iOS device - setting up standard notifications');
-            await setupStandardNotifications();
-        } else {
-            console.log('iOS browser - notifications not available in browser, only when installed');
-        }
-        
-    } catch (error) {
-        console.error('OneSignal initialization failed:', error);
-    }
+// Switch between login and registration forms
+document.getElementById('show-register').addEventListener('click', function() {
+    console.log('Clicked on Register link');
+    document.querySelector('.form.login').classList.remove('active');
+    document.querySelector('.form.register').classList.add('active');
+    console.log('Login form class:', document.querySelector('.form.login').className);
+    console.log('Register form class:', document.querySelector('.form.register').className);
 });
 
-async function setupIOSPWANotifications() {
-    // Check current permission status
-    const permission = Notification.permission;
-    console.log('Current notification permission:', permission);
-    
-    if (permission === 'granted') {
-        // Check if subscribed to OneSignal
-        try {
-            const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
-            console.log('OneSignal subscription status:', isSubscribed);
+document.getElementById('show-login').addEventListener('click', function() {
+    console.log('Clicked on Login link');
+    document.querySelector('.form.register').classList.remove('active');
+    document.querySelector('.form.login').classList.add('active');
+    console.log('Register form class:', document.querySelector('.form.register').className);
+    console.log('Login form class:', document.querySelector('.form.login').className);
+});
+
+// Handle login form submission
+document.getElementById('login-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    var formData = new FormData(this);
+    var object = {};
+    formData.forEach(function(value, key){
+        object[key] = value;
+    });
+    var json = JSON.stringify(object);
+
+    fetch('/users/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: json,
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.message); // Show error message
+        } else if (data.redirect) {
+            // LOGIN SUCCESS - Check if we're in PWA mode before showing notifications
+            console.log('Login successful, checking platform...');
             
-            if (!isSubscribed) {
-                console.log('Permission granted but not subscribed - subscribing now');
-                await OneSignal.User.PushSubscription.optIn();
+            // Check if we're in PWA mode
+            const inPWA = window.isPWA ? window.isPWA() : false;
+            console.log('PWA mode detected:', inPWA);
+            
+            if (inPWA && window.showNotificationPrompt) {
+                // We're in PWA mode - show notification prompt
+                console.log('In PWA mode - showing notification prompt...');
+                
+                // Get platform-specific timing
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                const delay = isIOS ? 1000 : 500;
+                
+                setTimeout(() => {
+                    window.showNotificationPrompt(() => {
+                        // Callback when notification prompt is complete
+                        console.log('Notification prompt completed, redirecting...');
+                        window.location.href = data.redirect;
+                    });
+                }, delay);
+                
+                // Fallback redirect (safety net)
+                setTimeout(() => {
+                    if (window.location.pathname.includes('login') || window.location.pathname === '/') {
+                        console.log('Fallback redirect triggered');
+                        window.location.href = data.redirect;
+                    }
+                }, 8000);
+                
+            } else {
+                // We're in browser mode - skip notifications and redirect immediately
+                console.log('In browser mode - skipping notifications, redirecting immediately');
+                window.location.href = data.redirect;
             }
-        } catch (error) {
-            console.error('Error checking subscription:', error);
         }
-    } else if (permission === 'default') {
-        // Setup our custom prompt
-        setupNotificationPrompt();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred during the login process. Please try again.');
+    });
+});
+
+// Handle registration form submission
+document.getElementById('registration-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    var formData = new FormData(this);
+    let object = {};
+    formData.forEach((value, key) => object[key] = value);
+    let json = JSON.stringify(object);
+
+    fetch('/users/register', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: json,
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.message); // Show error message from the server
+        } else {
+            alert(data.message); // Success message
+            document.querySelector('.form.register').classList.remove('active'); // Hide registration form
+            document.querySelector('.form.login').classList.add('active'); // Show login form
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred during the registration process. Please try again.');
+    });
+});
+
+// Enhanced debugging function
+function debugNotifications() {
+    console.log('=== NOTIFICATION DEBUG INFO ===');
+    console.log('Notification support:', 'Notification' in window);
+    console.log('Service Worker support:', 'serviceWorker' in navigator);
+    console.log('Current permission:', Notification?.permission);
+    console.log('User Agent:', navigator.userAgent);
+    
+    // Platform detection
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
+    const isIOSStandalone = window.navigator.standalone === true;
+    const isAndroidStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    const inPWA = window.isPWA ? window.isPWA() : (isIOSStandalone || isAndroidStandalone);
+    
+    console.log('Platform Detection:');
+    console.log('  - Is iOS:', isIOS);
+    console.log('  - Is Android:', isAndroid);
+    console.log('  - iOS Standalone:', isIOSStandalone);
+    console.log('  - Android Standalone:', isAndroidStandalone);
+    console.log('  - In PWA mode:', inPWA);
+    console.log('  - In Browser mode:', !inPWA);
+    
+    console.log('Functions available:');
+    console.log('  - showNotificationPrompt:', typeof window.showNotificationPrompt);
+    console.log('  - isPWA:', typeof window.isPWA);
+    console.log('  - getPlatformInfo:', typeof window.getPlatformInfo);
+    
+    // Get detailed platform info if available
+    if (window.getPlatformInfo) {
+        console.log('Detailed platform info:', window.getPlatformInfo());
+    }
+    
+    // Check OneSignal status
+    if (typeof OneSignal !== 'undefined') {
+        console.log('OneSignal loaded:', true);
+        try {
+            OneSignal.User.PushSubscription.optedIn.then(isSubscribed => {
+                console.log('OneSignal subscription status:', isSubscribed);
+            }).catch(err => {
+                console.log('Error checking OneSignal subscription:', err);
+            });
+        } catch (err) {
+            console.log('OneSignal not fully initialized yet');
+        }
     } else {
-        console.log('Notifications denied');
-    }
-}
-
-async function setupStandardNotifications() {
-    const permission = Notification.permission;
-    
-    if (permission === 'default') {
-        setupNotificationPrompt();
-    } else if (permission === 'granted') {
-        const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
-        if (!isSubscribed) {
-            await OneSignal.User.PushSubscription.optIn();
-        }
-    }
-}
-
-function setupNotificationPrompt() {
-    window.showNotificationPrompt = showNotificationPrompt;
-}
-
-async function showNotificationPrompt(onComplete) {
-    // Prevent multiple prompts
-    if (document.getElementById('notificationPrompt')) {
-        if (onComplete) onComplete();
-        return;
+        console.log('OneSignal loaded:', false);
     }
     
-    // Check if user recently dismissed (respect their choice)
-    const dismissed = localStorage.getItem('notificationDismissed');
-    if (dismissed) {
-        const dismissedTime = parseInt(dismissed);
-        const daysSince = (Date.now() - dismissedTime) / (1000 * 60 * 60 * 24);
-        if (daysSince < 7) {
-            console.log('User recently dismissed notification prompt');
-            if (onComplete) onComplete();
-            return;
-        }
+    console.log('===============================');
+}
+
+// Make debug function available globally
+window.debugNotifications = debugNotifications;
+
+// Optional: Show a subtle indicator in browser mode
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if we're in browser mode and show a subtle hint about PWA
+    const inPWA = window.isPWA ? window.isPWA() : window.navigator.standalone;
+    
+    if (!inPWA) {
+        console.log('Browser mode detected - notifications will not be available');
+        
+        // Optional: Add a subtle hint about installing the PWA
+        // (You can uncomment this if you want to encourage PWA installation)
+        /*
+        setTimeout(() => {
+            const installHint = document.createElement('div');
+            installHint.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(51, 217, 255, 0.1);
+                border: 1px solid #33d9ff;
+                color: #33d9ff;
+                padding: 10px 20px;
+                border-radius: 25px;
+                font-size: 12px;
+                z-index: 1000;
+                backdrop-filter: blur(10px);
+            `;
+            installHint.textContent = '💡 Install as app for notifications';
+            document.body.appendChild(installHint);
+            
+            // Remove after 5 seconds
+            setTimeout(() => installHint.remove(), 5000);
+        }, 3000);
+        */
+    } else {
+        console.log('PWA mode detected - notifications available');
     }
-    
-    console.log('Showing notification prompt');
-    
-    const promptHTML = `
-        <div id="notificationPrompt" style="
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.85);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            animation: fadeIn 0.3s ease-in;
-            padding: 20px;
-            box-sizing: border-box;
-        ">
-            <div style="
-                background: linear-gradient(135deg, #112240 0%, #233554 100%);
-                color: #CCD6F6;
-                padding: 30px;
-                border-radius: 15px;
-                max-width: 350px;
-                width: 100%;
-                text-align: center;
-                border: 2px solid #33d9ff;
-                animation: slideUp 0.4s ease-out;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            ">
-                <div style="font-size: 50px; margin-bottom: 20px;">🔔</div>
-                <div style="font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #33d9ff;">Stay in the Game!</div>
-                <div style="font-size: 16px; margin-bottom: 25px; line-height: 1.5; color: #8892b0;">
-                    Get notified when games start, your picks win, and weekly results are in!
-                </div>
-                <div style="display: flex; gap: 12px; flex-direction: column;">
-                    <button id="enableNotifications" style="
-                        background: linear-gradient(45deg, #33d9ff, #1fa2d1);
-                        color: #0A192F;
-                        border: none;
-                        padding: 15px 25px;
-                        border-radius: 8px;
-                        font-weight: bold;
-                        cursor: pointer;
-                        font-size: 16px;
-                        transition: all 0.3s ease;
-                        box-shadow: 0 4px 15px rgba(51, 217, 255, 0.3);
-                    ">✓ Enable Notifications</button>
-                    <button id="skipNotifications" style="
-                        background: transparent;
-                        color: #8892b0;
-                        border: 2px solid #33d9ff;
-                        padding: 12px 25px;
-                        border-radius: 8px;
-                        cursor: pointer;
-                        font-size: 14px;
-                        transition: all 0.3s ease;
-                    ">Maybe Later</button>
-                </div>
-            </div>
-        </div>
-        <style>
-            @keyframes fadeIn {
-                from { opacity: 0; }
-                to { opacity: 1; }
-            }
-            @keyframes slideUp {
-                from { transform: translateY(50px); opacity: 0; }
-                to { transform: translateY(0); opacity: 1; }
-            }
-            @keyframes fadeOut {
-                from { opacity: 1; }
-                to { opacity: 0; }
-            }
-            #enableNotifications:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(51, 217, 255, 0.4);
-            }
-            #skipNotifications:hover {
-                border-color: #8892b0;
-                color: #CCD6F6;
-            }
-        </style>
-    `;
-
-    document.body.insertAdjacentHTML('beforeend', promptHTML);
-
-    const removePrompt = () => {
-        const prompt = document.getElementById('notificationPrompt');
-        if (prompt) {
-            prompt.style.animation = 'fadeOut 0.3s ease-out forwards';
-            setTimeout(() => {
-                prompt.remove();
-                if (onComplete) onComplete();
-            }, 300);
-        }
-    };
-
-    document.getElementById('enableNotifications').onclick = async () => {
-        try {
-            console.log('User clicked enable notifications');
-            
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-            const isPWA = window.navigator.standalone === true;
-            
-            if (isIOS && isPWA) {
-                console.log('Requesting iOS PWA notification permission...');
-                
-                // For iOS PWA, we need to be very careful with timing
-                // Request permission using the native API
-                const permission = await new Promise((resolve) => {
-                    Notification.requestPermission().then(resolve);
-                });
-                
-                console.log('iOS notification permission result:', permission);
-                
-                if (permission === 'granted') {
-                    console.log('Permission granted, subscribing to OneSignal...');
-                    
-                    // Small delay to ensure permission is fully processed
-                    setTimeout(async () => {
-                        try {
-                            await OneSignal.User.PushSubscription.optIn();
-                            console.log('Successfully subscribed to OneSignal');
-                            showSuccessMessage('🎉 Notifications enabled! You\'re all set.');
-                        } catch (subError) {
-                            console.error('OneSignal subscription error:', subError);
-                            showErrorMessage('Notifications enabled, but there was an issue with the setup. Please try logging out and back in.');
-                        }
-                    }, 500);
-                    
-                } else if (permission === 'denied') {
-                    console.log('Permission denied');
-                    showErrorMessage('Notifications were blocked. To enable them, go to Settings > Pick 6 > Notifications and turn them on.');
-                } else {
-                    console.log('Permission dismissed');
-                    showErrorMessage('Notification setup was cancelled. You can try again later.');
-                }
-                
-            } else {
-                // Non-iOS or non-PWA - use OneSignal's method
-                await OneSignal.Slidedown.promptPush();
-                showSuccessMessage('🎉 Notifications enabled!');
-            }
-            
-            removePrompt();
-            
-        } catch (error) {
-            console.error('Error enabling notifications:', error);
-            
-            // More helpful error message for iOS users
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-            if (isIOS) {
-                showErrorMessage('To enable notifications: Go to Settings > Pick 6 > Notifications and turn them on, then restart the app.');
-            } else {
-                showErrorMessage('Unable to enable notifications. Please check your browser settings and try again.');
-            }
-            
-            removePrompt();
-        }
-    };
-
-    document.getElementById('skipNotifications').onclick = () => {
-        console.log('User skipped notifications');
-        localStorage.setItem('notificationDismissed', Date.now().toString());
-        removePrompt();
-    };
-}
-
-function showSuccessMessage(message) {
-    const successHTML = `
-        <div id="successMessage" style="
-            position: fixed;
-            top: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(45deg, #10b981, #059669);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            font-weight: bold;
-            z-index: 10001;
-            animation: slideDown 0.4s ease-out;
-            box-shadow: 0 5px 20px rgba(16, 185, 129, 0.4);
-            max-width: 90%;
-            text-align: center;
-        ">
-            ${message}
-        </div>
-        <style>
-            @keyframes slideDown {
-                from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
-                to { transform: translateX(-50%) translateY(0); opacity: 1; }
-            }
-        </style>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', successHTML);
-    
-    setTimeout(() => {
-        const successEl = document.getElementById('successMessage');
-        if (successEl) {
-            successEl.style.animation = 'slideUp 0.3s ease-out forwards';
-            setTimeout(() => successEl.remove(), 300);
-        }
-    }, 4000);
-}
-
-function showErrorMessage(message) {
-    const errorHTML = `
-        <div id="errorMessage" style="
-            position: fixed;
-            top: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(45deg, #ef4444, #dc2626);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            font-weight: bold;
-            z-index: 10001;
-            animation: slideDown 0.4s ease-out;
-            box-shadow: 0 5px 20px rgba(239, 68, 68, 0.4);
-            max-width: 90%;
-            text-align: center;
-            font-size: 14px;
-            line-height: 1.4;
-        ">
-            ${message}
-        </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', errorHTML);
-    
-    setTimeout(() => {
-        const errorEl = document.getElementById('errorMessage');
-        if (errorEl) {
-            errorEl.style.animation = 'slideUp 0.3s ease-out forwards';
-            setTimeout(() => errorEl.remove(), 300);
-        }
-    }, 6000);
-}
-
-// Make the function globally available
-window.showNotificationPrompt = showNotificationPrompt;
-
-        // Make showNotificationPrompt available globally
-        window.showNotificationPrompt = showNotificationPrompt;
+});
     </script>
     
 </body>
