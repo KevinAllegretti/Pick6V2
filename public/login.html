@@ -100,173 +100,245 @@
     <script>
         // OneSignal initialization
         window.OneSignalDeferred = window.OneSignalDeferred || [];
-        OneSignalDeferred.push(async function(OneSignal) {
-            await OneSignal.init({
-                appId: "c0849e89-f474-4aea-8de1-290715275d14", // Your OneSignal App ID
-                safari_web_id: "web.onesignal.auto.2fc72fe0-a0df-475b-ad9a-b2dac840a493", // Your Safari Web ID
-                notifyButton: {
-                    enable: false, // We'll use custom prompts instead
-                },
-            });
+OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+        appId: "c0849e89-f474-4aea-8de1-290715275d14",
+        safari_web_id: "web.onesignal.auto.2fc72fe0-a0df-475b-ad9a-b2dac840a493",
+        
+        // Critical iOS-specific settings
+        allowLocalhostAsSecureOrigin: true,
+        autoRegister: false, // We'll handle this manually
+        
+        // Notification settings
+        notifyButton: {
+            enable: false,
+        },
+        
+        // iOS-specific prompt settings
+        promptOptions: {
+            slidedown: {
+                prompts: [
+                    {
+                        type: "push", // Push prompt for iOS
+                        autoPrompt: false, // We control when to show
+                        text: {
+                            actionMessage: "We'd like to send you notifications for game updates and pick results.",
+                            acceptButton: "Allow",
+                            cancelButton: "Cancel"
+                        }
+                    }
+                ]
+            }
+        }
+    });
+    
+    console.log('OneSignal initialized');
+    
+    // Better iOS detection and handling
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isStandalone = window.navigator.standalone === true;
+    const isIOSSafari = isIOS && !isStandalone;
+    
+    console.log('Platform detection:', {
+        isIOS,
+        isStandalone,
+        isIOSSafari,
+        userAgent: navigator.userAgent
+    });
+    
+    // Check notification support more thoroughly
+    const supportsNotifications = 'Notification' in window && 'serviceWorker' in navigator;
+    
+    if (supportsNotifications) {
+        const permission = await Notification.permission;
+        console.log('Current notification permission:', permission);
+        
+        if (permission === 'default') {
+            // Setup our custom prompt
+            setupNotificationPrompt();
+        } else if (permission === 'granted') {
+            console.log('Notifications already granted');
+            // Check if actually subscribed to OneSignal
+            const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
+            if (!isSubscribed) {
+                console.log('Permission granted but not subscribed to OneSignal');
+                await OneSignal.User.PushSubscription.optIn();
+            }
+        }
+    } else {
+        console.log('Notifications not supported on this device/browser');
+    }
+});
+
+function setupNotificationPrompt() {
+    window.showNotificationPrompt = showNotificationPrompt;
+}
+
+async function showNotificationPrompt(onComplete) {
+    // Prevent multiple prompts
+    if (document.getElementById('notificationPrompt')) {
+        if (onComplete) onComplete();
+        return;
+    }
+    
+    // Check if user recently dismissed
+    const dismissed = localStorage.getItem('notificationDismissed');
+    if (dismissed) {
+        const dismissedTime = parseInt(dismissed);
+        const daysSince = (Date.now() - dismissedTime) / (1000 * 60 * 60 * 24);
+        if (daysSince < 7) {
+            console.log('User recently dismissed notification prompt');
+            if (onComplete) onComplete();
+            return;
+        }
+    }
+    
+    console.log('Creating notification prompt...');
+    
+    const promptHTML = `
+        <div id="notificationPrompt" style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease-in;
+        ">
+            <div style="
+                background: linear-gradient(135deg, #112240 0%, #233554 100%);
+                color: #CCD6F6;
+                padding: 30px;
+                border-radius: 10px;
+                max-width: 320px;
+                margin: 20px;
+                text-align: center;
+                border: 2px solid #33d9ff;
+                animation: slideUp 0.3s ease-out;
+            ">
+                <div style="font-size: 40px; margin-bottom: 15px;">🔔</div>
+                <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">Stay Updated!</div>
+                <div style="font-size: 14px; margin-bottom: 20px; line-height: 1.4;">
+                    Get notified when games start, end, and when your picks win!
+                </div>
+                <div style="display: flex; gap: 10px; flex-direction: column;">
+                    <button id="enableNotifications" style="
+                        background: #33d9ff;
+                        color: #0A192F;
+                        border: none;
+                        padding: 12px 20px;
+                        border-radius: 5px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        font-size: 16px;
+                    ">Enable Notifications</button>
+                    <button id="skipNotifications" style="
+                        background: transparent;
+                        color: #CCD6F6;
+                        border: 2px solid #33d9ff;
+                        padding: 12px 20px;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        font-size: 16px;
+                    ">Maybe Later</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', promptHTML);
+
+    const removePrompt = () => {
+        const prompt = document.getElementById('notificationPrompt');
+        if (prompt) {
+            prompt.style.animation = 'fadeOut 0.3s ease-out forwards';
+            setTimeout(() => {
+                prompt.remove();
+                if (onComplete) onComplete();
+            }, 300);
+        }
+    };
+
+    document.getElementById('enableNotifications').onclick = async () => {
+        try {
+            console.log('User clicked enable notifications');
             
-            console.log('OneSignal initialized');
-            
-            // Check if notifications are available for this platform
+            // For iOS, we need to use the native browser prompt
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-            const isStandalone = window.navigator.standalone;
             
-            if ((isIOS && isStandalone) || !isIOS) {
-                // Notifications available - setup prompt
-                const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
-                if (!isSubscribed) {
-                    setupNotificationPrompt();
+            if (isIOS) {
+                // On iOS, request permission first
+                const permission = await Notification.requestPermission();
+                console.log('iOS notification permission result:', permission);
+                
+                if (permission === 'granted') {
+                    // Then subscribe to OneSignal
+                    await OneSignal.User.PushSubscription.optIn();
+                    showSuccessMessage();
+                } else {
+                    console.log('iOS notification permission denied');
+                    alert('Notifications were not enabled. You can enable them later in your browser settings.');
                 }
             } else {
-                console.log('iOS browser - notifications not available');
-            }
-        });
-
-        function setupNotificationPrompt() {
-            window.showNotificationPrompt = showNotificationPrompt;
-        }
-
-        function showNotificationPrompt(onComplete) {
-            // If prompt already exists, don't show another
-            if (document.getElementById('notificationPrompt')) {
-                if (onComplete) onComplete();
-                return;
+                // Use OneSignal's prompt for other platforms
+                await OneSignal.Slidedown.promptPush();
+                showSuccessMessage();
             }
             
-            console.log('Creating notification prompt...');
-            
-            const promptHTML = `
-                <div id="notificationPrompt" style="
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: rgba(0,0,0,0.8);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    z-index: 10000;
-                    animation: fadeIn 0.3s ease-in;
-                ">
-                    <div style="
-                        background: linear-gradient(135deg, #112240 0%, #233554 100%);
-                        color: #CCD6F6;
-                        padding: 30px;
-                        border-radius: 10px;
-                        max-width: 320px;
-                        text-align: center;
-                        border: 2px solid #33d9ff;
-                        animation: slideUp 0.3s ease-out;
-                    ">
-                        <div style="font-size: 40px; margin-bottom: 15px;">🔔</div>
-                        <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">Stay Updated!</div>
-                        <div style="font-size: 14px; margin-bottom: 20px; line-height: 1.4;">
-                            Get notified when games start, end, and when your picks win!
-                        </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button id="enableNotifications" style="
-                                background: #33d9ff;
-                                color: #0A192F;
-                                border: none;
-                                padding: 12px 20px;
-                                border-radius: 5px;
-                                font-weight: bold;
-                                cursor: pointer;
-                                flex: 1;
-                            ">Enable</button>
-                            <button id="skipNotifications" style="
-                                background: transparent;
-                                color: #CCD6F6;
-                                border: 2px solid #33d9ff;
-                                padding: 12px 20px;
-                                border-radius: 5px;
-                                cursor: pointer;
-                                flex: 1;
-                            ">Skip</button>
-                        </div>
-                    </div>
-                </div>
-                <style>
-                    @keyframes fadeIn {
-                        from { opacity: 0; }
-                        to { opacity: 1; }
-                    }
-                    @keyframes slideUp {
-                        from { transform: translateY(50px); opacity: 0; }
-                        to { transform: translateY(0); opacity: 1; }
-                    }
-                    @keyframes fadeOut {
-                        from { opacity: 1; }
-                        to { opacity: 0; }
-                    }
-                </style>
-            `;
-
-            document.body.insertAdjacentHTML('beforeend', promptHTML);
-
-            const removePrompt = () => {
-                const prompt = document.getElementById('notificationPrompt');
-                if (prompt) {
-                    prompt.style.animation = 'fadeOut 0.3s ease-out forwards';
-                    setTimeout(() => {
-                        prompt.remove();
-                        if (onComplete) onComplete();
-                    }, 300);
-                }
-            };
-
-            document.getElementById('enableNotifications').onclick = async () => {
-                try {
-                    console.log('User clicked enable notifications');
-                    await OneSignal.Slidedown.promptPush();
-                    
-                    // Show success message
-                    showSuccessMessage();
-                    removePrompt();
-                } catch (error) {
-                    console.error('Error requesting notification permission:', error);
-                    alert('Unable to enable notifications. Please try again.');
-                    removePrompt();
-                }
-            };
-
-            document.getElementById('skipNotifications').onclick = () => {
-                console.log('User skipped notifications');
-                // Remember that user dismissed (don't ask for 7 days)
-                localStorage.setItem('notificationDismissed', Date.now().toString());
-                removePrompt();
-            };
+            removePrompt();
+        } catch (error) {
+            console.error('Error requesting notification permission:', error);
+            alert('Unable to enable notifications. Please try again or check your browser settings.');
+            removePrompt();
         }
+    };
 
-        function showSuccessMessage() {
-            const successHTML = `
-                <div style="
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: #33d9ff;
-                    color: #0A192F;
-                    padding: 15px 20px;
-                    border-radius: 5px;
-                    font-weight: bold;
-                    z-index: 10000;
-                ">
-                    ✅ Notifications enabled! You'll get updates about your picks.
-                </div>
-            `;
-            
-            document.body.insertAdjacentHTML('beforeend', successHTML);
-            
-            setTimeout(() => {
-                const successEl = document.querySelector('[style*="Notifications enabled"]');
-                if (successEl) successEl.remove();
-            }, 4000);
+    document.getElementById('skipNotifications').onclick = () => {
+        console.log('User skipped notifications');
+        localStorage.setItem('notificationDismissed', Date.now().toString());
+        removePrompt();
+    };
+}
+
+function showSuccessMessage() {
+    const successHTML = `
+        <div id="successMessage" style="
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #33d9ff;
+            color: #0A192F;
+            padding: 15px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            z-index: 10000;
+            animation: slideDown 0.3s ease-out;
+        ">
+            ✅ Notifications enabled! You'll get updates about your picks.
+        </div>
+        <style>
+            @keyframes slideDown {
+                from { transform: translateX(-50%) translateY(-100%); }
+                to { transform: translateX(-50%) translateY(0); }
+            }
+        </style>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', successHTML);
+    
+    setTimeout(() => {
+        const successEl = document.getElementById('successMessage');
+        if (successEl) {
+            successEl.style.animation = 'slideUp 0.3s ease-out forwards';
+            setTimeout(() => successEl.remove(), 300);
         }
+    }, 4000);
+}
 
         // Make showNotificationPrompt available globally
         window.showNotificationPrompt = showNotificationPrompt;
