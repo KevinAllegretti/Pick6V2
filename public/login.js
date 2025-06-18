@@ -451,3 +451,220 @@ window.handleNotificationToggle = handleNotificationToggle;
 window.addNotificationToggleToPage = addNotificationToggleToPage;
 // Call this when the page loads
 addNotificationToggleToPage('notificationToggleContainer');
+
+// Add debug overlay to PWA for iPhone testing
+function createDebugOverlay() {
+    const debugHTML = `
+        <div id="debugOverlay" style="
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.9);
+            color: #00ff00;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 10px;
+            max-width: 200px;
+            z-index: 99999;
+            max-height: 300px;
+            overflow-y: auto;
+        ">
+            <div style="font-weight: bold; color: #ffff00; margin-bottom: 5px;">🐛 DEBUG</div>
+            <div id="debugContent">Loading...</div>
+            <button id="clearDebug" style="
+                background: #ff4444;
+                color: white;
+                border: none;
+                padding: 2px 5px;
+                margin-top: 5px;
+                font-size: 9px;
+                border-radius: 3px;
+            ">Clear</button>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', debugHTML);
+    
+    document.getElementById('clearDebug').onclick = () => {
+        document.getElementById('debugContent').innerHTML = '';
+        window.debugLogs = [];
+    };
+    
+    updateDebugInfo();
+}
+
+// Store debug logs
+window.debugLogs = [];
+
+function debugLog(message) {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = `${timestamp}: ${message}`;
+    
+    console.log(logEntry);
+    window.debugLogs.push(logEntry);
+    
+    // Keep only last 20 logs
+    if (window.debugLogs.length > 20) {
+        window.debugLogs.shift();
+    }
+    
+    updateDebugInfo();
+}
+
+function updateDebugInfo() {
+    const debugContent = document.getElementById('debugContent');
+    if (!debugContent) return;
+    
+    const isPWA = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+    const permission = 'Notification' in window ? Notification.permission : 'unsupported';
+    const isEnabled = localStorage.getItem('notificationsEnabled') === 'true';
+    const oneSignalLoaded = typeof OneSignal !== 'undefined';
+    
+    let content = `
+        <div style="color: #00ffff;">PLATFORM:</div>
+        PWA: ${isPWA}<br>
+        iOS: ${/iPad|iPhone|iPod/.test(navigator.userAgent)}<br>
+        Standalone: ${window.navigator.standalone}<br>
+        <br>
+        <div style="color: #00ffff;">NOTIFICATIONS:</div>
+        Permission: ${permission}<br>
+        Enabled: ${isEnabled}<br>
+        OneSignal: ${oneSignalLoaded}<br>
+        <br>
+        <div style="color: #00ffff;">LOGS:</div>
+    `;
+    
+    // Add recent logs
+    window.debugLogs.slice(-10).forEach(log => {
+        content += `<div style="font-size: 8px; color: #cccccc;">${log}</div>`;
+    });
+    
+    debugContent.innerHTML = content;
+}
+
+// Enhanced notification toggle with debugging
+async function handleNotificationToggleDebug() {
+    debugLog('🔔 Toggle clicked');
+    
+    const isPWA = window.navigator.standalone === true || 
+                  window.matchMedia('(display-mode: standalone)').matches;
+    
+    debugLog(`PWA mode: ${isPWA}`);
+    
+    if (!isPWA) {
+        debugLog('Not PWA - showing install prompt');
+        showInstallPrompt();
+        return;
+    }
+    
+    const currentPermission = Notification.permission;
+    const isCurrentlyEnabled = localStorage.getItem('notificationsEnabled') === 'true';
+    
+    debugLog(`Current permission: ${currentPermission}`);
+    debugLog(`Currently enabled: ${isCurrentlyEnabled}`);
+    
+    if (isCurrentlyEnabled) {
+        debugLog('Turning OFF notifications');
+        try {
+            if (typeof OneSignal !== 'undefined') {
+                debugLog('OneSignal available - opting out');
+                await OneSignal.User.PushSubscription.optOut();
+                debugLog('OneSignal opt-out successful');
+            } else {
+                debugLog('OneSignal not available');
+            }
+            
+            localStorage.setItem('notificationsEnabled', 'false');
+            updateToggleUI(false);
+            debugLog('Notifications turned OFF');
+            showNotificationMessage('🔕 Notifications turned off', 'success');
+            
+        } catch (error) {
+            debugLog(`Error turning off: ${error.message}`);
+            localStorage.setItem('notificationsEnabled', 'false');
+            updateToggleUI(false);
+            showNotificationMessage('🔕 Notifications disabled', 'success');
+        }
+        
+    } else {
+        debugLog('Turning ON notifications');
+        
+        if (currentPermission === 'denied') {
+            debugLog('Permission denied');
+            showNotificationMessage('Notifications are blocked. Go to Settings > Pick 6 > Notifications to enable them.', 'error');
+            return;
+        }
+        
+        if (currentPermission === 'default') {
+            debugLog('Requesting permission...');
+            try {
+                const permission = await Notification.requestPermission();
+                debugLog(`Permission result: ${permission}`);
+                
+                if (permission === 'granted') {
+                    debugLog('Permission granted - subscribing');
+                    
+                    if (typeof OneSignal !== 'undefined') {
+                        debugLog('OneSignal available - opting in');
+                        await OneSignal.User.PushSubscription.optIn();
+                        debugLog('OneSignal opt-in successful');
+                    } else {
+                        debugLog('OneSignal not available');
+                    }
+                    
+                    localStorage.setItem('notificationsEnabled', 'true');
+                    updateToggleUI(true);
+                    debugLog('Notifications enabled successfully');
+                    showNotificationMessage('🔔 Notifications enabled!', 'success');
+                    
+                } else {
+                    debugLog('Permission denied by user');
+                    showNotificationMessage('Notifications were denied. Check your browser settings.', 'error');
+                }
+                
+            } catch (error) {
+                debugLog(`Error requesting permission: ${error.message}`);
+                showNotificationMessage('Unable to enable notifications. Please try again.', 'error');
+            }
+            
+        } else if (currentPermission === 'granted') {
+            debugLog('Permission already granted - subscribing');
+            try {
+                if (typeof OneSignal !== 'undefined') {
+                    debugLog('OneSignal available - opting in');
+                    await OneSignal.User.PushSubscription.optIn();
+                    debugLog('OneSignal opt-in successful');
+                } else {
+                    debugLog('OneSignal not available');
+                }
+                
+                localStorage.setItem('notificationsEnabled', 'true');
+                updateToggleUI(true);
+                debugLog('Notifications enabled successfully');
+                showNotificationMessage('🔔 Notifications enabled!', 'success');
+                
+            } catch (error) {
+                debugLog(`Error enabling notifications: ${error.message}`);
+                localStorage.setItem('notificationsEnabled', 'true');
+                updateToggleUI(true);
+                showNotificationMessage('🔔 Notifications enabled!', 'success');
+            }
+        }
+    }
+    
+    updateDebugInfo();
+}
+
+// Add debug overlay when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Only show debug overlay in PWA mode for testing
+    const isPWA = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+    if (isPWA) {
+        createDebugOverlay();
+        debugLog('Debug overlay loaded');
+    }
+});
+
+// Replace the normal toggle handler with debug version
+window.handleNotificationToggle = handleNotificationToggleDebug;
