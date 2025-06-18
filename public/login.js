@@ -39,7 +39,7 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         } else if (data.redirect) {
             // LOGIN SUCCESS - Show notification prompt before redirect
             console.log('Login successful, checking for notification prompt...');
-            
+            /*
             if (window.showNotificationPrompt) {
                /* console.log('Showing notification prompt...');
                 setTimeout(() => {
@@ -49,12 +49,12 @@ document.getElementById('login-form').addEventListener('submit', function(event)
                 // Redirect after showing prompt (or if user dismisses quickly)
                 setTimeout(() => {
                     window.location.href = data.redirect;
-                }, 2000); // Wait 2 seconds before redirect*/
+                }, 2000); 
             } else {
                 console.log('showNotificationPrompt not available');
                 // If notification prompt not available, redirect immediately
                 window.location.href = data.redirect;
-            }
+            }*/
         }
     })
     .catch(error => {
