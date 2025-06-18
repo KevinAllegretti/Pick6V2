@@ -482,6 +482,15 @@ function createDebugOverlay() {
                 font-size: 9px;
                 border-radius: 3px;
             ">Clear</button>
+            <button id="testNotification" style="
+                background: #00ff00;
+                color: black;
+                border: none;
+                padding: 2px 5px;
+                margin-top: 2px;
+                font-size: 9px;
+                border-radius: 3px;
+            ">Test</button>
         </div>
     `;
     
@@ -492,7 +501,65 @@ function createDebugOverlay() {
         window.debugLogs = [];
     };
     
+    document.getElementById('testNotification').onclick = () => {
+        testNotification();
+    };
+    
     updateDebugInfo();
+}
+
+// Test notification function
+function testNotification() {
+    debugLog('🧪 Testing notification');
+    
+    const isEnabled = localStorage.getItem('notificationsEnabled') === 'true';
+    const permission = Notification.permission;
+    
+    debugLog(`Enabled: ${isEnabled}, Permission: ${permission}`);
+    
+    if (!isEnabled) {
+        debugLog('❌ Notifications not enabled - turn on toggle first');
+        return;
+    }
+    
+    if (permission !== 'granted') {
+        debugLog('❌ Permission not granted');
+        return;
+    }
+    
+    try {
+        debugLog('📤 Sending test notification');
+        
+        const notification = new Notification('🎯 Pick 6 Test!', {
+            body: 'This is a test notification from your PWA!',
+            icon: '/aiP6.png',
+            badge: '/favicon.png',
+            tag: 'test-notification',
+            requireInteraction: false,
+            data: {
+                type: 'test',
+                url: '/dashboard.html'
+            }
+        });
+        
+        debugLog('✅ Test notification sent');
+        
+        // Auto-close after 5 seconds
+        setTimeout(() => {
+            notification.close();
+            debugLog('🔕 Test notification closed');
+        }, 5000);
+        
+        // Handle click
+        notification.onclick = function() {
+            debugLog('👆 Test notification clicked');
+            window.focus();
+            notification.close();
+        };
+        
+    } catch (error) {
+        debugLog(`❌ Notification failed: ${error.message}`);
+    }
 }
 
 // Store debug logs
