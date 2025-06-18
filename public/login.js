@@ -454,6 +454,7 @@ addNotificationToggleToPage('notificationToggleContainer');
 // Add debug overlay to PWA for iPhone testing
 // Add debug overlay to PWA for iPhone testing
 // Add debug overlay to PWA for iPhone testing
+// Add debug overlay to PWA for iPhone testing
 function createDebugOverlay() {
     const debugHTML = `
         <div id="debugOverlay" style="
@@ -634,25 +635,22 @@ async function handleNotificationToggleDebug() {
     
     if (isCurrentlyEnabled) {
         debugLog('Turning OFF notifications');
-        try {
-            if (typeof OneSignal !== 'undefined') {
-                debugLog('OneSignal available - opting out');
-                await OneSignal.User.PushSubscription.optOut();
-                debugLog('OneSignal opt-out successful');
-            } else {
-                debugLog('OneSignal not available');
-            }
-            
-            localStorage.setItem('notificationsEnabled', 'false');
-            updateToggleUI(false);
-            debugLog('Notifications turned OFF');
-            showNotificationMessage('🔕 Notifications turned off', 'success');
-            
-        } catch (error) {
-            debugLog(`Error turning off: ${error.message}`);
-            localStorage.setItem('notificationsEnabled', 'false');
-            updateToggleUI(false);
-            showNotificationMessage('🔕 Notifications disabled', 'success');
+        
+        // Just disable the toggle - don't worry about OneSignal opt-out
+        localStorage.setItem('notificationsEnabled', 'false');
+        updateToggleUI(false);
+        debugLog('Notifications turned OFF');
+        showNotificationMessage('🔕 Notifications turned off', 'success');
+        
+        // Try OneSignal opt-out in background (don't wait for it)
+        if (typeof OneSignal !== 'undefined') {
+            debugLog('Attempting OneSignal opt-out in background');
+            OneSignal.User.PushSubscription.optOut().then(() => {
+                debugLog('Background OneSignal opt-out successful');
+            }).catch((error) => {
+                debugLog(`Background OneSignal opt-out failed: ${error.message}`);
+                debugLog('Toggle still disabled - user preference saved');
+            });
         }
         
     } else {
