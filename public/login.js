@@ -457,7 +457,7 @@ function createDebugOverlay() {
     const debugHTML = `
         <div id="debugOverlay" style="
             position: fixed;
-            top: 10px;
+                   top: 80px;
             right: 10px;
             background: rgba(0,0,0,0.9);
             color: #00ff00;
