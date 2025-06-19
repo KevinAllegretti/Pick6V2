@@ -1968,7 +1968,7 @@ label {
 
 .navbar {
     position: fixed;
-    top: 0;
+    top: -20px;
     left: 0;
     right: 0;
    /* background: rgba(23, 32, 58, 0.95);*/
@@ -1980,10 +1980,7 @@ label {
     padding: 0.4rem;
   }
 
-  /* Only apply when running as PWA */
-.pwa-mode .navbar {
-    top: -20px; /* iPhone status bar height */
-}
+
   .nav-container {
     width: 100%;
     margin: 0 auto;
