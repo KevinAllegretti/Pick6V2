@@ -15,6 +15,8 @@ import { eliminateUsersWithoutPicks } from './serverUtils';
 import{mockFetchNFLScores, fetchNFLScores, fetchNFLDataOneWeekOut} from './nflServices';
 import { fetchAndSaveMastersData, fetchAndSavePGAChampionshipData, fetchAndSaveUSOpenData, fetchAndSavePGAChampionshipOdds } from './golfServices';
 import { saveVendingMachinePoints } from './serverUtils';
+import { sendNotificationToAll } from '../routes/notificationsRoutes';
+
 let gameScores: any[] = [];
 
 //saveVendingMachinePoints()
@@ -25,7 +27,14 @@ cron.schedule('41 14 * * 2', () => {
   fetchAndSavePGAChampionshipOdds();
 });*/
 
-
+cron.schedule('52 9 * * 4', () => { // Wednesday at noon
+  console.log("Sending picks reminder");
+  sendNotificationToAll(
+    '⏰ Picks Due Tomorrow!',
+    'Don\'t forget to submit your picks before Thursday deadline!',
+    { type: 'picks_reminder', url: '/dashboard.html' }
+  );
+});
 
 
 cron.schedule('0 0 * * 2', () => {
