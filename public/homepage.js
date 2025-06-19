@@ -5,9 +5,8 @@ const currentVendingModes = new Map();
 const vendingSpotlightDataCache = new Map();// Call this function when the page loads
 // Initialize notification toggle on page load
 
-// Check if running as PWA and add appropriate spacing
 function adjustNavbarForPWA() {
-    const body = document.querySelector('.body');
+    const body = document.body; // Changed from '.body' to 'body'
     
     // Check if running as PWA
     const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
@@ -19,9 +18,9 @@ function adjustNavbarForPWA() {
         
         // iPhone models with notch have larger screen heights
         if (screenHeight >= 812) {
-            body.style.top = '44px'; // iPhone X and newer
+            body.style.paddingTop = '44px'; // Changed from 'top' to 'paddingTop'
         } else {
-            body.style.top = '20px'; // Older iPhones
+            body.style.paddingTop = '20px'; // Older iPhones
         }
     }
 }
