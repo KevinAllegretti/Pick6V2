@@ -8256,10 +8256,10 @@ async function handleNotificationToggle() {
         const backendResult = await syncWithBackend(username, true);
         console.log('📡 Backend sync result:', backendResult);
         
-        showNotificationMessage('🔔 Notifications enabled!', 'success');
+        showNotificationMessage('Notifications enabled!', 'success');
         
     } else {
-        console.log('🔕 Disabling notifications');
+        console.log(' Disabling notifications');
         
         localStorage.setItem('notificationsEnabled', 'false');
         
@@ -8267,7 +8267,7 @@ async function handleNotificationToggle() {
         const backendResult = await syncWithBackend(username, false);
         console.log('📡 Backend sync result:', backendResult);
         
-        showNotificationMessage('🔕 Notifications disabled', 'success');
+        showNotificationMessage('Notifications disabled', 'success');
     }
 }
 function getCurrentUsername() {
@@ -8286,11 +8286,12 @@ function getCurrentUsername() {
     return result;
 }
 
-
 function showNotificationMessage(message, type = 'info') {
     console.log('💬 Showing message:', { message, type });
     
-    const bgColor = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6';
+    // Use your site's color scheme - dark blue background with neon blue border
+    const bgColor = '#112240'; // Dark blue background
+    const borderColor = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#33d9ff'; // Neon blue for info/default
     
     const messageHTML = `
         <div id="notificationMessage" style="
@@ -8299,7 +8300,8 @@ function showNotificationMessage(message, type = 'info') {
             left: 50%;
             transform: translateX(-50%);
             background: ${bgColor};
-            color: white;
+            color: #CCD6F6;
+            border: 2px solid ${borderColor};
             padding: 15px 25px;
             border-radius: 10px;
             font-weight: bold;
@@ -8308,7 +8310,21 @@ function showNotificationMessage(message, type = 'info') {
             text-align: center;
             font-size: 14px;
             line-height: 1.4;
+            box-shadow: 0 4px 20px rgba(51, 217, 255, 0.3);
+            animation: slideDown 0.3s ease-out;
         ">${message}</div>
+        <style>
+            @keyframes slideDown {
+                from { 
+                    transform: translate(-50%, -100%); 
+                    opacity: 0; 
+                }
+                to { 
+                    transform: translate(-50%, 0); 
+                    opacity: 1; 
+                }
+            }
+        </style>
     `;
     
     const existing = document.getElementById('notificationMessage');
