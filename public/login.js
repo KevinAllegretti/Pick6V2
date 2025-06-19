@@ -17,12 +17,8 @@ document.getElementById('show-login').addEventListener('click', function() {
 
 // Handle login form submission
 document.getElementById('login-form').addEventListener('submit', function(event) {
-    console.log('🔐 Login form submitted');
-    console.log('🔍 Event details:', {
-        type: event.type,
-        isTrusted: event.isTrusted,
-        timeStamp: event.timeStamp
-    });
+    debugLog('🔐 Login form submitted');
+    debugLog(`📋 Event: type=${event.type}, trusted=${event.isTrusted}`);
     
     event.preventDefault();
     
@@ -30,12 +26,11 @@ document.getElementById('login-form').addEventListener('submit', function(event)
     var object = {};
     formData.forEach(function(value, key){
         object[key] = value;
-        console.log(`📝 Form field - ${key}: ${value ? '[FILLED]' : '[EMPTY]'}`);
+        debugLog(`📝 ${key}: ${value ? '[FILLED]' : '[EMPTY]'}`);
     });
     var json = JSON.stringify(object);
     
-    console.log('🌐 Sending login request...');
-    console.log('📦 Request payload keys:', Object.keys(object));
+    debugLog('🌐 Sending login request...');
     
     // Show loading overlay for PWA
     showLoadingOverlay('Logging in...');
@@ -48,23 +43,19 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         body: json,
     })
     .then(response => {
-        console.log('📡 Response received:', {
-            status: response.status,
-            statusText: response.statusText,
-            ok: response.ok
-        });
+        debugLog(`📡 Response: ${response.status} ${response.statusText}`);
         return response.json();
     })
     .then(data => {
-        console.log('📋 Response data:', data);
+        debugLog(`📋 Data: error=${!!data.error}, redirect=${!!data.redirect}`);
         
         hideLoadingOverlay();
         
         if (data.error) {
-            console.log('❌ Login failed:', data.message);
+            debugLog(`❌ Login failed: ${data.message}`);
             alert(data.message);
         } else if (data.redirect) {
-            console.log('✅ Login successful, redirecting to:', data.redirect);
+            debugLog(`✅ Login successful, redirecting...`);
             showLoadingOverlay('Login successful! Redirecting...');
             
             // Small delay to show success message
@@ -74,7 +65,7 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         }
     })
     .catch(error => {
-        console.error('💥 Login error:', error);
+        debugLog(`💥 Error: ${error.message}`);
         hideLoadingOverlay();
         alert('An error occurred during the login process. Please try again.');
     });
@@ -336,11 +327,101 @@ function hideLoadingOverlay() {
 window.showLoadingOverlay = showLoadingOverlay;
 window.hideLoadingOverlay = hideLoadingOverlay;
 
+// Debug display for PWA (since we can't see console on phone)
+function createDebugDisplay() {
+    const isPWA = window.navigator.standalone === true || 
+                  window.matchMedia('(display-mode: standalone)').matches;
+    
+    if (!isPWA) return; // Only for PWA users
+    
+    const debugHTML = `
+        <div id="debugDisplay" style="
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            background: rgba(17, 34, 64, 0.95);
+            border: 1px solid #33d9ff;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 11px;
+            color: #CCD6F6;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 50000;
+            display: none;
+        ">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span style="color: #33d9ff; font-weight: bold;">🐛 DEBUG</span>
+                <button id="clearDebugBtn" style="
+                    background: #ef4444;
+                    color: white;
+                    border: none;
+                    padding: 2px 6px;
+                    border-radius: 3px;
+                    font-size: 9px;
+                ">Clear</button>
+            </div>
+            <div id="debugContent"></div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', debugHTML);
+    
+    document.getElementById('clearDebugBtn').onclick = () => {
+        document.getElementById('debugContent').innerHTML = '';
+        window.debugLogs = [];
+    };
+}
+
+// Debug logging function that shows on screen for PWA
+window.debugLogs = [];
+function debugLog(message) {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = `${timestamp}: ${message}`;
+    
+    console.log(logEntry); // Still log to console
+    
+    const isPWA = window.navigator.standalone === true || 
+                  window.matchMedia('(display-mode: standalone)').matches;
+    
+    if (isPWA) {
+        window.debugLogs.push(logEntry);
+        
+        // Keep only last 10 logs
+        if (window.debugLogs.length > 10) {
+            window.debugLogs.shift();
+        }
+        
+        // Update debug display
+        const debugContent = document.getElementById('debugContent');
+        const debugDisplay = document.getElementById('debugDisplay');
+        
+        if (debugContent && debugDisplay) {
+            debugDisplay.style.display = 'block';
+            debugContent.innerHTML = window.debugLogs.map(log => 
+                `<div style="margin-bottom: 2px; font-size: 10px;">${log}</div>`
+            ).join('');
+            
+            // Auto-scroll to bottom
+            debugContent.scrollTop = debugContent.scrollHeight;
+        }
+    }
+}
+
+// Make debug functions available
+window.debugLog = debugLog;
+window.createDebugDisplay = createDebugDisplay;
+
 // Call this when the page loads
 addNotificationToggleToPage('notificationToggleContainer');
 
 // Check for install prompt flag on page load
 document.addEventListener('DOMContentLoaded', function() {
+    // Create debug display for PWA users
+    createDebugDisplay();
+    
     const urlParams = new URLSearchParams(window.location.search);
     const showInstall = urlParams.get('showInstall');
     
@@ -350,4 +431,6 @@ document.addEventListener('DOMContentLoaded', function() {
             showInstallPrompt();
         }, 500);
     }
+    
+    debugLog('📱 Login page loaded');
 });
