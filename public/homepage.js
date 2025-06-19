@@ -4,13 +4,30 @@ const vendingSpotlightIntervals = new Map();
 const currentVendingModes = new Map();
 const vendingSpotlightDataCache = new Map();// Call this function when the page loads
 // Initialize notification toggle on page load
-document.addEventListener('DOMContentLoaded', function() {
-setTimeout(() => {
-    console.log('⏰ Timeout fired - trying initialization as backup');
-    initializeNotificationToggle();
-}, 1000);
 
-});
+// Check if running as PWA and add appropriate spacing
+function adjustNavbarForPWA() {
+    const navbar = document.querySelector('.navbar');
+    
+    // Check if running as PWA
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                  window.navigator.standalone === true;
+    
+    if (isPWA && navbar) {
+        // Get screen height to determine device type
+        const screenHeight = window.screen.height;
+        
+        // iPhone models with notch have larger screen heights
+        if (screenHeight >= 812) {
+            navbar.style.top = '44px'; // iPhone X and newer
+        } else {
+            navbar.style.top = '20px'; // Older iPhones
+        }
+    }
+}
+
+// Run on page load
+document.addEventListener('DOMContentLoaded', adjustNavbarForPWA);
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the playoff picks panel
     initializePlayoffPicksPanel();
