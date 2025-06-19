@@ -46,6 +46,9 @@ async function sendOneSignalNotification(title: string, body: string, data?: any
   const ONESIGNAL_APP_ID = "c0849e89-f474-4aea-8de1-290715275d14";
   const ONESIGNAL_REST_API_KEY = process.env.ONESIGNAL_REST_API_KEY; // Add this to your .env
   
+  console.log('All environment variables:', Object.keys(process.env).filter(key => key.includes('ONESIGNAL')));
+  console.log('ONESIGNAL_REST_API_KEY value:', process.env.ONESIGNAL_REST_API_KEY);
+  console.log('ONESIGNAL_REST_API_KEY type:', typeof process.env.ONESIGNAL_REST_API_KEY);
   if (!ONESIGNAL_REST_API_KEY) {
     console.warn('OneSignal REST API key not configured');
     return null;
