@@ -8474,7 +8474,7 @@ white-space: normal; /* Changed from nowrap */
     border-radius: 25px;
     cursor: pointer;
     transition: background 0.3s ease;
-    border: 2px solid #fffc68; /* Golden border */
+    border: 2px solid #33d9ff; /* Golden border */
 }
 
 #notificationCheck + label::before {
@@ -8491,7 +8491,7 @@ white-space: normal; /* Changed from nowrap */
 }
 
 #notificationCheck:checked + label {
-    background: #fffc68; /* Golden background when checked */
+    background: #33d9ff; /* Golden background when checked */
 
 }
 
@@ -8501,7 +8501,7 @@ white-space: normal; /* Changed from nowrap */
 
 #notificationOption span {
     cursor: pointer;
-    color: #fffc68; /* Golden text */
+    color: #33d9ff; /* Golden text */
     font-family: 'Montserrat', 'sans-serif';
     Justify-content: center;
 }

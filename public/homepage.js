@@ -8291,7 +8291,7 @@ function showNotificationMessage(message, type = 'info') {
     console.log('💬 Showing message:', { message, type });
     
      const bgColor = '#112240'; // Dark blue background
-    const borderColor = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#33d9ff'; // Neon blue for info/default
+   
     const messageHTML = `
         <div id="notificationMessage" style="
             position: fixed;
@@ -8302,7 +8302,7 @@ function showNotificationMessage(message, type = 'info') {
             color: white;
             padding: 15px 25px;
             border-radius: 10px;
-            border: 2px solid ${borderColor};
+            border: 2px solid #33d9ff;
             font-weight: bold;
             z-index: 10001;
             max-width: 90%;
