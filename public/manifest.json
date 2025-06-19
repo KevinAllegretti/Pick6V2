@@ -4,8 +4,8 @@
   "description": "Who's the better bettor? Find out with Pick 6! Make weekly picks with friends, earn points for bold predictions. Free competition, pure bragging rights.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#112240",
+  "theme_color": "#112240",
   "orientation": "portrait-primary",
   "scope": "/",
   "icons": [
