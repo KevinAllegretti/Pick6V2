@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update the current week display
     updateCurrentWeekDisplay();
     
+    fetchInitialData()
     // Update the countdown if present
     if (typeof updateCountdown === 'function') {
       updateCountdown();
