@@ -20,7 +20,16 @@ body {
     justify-content: center;
 }
 
-
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top, 0);
+    background-color: #112240;
+    z-index: 9999;
+}
 .container {
     width: 90%;
     margin: 0 auto;

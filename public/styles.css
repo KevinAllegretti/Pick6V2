@@ -8,7 +8,7 @@ body {
     padding: 0;
     display: flex;
     flex-direction: column; /* Stack children vertically */
-    padding-top: env(safe-area-inset-top);
+
 }
 .legend-wrapper {
   display: flex;
