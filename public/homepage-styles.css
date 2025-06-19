@@ -1979,6 +1979,11 @@ label {
     backdrop-filter: blur(10px);
     padding: 0.4rem;
   }
+
+  /* Only apply when running as PWA */
+.pwa-mode .navbar {
+    top: 20px; /* iPhone status bar height */
+}
   .nav-container {
     width: 100%;
     margin: 0 auto;

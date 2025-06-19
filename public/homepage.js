@@ -8365,3 +8365,14 @@ async function syncWithBackend(username, enabled) {
         return false;
     }
 }
+
+// Detect if running as PWA
+function isPWA() {
+    return window.matchMedia('(display-mode: standalone)').matches || 
+           window.navigator.standalone === true;
+}
+
+// Apply PWA class if needed
+if (isPWA()) {
+    document.body.classList.add('pwa-mode');
+}
