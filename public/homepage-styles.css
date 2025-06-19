@@ -8172,7 +8172,7 @@ margin-bottom: -10px;
   z-index: 1;
   pointer-events: none;
 }
-
+/*
 .spotlight-scanlines {
   position: absolute;
   top: 0;
@@ -8188,7 +8188,7 @@ margin-bottom: -10px;
   );
   z-index: 1;
   pointer-events: none;
-}
+}(/
 
 /* Alternative variant styles */
 .vending-spotlight-alt {

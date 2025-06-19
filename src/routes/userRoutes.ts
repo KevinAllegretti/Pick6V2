@@ -358,7 +358,7 @@ router.post('/register', async (req, res) => {
         const userResult = await usersCollection.insertOne({
        username: username.toLowerCase(),
             password: encryptedPassword,
-            notificationsEnabled: false, // Default to false - user can enable later
+            notificationsEnabled: true, // Default to false - user can enable later
             notificationUpdated: new Date(),
             createdAt: new Date()
         });
