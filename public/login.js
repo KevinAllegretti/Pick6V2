@@ -143,7 +143,7 @@ function showInstallPrompt() {
                 <div style="text-align: left; margin-bottom: 20px; font-size: 14px; color: #CCD6F6;">
                     <div style="margin-bottom: 10px;">📱 <strong>On iPhone:</strong></div>
                     <div style="margin-left: 20px; margin-bottom: 15px; color: #8892b0;">
-                        1. Tap the Share button (⬆️)<br>
+                        1. Tap the Share button (⬆️) on the bottom of your screen below the URL<br>
                         2. Scroll down and tap "Add to Home Screen"<br>
                         3. Tap "Add"
                     </div>
