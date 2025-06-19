@@ -17,13 +17,28 @@ document.getElementById('show-login').addEventListener('click', function() {
 
 // Handle login form submission
 document.getElementById('login-form').addEventListener('submit', function(event) {
+    console.log('🔐 Login form submitted');
+    console.log('🔍 Event details:', {
+        type: event.type,
+        isTrusted: event.isTrusted,
+        timeStamp: event.timeStamp
+    });
+    
     event.preventDefault();
+    
     var formData = new FormData(this);
     var object = {};
     formData.forEach(function(value, key){
         object[key] = value;
+        console.log(`📝 Form field - ${key}: ${value ? '[FILLED]' : '[EMPTY]'}`);
     });
     var json = JSON.stringify(object);
+    
+    console.log('🌐 Sending login request...');
+    console.log('📦 Request payload keys:', Object.keys(object));
+    
+    // Show loading overlay for PWA
+    showLoadingOverlay('Logging in...');
 
     fetch('/users/login', {
         method: 'POST',
@@ -32,21 +47,38 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         },
         body: json,
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('📡 Response received:', {
+            status: response.status,
+            statusText: response.statusText,
+            ok: response.ok
+        });
+        return response.json();
+    })
     .then(data => {
+        console.log('📋 Response data:', data);
+        
+        hideLoadingOverlay();
+        
         if (data.error) {
+            console.log('❌ Login failed:', data.message);
             alert(data.message);
         } else if (data.redirect) {
-            // Simple redirect after successful login
-            window.location.href = data.redirect;
+            console.log('✅ Login successful, redirecting to:', data.redirect);
+            showLoadingOverlay('Login successful! Redirecting...');
+            
+            // Small delay to show success message
+            setTimeout(() => {
+                window.location.href = data.redirect;
+            }, 1000);
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        console.error('💥 Login error:', error);
+        hideLoadingOverlay();
         alert('An error occurred during the login process. Please try again.');
     });
 });
-
 
 // Handle registration form submission
 document.getElementById('registration-form').addEventListener('submit', function(event) {
@@ -226,6 +258,83 @@ function addNotificationToggleToPage(containerId) {
 // Make functions globally available
 window.createDownloadAppSection = createDownloadAppSection;
 window.addNotificationToggleToPage = addNotificationToggleToPage;
+
+// Loading overlay functions for PWA
+function showLoadingOverlay(message = 'Loading...') {
+    // Check if we're in PWA mode
+    const isPWA = window.navigator.standalone === true || 
+                  window.matchMedia('(display-mode: standalone)').matches;
+    
+    if (!isPWA) return; // Only show for PWA users
+    
+    const overlayHTML = `
+        <div id="loadingOverlay" style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(17, 34, 64, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            color: #CCD6F6;
+            backdrop-filter: blur(10px);
+        ">
+            <div style="
+                background: #112240;
+                border: 2px solid #33d9ff;
+                border-radius: 15px;
+                padding: 30px;
+                text-align: center;
+                max-width: 300px;
+                box-shadow: 0 8px 32px rgba(51, 217, 255, 0.3);
+            ">
+                <div class="spinner" style="
+                    width: 40px;
+                    height: 40px;
+                    border: 3px solid #233554;
+                    border-top: 3px solid #33d9ff;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                    margin: 0 auto 20px auto;
+                "></div>
+                <div style="
+                    font-size: 16px;
+                    font-weight: bold;
+                    color: #33d9ff;
+                ">${message}</div>
+            </div>
+        </div>
+        <style>
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        </style>
+    `;
+    
+    // Remove existing overlay if present
+    const existing = document.getElementById('loadingOverlay');
+    if (existing) existing.remove();
+    
+    document.body.insertAdjacentHTML('beforeend', overlayHTML);
+    console.log('📱 Loading overlay shown:', message);
+}
+
+function hideLoadingOverlay() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.remove();
+        console.log('📱 Loading overlay hidden');
+    }
+}
+
+// Make overlay functions globally available
+window.showLoadingOverlay = showLoadingOverlay;
+window.hideLoadingOverlay = hideLoadingOverlay;
 
 // Call this when the page loads
 addNotificationToggleToPage('notificationToggleContainer');
