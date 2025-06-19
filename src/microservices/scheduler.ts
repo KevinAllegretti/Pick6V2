@@ -27,7 +27,7 @@ cron.schedule('41 14 * * 2', () => {
   fetchAndSavePGAChampionshipOdds();
 });*/
 
-cron.schedule('06 10 * * 4', () => { // Wednesday at noon
+cron.schedule('09 10 * * 4', () => { // Wednesday at noon
   console.log("Sending picks reminder");
   sendNotificationToAll(
     '⏰ Picks Due Tomorrow!',
