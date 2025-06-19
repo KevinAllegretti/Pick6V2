@@ -18,7 +18,6 @@ document.getElementById('show-login').addEventListener('click', function() {
 // Handle login form submission
 document.getElementById('login-form').addEventListener('submit', function(event) {
     event.preventDefault();
-    
     var formData = new FormData(this);
     var object = {};
     formData.forEach(function(value, key){
@@ -38,7 +37,35 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         if (data.error) {
             alert(data.message);
         } else if (data.redirect) {
-            window.location.href = data.redirect;
+            // Check URL parameters for redirect flow
+            const urlParams = new URLSearchParams(window.location.search);
+            const showInstall = urlParams.get('showInstall');
+            const returnTo = urlParams.get('returnTo');
+            
+            if (showInstall === 'true') {
+                // Show install prompt after login
+                setTimeout(() => {
+                    showInstallPrompt();
+                }, 500);
+                
+                if (returnTo) {
+                    // Redirect back after install prompt
+                    setTimeout(() => {
+                        window.location.href = decodeURIComponent(returnTo);
+                    }, 3000); // Give user time to see install prompt
+                } else {
+                    // No return URL, use normal redirect after install prompt
+                    setTimeout(() => {
+                        window.location.href = data.redirect;
+                    }, 3000);
+                }
+            } else if (returnTo) {
+                // Direct redirect back without install prompt
+                window.location.href = decodeURIComponent(returnTo);
+            } else {
+                // Normal login flow
+                window.location.href = data.redirect;
+            }
         }
     })
     .catch(error => {
@@ -305,9 +332,6 @@ window.addNotificationToggleToPage = addNotificationToggleToPage;
 
 // Call this when the page loads
 addNotificationToggleToPage('notificationToggleContainer');Content.scrollHeight;
-        
-    
-
 
 // Make debug functions available
 window.debugLog = debugLog;
