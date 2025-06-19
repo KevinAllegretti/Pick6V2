@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
 setTimeout(() => {
     console.log('⏰ Timeout fired - trying initialization as backup');
     initializeNotificationToggle();
-}, 1000);
+}, 500);
 
 });
 // Check if running as PWA and add appropriate spacing
