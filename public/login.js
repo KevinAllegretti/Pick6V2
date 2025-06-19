@@ -333,9 +333,6 @@ window.addNotificationToggleToPage = addNotificationToggleToPage;
 // Call this when the page loads
 addNotificationToggleToPage('notificationToggleContainer');
 
-// Make debug functions available
-window.debugLog = debugLog;
-window.createDebugDisplay = createDebugDisplay;
 
 // Call this when the page loads
 addNotificationToggleToPage('notificationToggleContainer');
