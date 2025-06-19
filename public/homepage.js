@@ -11,26 +11,29 @@ setTimeout(() => {
 }, 1000);
 
 });
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize the playoff picks panel
-    initializePlayoffPicksPanel();
+// Check if running as PWA and add appropriate spacing
+function adjustNavbarForPWA() {
+    const body = document.body; // Changed from '.body' to 'body'
     
-    setupCreatePoolForm();
-    // Add the new styles
-    addStylesForNewClassNames();
+    // Check if running as PWA
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                  window.navigator.standalone === true;
     
-    // Process results for any picks on the page
-    setTimeout(() => {
-        fetch('/api/getResults')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.results) {
-                    rebuildUIWithResults(data.results);
-                }
-            })
-            .catch(error => console.error('Failed to fetch results:', error));
-    }, 3000);
-});
+    if (isPWA && body) {
+        // Get screen height to determine device type
+        const screenHeight = window.screen.height;
+        
+        // iPhone models with notch have larger screen heights
+        if (screenHeight >= 812) {
+            body.style.paddingTop = '44px'; // Changed from 'top' to 'paddingTop'
+        } else {
+            body.style.paddingTop = '20px'; // Older iPhones
+        }
+    }
+}
+
+// Run on page load
+document.addEventListener('DOMContentLoaded', adjustNavbarForPWA);
 
   // Wait for the DOM to be fully loaded before executing any code
 document.addEventListener('DOMContentLoaded', function() {
