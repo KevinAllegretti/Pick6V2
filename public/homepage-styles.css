@@ -869,14 +869,14 @@ label {
     gap: 10px; /* This adds some space between your form items */
 }
 
-
+/*
 #main-content label,
 #main-content input[type="text"],
 #main-content input[type="password"],
 #main-content input[type="checkbox"],
 #main-content input[type="submit"] {
-    margin-bottom: 10px; /* Add space below each form element */
-}
+     margin-bottom: 10px; Add space below each form element 
+}*/
 
 
 #main-content .form-field {
@@ -8460,17 +8460,15 @@ white-space: normal; /* Changed from nowrap */
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    margin: 20px 0;
     font-family: 'Montserrat', sans-serif;
     font-size: 1.2em;
-    padding: 10px 0;
+    bottom: 5px;
 }
 
 #notificationCheck + label {
     position: relative;
     display: inline-block;
-    width: 50px;
+    width: 45px;
     height: 25px;
     background: #1e1e1e;
     border-radius: 25px;
@@ -8501,7 +8499,7 @@ white-space: normal; /* Changed from nowrap */
 
 #notificationOption span {
     cursor: pointer;
-    margin-left: 10px;
     color: #fffc68; /* Golden text */
-    font-weight: bold;
+    font-family: 'Montserrat', 'sans-serif';
+    Justify-content: center;
 }
