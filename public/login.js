@@ -37,45 +37,8 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         if (data.error) {
             alert(data.message);
         } else if (data.redirect) {
-            // Check URL parameters
-            const urlParams = new URLSearchParams(window.location.search);
-            const showInstall = urlParams.get('showInstall');
-            const returnTo = urlParams.get('returnTo');
-            
-            console.log('URL params:', { showInstall, returnTo }); // Debug log
-            
-            if (showInstall === 'true') {
-                // Show install prompt
-                console.log('Showing install prompt');
-                setTimeout(() => {
-                    if (window.showInstallPrompt) {
-                        window.showInstallPrompt();
-                    } else {
-                        showInstallPrompt();
-                    }
-                }, 500);
-                
-                if (returnTo) {
-                    // Redirect back after install prompt
-                    console.log('Will redirect to:', returnTo);
-                    setTimeout(() => {
-                        window.location.href = decodeURIComponent(returnTo);
-                    }, 3000); // Give user time to see install prompt
-                } else {
-                    // No return URL, use normal redirect after install prompt
-                    setTimeout(() => {
-                        window.location.href = data.redirect;
-                    }, 3000);
-                }
-            } else if (returnTo) {
-                // Direct redirect back without install prompt
-                console.log('Direct redirect to:', returnTo);
-                window.location.href = decodeURIComponent(returnTo);
-            } else {
-                // Normal login flow
-                console.log('Normal redirect to:', data.redirect);
-                window.location.href = data.redirect;
-            }
+            // Simple redirect after successful login
+            window.location.href = data.redirect;
         }
     })
     .catch(error => {
@@ -83,6 +46,7 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         alert('An error occurred during the login process. Please try again.');
     });
 });
+
 
 // Handle registration form submission
 document.getElementById('registration-form').addEventListener('submit', function(event) {
