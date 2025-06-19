@@ -1982,7 +1982,7 @@ label {
 
   /* Only apply when running as PWA */
 .pwa-mode .navbar {
-    top: 20px; /* iPhone status bar height */
+    top: -20px; /* iPhone status bar height */
 }
   .nav-container {
     width: 100%;
