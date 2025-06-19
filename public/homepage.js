@@ -1,4 +1,16 @@
 
+// Global variables for vending spotlight - using Maps to handle multiple pools
+const vendingSpotlightIntervals = new Map();
+const currentVendingModes = new Map();
+const vendingSpotlightDataCache = new Map();// Call this function when the page loads
+// Initialize notification toggle on page load
+document.addEventListener('DOMContentLoaded', function() {
+setTimeout(() => {
+    console.log('⏰ Timeout fired - trying initialization as backup');
+    initializeNotificationToggle();
+}, 1000);
+
+});
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the playoff picks panel
     initializePlayoffPicksPanel();
@@ -153,34 +165,6 @@ function setupPrivacyToggle() {
   }
   
   
-// Global variables for vending spotlight - using Maps to handle multiple pools
-const vendingSpotlightIntervals = new Map();
-const currentVendingModes = new Map();
-const vendingSpotlightDataCache = new Map();// Call this function when the page loads
-// Initialize notification toggle on page load
-
-function adjustNavbarForPWA() {
-    const body = document.body; // Changed from '.body' to 'body'
-    
-    // Check if running as PWA
-    const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                  window.navigator.standalone === true;
-    
-    if (isPWA && body) {
-        // Get screen height to determine device type
-        const screenHeight = window.screen.height;
-        
-        // iPhone models with notch have larger screen heights
-        if (screenHeight >= 812) {
-            body.style.paddingTop = '44px'; // Changed from 'top' to 'paddingTop'
-        } else {
-            body.style.paddingTop = '20px'; // Older iPhones
-        }
-    }
-}
-
-// Run on page load
-document.addEventListener('DOMContentLoaded', adjustNavbarForPWA);
   // JavaScript to handle the privacy toggle functionality
 document.addEventListener("DOMContentLoaded", () => {
     const privacyBtn = document.querySelector(".privacy-btn")
