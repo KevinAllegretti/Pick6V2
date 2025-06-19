@@ -27,12 +27,12 @@ cron.schedule('41 14 * * 2', () => {
   fetchAndSavePGAChampionshipOdds();
 });*/
 
-cron.schedule('09 10 * * 4', () => { // Wednesday at noon
+cron.schedule('12 10 * * 4', () => { // Thursday at 10:09 AM
   console.log("Sending picks reminder");
   sendNotificationToAll(
     '⏰ Picks Due Tomorrow!',
     'Don\'t forget to submit your picks before Thursday deadline!',
-    { type: 'picks_reminder', url: '/dashboard.html' }
+    { type: 'picks_reminder', url: 'https://pick6.club/dashboard.html' } // Full URL here
   );
 });
 
