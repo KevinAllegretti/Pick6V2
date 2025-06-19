@@ -8485,16 +8485,18 @@ white-space: normal; /* Changed from nowrap */
     width: 21px;
     height: 21px;
     background: #ffffff;
+    border: 2px line #1e1e1e;
     border-radius: 50%;
     transition: transform 0.3s ease;
 }
 
 #notificationCheck:checked + label {
     background: #fffc68; /* Golden background when checked */
+
 }
 
 #notificationCheck:checked + label::before {
-    transform: translateX(25px);
+    transform: translateX(22px);
 }
 
 #notificationOption span {
