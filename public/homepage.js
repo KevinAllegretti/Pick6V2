@@ -19,7 +19,7 @@ function adjustNavbarForPWA() {
         
         // iPhone models with notch have larger screen heights
         if (screenHeight >= 812) {
-            navbar.style.top = '44px'; // iPhone X and newer
+            navbar.style.top = '20px'; // iPhone X and newer
         } else {
             navbar.style.top = '20px'; // Older iPhones
         }
