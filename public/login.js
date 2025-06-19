@@ -331,7 +331,7 @@ window.createDownloadAppSection = createDownloadAppSection;
 window.addNotificationToggleToPage = addNotificationToggleToPage;
 
 // Call this when the page loads
-addNotificationToggleToPage('notificationToggleContainer');Content.scrollHeight;
+addNotificationToggleToPage('notificationToggleContainer');
 
 // Make debug functions available
 window.debugLog = debugLog;
