@@ -346,6 +346,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const showInstall = urlParams.get('showInstall');
     
     if (showInstall === 'true') {
+        console.log("YOOOO")
         // Small delay to let page load
         setTimeout(() => {
             showInstallPrompt();
