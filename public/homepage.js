@@ -36,7 +36,7 @@ function adjustNavbarForPWA() {
 // Check if running as PWA and add appropriate spacing
 function adjustNavbarForPWA() {
     const body = document.body;
-    const chatWrapper = document.querySelector('.chat-wrapper');
+    const chatContainer = document.querySelector('.chat-container');
     const slideOutPanel = document.querySelector('.slide-out-panel');
     
     // Check if running as PWA
@@ -56,8 +56,8 @@ function adjustNavbarForPWA() {
         }
         
         // Adjust chat wrapper position
-        if (chatWrapper) {
-            chatWrapper.style.top = `calc(75px + ${topOffset})`;
+        if (chatContainer) {
+            chatContainer.style.top = `calc(75px + ${topOffset})`;
         }
         
         // Adjust slide-out panel position
