@@ -11,6 +11,7 @@ setTimeout(() => {
 }, 500);
 
 });
+/*
 // Check if running as PWA and add appropriate spacing
 function adjustNavbarForPWA() {
     const body = document.body; // Changed from '.body' to 'body'
@@ -30,7 +31,61 @@ function adjustNavbarForPWA() {
             body.style.paddingTop = '20px'; // Older iPhones
         }
     }
+}*/
+
+// Check if running as PWA and add appropriate spacing
+function adjustNavbarForPWA() {
+    const body = document.body;
+    const chatWrapper = document.querySelector('.chat-wrapper');
+    const slideOutPanel = document.querySelector('.slide-out-panel');
+    
+    // Check if running as PWA
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                  window.navigator.standalone === true;
+    
+    if (isPWA) {
+        // Get screen height to determine device type
+        const screenHeight = window.screen.height;
+        
+        // Determine the offset based on device type
+        const topOffset = screenHeight >= 812 ? '44px' : '20px';
+        
+        // Apply padding to body
+        if (body) {
+            body.style.paddingTop = topOffset;
+        }
+        
+        // Adjust chat wrapper position
+        if (chatWrapper) {
+            chatWrapper.style.top = `calc(75px + ${topOffset})`;
+        }
+        
+        // Adjust slide-out panel position
+        if (slideOutPanel) {
+            slideOutPanel.style.paddingTop = topOffset;
+        }
+    }
 }
+
+// Run on page load
+document.addEventListener('DOMContentLoaded', adjustNavbarForPWA);
+
+// Also run when chat or panel elements are dynamically created
+function adjustChatForPWA() {
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                  window.navigator.standalone === true;
+    
+    if (isPWA) {
+        const screenHeight = window.screen.height;
+        const topOffset = screenHeight >= 812 ? '44px' : '20px';
+        
+        const chatWrapper = document.querySelector('.chat-wrapper');
+        if (chatWrapper) {
+            chatWrapper.style.top = `calc(75px + ${topOffset})`;
+        }
+    }
+}
+
 
 // Run on page load
 document.addEventListener('DOMContentLoaded', adjustNavbarForPWA);
@@ -8299,7 +8354,7 @@ function showNotificationMessage(message, type = 'info') {
     const messageHTML = `
         <div id="notificationMessage" style="
             position: fixed;
-            top: 20px;
+            top: 64px;
             left: 50%;
             transform: translateX(-50%);
             background: ${bgColor};
