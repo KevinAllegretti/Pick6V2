@@ -1453,90 +1453,45 @@ async function comparePushSubscriptions() {
     }
 }
 
-// Create proper push subscription with OneSignal VAPID key
+// Use your existing notification toggle system instead of manual API calls
 async function createPushSubscription() {
-    debugLog('🔧 Creating push subscription...');
+    debugLog('🔧 Using app notification toggle...');
     
     try {
-        // Step 1: Check browser permission
-        const permission = Notification.permission;
-        debugLog(`Current permission: ${permission}`);
-        
-        if (permission === 'denied') {
-            debugLog('❌ Permission denied - check iOS settings');
-            return;
-        }
-        
-        if (permission === 'default') {
-            debugLog('🔐 Requesting permission...');
-            const newPermission = await Notification.requestPermission();
-            debugLog(`New permission: ${newPermission}`);
+        // Step 1: Check if your notification toggle function exists
+        if (typeof window.handleNotificationToggle === 'function') {
+            debugLog('✅ Found app notification toggle function');
             
-            if (newPermission !== 'granted') {
-                debugLog('❌ Permission not granted');
-                return;
-            }
-        }
-        
-        // Step 2: Get service worker registration
-        debugLog('📋 Getting service worker...');
-        const registration = await navigator.serviceWorker.ready;
-        debugLog('✅ Service worker ready');
-        
-        // Step 3: Use OneSignal's built-in subscription method instead of manual
-        debugLog('🔔 Using OneSignal to create subscription...');
-        
-        if (typeof OneSignal === 'undefined') {
-            debugLog('❌ OneSignal not loaded');
-            return;
-        }
-        
-        // Let OneSignal handle the subscription creation with its own VAPID key
-        try {
-            // This should trigger OneSignal's subscription flow
-            await OneSignal.showNativePrompt();
-            debugLog('✅ OneSignal native prompt triggered');
-        } catch (e) {
-            debugLog(`OneSignal native prompt failed: ${e.message}`);
+            // Step 2: Turn OFF notifications first (to reset)
+            localStorage.setItem('notificationsEnabled', 'false');
+            debugLog('📴 Turned off notifications');
             
-            // Try alternative OneSignal method
-            try {
-                await OneSignal.registerForPushNotifications();
-                debugLog('✅ OneSignal registration attempted');
-            } catch (e2) {
-                debugLog(`OneSignal registration failed: ${e2.message}`);
-                
-                // Try the most basic method - just enabling notifications
-                try {
-                    await OneSignal.setSubscription(true);
-                    debugLog('✅ OneSignal setSubscription attempted');
-                } catch (e3) {
-                    debugLog(`All OneSignal methods failed: ${e3.message}`);
-                    return;
-                }
-            }
-        }
-        
-        // Step 4: Wait for OneSignal to process
-        debugLog('⏰ Waiting for OneSignal processing...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        
-        // Step 5: Check if we now have a push subscription
-        const newBrowserSub = await registration.pushManager.getSubscription();
-        if (newBrowserSub) {
-            debugLog('🎉 SUCCESS! Browser now has push subscription');
-            debugLog(`🔗 New endpoint: ${newBrowserSub.endpoint.substring(0, 50)}...`);
+            // Step 3: Wait a moment
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Step 4: Use your app's notification toggle to turn ON
+            debugLog('🔔 Triggering app notification toggle...');
+            window.handleNotificationToggle();
+            
+            debugLog('✅ App notification toggle triggered');
+            debugLog('⏰ Wait for toggle process to complete...');
+            
+            // Step 5: Wait for the toggle process
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            
+            // Step 6: Check results
+            debugLog('🔍 Checking results...');
+            setTimeout(() => {
+                comparePushSubscriptions();
+            }, 2000);
+            
         } else {
-            debugLog('❌ Still no browser push subscription');
+            debugLog('❌ App notification toggle function not found');
+            debugLog('💡 Try manually: Turn toggle OFF then ON');
         }
-        
-        // Step 6: Check final status
-        setTimeout(() => {
-            comparePushSubscriptions();
-        }, 2000);
         
     } catch (error) {
-        debugLog(`❌ Error creating subscription: ${error.message}`);
+        debugLog(`❌ Error using app toggle: ${error.message}`);
     }
 }
 async function forceOneSignalReregistration() {
