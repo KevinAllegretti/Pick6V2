@@ -1665,3 +1665,27 @@ document.addEventListener('DOMContentLoaded', function() {
         debugLog('Enhanced debug overlay loaded');
     }
 });
+
+// Force OneSignal to recognize current session
+async function updateOneSignalSession() {
+    try {
+        if (typeof OneSignal !== 'undefined') {
+            // Force OneSignal to register current session
+            console.log('Updating OneSignal session...');
+            
+            // Try to trigger a session update
+            await OneSignal.login('temp_user_' + Date.now());
+            console.log('OneSignal session updated');
+            
+            // Wait and check
+            setTimeout(() => {
+                console.log('Session should be updated now');
+            }, 3000);
+        }
+    } catch (error) {
+        console.log('Session update error:', error);
+    }
+}
+
+// Run this
+updateOneSignalSession();

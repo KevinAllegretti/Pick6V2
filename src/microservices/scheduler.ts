@@ -38,7 +38,7 @@ cron.schedule('15 10 * * 4', () => {
   sendNotificationToAll(
     '⏰ Picks Due @ 7:00 PM!',
     'Don\'t forget to submit your picks before Thursday deadline!',
-    { type: 'picks_reminder', url: 'https://pick6.club/dashboard.html' } // Full URL here
+    { type: 'picks_reminder', url: 'https://pick6.club' } // Full URL here
   );
 
 cron.schedule('0 0 * * 2', () => {

@@ -99,16 +99,16 @@ async function sendOneSignalNotification(title: string, body: string, data?: any
         'Content-Type': 'application/json',
         'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`
       },
-      body: JSON.stringify({
-        app_id: ONESIGNAL_APP_ID,
-        include_player_ids: ["32d19a1b-97d6-43de-85d9-9fd6bf5ebc26"], // Your exact Player ID
-        headings: { en: title },
-        contents: { en: body },
-        data: data || {},
-        web_url: data?.url || 'https://pick6.club/dashboard.html',
-        chrome_web_icon: 'https://pick6.club/aiP6.png',
-        chrome_web_badge: 'https://pick6.club/favicon.png'
-      })
+   body: JSON.stringify({
+  app_id: ONESIGNAL_APP_ID,
+  included_segments: ["Active Subscriptions"], // Use this instead of "All" or "Subscribed Users"
+  headings: { en: title },
+  contents: { en: body },
+  data: data || {},
+  web_url: data?.url || 'https://pick6.club/dashboard.html',
+  chrome_web_icon: 'https://pick6.club/aiP6.png',
+  chrome_web_badge: 'https://pick6.club/favicon.png'
+})
     });
     
     const result = await response.json();
