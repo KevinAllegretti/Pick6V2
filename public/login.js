@@ -1426,54 +1426,22 @@ async function comparePushSubscriptions() {
             debugLog('❌ No browser push subscription');
         }
         
-        // Check OneSignal subscription with correct API
-        debugLog('🔔 Checking OneSignal...');
-        let isOptedIn = false;
-        try {
-            isOptedIn = await OneSignal.User.PushSubscription.optedIn;
-        } catch (e) {
-            try {
-                isOptedIn = await OneSignal.isPushNotificationsEnabled();
-            } catch (e2) {
-                debugLog('❌ Both OneSignal opted-in methods failed');
-            }
-        }
-        debugLog(`OneSignal opted in: ${isOptedIn}`);
+        // Check OneSignal with simpler methods
+        debugLog('🔔 Checking OneSignal (simple)...');
         
-        // Try different OneSignal API methods
-        let playerId = null;
+        // Just try to get basic OneSignal info
+        let oneSignalInfo = 'none';
         try {
-            playerId = await OneSignal.User.getOnesignalId();
-        } catch (e) {
-            try {
-                playerId = await OneSignal.getUserId();
-            } catch (e2) {
-                debugLog('❌ Both OneSignal ID methods failed');
+            // Try the most basic OneSignal check
+            if (OneSignal && OneSignal.initialized) {
+                oneSignalInfo = 'initialized';
+            } else if (OneSignal) {
+                oneSignalInfo = 'loaded but not initialized';
             }
-        }
-        debugLog(`OneSignal player ID: ${playerId ? playerId.substring(0, 8) + '...' : 'none'}`);
-        
-        // Get OneSignal subscription details
-        let oneSignalSub = null;
-        try {
-            oneSignalSub = await OneSignal.User.getSubscription();
         } catch (e) {
-            debugLog('❌ OneSignal getSubscription failed');
+            oneSignalInfo = 'error accessing OneSignal';
         }
-        
-        if (oneSignalSub && oneSignalSub.endpoint) {
-            debugLog('✅ OneSignal has subscription');
-            debugLog(`🔗 OneSignal endpoint: ${oneSignalSub.endpoint.substring(0, 50)}...`);
-            
-            // Compare endpoints
-            if (browserSub && oneSignalSub.endpoint === browserSub.endpoint) {
-                debugLog('✅ Endpoints MATCH - this is good!');
-            } else if (browserSub) {
-                debugLog('❌ Endpoints DON\'T MATCH - this is the problem!');
-            }
-        } else {
-            debugLog('❌ OneSignal has no subscription');
-        }
+        debugLog(`OneSignal status: ${oneSignalInfo}`);
         
         // Check service worker
         debugLog('📋 Checking service worker...');
@@ -1485,7 +1453,7 @@ async function comparePushSubscriptions() {
     }
 }
 
-// Create proper push subscription
+// Create proper push subscription with OneSignal VAPID key
 async function createPushSubscription() {
     debugLog('🔧 Creating push subscription...');
     
@@ -1515,47 +1483,57 @@ async function createPushSubscription() {
         const registration = await navigator.serviceWorker.ready;
         debugLog('✅ Service worker ready');
         
-        // Step 3: Create browser push subscription
-        debugLog('📱 Creating browser push subscription...');
-        const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: null // OneSignal will provide this
-        });
-        
-        if (subscription) {
-            debugLog('✅ Browser push subscription created!');
-            debugLog(`🔗 Endpoint: ${subscription.endpoint.substring(0, 50)}...`);
-        }
-        
-        // Step 4: Now setup OneSignal
-        debugLog('🔔 Setting up OneSignal...');
+        // Step 3: Use OneSignal's built-in subscription method instead of manual
+        debugLog('🔔 Using OneSignal to create subscription...');
         
         if (typeof OneSignal === 'undefined') {
             debugLog('❌ OneSignal not loaded');
             return;
         }
         
-        // Try to opt into OneSignal
+        // Let OneSignal handle the subscription creation with its own VAPID key
         try {
-            await OneSignal.User.PushSubscription.optIn();
-            debugLog('✅ OneSignal opted in');
+            // This should trigger OneSignal's subscription flow
+            await OneSignal.showNativePrompt();
+            debugLog('✅ OneSignal native prompt triggered');
         } catch (e) {
+            debugLog(`OneSignal native prompt failed: ${e.message}`);
+            
+            // Try alternative OneSignal method
             try {
-                await OneSignal.setSubscription(true);
-                debugLog('✅ OneSignal subscription set (fallback method)');
+                await OneSignal.registerForPushNotifications();
+                debugLog('✅ OneSignal registration attempted');
             } catch (e2) {
-                debugLog(`❌ OneSignal opt-in failed: ${e2.message}`);
+                debugLog(`OneSignal registration failed: ${e2.message}`);
+                
+                // Try the most basic method - just enabling notifications
+                try {
+                    await OneSignal.setSubscription(true);
+                    debugLog('✅ OneSignal setSubscription attempted');
+                } catch (e3) {
+                    debugLog(`All OneSignal methods failed: ${e3.message}`);
+                    return;
+                }
             }
         }
         
-        // Step 5: Wait and check results
-        debugLog('⏰ Waiting for registration...');
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        // Step 4: Wait for OneSignal to process
+        debugLog('⏰ Waiting for OneSignal processing...');
+        await new Promise(resolve => setTimeout(resolve, 5000));
         
-        // Check final status
+        // Step 5: Check if we now have a push subscription
+        const newBrowserSub = await registration.pushManager.getSubscription();
+        if (newBrowserSub) {
+            debugLog('🎉 SUCCESS! Browser now has push subscription');
+            debugLog(`🔗 New endpoint: ${newBrowserSub.endpoint.substring(0, 50)}...`);
+        } else {
+            debugLog('❌ Still no browser push subscription');
+        }
+        
+        // Step 6: Check final status
         setTimeout(() => {
             comparePushSubscriptions();
-        }, 1000);
+        }, 2000);
         
     } catch (error) {
         debugLog(`❌ Error creating subscription: ${error.message}`);
