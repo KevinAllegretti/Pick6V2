@@ -8429,7 +8429,6 @@ async function syncWithBackend(username, enabled) {
     }
 }
 
-
 // ===== CONSOLIDATED NOTIFICATION SYSTEM WITH DEBUG OVERLAY =====
 
 console.log('🔧 Creating notification system...');
@@ -8599,14 +8598,42 @@ function ultraSimpleTest() {
         
         // First, let's try to set an external ID to identify the user
         const username = getCurrentUsername();
+        let externalIdSet = false;
+        
         if (username) {
             addDebugLog('🆔', 'Setting external ID first...', username);
+            
+            // Set timeout for external ID
+            const externalIdTimeout = setTimeout(() => {
+                if (!externalIdSet) {
+                    addDebugLog('⚠️', 'External ID timeout, proceeding with tags anyway');
+                    proceedWithTagging();
+                }
+            }, 3000);
+            
             try {
                 OneSignal.setExternalUserId(username, function(results) {
+                    externalIdSet = true;
+                    clearTimeout(externalIdTimeout);
                     addDebugLog('🆔', 'External ID set result', results);
                     proceedWithTagging();
                 });
+                
+                // Also try without callback as backup
+                setTimeout(() => {
+                    if (!externalIdSet) {
+                        addDebugLog('🔄', 'Trying setExternalUserId without callback...');
+                        try {
+                            OneSignal.setExternalUserId(username);
+                            addDebugLog('✅', 'External ID set without callback');
+                        } catch (e) {
+                            addDebugLog('⚠️', 'External ID without callback failed', e.message);
+                        }
+                    }
+                }, 1500);
+                
             } catch (e) {
+                clearTimeout(externalIdTimeout);
                 addDebugLog('⚠️', 'External ID failed, proceeding with tags anyway', e.message);
                 proceedWithTagging();
             }
