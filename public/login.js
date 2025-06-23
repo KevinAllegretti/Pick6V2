@@ -1453,9 +1453,9 @@ async function comparePushSubscriptions() {
     }
 }
 
-// Manual OneSignal subscription using basic methods
+// Ultra-simple OneSignal subscription
 async function manualOneSignalSubscribe() {
-    debugLog('🔧 Manual OneSignal subscription...');
+    debugLog('🔧 Simple OneSignal subscription...');
     
     try {
         if (typeof OneSignal === 'undefined') {
@@ -1463,50 +1463,47 @@ async function manualOneSignalSubscribe() {
             return;
         }
         
-        debugLog('🔔 OneSignal is loaded and initialized');
+        debugLog('🔔 Skipping OneSignal methods, going direct to browser...');
         
-        // Method 1: Try the slidedown prompt (most reliable for web)
-        try {
-            debugLog('📋 Attempting slidedown prompt...');
-            await OneSignal.Slidedown.promptPush();
-            debugLog('✅ Slidedown prompt completed');
-        } catch (e) {
-            debugLog(`Slidedown failed: ${e.message}`);
-            
-            // Method 2: Try direct prompt push
-            try {
-                debugLog('📋 Attempting direct prompt...');
-                await OneSignal.promptPush();
-                debugLog('✅ Direct prompt completed');
-            } catch (e2) {
-                debugLog(`Direct prompt failed: ${e2.message}`);
-                
-                // Method 3: Force notification request
-                debugLog('📋 Requesting browser permission manually...');
-                const permission = await Notification.requestPermission();
-                debugLog(`Permission result: ${permission}`);
-                
-                if (permission === 'granted') {
-                    debugLog('✅ Permission granted, OneSignal should auto-subscribe');
-                } else {
-                    debugLog('❌ Permission denied');
-                    return;
-                }
-            }
+        // Skip OneSignal entirely and just request browser permission
+        debugLog('📋 Requesting browser notification permission...');
+        const permission = await Notification.requestPermission();
+        debugLog(`Browser permission: ${permission}`);
+        
+        if (permission !== 'granted') {
+            debugLog('❌ Browser permission denied');
+            return;
         }
         
-        // Wait for subscription to process
-        debugLog('⏰ Waiting 5 seconds for subscription...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        debugLog('✅ Browser permission granted');
+        
+        // Set localStorage to enabled
+        localStorage.setItem('notificationsEnabled', 'true');
+        debugLog('✅ Set localStorage enabled');
+        
+        // Wait a moment for any automatic OneSignal processing
+        debugLog('⏰ Waiting 3 seconds for automatic processing...');
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Check if we have a subscription now
+        debugLog('🔍 Checking if browser created subscription...');
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        
+        if (subscription) {
+            debugLog('🎉 Browser has subscription!');
+        } else {
+            debugLog('❌ Still no browser subscription');
+            debugLog('💡 OneSignal should have created one automatically...');
+        }
         
         // Check results
-        debugLog('🔍 Checking subscription results...');
         setTimeout(() => {
             comparePushSubscriptions();
         }, 2000);
         
     } catch (error) {
-        debugLog(`❌ Manual subscription error: ${error.message}`);
+        debugLog(`❌ Simple subscription error: ${error.message}`);
     }
 }
 async function createPushSubscription() {
