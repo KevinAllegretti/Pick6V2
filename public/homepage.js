@@ -9,9 +9,7 @@ setTimeout(() => {
     console.log('⏰ Timeout fired - trying initialization as backup');
     initializeNotificationToggle();
 }, 500);
-// ===== INITIALIZATION =====
-// Call this when your app loads
-initializeOneSignal();
+
 });
 
 // Wait 3 seconds before adding test buttons
@@ -8429,8 +8427,7 @@ async function syncWithBackend(username, enabled) {
         console.error('❌ Backend sync error:', error);
         return false;
     }
-}
-// ===== CONSOLIDATED NOTIFICATION SYSTEM WITH PROPER ONESIGNAL SUBSCRIPTION =====
+}// ===== CONSOLIDATED NOTIFICATION SYSTEM WITH PROPER ONESIGNAL SUBSCRIPTION =====
 
 console.log('🔧 Creating notification system...');
 
@@ -8584,85 +8581,157 @@ function toggleDebugOverlay() {
 }
 
 // ===== ONESIGNAL SUBSCRIPTION FUNCTIONS =====
+async function waitForOneSignalReady() {
+    addDebugLog('⏳', 'Waiting for OneSignal to be ready...');
+    
+    return new Promise((resolve, reject) => {
+        let attempts = 0;
+        const maxAttempts = 30; // 30 seconds timeout
+        
+        const checkReady = () => {
+            attempts++;
+            addDebugLog('🔍', `OneSignal ready check attempt ${attempts}/${maxAttempts}`);
+            
+            if (typeof OneSignal === 'undefined') {
+                if (attempts >= maxAttempts) {
+                    addDebugLog('❌', 'OneSignal never loaded');
+                    reject(new Error('OneSignal not available'));
+                    return;
+                }
+                setTimeout(checkReady, 1000);
+                return;
+            }
+            
+            // OneSignal is loaded, now check if it's initialized
+            OneSignal.push(function() {
+                addDebugLog('✅', 'OneSignal is ready!');
+                resolve();
+            });
+        };
+        
+        checkReady();
+    });
+}
+
 async function subscribeToOneSignal() {
     addDebugLog('🔔', 'Starting OneSignal subscription process...');
     
-    if (typeof OneSignal === 'undefined') {
-        addDebugLog('❌', 'OneSignal not loaded');
-        throw new Error('OneSignal not available');
-    }
-    
-    return new Promise((resolve, reject) => {
-        OneSignal.push(async function() {
-            try {
-                addDebugLog('✅', 'OneSignal push queue ready');
-                
-                // Check if already subscribed
-                const isSubscribed = await OneSignal.isPushNotificationsEnabled();
-                addDebugLog('🔍', 'Current subscription status', isSubscribed);
-                
-                if (isSubscribed) {
-                    addDebugLog('✅', 'Already subscribed to OneSignal');
-                    const playerId = await OneSignal.getPlayerId();
-                    addDebugLog('🆔', 'Player ID', playerId);
-                    resolve({ success: true, playerId, alreadySubscribed: true });
-                    return;
-                }
-                
-                // Check notification permission
-                const permission = await OneSignal.getNotificationPermission();
-                addDebugLog('🔐', 'OneSignal permission state', permission);
-                
-                // Register for push notifications
-                addDebugLog('📝', 'Calling registerForPushNotifications...');
-                await OneSignal.registerForPushNotifications();
-                addDebugLog('✅', 'registerForPushNotifications completed');
-                
-                // Wait for subscription to complete
-                addDebugLog('⏳', 'Waiting for subscription to complete...');
-                
-                // Check subscription status with timeout
-                let attempts = 0;
-                const maxAttempts = 10;
-                const checkInterval = 1000; // 1 second
-                
-                const checkSubscription = async () => {
-                    attempts++;
-                    addDebugLog('🔍', `Checking subscription attempt ${attempts}/${maxAttempts}`);
+    try {
+        // Wait for OneSignal to be ready
+        await waitForOneSignalReady();
+        
+        return new Promise((resolve, reject) => {
+            OneSignal.push(async function() {
+                try {
+                    addDebugLog('✅', 'OneSignal push queue ready');
                     
-                    const nowSubscribed = await OneSignal.isPushNotificationsEnabled();
-                    const playerId = await OneSignal.getPlayerId();
+                    // Add a small delay to ensure OneSignal is fully initialized
+                    await new Promise(resolve => setTimeout(resolve, 500));
                     
-                    addDebugLog('📊', 'Subscription check result', { 
-                        subscribed: nowSubscribed, 
-                        playerId: playerId,
-                        attempt: attempts 
-                    });
+                    // Check if already subscribed
+                    addDebugLog('🔍', 'Checking current subscription status...');
+                    let isSubscribed;
+                    try {
+                        isSubscribed = await OneSignal.isPushNotificationsEnabled();
+                        addDebugLog('🔍', 'Current subscription status', isSubscribed);
+                    } catch (error) {
+                        addDebugLog('⚠️', 'Error checking subscription status, assuming not subscribed', error.toString());
+                        isSubscribed = false;
+                    }
                     
-                    if (nowSubscribed && playerId) {
-                        addDebugLog('🎉', 'Successfully subscribed to OneSignal!', { playerId });
-                        resolve({ success: true, playerId, alreadySubscribed: false });
+                    if (isSubscribed) {
+                        addDebugLog('✅', 'Already subscribed to OneSignal');
+                        let playerId;
+                        try {
+                            playerId = await OneSignal.getPlayerId();
+                            addDebugLog('🆔', 'Player ID', playerId);
+                        } catch (error) {
+                            addDebugLog('⚠️', 'Error getting player ID', error.toString());
+                        }
+                        resolve({ success: true, playerId, alreadySubscribed: true });
                         return;
                     }
                     
-                    if (attempts >= maxAttempts) {
-                        addDebugLog('❌', 'Subscription timeout - max attempts reached');
-                        reject(new Error('Subscription timeout'));
+                    // Check notification permission
+                    let permission;
+                    try {
+                        permission = await OneSignal.getNotificationPermission();
+                        addDebugLog('🔐', 'OneSignal permission state', permission);
+                    } catch (error) {
+                        addDebugLog('⚠️', 'Error getting permission state', error.toString());
+                    }
+                    
+                    // Register for push notifications
+                    addDebugLog('📝', 'Calling registerForPushNotifications...');
+                    try {
+                        await OneSignal.registerForPushNotifications();
+                        addDebugLog('✅', 'registerForPushNotifications completed');
+                    } catch (error) {
+                        addDebugLog('❌', 'registerForPushNotifications failed', error.toString());
+                        reject(error);
                         return;
                     }
                     
+                    // Wait for subscription to complete
+                    addDebugLog('⏳', 'Waiting for subscription to complete...');
+                    
+                    // Check subscription status with timeout
+                    let attempts = 0;
+                    const maxAttempts = 15;
+                    const checkInterval = 2000; // 2 seconds
+                    
+                    const checkSubscription = async () => {
+                        attempts++;
+                        addDebugLog('🔍', `Checking subscription attempt ${attempts}/${maxAttempts}`);
+                        
+                        try {
+                            const nowSubscribed = await OneSignal.isPushNotificationsEnabled();
+                            const playerId = await OneSignal.getPlayerId();
+                            
+                            addDebugLog('📊', 'Subscription check result', { 
+                                subscribed: nowSubscribed, 
+                                playerId: playerId,
+                                attempt: attempts 
+                            });
+                            
+                            if (nowSubscribed && playerId) {
+                                addDebugLog('🎉', 'Successfully subscribed to OneSignal!', { playerId });
+                                resolve({ success: true, playerId, alreadySubscribed: false });
+                                return;
+                            }
+                            
+                            if (attempts >= maxAttempts) {
+                                addDebugLog('❌', 'Subscription timeout - max attempts reached');
+                                reject(new Error('Subscription timeout - user may have denied permission'));
+                                return;
+                            }
+                            
+                            setTimeout(checkSubscription, checkInterval);
+                            
+                        } catch (error) {
+                            addDebugLog('❌', `Subscription check error on attempt ${attempts}`, error.toString());
+                            if (attempts >= maxAttempts) {
+                                reject(new Error('Subscription check failed: ' + error.toString()));
+                                return;
+                            }
+                            setTimeout(checkSubscription, checkInterval);
+                        }
+                    };
+                    
+                    // Start checking
                     setTimeout(checkSubscription, checkInterval);
-                };
-                
-                // Start checking
-                setTimeout(checkSubscription, checkInterval);
-                
-            } catch (error) {
-                addDebugLog('❌', 'OneSignal subscription error', error.toString());
-                reject(error);
-            }
+                    
+                } catch (error) {
+                    addDebugLog('❌', 'OneSignal subscription error', error.toString());
+                    reject(error);
+                }
+            });
         });
-    });
+        
+    } catch (error) {
+        addDebugLog('❌', 'Failed to wait for OneSignal ready', error.toString());
+        throw error;
+    }
 }
 
 async function unsubscribeFromOneSignal() {
@@ -8712,36 +8781,69 @@ function checkOneSignalInfo() {
     
     addDebugLog('✅', 'OneSignal is available');
     addDebugLog('🔐', 'Browser permission', Notification.permission);
-    addDebugLog('📱', 'Push supported', OneSignal.isPushNotificationsSupported());
+    
+    try {
+        addDebugLog('📱', 'Push supported', OneSignal.isPushNotificationsSupported());
+    } catch (error) {
+        addDebugLog('⚠️', 'Error checking push support', error.toString());
+    }
     
     OneSignal.push(async function() {
         try {
             addDebugLog('✅', 'OneSignal push queue ready');
             
-            const isSubscribed = await OneSignal.isPushNotificationsEnabled();
-            const playerId = await OneSignal.getPlayerId();
-            const permission = await OneSignal.getNotificationPermission();
+            // Add delay to ensure initialization
+            await new Promise(resolve => setTimeout(resolve, 500));
             
-            addDebugLog('📊', 'OneSignal Status', {
+            let isSubscribed, playerId, permission;
+            
+            try {
+                isSubscribed = await OneSignal.isPushNotificationsEnabled();
+                addDebugLog('🔍', 'Subscription status check completed', isSubscribed);
+            } catch (error) {
+                addDebugLog('⚠️', 'Error checking subscription status', error.toString());
+                isSubscribed = 'unknown';
+            }
+            
+            try {
+                playerId = await OneSignal.getPlayerId();
+                addDebugLog('🆔', 'Player ID check completed', playerId);
+            } catch (error) {
+                addDebugLog('⚠️', 'Error getting player ID', error.toString());
+                playerId = 'unknown';
+            }
+            
+            try {
+                permission = await OneSignal.getNotificationPermission();
+                addDebugLog('🔐', 'Permission check completed', permission);
+            } catch (error) {
+                addDebugLog('⚠️', 'Error getting permission', error.toString());
+                permission = 'unknown';
+            }
+            
+            addDebugLog('📊', 'OneSignal Status Summary', {
                 subscribed: isSubscribed,
                 playerId: playerId,
                 permission: permission
             });
             
         } catch (error) {
-            addDebugLog('❌', 'Error checking OneSignal info', error.toString());
+            addDebugLog('❌', 'Error in OneSignal info check', error.toString());
         }
     });
 }
 
 function testOneSignalSubscription() {
     addDebugLog('🧪', 'Testing OneSignal subscription...');
+    
     subscribeToOneSignal()
         .then(result => {
-            addDebugLog('✅', 'Test subscription result', result);
+            addDebugLog('✅', 'Test subscription completed successfully', result);
+            showNotificationMessage('Test subscription completed!', 'success');
         })
         .catch(error => {
             addDebugLog('❌', 'Test subscription failed', error.toString());
+            showNotificationMessage('Test subscription failed: ' + error.message, 'error');
         });
 }
 
@@ -9218,13 +9320,14 @@ console.error = function(...args) {
     }
 };
 
-
 // ===== GLOBAL FUNCTIONS =====
 window.showDebug = showDebugOverlay;
 window.hideDebug = hideDebugOverlay;
 window.toggleDebug = toggleDebugOverlay;
 
-
+// ===== INITIALIZATION =====
+// Call this when your app loads
+initializeOneSignal();
 
 // Create the overlay immediately
 console.log('🔧 Creating debug overlay on load...');
@@ -9258,3 +9361,13 @@ function ensureTestButtons() {
 
 // Wait 3 seconds before adding test buttons
 setTimeout(ensureTestButtons, 3000);
+
+// Add keyboard shortcut (Ctrl/Cmd + D)
+document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+        e.preventDefault();
+        toggleDebugOverlay();
+    }
+});
+
+console.log('✅ Consolidated notification system loaded successfully!');
