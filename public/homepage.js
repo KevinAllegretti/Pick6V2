@@ -8798,7 +8798,7 @@ async function handleNotificationToggle() {
             
             // Use simple tagging
             addDebugLog('🏷️', 'Using simple tagging...');
-            simpleTagUser(username, true);
+
             
             // Update storage and backend
             localStorage.setItem('notificationsEnabled', 'true');
@@ -8822,7 +8822,6 @@ async function handleNotificationToggle() {
         addDebugLog('🔕', 'Disabling notifications');
         
         try {
-            simpleTagUser(username, false);
             
             localStorage.setItem('notificationsEnabled', 'false');
             
