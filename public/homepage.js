@@ -12,45 +12,6 @@ setTimeout(() => {
 
 });
 
-// ===== GLOBAL FUNCTIONS =====
-window.showDebug = showDebugOverlay;
-window.hideDebug = hideDebugOverlay;
-window.toggleDebug = toggleDebugOverlay;
-
-// ===== INITIALIZATION =====
-// Call this when your app loads
-initializeOneSignal();
-
-// Create the overlay immediately
-console.log('🔧 Creating debug overlay on load...');
-createDebugOverlay();
-
-// Show it after a delay
-setTimeout(() => {
-    showDebugOverlay();
-    addDebugLog('🚀', 'Debug system initialized');
-    addDebugLog('🔍', 'OneSignal check', {
-        available: typeof OneSignal !== 'undefined',
-        permission: Notification.permission
-    });
-    
-    // Check OneSignal info after initialization
-    setTimeout(() => {
-        checkOneSignalInfo();
-    }, 2000);
-}, 1000);
-
-// Add test buttons with longer delay to ensure DOM is ready
-function ensureTestButtons() {
-    if (document.body) {
-        addTestButtons();
-        addDebugLog('📱', 'Phone test interface ready');
-    } else {
-        addDebugLog('⚠️', 'DOM not ready, retrying test buttons...');
-        setTimeout(ensureTestButtons, 500);
-    }
-}
-
 // Wait 3 seconds before adding test buttons
 setTimeout(ensureTestButtons, 3000);
 
@@ -9254,3 +9215,46 @@ console.error = function(...args) {
         addDebugLog('❌', 'Error: ' + message);
     }
 };
+
+
+// ===== GLOBAL FUNCTIONS =====
+window.showDebug = showDebugOverlay;
+window.hideDebug = hideDebugOverlay;
+window.toggleDebug = toggleDebugOverlay;
+
+// ===== INITIALIZATION =====
+// Call this when your app loads
+initializeOneSignal();
+
+// Create the overlay immediately
+console.log('🔧 Creating debug overlay on load...');
+createDebugOverlay();
+
+// Show it after a delay
+setTimeout(() => {
+    showDebugOverlay();
+    addDebugLog('🚀', 'Debug system initialized');
+    addDebugLog('🔍', 'OneSignal check', {
+        available: typeof OneSignal !== 'undefined',
+        permission: Notification.permission
+    });
+    
+    // Check OneSignal info after initialization
+    setTimeout(() => {
+        checkOneSignalInfo();
+    }, 2000);
+}, 1000);
+
+// Add test buttons with longer delay to ensure DOM is ready
+function ensureTestButtons() {
+    if (document.body) {
+        addTestButtons();
+        addDebugLog('📱', 'Phone test interface ready');
+    } else {
+        addDebugLog('⚠️', 'DOM not ready, retrying test buttons...');
+        setTimeout(ensureTestButtons, 500);
+    }
+}
+
+// Wait 3 seconds before adding test buttons
+setTimeout(ensureTestButtons, 3000);
