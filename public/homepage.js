@@ -8653,47 +8653,64 @@ function checkOneSignalInfo() {
 
 // ===== TEST BUTTONS FOR PHONE =====
 function addTestButtons() {
+    addDebugLog('🔧', 'addTestButtons function called');
+    
+    // Check if panel already exists
+    const existingPanel = document.getElementById('phoneTestPanel');
+    if (existingPanel) {
+        addDebugLog('⚠️', 'Test panel already exists, removing it');
+        existingPanel.remove();
+    }
+    
+    addDebugLog('🔧', 'Creating test panel...');
     const testPanel = document.createElement('div');
     testPanel.id = 'phoneTestPanel';
     testPanel.style.cssText = `
         position: fixed;
         bottom: 60px;
         right: 10px;
-        background: rgba(0, 0, 0, 0.9);
-        border: 2px solid #33d9ff;
+        background: rgba(255, 0, 0, 0.9);
+        border: 3px solid #33d9ff;
         border-radius: 10px;
         padding: 10px;
         z-index: 10000;
         display: flex;
         flex-direction: column;
         gap: 5px;
+        width: 120px;
     `;
     
+    addDebugLog('🔧', 'Test panel created with red background for visibility');
+    
     // Ultra Simple Test Button
+    addDebugLog('🔧', 'Creating Ultra Test button...');
     const ultraTestBtn = document.createElement('button');
     ultraTestBtn.textContent = '🧪 Ultra Test';
     ultraTestBtn.style.cssText = `
         background: #ff6b6b;
         color: white;
         border: none;
-        padding: 8px;
+        padding: 12px;
         border-radius: 5px;
-        font-size: 12px;
+        font-size: 14px;
         cursor: pointer;
+        width: 100%;
     `;
     ultraTestBtn.onclick = ultraSimpleTest;
     
     // Simple Tag Test Button
+    addDebugLog('🔧', 'Creating Tag Test button...');
     const simpleTagBtn = document.createElement('button');
     simpleTagBtn.textContent = '🏷️ Tag Test';
     simpleTagBtn.style.cssText = `
         background: #4ecdc4;
         color: white;
         border: none;
-        padding: 8px;
+        padding: 12px;
         border-radius: 5px;
-        font-size: 12px;
+        font-size: 14px;
         cursor: pointer;
+        width: 100%;
     `;
     simpleTagBtn.onclick = function() {
         const username = getCurrentUsername();
@@ -8705,43 +8722,68 @@ function addTestButtons() {
     };
     
     // Check OneSignal Button
+    addDebugLog('🔧', 'Creating Check OS button...');
     const checkBtn = document.createElement('button');
     checkBtn.textContent = '🔍 Check OS';
     checkBtn.style.cssText = `
         background: #45b7d1;
         color: white;
         border: none;
-        padding: 8px;
+        padding: 12px;
         border-radius: 5px;
-        font-size: 12px;
+        font-size: 14px;
         cursor: pointer;
+        width: 100%;
     `;
     checkBtn.onclick = checkOneSignalInfo;
     
     // Hide Panel Button
+    addDebugLog('🔧', 'Creating Hide button...');
     const hideBtn = document.createElement('button');
-    hideBtn.textContent = '❌';
+    hideBtn.textContent = '❌ Hide';
     hideBtn.style.cssText = `
         background: #666;
         color: white;
         border: none;
-        padding: 8px;
+        padding: 12px;
         border-radius: 5px;
-        font-size: 12px;
+        font-size: 14px;
         cursor: pointer;
+        width: 100%;
     `;
     hideBtn.onclick = function() {
+        addDebugLog('🔧', 'Hide button clicked');
         testPanel.style.display = 'none';
     };
     
+    addDebugLog('🔧', 'Adding buttons to panel...');
     testPanel.appendChild(ultraTestBtn);
     testPanel.appendChild(simpleTagBtn);
     testPanel.appendChild(checkBtn);
     testPanel.appendChild(hideBtn);
     
-    document.body.appendChild(testPanel);
+    addDebugLog('🔧', 'Adding panel to document body...');
+    try {
+        document.body.appendChild(testPanel);
+        addDebugLog('✅', 'Test panel successfully added to DOM!');
+        addDebugLog('📍', 'Panel should be visible at bottom-right with RED background');
+    } catch (error) {
+        addDebugLog('❌', 'Error adding panel to body', error.toString());
+    }
     
-    addDebugLog('📱', 'Phone test buttons added');
+    // Double-check it exists
+    setTimeout(() => {
+        const checkPanel = document.getElementById('phoneTestPanel');
+        if (checkPanel) {
+            addDebugLog('✅', 'Panel confirmed to exist in DOM');
+            addDebugLog('📊', 'Panel style display', checkPanel.style.display);
+            addDebugLog('📊', 'Panel visibility', window.getComputedStyle(checkPanel).visibility);
+        } else {
+            addDebugLog('❌', 'Panel NOT found in DOM after creation');
+        }
+    }, 500);
+    
+    addDebugLog('📱', 'Phone test buttons setup complete');
 }
 
 // ===== MAIN NOTIFICATION TOGGLE =====
