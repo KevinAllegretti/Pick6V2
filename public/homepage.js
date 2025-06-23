@@ -8430,6 +8430,7 @@ async function syncWithBackend(username, enabled) {
 }
 
 // ===== CONSOLIDATED NOTIFICATION SYSTEM WITH DEBUG OVERLAY =====
+// ===== CONSOLIDATED NOTIFICATION SYSTEM WITH DEBUG OVERLAY =====
 
 console.log('🔧 Creating notification system...');
 
