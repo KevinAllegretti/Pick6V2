@@ -9120,11 +9120,21 @@ setTimeout(() => {
     setTimeout(() => {
         checkOneSignalInfo();
     }, 2000);
-    
-    // Add test buttons for phone testing
-    addTestButtons();
-    addDebugLog('📱', 'Phone test interface ready');
 }, 1000);
+
+// Add test buttons with longer delay to ensure DOM is ready
+function ensureTestButtons() {
+    if (document.body) {
+        addTestButtons();
+        addDebugLog('📱', 'Phone test interface ready');
+    } else {
+        addDebugLog('⚠️', 'DOM not ready, retrying test buttons...');
+        setTimeout(ensureTestButtons, 500);
+    }
+}
+
+// Wait 3 seconds before adding test buttons
+setTimeout(ensureTestButtons, 3000);
 
 // Add keyboard shortcut (Ctrl/Cmd + D)
 document.addEventListener('keydown', (e) => {
