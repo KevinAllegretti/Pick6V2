@@ -8740,54 +8740,103 @@ function addTestButtons() {
     addDebugLog('📱', 'Phone test buttons setup complete');
 }
 
+// ===== MAIN NOTIFICATION TOGGLE =====
 async function handleNotificationToggle() {
+    addDebugLog('📱', 'Notification toggle called');
+    
     const toggle = document.getElementById('notificationCheck');
     const isEnabled = toggle ? toggle.checked : false;
     const username = getCurrentUsername();
     
+    addDebugLog('📊', 'Toggle state', { isEnabled, username });
+    
     if (!username) {
+        addDebugLog('❌', 'No username found');
         showNotificationMessage('Error: Please log in first', 'error');
         if (toggle) toggle.checked = !isEnabled;
         return;
     }
     
+    // Check PWA mode
+    const isPWA = window.navigator.standalone === true || 
+                  window.matchMedia('(display-mode: standalone)').matches;
+    
+    if (!isPWA && isEnabled) {
+        addDebugLog('🌐', 'Browser user - redirecting to install');
+        if (toggle) toggle.checked = false;
+        window.location.href = `/login.html?showInstall=true&returnTo=${encodeURIComponent(window.location.href)}`;
+        return;
+    }
+    
     if (isEnabled) {
+        addDebugLog('🔛', 'Enabling notifications');
+        
         try {
-            // Step 1: Browser permission
+            // Check browser permission
             let permission = Notification.permission;
-            if (permission === 'default') {
-                permission = await Notification.requestPermission();
-            }
+            addDebugLog('🔐', 'Browser permission', permission);
             
-            if (permission !== 'granted') {
+            if (permission === 'denied') {
+                addDebugLog('❌', 'Browser permission denied');
                 if (toggle) toggle.checked = false;
-                showNotificationMessage('Notification permission denied', 'error');
+                showNotificationMessage('Notifications blocked. Enable in Settings > Pick 6 > Notifications', 'error');
                 return;
             }
             
-            // Step 2: ACTUALLY CREATE ONESIGNAL SUBSCRIPTION
-            if (typeof OneSignal !== 'undefined') {
-                OneSignal.push(function() {
-                    // This actually creates the subscription!
-                    OneSignal.registerForPushNotifications();
-                });
+            if (permission === 'default') {
+                addDebugLog('❓', 'Requesting browser permission...');
+                permission = await Notification.requestPermission();
+                addDebugLog('🔐', 'Permission result', permission);
+                
+                if (permission !== 'granted') {
+                    addDebugLog('❌', 'Permission denied by user');
+                    if (toggle) toggle.checked = false;
+                    showNotificationMessage('Notification permission denied', 'error');
+                    return;
+                }
             }
             
-            // Step 3: Update storage and backend
+            // Use simple tagging
+            addDebugLog('🏷️', 'Using simple tagging...');
+            simpleTagUser(username, true);
+            
+            // Update storage and backend
             localStorage.setItem('notificationsEnabled', 'true');
-            await syncWithBackend(username, true);
+            addDebugLog('💾', 'Updated localStorage');
+            
+            addDebugLog('🔄', 'Syncing with backend...');
+            const backendResult = await syncWithBackend(username, true);
+            addDebugLog('📡', 'Backend sync result', backendResult);
             
             showNotificationMessage('Notifications enabled!', 'success');
+            addDebugLog('🎉', 'Notifications enabled successfully!');
             
         } catch (error) {
+            addDebugLog('❌', 'Error enabling notifications', error.toString());
             if (toggle) toggle.checked = false;
             showNotificationMessage('Error enabling notifications', 'error');
         }
+        
     } else {
-        // Disable notifications
-        localStorage.setItem('notificationsEnabled', 'false');
-        await syncWithBackend(username, false);
-        showNotificationMessage('Notifications disabled', 'success');
+        // Disabling notifications
+        addDebugLog('🔕', 'Disabling notifications');
+        
+        try {
+            simpleTagUser(username, false);
+            
+            localStorage.setItem('notificationsEnabled', 'false');
+            
+            addDebugLog('🔄', 'Syncing with backend...');
+            const backendResult = await syncWithBackend(username, false);
+            addDebugLog('📡', 'Backend sync result', backendResult);
+            
+            showNotificationMessage('Notifications disabled', 'success');
+            addDebugLog('✅', 'Notifications disabled');
+            
+        } catch (error) {
+            addDebugLog('❌', 'Error disabling notifications', error.toString());
+            showNotificationMessage('Error updating notification settings', 'error');
+        }
     }
 }
 
