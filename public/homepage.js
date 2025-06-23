@@ -8578,9 +8578,79 @@ function toggleDebugOverlay() {
     }
 }
 
-// SIMPLE OneSignal approach - don't fight the system!
-async function handleNotificationToggleSimple() {
-    addDebugLog('🎯', 'Simple notification toggle called');
+// IMPROVED TAGGING FUNCTION WITH BETTER ERROR HANDLING
+async function tagUserInOneSignal(username, enabled) {
+    addDebugLog('🏷️', 'Starting tagUserInOneSignal', { username, enabled });
+    
+    if (typeof OneSignal === 'undefined') {
+        addDebugLog('❌', 'OneSignal not available for tagging');
+        return false;
+    }
+    
+    return new Promise((resolve) => {
+        OneSignal.push(async function() {
+            try {
+                addDebugLog('🔍', 'Inside OneSignal.push for tagging');
+                
+                // First, let's see if we can get the user ID
+                try {
+                    const userId = await OneSignal.getUserId();
+                    addDebugLog('🆔', 'OneSignal User ID', userId);
+                } catch (e) {
+                    addDebugLog('⚠️', 'Could not get OneSignal User ID', e.message);
+                }
+                
+                // Try to get notification permission
+                try {
+                    const permission = OneSignal.getNotificationPermission();
+                    addDebugLog('🔔', 'OneSignal permission state', permission);
+                } catch (e) {
+                    addDebugLog('⚠️', 'Could not get permission state', e.message);
+                }
+                
+                // Now try to send tags
+                const tags = {
+                    username: username,
+                    notificationsEnabled: enabled,
+                    timestamp: new Date().toISOString(),
+                    source: 'pwa_toggle'
+                };
+                
+                addDebugLog('📋', 'Sending tags to OneSignal', tags);
+                
+                // Try the tagging with error handling
+                try {
+                    await OneSignal.sendTags(tags);
+                    addDebugLog('✅', 'Tags sent successfully to OneSignal');
+                    
+                    // Verify tags were set
+                    setTimeout(async () => {
+                        try {
+                            const currentTags = await OneSignal.getTags();
+                            addDebugLog('🔍', 'Current tags after setting', currentTags);
+                            resolve(true);
+                        } catch (e) {
+                            addDebugLog('⚠️', 'Could not verify tags', e.message);
+                            resolve(true); // Still consider it successful
+                        }
+                    }, 1000);
+                    
+                } catch (tagError) {
+                    addDebugLog('❌', 'Error sending tags', tagError.message);
+                    resolve(false);
+                }
+                
+            } catch (error) {
+                addDebugLog('❌', 'Error in OneSignal.push', error.message);
+                resolve(false);
+            }
+        });
+    });
+}
+
+// UPDATED NOTIFICATION TOGGLE FUNCTION
+async function handleNotificationToggleFixed() {
+    addDebugLog('🎯', 'Fixed notification toggle called');
     
     const toggle = document.getElementById('notificationCheck');
     const isEnabled = toggle ? toggle.checked : false;
@@ -8634,28 +8704,10 @@ async function handleNotificationToggleSimple() {
                 }
             }
             
-            // Step 2: Just tag the user - don't worry about subscription status
-            if (typeof OneSignal !== 'undefined') {
-                addDebugLog('🏷️', 'Tagging user in OneSignal...', { username });
-                
-                OneSignal.push(function() {
-                    OneSignal.sendTags({
-                        username: username,
-                        notificationsEnabled: true,
-                        enabledAt: new Date().toISOString()
-                    });
-                    addDebugLog('✅', 'User tagged in OneSignal');
-                });
-                
-                // Also try to ensure they're subscribed (non-blocking)
-                addDebugLog('📝', 'Ensuring OneSignal subscription...');
-                OneSignal.push(function() {
-                    OneSignal.showSlidedownPrompt();
-                });
-                
-            } else {
-                addDebugLog('⚠️', 'OneSignal not available, but continuing...');
-            }
+            // Step 2: Tag the user with improved function
+            addDebugLog('🏷️', 'Tagging user with improved function...');
+            const tagResult = await tagUserInOneSignal(username, true);
+            addDebugLog('📋', 'Tag result', tagResult);
             
             // Step 3: Update local storage and backend
             localStorage.setItem('notificationsEnabled', 'true');
@@ -8679,17 +8731,9 @@ async function handleNotificationToggleSimple() {
         addDebugLog('🔕', 'Disabling notifications');
         
         try {
-            // Just update the tags - don't unsubscribe
-            if (typeof OneSignal !== 'undefined') {
-                addDebugLog('🏷️', 'Updating OneSignal tags...');
-                OneSignal.push(function() {
-                    OneSignal.sendTags({
-                        notificationsEnabled: false,
-                        disabledAt: new Date().toISOString()
-                    });
-                    addDebugLog('✅', 'OneSignal tags updated');
-                });
-            }
+            // Tag the user as disabled
+            const tagResult = await tagUserInOneSignal(username, false);
+            addDebugLog('📋', 'Disable tag result', tagResult);
             
             localStorage.setItem('notificationsEnabled', 'false');
             
@@ -8705,6 +8749,18 @@ async function handleNotificationToggleSimple() {
             showNotificationMessage('Error updating notification settings', 'error');
         }
     }
+}
+
+// TEST FUNCTION TO MANUALLY TAG USER
+function testTagging() {
+    const username = getCurrentUsername();
+    if (!username) {
+        addDebugLog('❌', 'No username for test tagging');
+        return;
+    }
+    
+    addDebugLog('🧪', 'Testing tagging manually...');
+    tagUserInOneSignal(username, true);
 }
 
 // Even simpler OneSignal info function
@@ -8769,7 +8825,7 @@ function initializeNotificationToggle() {
         console.log('🔔 Checkbox toggled to:', toggle.checked);
         
         // Handle the toggle - USE THE SIMPLE VERSION
-        handleNotificationToggleSimple();
+        handleNotificationToggleFixed();
     });
     
     // Add click handler to the span text
