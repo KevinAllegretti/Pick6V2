@@ -8134,7 +8134,7 @@ async function updateGolfScoresDisplay(poolWrapper) {
   sortPlayerRowsByScore(poolWrapper);
 }
 
-
+/*
 function initializeNotificationToggle() {
     console.log('🔧 Starting initializeNotificationToggle');
     
@@ -8188,6 +8188,105 @@ function initializeNotificationToggle() {
     });
     
     console.log('✅ Event listeners added successfully');
+}*/
+
+function initializeNotificationToggle() {
+    console.log('🔧 Starting initializeNotificationToggle');
+    
+    // Initialize debug overlay first
+    if (window.debugOverlay && !debugOverlay.overlay) {
+        debugOverlay.init();
+        console.log('🐛 Debug overlay initialized from initializeNotificationToggle');
+    }
+    
+    const toggle = document.getElementById('notificationCheck');
+    const label = document.querySelector('label[for="notificationCheck"]');
+    const container = document.getElementById('notificationOption');
+    const span = document.querySelector('#notificationOption span');
+    
+    console.log('🔍 Found elements:', {
+        toggle: !!toggle,
+        label: !!label,
+        container: !!container,
+        span: !!span
+    });
+    
+    if (!toggle || !label) {
+        console.error('❌ Missing elements - toggle or label not found');
+        return;
+    }
+    
+    console.log('✅ Elements found, setting up event listeners');
+    
+    // Load current state
+    loadNotificationState();
+    
+    // Add click handler to the label (the visual toggle)
+    label.addEventListener('click', function(e) {
+        console.log('🔘 Label clicked');
+        e.preventDefault(); // Prevent default label behavior
+        
+        // Manually toggle the checkbox
+        toggle.checked = !toggle.checked;
+        console.log('🔔 Checkbox toggled to:', toggle.checked);
+        
+        // Handle the toggle - USE THE DEBUG VERSION
+        handleNotificationToggleDebug();
+    });
+    
+    // Add click handler to the span text
+    if (span) {
+        span.addEventListener('click', function(e) {
+            console.log('📝 Span clicked');
+            label.click(); // Trigger the label click
+        });
+    }
+    
+    // Also listen to the actual checkbox change (as backup)
+    toggle.addEventListener('change', function(e) {
+        console.log('🔔 Checkbox change event fired, checked:', e.target.checked);
+        // Don't call handleNotificationToggle here to avoid double-firing
+    });
+    
+    console.log('✅ Event listeners added successfully');
+    
+    // Add a test button to manually show debug overlay
+    const testButton = document.createElement('button');
+    testButton.textContent = '🐛 Show Debug';
+    testButton.style.cssText = `
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        z-index: 10000;
+        background: #33d9ff;
+        color: black;
+        border: none;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 12px;
+    `;
+    testButton.onclick = () => {
+        if (window.debugOverlay) {
+            debugOverlay.show();
+            debugOverlay.info('Debug overlay manually shown');
+        } else {
+            console.error('Debug overlay not available');
+        }
+    };
+    document.body.appendChild(testButton);
+    
+    // Force show debug overlay after a delay
+    setTimeout(() => {
+        if (window.debugOverlay) {
+            debugOverlay.show();
+            debugOverlay.info('🚀 Notification toggle initialized');
+            debugOverlay.info('🔍 OneSignal check', {
+                available: typeof OneSignal !== 'undefined',
+                windowOneSignal: !!window.OneSignal
+            });
+        }
+    }, 1000);
 }
 
 async function loadNotificationState() {
