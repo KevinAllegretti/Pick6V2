@@ -8428,7 +8428,6 @@ async function syncWithBackend(username, enabled) {
         return false;
     }
 }
-
 // ===== CONSOLIDATED NOTIFICATION SYSTEM WITH DEBUG OVERLAY =====
 
 console.log('🔧 Creating notification system...');
@@ -8598,10 +8597,40 @@ function ultraSimpleTest() {
         
         addDebugLog('📤', 'Sending test tag...');
         
-        // Just try to set one simple tag
-        OneSignal.sendTags({ test: 'working' }, function(response) {
-            addDebugLog('✅', 'Ultra simple tag sent', response);
-        });
+        // Add timeout in case callback never fires
+        let callbackFired = false;
+        
+        const timeout = setTimeout(() => {
+            if (!callbackFired) {
+                addDebugLog('⚠️', 'sendTags callback timeout (5 seconds) - but tag may have been sent');
+            }
+        }, 5000);
+        
+        // Try to set one simple tag
+        try {
+            OneSignal.sendTags({ test: 'working', timestamp: Date.now() }, function(response) {
+                callbackFired = true;
+                clearTimeout(timeout);
+                addDebugLog('✅', 'Ultra simple tag sent', response);
+            });
+            
+            // Also try without callback as fallback
+            setTimeout(() => {
+                if (!callbackFired) {
+                    addDebugLog('🔄', 'Trying sendTags without callback...');
+                    try {
+                        OneSignal.sendTags({ test_no_callback: 'working' });
+                        addDebugLog('✅', 'sendTags called without callback');
+                    } catch (e) {
+                        addDebugLog('❌', 'sendTags without callback failed', e.message);
+                    }
+                }
+            }, 2000);
+            
+        } catch (error) {
+            clearTimeout(timeout);
+            addDebugLog('❌', 'sendTags threw error', error.message);
+        }
     });
 }
 
@@ -8624,10 +8653,40 @@ function simpleTagUser(username, enabled) {
     OneSignal.push(function() {
         addDebugLog('✅', 'OneSignal ready for simple tagging');
         
+        // Add timeout for callback
+        let callbackFired = false;
+        
+        const timeout = setTimeout(() => {
+            if (!callbackFired) {
+                addDebugLog('⚠️', 'Tag callback timeout - but tags may have been sent');
+            }
+        }, 5000);
+        
         // Use the callback version which is more reliable
-        OneSignal.sendTags(tags, function(response) {
-            addDebugLog('✅', 'Simple tags sent successfully', response);
-        });
+        try {
+            OneSignal.sendTags(tags, function(response) {
+                callbackFired = true;
+                clearTimeout(timeout);
+                addDebugLog('✅', 'Simple tags sent successfully', response);
+            });
+            
+            // Fallback without callback
+            setTimeout(() => {
+                if (!callbackFired) {
+                    addDebugLog('🔄', 'Trying tags without callback as fallback...');
+                    try {
+                        OneSignal.sendTags(tags);
+                        addDebugLog('✅', 'Tags sent without callback');
+                    } catch (e) {
+                        addDebugLog('❌', 'Fallback tag send failed', e.message);
+                    }
+                }
+            }, 2000);
+            
+        } catch (error) {
+            clearTimeout(timeout);
+            addDebugLog('❌', 'sendTags with callback failed', error.message);
+        }
     });
 }
 
@@ -9179,6 +9238,8 @@ function ensureTestButtons() {
     }
 }
 
+// Wait 3 seconds before adding test buttons
+setTimeout(ensureTestButtons, 3000);
 
 // Add keyboard shortcut (Ctrl/Cmd + D)
 document.addEventListener('keydown', (e) => {
