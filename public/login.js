@@ -1273,3 +1273,309 @@ function addNotificationToggleToPageWithBackend(containerId) {
 // Make functions globally available
 window.addNotificationToggleToPageWithBackend = addNotificationToggleToPageWithBackend;
 window.syncNotificationSettingWithBackend = syncNotificationSettingWithBackend;
+
+// Enhanced debug overlay with push subscription debugging
+function createEnhancedDebugOverlay() {
+    const debugHTML = `
+        <div id="debugOverlay" style="
+            position: fixed;
+            top: 80px;
+            right: 10px;
+            background: rgba(0,0,0,0.95);
+            color: #00ff00;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 9px;
+            max-width: 280px;
+            z-index: 99999;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #00ff00;
+        ">
+            <div style="font-weight: bold; color: #ffff00; margin-bottom: 5px;">🐛 ENHANCED DEBUG</div>
+            <div id="debugContent">Loading...</div>
+            <div style="margin-top: 5px; display: flex; gap: 3px; flex-wrap: wrap;">
+                <button id="clearDebug" style="
+                    background: #ff4444;
+                    color: white;
+                    border: none;
+                    padding: 2px 4px;
+                    font-size: 8px;
+                    border-radius: 3px;
+                ">Clear</button>
+                <button id="testNotification" style="
+                    background: #00ff00;
+                    color: black;
+                    border: none;
+                    padding: 2px 4px;
+                    font-size: 8px;
+                    border-radius: 3px;
+                ">Test</button>
+                <button id="checkSubscriptions" style="
+                    background: #0088ff;
+                    color: white;
+                    border: none;
+                    padding: 2px 4px;
+                    font-size: 8px;
+                    border-radius: 3px;
+                ">Check Subs</button>
+                <button id="fixOneSignal" style="
+                    background: #ff8800;
+                    color: white;
+                    border: none;
+                    padding: 2px 4px;
+                    font-size: 8px;
+                    border-radius: 3px;
+                ">Fix OS</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', debugHTML);
+    
+    document.getElementById('clearDebug').onclick = () => {
+        document.getElementById('debugContent').innerHTML = '';
+        window.debugLogs = [];
+    };
+    
+    document.getElementById('testNotification').onclick = () => {
+        testNotification();
+    };
+    
+    document.getElementById('checkSubscriptions').onclick = () => {
+        comparePushSubscriptions();
+    };
+    
+    document.getElementById('fixOneSignal').onclick = () => {
+        forceOneSignalReregistration();
+    };
+    
+    updateDebugInfo();
+}
+
+// Store debug logs
+window.debugLogs = [];
+
+function debugLog(message) {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = `${timestamp}: ${message}`;
+    
+    console.log(logEntry);
+    window.debugLogs.push(logEntry);
+    
+    // Keep only last 30 logs
+    if (window.debugLogs.length > 30) {
+        window.debugLogs.shift();
+    }
+    
+    updateDebugInfo();
+}
+
+function updateDebugInfo() {
+    const debugContent = document.getElementById('debugContent');
+    if (!debugContent) return;
+    
+    const isPWA = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+    const permission = 'Notification' in window ? Notification.permission : 'unsupported';
+    const isEnabled = localStorage.getItem('notificationsEnabled') === 'true';
+    const oneSignalLoaded = typeof OneSignal !== 'undefined';
+    
+    let content = `
+        <div style="color: #00ffff; font-weight: bold;">PLATFORM:</div>
+        PWA: ${isPWA}<br>
+        iOS: ${/iPad|iPhone|iPod/.test(navigator.userAgent)}<br>
+        Standalone: ${window.navigator.standalone}<br>
+        <br>
+        <div style="color: #00ffff; font-weight: bold;">NOTIFICATIONS:</div>
+        Permission: ${permission}<br>
+        Enabled: ${isEnabled}<br>
+        OneSignal: ${oneSignalLoaded}<br>
+        <br>
+        <div style="color: #00ffff; font-weight: bold;">LOGS:</div>
+    `;
+    
+    // Add recent logs
+    window.debugLogs.slice(-15).forEach(log => {
+        content += `<div style="font-size: 7px; color: #cccccc; margin: 1px 0;">${log}</div>`;
+    });
+    
+    debugContent.innerHTML = content;
+}
+
+// Compare OneSignal vs Browser push subscriptions
+async function comparePushSubscriptions() {
+    debugLog('🔍 Comparing push subscriptions...');
+    
+    try {
+        // Check if OneSignal is loaded
+        if (typeof OneSignal === 'undefined') {
+            debugLog('❌ OneSignal not loaded');
+            return;
+        }
+        
+        // Check browser's native push subscription
+        debugLog('📱 Checking browser push...');
+        const registration = await navigator.serviceWorker.ready;
+        const browserSub = await registration.pushManager.getSubscription();
+        
+        if (browserSub) {
+            debugLog('✅ Browser has push subscription');
+            debugLog(`🔗 Browser endpoint: ${browserSub.endpoint.substring(0, 50)}...`);
+        } else {
+            debugLog('❌ No browser push subscription');
+        }
+        
+        // Check OneSignal subscription
+        debugLog('🔔 Checking OneSignal...');
+        const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
+        debugLog(`OneSignal opted in: ${isOptedIn}`);
+        
+        const playerId = await OneSignal.User.getOnesignalId();
+        debugLog(`OneSignal player ID: ${playerId ? playerId.substring(0, 8) + '...' : 'none'}`);
+        
+        const oneSignalSub = await OneSignal.User.getSubscription();
+        if (oneSignalSub && oneSignalSub.endpoint) {
+            debugLog('✅ OneSignal has subscription');
+            debugLog(`🔗 OneSignal endpoint: ${oneSignalSub.endpoint.substring(0, 50)}...`);
+            
+            // Compare endpoints
+            if (browserSub && oneSignalSub.endpoint === browserSub.endpoint) {
+                debugLog('✅ Endpoints MATCH - this is good!');
+            } else {
+                debugLog('❌ Endpoints DON\'T MATCH - this is the problem!');
+            }
+        } else {
+            debugLog('❌ OneSignal has no subscription');
+        }
+        
+        // Check service worker
+        debugLog('📋 Checking service worker...');
+        debugLog(`SW scope: ${registration.scope}`);
+        debugLog(`SW active: ${!!registration.active}`);
+        
+    } catch (error) {
+        debugLog(`❌ Error checking subscriptions: ${error.message}`);
+    }
+}
+
+// Force OneSignal to create a fresh push subscription
+async function forceOneSignalReregistration() {
+    debugLog('🔄 Forcing OneSignal re-registration...');
+    
+    try {
+        if (typeof OneSignal === 'undefined') {
+            debugLog('❌ OneSignal not loaded');
+            return;
+        }
+        
+        // Step 1: Completely opt out
+        debugLog('1️⃣ Opting out of OneSignal...');
+        await OneSignal.User.PushSubscription.optOut();
+        debugLog('✅ Opted out');
+        
+        // Step 2: Wait
+        debugLog('2️⃣ Waiting 3 seconds...');
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Step 3: Re-register service worker
+        debugLog('3️⃣ Re-registering service worker...');
+        await navigator.serviceWorker.register('/sw.js');
+        debugLog('✅ Service worker re-registered');
+        
+        // Step 4: Wait a bit more
+        debugLog('4️⃣ Waiting 2 more seconds...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Step 5: Opt back into OneSignal
+        debugLog('5️⃣ Opting back into OneSignal...');
+        await OneSignal.User.PushSubscription.optIn();
+        debugLog('✅ OneSignal opted back in');
+        
+        // Step 6: Get new details
+        debugLog('6️⃣ Getting new subscription details...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        const newId = await OneSignal.User.getOnesignalId();
+        const newOptedIn = await OneSignal.User.PushSubscription.optedIn;
+        
+        if (newId && newOptedIn) {
+            debugLog(`🎉 SUCCESS! New player ID: ${newId.substring(0, 8)}...`);
+            debugLog('📋 Copy full ID from console:');
+            console.log('🆔 NEW ONESIGNAL PLAYER ID:', newId);
+        } else {
+            debugLog('❌ Re-registration failed');
+        }
+        
+        // Step 7: Test the fix
+        debugLog('7️⃣ Testing new subscription...');
+        setTimeout(() => {
+            comparePushSubscriptions();
+        }, 1000);
+        
+    } catch (error) {
+        debugLog(`❌ Error during re-registration: ${error.message}`);
+    }
+}
+
+// Test notification function
+function testNotification() {
+    debugLog('🧪 Testing browser notification');
+    
+    const isEnabled = localStorage.getItem('notificationsEnabled') === 'true';
+    const permission = Notification.permission;
+    
+    debugLog(`Enabled: ${isEnabled}, Permission: ${permission}`);
+    
+    if (!isEnabled) {
+        debugLog('❌ Notifications not enabled - turn on toggle first');
+        return;
+    }
+    
+    if (permission !== 'granted') {
+        debugLog('❌ Permission not granted');
+        return;
+    }
+    
+    try {
+        debugLog('📤 Sending browser test notification');
+        
+        const notification = new Notification('🎯 Pick 6 Browser Test!', {
+            body: 'This is a browser notification (not OneSignal)',
+            icon: '/aiP6.png',
+            badge: '/favicon.png',
+            tag: 'test-notification',
+            requireInteraction: false
+        });
+        
+        debugLog('✅ Browser test notification sent');
+        
+        // Auto-close after 5 seconds
+        setTimeout(() => {
+            notification.close();
+            debugLog('🔕 Browser test notification closed');
+        }, 5000);
+        
+        // Handle click
+        notification.onclick = function() {
+            debugLog('👆 Browser test notification clicked');
+            window.focus();
+            notification.close();
+        };
+        
+    } catch (error) {
+        debugLog(`❌ Browser notification failed: ${error.message}`);
+    }
+}
+
+// Auto-update debug info every 5 seconds
+setInterval(updateDebugInfo, 5000);
+
+// Initialize enhanced debug overlay
+document.addEventListener('DOMContentLoaded', function() {
+    const isPWA = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+    if (isPWA) {
+        createEnhancedDebugOverlay();
+        debugLog('Enhanced debug overlay loaded');
+    }
+});
