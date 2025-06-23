@@ -9,7 +9,9 @@ setTimeout(() => {
     console.log('⏰ Timeout fired - trying initialization as backup');
     initializeNotificationToggle();
 }, 500);
-
+// ===== INITIALIZATION =====
+// Call this when your app loads
+initializeOneSignal();
 });
 
 // Wait 3 seconds before adding test buttons
@@ -9222,9 +9224,7 @@ window.showDebug = showDebugOverlay;
 window.hideDebug = hideDebugOverlay;
 window.toggleDebug = toggleDebugOverlay;
 
-// ===== INITIALIZATION =====
-// Call this when your app loads
-initializeOneSignal();
+
 
 // Create the overlay immediately
 console.log('🔧 Creating debug overlay on load...');
