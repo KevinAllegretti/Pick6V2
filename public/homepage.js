@@ -8430,7 +8430,6 @@ async function syncWithBackend(username, enabled) {
 }
 
 // ===== CONSOLIDATED NOTIFICATION SYSTEM WITH DEBUG OVERLAY =====
-// ===== CONSOLIDATED NOTIFICATION SYSTEM WITH DEBUG OVERLAY =====
 
 console.log('🔧 Creating notification system...');
 
@@ -8583,170 +8582,7 @@ function toggleDebugOverlay() {
     }
 }
 
-// ===== ONESIGNAL TAGGING FUNCTIONS =====
-function ultraSimpleTest() {
-    addDebugLog('🧪', 'Ultra simple test starting...');
-    
-    if (typeof OneSignal === 'undefined') {
-        addDebugLog('❌', 'OneSignal not available for ultra simple test');
-        return;
-    }
-    
-    addDebugLog('⏳', 'About to call OneSignal.push...');
-    
-    OneSignal.push(function() {
-        addDebugLog('✅', 'OneSignal push working for ultra simple test');
-        
-        // First, let's try to set an external ID to identify the user
-        const username = getCurrentUsername();
-        let externalIdSet = false;
-        
-        if (username) {
-            addDebugLog('🆔', 'Setting external ID first...', username);
-            
-            // Set timeout for external ID
-            const externalIdTimeout = setTimeout(() => {
-                if (!externalIdSet) {
-                    addDebugLog('⚠️', 'External ID timeout, proceeding with tags anyway');
-                    proceedWithTagging();
-                }
-            }, 3000);
-            
-            try {
-                OneSignal.setExternalUserId(username, function(results) {
-                    externalIdSet = true;
-                    clearTimeout(externalIdTimeout);
-                    addDebugLog('🆔', 'External ID set result', results);
-                    proceedWithTagging();
-                });
-                
-                // Also try without callback as backup
-                setTimeout(() => {
-                    if (!externalIdSet) {
-                        addDebugLog('🔄', 'Trying setExternalUserId without callback...');
-                        try {
-                            OneSignal.setExternalUserId(username);
-                            addDebugLog('✅', 'External ID set without callback');
-                        } catch (e) {
-                            addDebugLog('⚠️', 'External ID without callback failed', e.message);
-                        }
-                    }
-                }, 1500);
-                
-            } catch (e) {
-                clearTimeout(externalIdTimeout);
-                addDebugLog('⚠️', 'External ID failed, proceeding with tags anyway', e.message);
-                proceedWithTagging();
-            }
-        } else {
-            addDebugLog('⚠️', 'No username, proceeding without external ID');
-            proceedWithTagging();
-        }
-        
-        function proceedWithTagging() {
-            addDebugLog('📤', 'Sending test tag...');
-            
-            // Add timeout in case callback never fires
-            let callbackFired = false;
-            
-            const timeout = setTimeout(() => {
-                if (!callbackFired) {
-                    addDebugLog('⚠️', 'sendTags callback timeout (5 seconds) - but tag may have been sent');
-                }
-            }, 5000);
-            
-            // Try to set one simple tag
-            try {
-                OneSignal.sendTags({ 
-                    test: 'working', 
-                    timestamp: Date.now(),
-                    device: 'iOS'
-                }, function(response) {
-                    callbackFired = true;
-                    clearTimeout(timeout);
-                    addDebugLog('✅', 'Ultra simple tag sent', response);
-                });
-                
-                // Also try without callback as fallback
-                setTimeout(() => {
-                    if (!callbackFired) {
-                        addDebugLog('🔄', 'Trying sendTags without callback...');
-                        try {
-                            OneSignal.sendTags({ 
-                                test_no_callback: 'working',
-                                fallback: 'true'
-                            });
-                            addDebugLog('✅', 'sendTags called without callback');
-                        } catch (e) {
-                            addDebugLog('❌', 'sendTags without callback failed', e.message);
-                        }
-                    }
-                }, 2000);
-                
-            } catch (error) {
-                clearTimeout(timeout);
-                addDebugLog('❌', 'sendTags threw error', error.message);
-            }
-        }
-    });
-}
-
-function simpleTagUser(username, enabled) {
-    addDebugLog('🏷️', 'Simple tag user called', { username, enabled });
-    
-    if (typeof OneSignal === 'undefined') {
-        addDebugLog('❌', 'OneSignal not available');
-        return;
-    }
-    
-    const tags = {
-        username: username,
-        notificationsEnabled: enabled ? 'true' : 'false',
-        timestamp: new Date().toISOString()
-    };
-    
-    addDebugLog('📋', 'Sending simple tags', tags);
-    
-    OneSignal.push(function() {
-        addDebugLog('✅', 'OneSignal ready for simple tagging');
-        
-        // Add timeout for callback
-        let callbackFired = false;
-        
-        const timeout = setTimeout(() => {
-            if (!callbackFired) {
-                addDebugLog('⚠️', 'Tag callback timeout - but tags may have been sent');
-            }
-        }, 5000);
-        
-        // Use the callback version which is more reliable
-        try {
-            OneSignal.sendTags(tags, function(response) {
-                callbackFired = true;
-                clearTimeout(timeout);
-                addDebugLog('✅', 'Simple tags sent successfully', response);
-            });
-            
-            // Fallback without callback
-            setTimeout(() => {
-                if (!callbackFired) {
-                    addDebugLog('🔄', 'Trying tags without callback as fallback...');
-                    try {
-                        OneSignal.sendTags(tags);
-                        addDebugLog('✅', 'Tags sent without callback');
-                    } catch (e) {
-                        addDebugLog('❌', 'Fallback tag send failed', e.message);
-                    }
-                }
-            }, 2000);
-            
-        } catch (error) {
-            clearTimeout(timeout);
-            addDebugLog('❌', 'sendTags with callback failed', error.message);
-        }
-    });
-}
-
+// ===== ONESIGNAL FUNCTIONS (NO TAGGING) =====
 function checkOneSignalInfo() {
     addDebugLog('🔍', 'Checking OneSignal info...');
     
@@ -8767,6 +8603,29 @@ function checkOneSignalInfo() {
             addDebugLog('🔔', 'OneSignal permission state', isOptedIn);
         } catch (e) {
             addDebugLog('⚠️', 'Could not get OneSignal permission state');
+        }
+    });
+}
+
+function testOneSignalSubscription() {
+    addDebugLog('🧪', 'Testing OneSignal subscription...');
+    
+    if (typeof OneSignal === 'undefined') {
+        addDebugLog('❌', 'OneSignal not available for subscription test');
+        return;
+    }
+    
+    addDebugLog('⏳', 'About to call OneSignal.push...');
+    
+    OneSignal.push(function() {
+        addDebugLog('✅', 'OneSignal push working for subscription test');
+        
+        addDebugLog('📝', 'Calling registerForPushNotifications...');
+        try {
+            OneSignal.registerForPushNotifications();
+            addDebugLog('✅', 'registerForPushNotifications called successfully');
+        } catch (e) {
+            addDebugLog('❌', 'registerForPushNotifications failed', e.message);
         }
     });
 }
@@ -8802,10 +8661,9 @@ function addTestButtons() {
     
     addDebugLog('🔧', 'Test panel created with red background for visibility');
     
-    // Ultra Simple Test Button
-    addDebugLog('🔧', 'Creating Ultra Test button...');
+    // Ultra Simple Test Button - NOW TESTS SUBSCRIPTION
     const ultraTestBtn = document.createElement('button');
-    ultraTestBtn.textContent = '🧪 Ultra Test';
+    ultraTestBtn.textContent = '🧪 Test Sub';
     ultraTestBtn.style.cssText = `
         background: #ff6b6b;
         color: white;
@@ -8816,32 +8674,9 @@ function addTestButtons() {
         cursor: pointer;
         width: 100%;
     `;
-    ultraTestBtn.onclick = ultraSimpleTest;
+    ultraTestBtn.onclick = testOneSignalSubscription;
     
-    // Simple Tag Test Button
-    addDebugLog('🔧', 'Creating Tag Test button...');
-    const simpleTagBtn = document.createElement('button');
-    simpleTagBtn.textContent = '🏷️ Tag Test';
-    simpleTagBtn.style.cssText = `
-        background: #4ecdc4;
-        color: white;
-        border: none;
-        padding: 12px;
-        border-radius: 5px;
-        font-size: 14px;
-        cursor: pointer;
-        width: 100%;
-    `;
-    simpleTagBtn.onclick = function() {
-        const username = getCurrentUsername();
-        if (username) {
-            simpleTagUser(username, true);
-        } else {
-            addDebugLog('❌', 'No username for tag test');
-        }
-    };
-    
-    // Check OneSignal Button
+    // Simple Tag Test Button - REMOVED
     addDebugLog('🔧', 'Creating Check OS button...');
     const checkBtn = document.createElement('button');
     checkBtn.textContent = '🔍 Check OS';
@@ -8878,7 +8713,6 @@ function addTestButtons() {
     
     addDebugLog('🔧', 'Adding buttons to panel...');
     testPanel.appendChild(ultraTestBtn);
-    testPanel.appendChild(simpleTagBtn);
     testPanel.appendChild(checkBtn);
     testPanel.appendChild(hideBtn);
     
