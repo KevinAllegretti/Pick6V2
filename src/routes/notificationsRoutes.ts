@@ -82,7 +82,7 @@ async function sendOneSignalNotification(title: string, body: string, data?: any
     return null;
   }
 }*/
-
+/*
 async function sendOneSignalNotification(title: string, body: string, data?: any) {
   const ONESIGNAL_APP_ID = "c0849e89-f474-4aea-8de1-290715275d14";
   const ONESIGNAL_REST_API_KEY = process.env.ONESIGNAL_REST_API_KEY;
@@ -109,6 +109,47 @@ async function sendOneSignalNotification(title: string, body: string, data?: any
   chrome_web_icon: 'https://pick6.club/aiP6.png',
   chrome_web_badge: 'https://pick6.club/favicon.png'
 })
+    });
+    
+    const result = await response.json();
+    console.log('OneSignal response:', result);
+    return result;
+    
+  } catch (error) {
+    console.error('OneSignal API error:', error);
+    return null;
+  }
+}*/
+
+async function sendOneSignalNotification(title: string, body: string, data?: any) {
+  const ONESIGNAL_APP_ID = "c0849e89-f474-4aea-8de1-290715275d14";
+  const ONESIGNAL_REST_API_KEY = process.env.ONESIGNAL_REST_API_KEY;
+  
+  if (!ONESIGNAL_REST_API_KEY) {
+    console.warn('OneSignal REST API key not configured');
+    return null;
+  }
+  
+  try {
+    const response = await fetch('https://onesignal.com/api/v1/notifications', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`
+      },
+      body: JSON.stringify({
+        app_id: ONESIGNAL_APP_ID,
+        // Target users who have notificationsEnabled: true tag
+        filters: [
+          { field: "tag", key: "notificationsEnabled", relation: "=", value: "true" }
+        ],
+        headings: { en: title },
+        contents: { en: body },
+        data: data || {},
+        web_url: data?.url || 'https://pick6.club/dashboard.html',
+        chrome_web_icon: 'https://pick6.club/aiP6.png',
+        chrome_web_badge: 'https://pick6.club/favicon.png'
+      })
     });
     
     const result = await response.json();

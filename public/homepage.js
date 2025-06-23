@@ -8230,7 +8230,7 @@ async function loadNotificationState() {
         console.log('📱 Fallback to localStorage:', localState);
     }
 }
-
+/*
 async function handleNotificationToggle() {
     console.log('🎯 handleNotificationToggle called');
     
@@ -8327,6 +8327,111 @@ async function handleNotificationToggle() {
         console.log('📡 Backend sync result:', backendResult);
         
         showNotificationMessage('Notifications disabled', 'success');
+    }
+}*/
+
+async function handleNotificationToggle() {
+    console.log('🎯 handleNotificationToggle called');
+    
+    const toggle = document.getElementById('notificationCheck');
+    const isEnabled = toggle.checked;
+    const username = getCurrentUsername();
+    
+    console.log('📊 Toggle state:', { isEnabled, username });
+    
+    if (!username) {
+        console.error('❌ No username found');
+        showNotificationMessage('Error: Please log in first', 'error');
+        toggle.checked = !isEnabled;
+        return;
+    }
+    
+    // Check PWA mode
+    const isPWA = window.navigator.standalone === true || 
+                  window.matchMedia('(display-mode: standalone)').matches;
+    
+    if (!isPWA && isEnabled) {
+        console.log('🌐 Browser user trying to enable - redirecting to login');
+        toggle.checked = false;
+        const redirectUrl = `/login.html?showInstall=true&returnTo=${encodeURIComponent(window.location.href)}`;
+        window.location.href = redirectUrl;
+        return;
+    }
+    
+    if (isEnabled) {
+        console.log('🔛 Enabling notifications');
+        
+        try {
+            // Wait for OneSignal to be ready
+            await new Promise((resolve) => {
+                OneSignal.push(function() {
+                    resolve();
+                });
+            });
+            
+            // Check if already subscribed
+            const isSubscribed = await OneSignal.getSubscription();
+            console.log('📱 Current subscription status:', isSubscribed);
+            
+            if (!isSubscribed) {
+                console.log('📝 Creating new OneSignal subscription');
+                
+                // This will prompt for permission and create subscription
+                await OneSignal.showSlidedownPrompt();
+                
+                // Wait a moment for the subscription to be created
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Verify subscription was created
+                const newSubscription = await OneSignal.getSubscription();
+                if (!newSubscription) {
+                    console.log('❌ User denied or subscription failed');
+                    toggle.checked = false;
+                    showNotificationMessage('Notification permission denied', 'error');
+                    return;
+                }
+                
+                console.log('✅ OneSignal subscription created');
+            }
+            
+            // Tag the user in OneSignal with their username
+            OneSignal.sendTags({
+                username: username,
+                notificationsEnabled: true,
+                enabledAt: new Date().toISOString()
+            });
+            
+            localStorage.setItem('notificationsEnabled', 'true');
+            await syncWithBackend(username, true);
+            
+            showNotificationMessage('Notifications enabled!', 'success');
+            
+        } catch (error) {
+            console.error('❌ Error enabling notifications:', error);
+            toggle.checked = false;
+            showNotificationMessage('Error enabling notifications', 'error');
+        }
+        
+    } else {
+        console.log('🔕 Disabling notifications');
+        
+        try {
+            // Update OneSignal tags but don't unsubscribe entirely
+            // (in case they want to re-enable later)
+            OneSignal.sendTags({
+                notificationsEnabled: false,
+                disabledAt: new Date().toISOString()
+            });
+            
+            localStorage.setItem('notificationsEnabled', 'false');
+            await syncWithBackend(username, false);
+            
+            showNotificationMessage('Notifications disabled', 'success');
+            
+        } catch (error) {
+            console.error('❌ Error disabling notifications:', error);
+            showNotificationMessage('Error updating notification settings', 'error');
+        }
     }
 }
 function getCurrentUsername() {
@@ -8425,3 +8530,22 @@ async function syncWithBackend(username, enabled) {
     }
 }
 
+
+// Add this to your main app initialization
+window.OneSignal = window.OneSignal || [];
+
+function initializeOneSignal() {
+    OneSignal.push(function() {
+        OneSignal.init({
+            appId: "c0849e89-f474-4aea-8de1-290715275d14",
+            safari_web_id: "web.onesignal.auto.your-safari-id", // Optional for Safari
+            notifyButton: {
+                enable: false // We're using our own toggle
+            },
+            allowLocalhostAsSecureOrigin: true // For testing
+        });
+    });
+}
+
+// Call this when your app loads
+initializeOneSignal();
