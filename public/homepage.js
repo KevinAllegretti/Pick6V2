@@ -8556,7 +8556,7 @@ function toggleDebugOverlay() {
     }
 }
 
-// Enhanced notification toggle with simple debugging
+// Enhanced notification toggle with timeout handling
 async function handleNotificationToggleWithDebug() {
     addDebugLog('🎯', 'handleNotificationToggle called');
     
@@ -8631,44 +8631,104 @@ async function handleNotificationToggleWithDebug() {
                 return;
             }
             
-            // Check if already subscribed
+            // Check subscription status with timeout
             addDebugLog('🔍', 'Checking subscription status...');
-            const isSubscribed = await OneSignal.getSubscription();
-            addDebugLog('📱', 'Current subscription status', isSubscribed);
+            let isSubscribed = false;
+            
+            try {
+                // Add timeout to prevent hanging
+                const subscriptionPromise = OneSignal.getSubscription();
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Subscription check timeout')), 5000)
+                );
+                
+                isSubscribed = await Promise.race([subscriptionPromise, timeoutPromise]);
+                addDebugLog('📱', 'Subscription status retrieved', isSubscribed);
+                
+            } catch (error) {
+                addDebugLog('⚠️', 'Subscription check failed, assuming not subscribed', error.message);
+                isSubscribed = false;
+            }
             
             if (!isSubscribed) {
                 addDebugLog('📝', 'Creating new OneSignal subscription');
                 
-                // Try to register for push notifications
-                addDebugLog('🔔', 'Calling registerForPushNotifications...');
-                const subscribed = await OneSignal.registerForPushNotifications();
-                addDebugLog('📱', 'Registration result', subscribed);
+                // First check browser permission
+                let permission = Notification.permission;
+                addDebugLog('🔐', 'Current browser permission', permission);
                 
-                // Wait and verify
-                addDebugLog('⏳', 'Waiting for subscription creation...');
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                if (permission === 'default') {
+                    addDebugLog('❓', 'Requesting browser permission...');
+                    permission = await Notification.requestPermission();
+                    addDebugLog('🔐', 'Permission result', permission);
+                }
                 
-                const newSubscription = await OneSignal.getSubscription();
-                addDebugLog('🔍', 'Subscription verification', newSubscription);
-                
-                if (!newSubscription) {
-                    addDebugLog('❌', 'Subscription failed');
+                if (permission === 'denied') {
+                    addDebugLog('❌', 'Browser permission denied');
                     if (toggle) toggle.checked = false;
-                    showNotificationMessage('Notification permission denied', 'error');
+                    showNotificationMessage('Notifications blocked. Enable in Settings > Pick 6 > Notifications', 'error');
                     return;
                 }
                 
-                addDebugLog('✅', 'OneSignal subscription created');
+                if (permission === 'granted') {
+                    addDebugLog('🔔', 'Attempting OneSignal registration...');
+                    
+                    try {
+                        // Try registerForPushNotifications with timeout
+                        const registrationPromise = OneSignal.registerForPushNotifications();
+                        const timeoutPromise = new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('Registration timeout')), 10000)
+                        );
+                        
+                        const subscribed = await Promise.race([registrationPromise, timeoutPromise]);
+                        addDebugLog('📱', 'Registration completed', subscribed);
+                        
+                        // Wait and verify
+                        addDebugLog('⏳', 'Waiting for subscription creation...');
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        
+                        // Try to verify subscription was created (with timeout)
+                        try {
+                            const verifyPromise = OneSignal.getSubscription();
+                            const verifyTimeoutPromise = new Promise((_, reject) => 
+                                setTimeout(() => reject(new Error('Verification timeout')), 3000)
+                            );
+                            
+                            const newSubscription = await Promise.race([verifyPromise, verifyTimeoutPromise]);
+                            addDebugLog('🔍', 'Subscription verification', newSubscription);
+                            
+                            if (!newSubscription) {
+                                addDebugLog('⚠️', 'Could not verify subscription, but proceeding...');
+                            }
+                        } catch (verifyError) {
+                            addDebugLog('⚠️', 'Verification failed, but proceeding...', verifyError.message);
+                        }
+                        
+                        addDebugLog('✅', 'OneSignal subscription process completed');
+                        
+                    } catch (regError) {
+                        addDebugLog('❌', 'Registration failed', regError.message);
+                        if (toggle) toggle.checked = false;
+                        showNotificationMessage('Failed to register for notifications', 'error');
+                        return;
+                    }
+                }
+            } else {
+                addDebugLog('✅', 'Already subscribed to OneSignal');
             }
             
-            // Tag the user
+            // Tag the user (this usually works even if subscription check failed)
             addDebugLog('🏷️', 'Tagging user in OneSignal', { username });
-            await OneSignal.sendTags({
-                username: username,
-                notificationsEnabled: true,
-                enabledAt: new Date().toISOString()
-            });
-            addDebugLog('✅', 'User tagged in OneSignal');
+            try {
+                await OneSignal.sendTags({
+                    username: username,
+                    notificationsEnabled: true,
+                    enabledAt: new Date().toISOString()
+                });
+                addDebugLog('✅', 'User tagged in OneSignal');
+            } catch (tagError) {
+                addDebugLog('⚠️', 'Tagging failed, but continuing...', tagError.message);
+            }
             
             localStorage.setItem('notificationsEnabled', 'true');
             addDebugLog('💾', 'Updated localStorage');
@@ -8692,11 +8752,15 @@ async function handleNotificationToggleWithDebug() {
         try {
             if (typeof OneSignal !== 'undefined') {
                 addDebugLog('🏷️', 'Updating OneSignal tags...');
-                await OneSignal.sendTags({
-                    notificationsEnabled: false,
-                    disabledAt: new Date().toISOString()
-                });
-                addDebugLog('✅', 'OneSignal tags updated');
+                try {
+                    await OneSignal.sendTags({
+                        notificationsEnabled: false,
+                        disabledAt: new Date().toISOString()
+                    });
+                    addDebugLog('✅', 'OneSignal tags updated');
+                } catch (tagError) {
+                    addDebugLog('⚠️', 'Tag update failed', tagError.message);
+                }
             }
             
             localStorage.setItem('notificationsEnabled', 'false');
