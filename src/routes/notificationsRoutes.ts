@@ -40,7 +40,7 @@ async function sendNotificationToAll(title: string, body: string, data?: any) {
     throw error;
   }
 }
-/*
+
 // OneSignal REST API implementation
 async function sendOneSignalNotification(title: string, body: string, data?: any) {
   const ONESIGNAL_APP_ID = "c0849e89-f474-4aea-8de1-290715275d14";
@@ -81,7 +81,7 @@ async function sendOneSignalNotification(title: string, body: string, data?: any
     console.error('OneSignal API error:', error);
     return null;
   }
-}*/
+}
 /*
 async function sendOneSignalNotification(title: string, body: string, data?: any) {
   const ONESIGNAL_APP_ID = "c0849e89-f474-4aea-8de1-290715275d14";
@@ -120,7 +120,7 @@ async function sendOneSignalNotification(title: string, body: string, data?: any
     return null;
   }
 }*/
-
+/*
 async function sendOneSignalNotification(title: string, body: string, data?: any) {
   const ONESIGNAL_APP_ID = "c0849e89-f474-4aea-8de1-290715275d14";
   const ONESIGNAL_REST_API_KEY = process.env.ONESIGNAL_REST_API_KEY;
@@ -160,7 +160,7 @@ async function sendOneSignalNotification(title: string, body: string, data?: any
     console.error('OneSignal API error:', error);
     return null;
   }
-}
+}*/
 // Routes
 router.post('/test', async (req, res) => {
   try {

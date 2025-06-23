@@ -8428,6 +8428,8 @@ async function syncWithBackend(username, enabled) {
         return false;
     }
 }
+
+
 // ===== CONSOLIDATED NOTIFICATION SYSTEM WITH DEBUG OVERLAY =====
 
 console.log('🔧 Creating notification system...');
@@ -8595,41 +8597,68 @@ function ultraSimpleTest() {
     OneSignal.push(function() {
         addDebugLog('✅', 'OneSignal push working for ultra simple test');
         
-        addDebugLog('📤', 'Sending test tag...');
-        
-        // Add timeout in case callback never fires
-        let callbackFired = false;
-        
-        const timeout = setTimeout(() => {
-            if (!callbackFired) {
-                addDebugLog('⚠️', 'sendTags callback timeout (5 seconds) - but tag may have been sent');
+        // First, let's try to set an external ID to identify the user
+        const username = getCurrentUsername();
+        if (username) {
+            addDebugLog('🆔', 'Setting external ID first...', username);
+            try {
+                OneSignal.setExternalUserId(username, function(results) {
+                    addDebugLog('🆔', 'External ID set result', results);
+                    proceedWithTagging();
+                });
+            } catch (e) {
+                addDebugLog('⚠️', 'External ID failed, proceeding with tags anyway', e.message);
+                proceedWithTagging();
             }
-        }, 5000);
+        } else {
+            addDebugLog('⚠️', 'No username, proceeding without external ID');
+            proceedWithTagging();
+        }
         
-        // Try to set one simple tag
-        try {
-            OneSignal.sendTags({ test: 'working', timestamp: Date.now() }, function(response) {
-                callbackFired = true;
-                clearTimeout(timeout);
-                addDebugLog('✅', 'Ultra simple tag sent', response);
-            });
+        function proceedWithTagging() {
+            addDebugLog('📤', 'Sending test tag...');
             
-            // Also try without callback as fallback
-            setTimeout(() => {
+            // Add timeout in case callback never fires
+            let callbackFired = false;
+            
+            const timeout = setTimeout(() => {
                 if (!callbackFired) {
-                    addDebugLog('🔄', 'Trying sendTags without callback...');
-                    try {
-                        OneSignal.sendTags({ test_no_callback: 'working' });
-                        addDebugLog('✅', 'sendTags called without callback');
-                    } catch (e) {
-                        addDebugLog('❌', 'sendTags without callback failed', e.message);
-                    }
+                    addDebugLog('⚠️', 'sendTags callback timeout (5 seconds) - but tag may have been sent');
                 }
-            }, 2000);
+            }, 5000);
             
-        } catch (error) {
-            clearTimeout(timeout);
-            addDebugLog('❌', 'sendTags threw error', error.message);
+            // Try to set one simple tag
+            try {
+                OneSignal.sendTags({ 
+                    test: 'working', 
+                    timestamp: Date.now(),
+                    device: 'iOS'
+                }, function(response) {
+                    callbackFired = true;
+                    clearTimeout(timeout);
+                    addDebugLog('✅', 'Ultra simple tag sent', response);
+                });
+                
+                // Also try without callback as fallback
+                setTimeout(() => {
+                    if (!callbackFired) {
+                        addDebugLog('🔄', 'Trying sendTags without callback...');
+                        try {
+                            OneSignal.sendTags({ 
+                                test_no_callback: 'working',
+                                fallback: 'true'
+                            });
+                            addDebugLog('✅', 'sendTags called without callback');
+                        } catch (e) {
+                            addDebugLog('❌', 'sendTags without callback failed', e.message);
+                        }
+                    }
+                }, 2000);
+                
+            } catch (error) {
+                clearTimeout(timeout);
+                addDebugLog('❌', 'sendTags threw error', error.message);
+            }
         }
     });
 }
