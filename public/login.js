@@ -1320,14 +1320,14 @@ function createEnhancedDebugOverlay() {
                     font-size: 8px;
                     border-radius: 3px;
                 ">Check Subs</button>
-                <button id="manualSubscribe" style="
-                    background: #ff0080;
-                    color: white;
+                <button id="updateSession" style="
+                    background: #00ff80;
+                    color: black;
                     border: none;
                     padding: 2px 4px;
                     font-size: 8px;
                     border-radius: 3px;
-                ">Manual Sub</button>
+                ">Update Session</button>
             </div>
         </div>
     `;
@@ -1347,8 +1347,8 @@ function createEnhancedDebugOverlay() {
         comparePushSubscriptions();
     };
     
-    document.getElementById('manualSubscribe').onclick = () => {
-        manualOneSignalSubscribe();
+    document.getElementById('updateSession').onclick = () => {
+        updateOneSignalSession();
     };
     
     updateDebugInfo();
@@ -1431,17 +1431,30 @@ async function comparePushSubscriptions() {
         
         // Just try to get basic OneSignal info
         let oneSignalInfo = 'none';
+        let sessionInfo = 'unknown';
         try {
             // Try the most basic OneSignal check
             if (OneSignal && OneSignal.initialized) {
                 oneSignalInfo = 'initialized';
+                
+                // Try to get session/user info
+                try {
+                    const userId = await OneSignal.User.getOnesignalId();
+                    if (userId) {
+                        sessionInfo = `ID: ${userId.substring(0, 8)}...`;
+                    }
+                } catch (e) {
+                    sessionInfo = 'ID fetch failed';
+                }
+                
             } else if (OneSignal) {
                 oneSignalInfo = 'loaded but not initialized';
             }
         } catch (e) {
             oneSignalInfo = 'error accessing OneSignal';
         }
-        debugLog(`OneSignal status: ${oneSignalInfo}`);
+        debugLog(`OneSignal: ${oneSignalInfo}`);
+        debugLog(`Session: ${sessionInfo}`);
         
         // Check service worker
         debugLog('📋 Checking service worker...');
@@ -1453,7 +1466,79 @@ async function comparePushSubscriptions() {
     }
 }
 
-// Ultra-simple OneSignal subscription
+// Force OneSignal session update
+async function updateOneSignalSession() {
+    debugLog('🔄 Updating OneSignal session...');
+    
+    try {
+        if (typeof OneSignal === 'undefined') {
+            debugLog('❌ OneSignal not loaded');
+            return;
+        }
+        
+        if (!OneSignal.initialized) {
+            debugLog('❌ OneSignal not initialized');
+            return;
+        }
+        
+        debugLog('🔔 OneSignal ready, forcing session update...');
+        
+        // Method 1: Try to trigger activity
+        try {
+            // Create a temporary external ID to force session update
+            const tempId = 'session_update_' + Date.now();
+            await OneSignal.login(tempId);
+            debugLog('✅ OneSignal login triggered');
+            
+            // Wait a moment then clear the temp ID
+            setTimeout(async () => {
+                try {
+                    await OneSignal.logout();
+                    debugLog('✅ Temp login cleared');
+                } catch (e) {
+                    debugLog('⚠️ Logout failed (not critical)');
+                }
+            }, 2000);
+            
+        } catch (e) {
+            debugLog(`Login method failed: ${e.message}`);
+            
+            // Method 2: Try page focus simulation
+            try {
+                debugLog('📋 Trying focus simulation...');
+                
+                // Trigger focus/visibility events that OneSignal listens for
+                window.dispatchEvent(new Event('focus'));
+                document.dispatchEvent(new Event('visibilitychange'));
+                
+                debugLog('✅ Focus events triggered');
+                
+            } catch (e2) {
+                debugLog(`Focus simulation failed: ${e2.message}`);
+            }
+        }
+        
+        debugLog('⏰ Waiting 3 seconds for session update...');
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Check if session was updated
+        debugLog('🔍 Checking session after update...');
+        try {
+            const userId = await OneSignal.User.getOnesignalId();
+            if (userId) {
+                debugLog(`✅ Session active - ID: ${userId.substring(0, 8)}...`);
+                debugLog('💡 Check OneSignal dashboard in ~1 minute for updated "Last Session"');
+            } else {
+                debugLog('❌ Still no user ID');
+            }
+        } catch (e) {
+            debugLog('❌ Cannot verify session status');
+        }
+        
+    } catch (error) {
+        debugLog(`❌ Session update error: ${error.message}`);
+    }
+}
 async function manualOneSignalSubscribe() {
     debugLog('🔧 Simple OneSignal subscription...');
     
@@ -1665,27 +1750,3 @@ document.addEventListener('DOMContentLoaded', function() {
         debugLog('Enhanced debug overlay loaded');
     }
 });
-
-// Force OneSignal to recognize current session
-async function updateOneSignalSession() {
-    try {
-        if (typeof OneSignal !== 'undefined') {
-            // Force OneSignal to register current session
-            console.log('Updating OneSignal session...');
-            
-            // Try to trigger a session update
-            await OneSignal.login('temp_user_' + Date.now());
-            console.log('OneSignal session updated');
-            
-            // Wait and check
-            setTimeout(() => {
-                console.log('Session should be updated now');
-            }, 3000);
-        }
-    } catch (error) {
-        console.log('Session update error:', error);
-    }
-}
-
-// Run this
-updateOneSignalSession();
