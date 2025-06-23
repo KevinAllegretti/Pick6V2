@@ -8428,7 +8428,6 @@ async function syncWithBackend(username, enabled) {
         return false;
     }
 }
-
 // ===== CONSOLIDATED NOTIFICATION SYSTEM WITH DEBUG OVERLAY =====
 
 console.log('🔧 Creating notification system...');
@@ -8796,6 +8795,8 @@ async function handleNotificationToggle() {
                 }
             }
             
+            // Use simple tagging
+            addDebugLog('🏷️', 'Using simple tagging...');
 
             
             // Update storage and backend
