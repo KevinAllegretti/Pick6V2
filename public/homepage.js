@@ -4,6 +4,118 @@ const vendingSpotlightIntervals = new Map();
 const currentVendingModes = new Map();
 const vendingSpotlightDataCache = new Map();// Call this function when the page loads
 // Initialize notification toggle on page load
+
+
+// ===== ONESIGNAL INITIALIZATION =====
+window.OneSignal = window.OneSignal || [];
+
+function initializeOneSignal() {
+    console.log('🔧 Initializing OneSignal...');
+    
+    OneSignal.push(function() {
+        console.log('🔧 OneSignal.init called');
+        
+        OneSignal.init({
+            appId: "c0849e89-f474-4aea-8de1-290715275d14",
+            safari_web_id: "web.onesignal.auto.2fc72fe0-a0df-475b-ad9a-b2dac840a493",
+            notifyButton: {
+                enable: false // We're using our own toggle
+            },
+            allowLocalhostAsSecureOrigin: true, // For testing
+            autoResubscribe: true,
+            autoRegister: false // We'll handle registration manually
+        });
+        
+        console.log('✅ OneSignal initialized');
+        addDebugLog('✅', 'OneSignal initialized successfully');
+        
+        // Set up event listeners for NEW API
+        OneSignal.User.PushSubscription.addEventListener('change', (event) => {
+            addDebugLog('🔔', 'OneSignal subscription changed', {
+                current: event.current,
+                previous: event.previous
+            });
+        });
+    });
+}
+
+// ===== CONSOLE OVERRIDE =====
+const originalConsoleLog = console.log;
+const originalConsoleError = console.error;
+
+console.log = function(...args) {
+    originalConsoleLog.apply(console, args);
+    if (document.getElementById('simpleDebugContent')) {
+        const message = args.map(arg => 
+            typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+        ).join(' ');
+        addDebugLog('📝', 'Console: ' + message);
+    }
+};
+
+console.error = function(...args) {
+    originalConsoleError.apply(console, args);
+    if (document.getElementById('simpleDebugContent')) {
+        const message = args.map(arg => 
+            typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+        ).join(' ');
+        addDebugLog('❌', 'Error: ' + message);
+    }
+};
+
+// ===== GLOBAL FUNCTIONS =====
+window.showDebug = showDebugOverlay;
+window.hideDebug = hideDebugOverlay;
+window.toggleDebug = toggleDebugOverlay;
+
+// ===== INITIALIZATION =====
+// Call this when your app loads
+initializeOneSignal();
+
+// Create the overlay immediately
+console.log('🔧 Creating debug overlay on load...');
+createDebugOverlay();
+
+// Show it after a delay
+setTimeout(() => {
+    showDebugOverlay();
+    addDebugLog('🚀', 'Debug system initialized');
+    addDebugLog('🔍', 'OneSignal check', {
+        available: typeof OneSignal !== 'undefined',
+        permission: Notification.permission
+    });
+    
+    // Check OneSignal info after initialization
+    setTimeout(() => {
+        checkOneSignalInfo();
+    }, 2000);
+}, 1000);
+
+// Add test buttons with longer delay to ensure DOM is ready
+function ensureTestButtons() {
+    if (document.body) {
+        addTestButtons();
+        addDebugLog('📱', 'Phone test interface ready');
+    } else {
+        addDebugLog('⚠️', 'DOM not ready, retrying test buttons...');
+        setTimeout(ensureTestButtons, 500);
+    }
+}
+
+// Wait 3 seconds before adding test buttons
+setTimeout(ensureTestButtons, 3000);
+
+// Add keyboard shortcut (Ctrl/Cmd + D)
+document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+        e.preventDefault();
+        toggleDebugOverlay();
+    }
+});
+
+console.log('✅ Consolidated notification system loaded successfully!');
+
+
 document.addEventListener('DOMContentLoaded', function() {
 setTimeout(() => {
     console.log('⏰ Timeout fired - trying initialization as backup');
@@ -9196,113 +9308,3 @@ async function syncWithBackend(username, enabled, playerId = null) {
         return false;
     }
 }
-
-// ===== ONESIGNAL INITIALIZATION =====
-window.OneSignal = window.OneSignal || [];
-
-function initializeOneSignal() {
-    console.log('🔧 Initializing OneSignal...');
-    
-    OneSignal.push(function() {
-        console.log('🔧 OneSignal.init called');
-        
-        OneSignal.init({
-            appId: "c0849e89-f474-4aea-8de1-290715275d14",
-            safari_web_id: "web.onesignal.auto.2fc72fe0-a0df-475b-ad9a-b2dac840a493",
-            notifyButton: {
-                enable: false // We're using our own toggle
-            },
-            allowLocalhostAsSecureOrigin: true, // For testing
-            autoResubscribe: true,
-            autoRegister: false // We'll handle registration manually
-        });
-        
-        console.log('✅ OneSignal initialized');
-        addDebugLog('✅', 'OneSignal initialized successfully');
-        
-        // Set up event listeners for NEW API
-        OneSignal.User.PushSubscription.addEventListener('change', (event) => {
-            addDebugLog('🔔', 'OneSignal subscription changed', {
-                current: event.current,
-                previous: event.previous
-            });
-        });
-    });
-}
-
-// ===== CONSOLE OVERRIDE =====
-const originalConsoleLog = console.log;
-const originalConsoleError = console.error;
-
-console.log = function(...args) {
-    originalConsoleLog.apply(console, args);
-    if (document.getElementById('simpleDebugContent')) {
-        const message = args.map(arg => 
-            typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-        ).join(' ');
-        addDebugLog('📝', 'Console: ' + message);
-    }
-};
-
-console.error = function(...args) {
-    originalConsoleError.apply(console, args);
-    if (document.getElementById('simpleDebugContent')) {
-        const message = args.map(arg => 
-            typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-        ).join(' ');
-        addDebugLog('❌', 'Error: ' + message);
-    }
-};
-
-// ===== GLOBAL FUNCTIONS =====
-window.showDebug = showDebugOverlay;
-window.hideDebug = hideDebugOverlay;
-window.toggleDebug = toggleDebugOverlay;
-
-// ===== INITIALIZATION =====
-// Call this when your app loads
-initializeOneSignal();
-
-// Create the overlay immediately
-console.log('🔧 Creating debug overlay on load...');
-createDebugOverlay();
-
-// Show it after a delay
-setTimeout(() => {
-    showDebugOverlay();
-    addDebugLog('🚀', 'Debug system initialized');
-    addDebugLog('🔍', 'OneSignal check', {
-        available: typeof OneSignal !== 'undefined',
-        permission: Notification.permission
-    });
-    
-    // Check OneSignal info after initialization
-    setTimeout(() => {
-        checkOneSignalInfo();
-    }, 2000);
-}, 1000);
-
-// Add test buttons with longer delay to ensure DOM is ready
-function ensureTestButtons() {
-    if (document.body) {
-        addTestButtons();
-        addDebugLog('📱', 'Phone test interface ready');
-    } else {
-        addDebugLog('⚠️', 'DOM not ready, retrying test buttons...');
-        setTimeout(ensureTestButtons, 500);
-    }
-}
-
-// Wait 3 seconds before adding test buttons
-setTimeout(ensureTestButtons, 3000);
-
-// Add keyboard shortcut (Ctrl/Cmd + D)
-document.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
-        e.preventDefault();
-        toggleDebugOverlay();
-    }
-});
-
-console.log('✅ Consolidated notification system loaded successfully!');
-
