@@ -11,6 +11,10 @@ setTimeout(() => {
 }, 500);
 
 });
+
+// Wait 3 seconds before adding test buttons
+setTimeout(ensureTestButtons, 3000);
+
 /*
 // Check if running as PWA and add appropriate spacing
 function adjustNavbarForPWA() {
@@ -9175,8 +9179,6 @@ function ensureTestButtons() {
     }
 }
 
-// Wait 3 seconds before adding test buttons
-setTimeout(ensureTestButtons, 3000);
 
 // Add keyboard shortcut (Ctrl/Cmd + D)
 document.addEventListener('keydown', (e) => {
