@@ -1320,14 +1320,14 @@ function createEnhancedDebugOverlay() {
                     font-size: 8px;
                     border-radius: 3px;
                 ">Check Subs</button>
-                <button id="createSubscription" style="
-                    background: #9900ff;
+                <button id="manualSubscribe" style="
+                    background: #ff0080;
                     color: white;
                     border: none;
                     padding: 2px 4px;
                     font-size: 8px;
                     border-radius: 3px;
-                ">Create Sub</button>
+                ">Manual Sub</button>
             </div>
         </div>
     `;
@@ -1347,8 +1347,8 @@ function createEnhancedDebugOverlay() {
         comparePushSubscriptions();
     };
     
-    document.getElementById('createSubscription').onclick = () => {
-        createPushSubscription();
+    document.getElementById('manualSubscribe').onclick = () => {
+        manualOneSignalSubscribe();
     };
     
     updateDebugInfo();
@@ -1453,7 +1453,62 @@ async function comparePushSubscriptions() {
     }
 }
 
-// Use your existing notification toggle system instead of manual API calls
+// Manual OneSignal subscription using basic methods
+async function manualOneSignalSubscribe() {
+    debugLog('🔧 Manual OneSignal subscription...');
+    
+    try {
+        if (typeof OneSignal === 'undefined') {
+            debugLog('❌ OneSignal not loaded');
+            return;
+        }
+        
+        debugLog('🔔 OneSignal is loaded and initialized');
+        
+        // Method 1: Try the slidedown prompt (most reliable for web)
+        try {
+            debugLog('📋 Attempting slidedown prompt...');
+            await OneSignal.Slidedown.promptPush();
+            debugLog('✅ Slidedown prompt completed');
+        } catch (e) {
+            debugLog(`Slidedown failed: ${e.message}`);
+            
+            // Method 2: Try direct prompt push
+            try {
+                debugLog('📋 Attempting direct prompt...');
+                await OneSignal.promptPush();
+                debugLog('✅ Direct prompt completed');
+            } catch (e2) {
+                debugLog(`Direct prompt failed: ${e2.message}`);
+                
+                // Method 3: Force notification request
+                debugLog('📋 Requesting browser permission manually...');
+                const permission = await Notification.requestPermission();
+                debugLog(`Permission result: ${permission}`);
+                
+                if (permission === 'granted') {
+                    debugLog('✅ Permission granted, OneSignal should auto-subscribe');
+                } else {
+                    debugLog('❌ Permission denied');
+                    return;
+                }
+            }
+        }
+        
+        // Wait for subscription to process
+        debugLog('⏰ Waiting 5 seconds for subscription...');
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        
+        // Check results
+        debugLog('🔍 Checking subscription results...');
+        setTimeout(() => {
+            comparePushSubscriptions();
+        }, 2000);
+        
+    } catch (error) {
+        debugLog(`❌ Manual subscription error: ${error.message}`);
+    }
+}
 async function createPushSubscription() {
     debugLog('🔧 Using app notification toggle...');
     
