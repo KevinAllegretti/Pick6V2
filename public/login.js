@@ -1320,14 +1320,14 @@ function createEnhancedDebugOverlay() {
                     font-size: 8px;
                     border-radius: 3px;
                 ">Check Subs</button>
-                <button id="updateSession" style="
-                    background: #00ff80;
-                    color: black;
+                <button id="forceInit" style="
+                    background: #ff4400;
+                    color: white;
                     border: none;
                     padding: 2px 4px;
                     font-size: 8px;
                     border-radius: 3px;
-                ">Update Session</button>
+                ">Force Init</button>
             </div>
         </div>
     `;
@@ -1347,8 +1347,8 @@ function createEnhancedDebugOverlay() {
         comparePushSubscriptions();
     };
     
-    document.getElementById('updateSession').onclick = () => {
-        updateOneSignalSession();
+    document.getElementById('forceInit').onclick = () => {
+        forceOneSignalInit();
     };
     
     updateDebugInfo();
@@ -1387,7 +1387,11 @@ function updateDebugInfo() {
         iOS: ${/iPad|iPhone|iPod/.test(navigator.userAgent)}<br>
         Standalone: ${window.navigator.standalone}<br>
         <br>
-        <div style="color: #00ffff; font-weight: bold;">NOTIFICATIONS:</div>
+        <div style="color: #00ffff; font-weight: bold;">ONESIGNAL DEBUG:</div>
+        OS Loaded: ${typeof OneSignal !== 'undefined'}<br>
+        OS Init: ${typeof OneSignal !== 'undefined' && OneSignal.initialized}<br>
+        OS Deferred: ${typeof OneSignalDeferred !== 'undefined'}<br>
+        <br>
         Permission: ${permission}<br>
         Enabled: ${isEnabled}<br>
         OneSignal: ${oneSignalLoaded}<br>
@@ -1466,7 +1470,61 @@ async function comparePushSubscriptions() {
     }
 }
 
-// Force OneSignal session update
+// Force OneSignal initialization
+async function forceOneSignalInit() {
+    debugLog('🔧 Force initializing OneSignal...');
+    
+    try {
+        // Check what we have
+        debugLog(`OneSignal exists: ${typeof OneSignal !== 'undefined'}`);
+        debugLog(`OneSignalDeferred exists: ${typeof OneSignalDeferred !== 'undefined'}`);
+        
+        if (typeof OneSignal === 'undefined') {
+            debugLog('❌ OneSignal not loaded at all');
+            debugLog('💡 Check if OneSignal script is loading');
+            return;
+        }
+        
+        if (OneSignal.initialized) {
+            debugLog('✅ OneSignal already initialized');
+            return;
+        }
+        
+        debugLog('🔄 Attempting manual initialization...');
+        
+        // Try to manually initialize OneSignal
+        await OneSignal.init({
+            appId: "c0849e89-f474-4aea-8de1-290715275d14",
+            safari_web_id: "web.onesignal.auto.2fc72fe0-a0df-475b-ad9a-b2dac840a493",
+            notifyButton: {
+                enable: false,
+            },
+        });
+        
+        debugLog('✅ OneSignal initialization attempted');
+        
+        // Wait for it to settle
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Check if it worked
+        if (OneSignal.initialized) {
+            debugLog('🎉 OneSignal now initialized!');
+            
+            // Try to get user info
+            try {
+                const userId = await OneSignal.User.getOnesignalId();
+                debugLog(`User ID: ${userId ? userId.substring(0, 8) + '...' : 'none'}`);
+            } catch (e) {
+                debugLog('User ID fetch failed');
+            }
+        } else {
+            debugLog('❌ Initialization failed');
+        }
+        
+    } catch (error) {
+        debugLog(`❌ Init error: ${error.message}`);
+    }
+}
 async function updateOneSignalSession() {
     debugLog('🔄 Updating OneSignal session...');
     
