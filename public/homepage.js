@@ -8425,11 +8425,11 @@ async function syncWithBackend(username, enabled) {
     }
 }
 
-// ===== COMPLETE NOTIFICATION SYSTEM WITH DEBUG OVERLAY =====
+// ===== CONSOLIDATED NOTIFICATION SYSTEM WITH DEBUG OVERLAY =====
 
-// SIMPLE DEBUG OVERLAY - GUARANTEED TO WORK
-console.log('🔧 Creating simple debug overlay...');
+console.log('🔧 Creating notification system...');
 
+// ===== DEBUG OVERLAY =====
 function createDebugOverlay() {
     console.log('🔧 createDebugOverlay called');
     
@@ -8578,79 +8578,81 @@ function toggleDebugOverlay() {
     }
 }
 
-// IMPROVED TAGGING FUNCTION WITH BETTER ERROR HANDLING
-async function tagUserInOneSignal(username, enabled) {
-    addDebugLog('🏷️', 'Starting tagUserInOneSignal', { username, enabled });
+// ===== ONESIGNAL TAGGING FUNCTIONS =====
+function ultraSimpleTest() {
+    addDebugLog('🧪', 'Ultra simple test starting...');
     
     if (typeof OneSignal === 'undefined') {
-        addDebugLog('❌', 'OneSignal not available for tagging');
-        return false;
+        addDebugLog('❌', 'OneSignal not available for ultra simple test');
+        return;
     }
     
-    return new Promise((resolve) => {
-        OneSignal.push(async function() {
-            try {
-                addDebugLog('🔍', 'Inside OneSignal.push for tagging');
-                
-                // First, let's see if we can get the user ID
-                try {
-                    const userId = await OneSignal.getUserId();
-                    addDebugLog('🆔', 'OneSignal User ID', userId);
-                } catch (e) {
-                    addDebugLog('⚠️', 'Could not get OneSignal User ID', e.message);
-                }
-                
-                // Try to get notification permission
-                try {
-                    const permission = OneSignal.getNotificationPermission();
-                    addDebugLog('🔔', 'OneSignal permission state', permission);
-                } catch (e) {
-                    addDebugLog('⚠️', 'Could not get permission state', e.message);
-                }
-                
-                // Now try to send tags
-                const tags = {
-                    username: username,
-                    notificationsEnabled: enabled,
-                    timestamp: new Date().toISOString(),
-                    source: 'pwa_toggle'
-                };
-                
-                addDebugLog('📋', 'Sending tags to OneSignal', tags);
-                
-                // Try the tagging with error handling
-                try {
-                    await OneSignal.sendTags(tags);
-                    addDebugLog('✅', 'Tags sent successfully to OneSignal');
-                    
-                    // Verify tags were set
-                    setTimeout(async () => {
-                        try {
-                            const currentTags = await OneSignal.getTags();
-                            addDebugLog('🔍', 'Current tags after setting', currentTags);
-                            resolve(true);
-                        } catch (e) {
-                            addDebugLog('⚠️', 'Could not verify tags', e.message);
-                            resolve(true); // Still consider it successful
-                        }
-                    }, 1000);
-                    
-                } catch (tagError) {
-                    addDebugLog('❌', 'Error sending tags', tagError.message);
-                    resolve(false);
-                }
-                
-            } catch (error) {
-                addDebugLog('❌', 'Error in OneSignal.push', error.message);
-                resolve(false);
-            }
+    addDebugLog('⏳', 'About to call OneSignal.push...');
+    
+    OneSignal.push(function() {
+        addDebugLog('✅', 'OneSignal push working for ultra simple test');
+        
+        addDebugLog('📤', 'Sending test tag...');
+        
+        // Just try to set one simple tag
+        OneSignal.sendTags({ test: 'working' }, function(response) {
+            addDebugLog('✅', 'Ultra simple tag sent', response);
         });
     });
 }
 
-// ADD TEST BUTTONS FOR PHONE TESTING
+function simpleTagUser(username, enabled) {
+    addDebugLog('🏷️', 'Simple tag user called', { username, enabled });
+    
+    if (typeof OneSignal === 'undefined') {
+        addDebugLog('❌', 'OneSignal not available');
+        return;
+    }
+    
+    const tags = {
+        username: username,
+        notificationsEnabled: enabled ? 'true' : 'false',
+        timestamp: new Date().toISOString()
+    };
+    
+    addDebugLog('📋', 'Sending simple tags', tags);
+    
+    OneSignal.push(function() {
+        addDebugLog('✅', 'OneSignal ready for simple tagging');
+        
+        // Use the callback version which is more reliable
+        OneSignal.sendTags(tags, function(response) {
+            addDebugLog('✅', 'Simple tags sent successfully', response);
+        });
+    });
+}
+
+function checkOneSignalInfo() {
+    addDebugLog('🔍', 'Checking OneSignal info...');
+    
+    if (typeof OneSignal === 'undefined') {
+        addDebugLog('❌', 'OneSignal not loaded');
+        return;
+    }
+    
+    addDebugLog('✅', 'OneSignal is available');
+    addDebugLog('🔐', 'Browser permission', Notification.permission);
+    addDebugLog('📱', 'Push supported', OneSignal.isPushNotificationsSupported());
+    
+    OneSignal.push(function() {
+        addDebugLog('✅', 'OneSignal push queue ready');
+        
+        try {
+            const isOptedIn = OneSignal.getNotificationPermission();
+            addDebugLog('🔔', 'OneSignal permission state', isOptedIn);
+        } catch (e) {
+            addDebugLog('⚠️', 'Could not get OneSignal permission state');
+        }
+    });
+}
+
+// ===== TEST BUTTONS FOR PHONE =====
 function addTestButtons() {
-    // Create a test panel
     const testPanel = document.createElement('div');
     testPanel.id = 'phoneTestPanel';
     testPanel.style.cssText = `
@@ -8714,15 +8716,7 @@ function addTestButtons() {
         font-size: 12px;
         cursor: pointer;
     `;
-    checkBtn.onclick = function() {
-        addDebugLog('🔍', 'OneSignal available', typeof OneSignal !== 'undefined');
-        addDebugLog('🔔', 'Browser permission', Notification.permission);
-        if (typeof OneSignal !== 'undefined') {
-            OneSignal.push(function() {
-                addDebugLog('✅', 'OneSignal push queue working');
-            });
-        }
-    };
+    checkBtn.onclick = checkOneSignalInfo;
     
     // Hide Panel Button
     const hideBtn = document.createElement('button');
@@ -8750,59 +8744,9 @@ function addTestButtons() {
     addDebugLog('📱', 'Phone test buttons added');
 }
 
-// ULTRA SIMPLE TEST FUNCTION (no console needed)
-function ultraSimpleTest() {
-    addDebugLog('🧪', 'Ultra simple test starting...');
-    
-    if (typeof OneSignal === 'undefined') {
-        addDebugLog('❌', 'OneSignal not available for ultra simple test');
-        return;
-    }
-    
-    addDebugLog('⏳', 'About to call OneSignal.push...');
-    
-    OneSignal.push(function() {
-        addDebugLog('✅', 'OneSignal push working for ultra simple test');
-        
-        addDebugLog('📤', 'Sending test tag...');
-        
-        // Just try to set one simple tag
-        OneSignal.sendTags({ test: 'working' }, function(response) {
-            addDebugLog('✅', 'Ultra simple tag sent', response);
-        });
-    });
-}
-
-// SIMPLE TAG USER (callback version)
-function simpleTagUser(username, enabled) {
-    addDebugLog('🏷️', 'Simple tag user called', { username, enabled });
-    
-    if (typeof OneSignal === 'undefined') {
-        addDebugLog('❌', 'OneSignal not available');
-        return;
-    }
-    
-    const tags = {
-        username: username,
-        notificationsEnabled: enabled ? 'true' : 'false',
-        timestamp: new Date().toISOString()
-    };
-    
-    addDebugLog('📋', 'Sending simple tags', tags);
-    
-    OneSignal.push(function() {
-        addDebugLog('✅', 'OneSignal ready for simple tagging');
-        
-        // Use the callback version which is more reliable
-        OneSignal.sendTags(tags, function(response) {
-            addDebugLog('✅', 'Simple tags sent successfully', response);
-        });
-    });
-}
-
-// UPDATED NOTIFICATION TOGGLE - PHONE FRIENDLY
-async function handleNotificationTogglePhone() {
-    addDebugLog('📱', 'Phone notification toggle called');
+// ===== MAIN NOTIFICATION TOGGLE =====
+async function handleNotificationToggle() {
+    addDebugLog('📱', 'Notification toggle called');
     
     const toggle = document.getElementById('notificationCheck');
     const isEnabled = toggle ? toggle.checked : false;
@@ -8900,50 +8844,7 @@ async function handleNotificationTogglePhone() {
     }
 }
 
-// AUTO-ADD TEST BUTTONS WHEN PAGE LOADS
-setTimeout(() => {
-    addTestButtons();
-    addDebugLog('📱', 'Phone test interface ready');
-}, 2000);
-// TEST FUNCTION TO MANUALLY TAG USER
-function testTagging() {
-    const username = getCurrentUsername();
-    if (!username) {
-        addDebugLog('❌', 'No username for test tagging');
-        return;
-    }
-    
-    addDebugLog('🧪', 'Testing tagging manually...');
-    tagUserInOneSignal(username, true);
-}
-
-// Even simpler OneSignal info function
-function checkOneSignalInfo() {
-    addDebugLog('🔍', 'Checking OneSignal info...');
-    
-    if (typeof OneSignal === 'undefined') {
-        addDebugLog('❌', 'OneSignal not loaded');
-        return;
-    }
-    
-    addDebugLog('✅', 'OneSignal is available');
-    addDebugLog('🔐', 'Browser permission', Notification.permission);
-    addDebugLog('📱', 'Push supported', OneSignal.isPushNotificationsSupported());
-    
-    // Don't check subscription status - just proceed with tagging
-    OneSignal.push(function() {
-        addDebugLog('✅', 'OneSignal push queue ready');
-        
-        // Try to get some basic info without hanging
-        try {
-            const isOptedIn = OneSignal.getNotificationPermission();
-            addDebugLog('🔔', 'OneSignal permission state', isOptedIn);
-        } catch (e) {
-            addDebugLog('⚠️', 'Could not get OneSignal permission state');
-        }
-    });
-}
-
+// ===== NOTIFICATION TOGGLE INITIALIZATION =====
 function initializeNotificationToggle() {
     console.log('🔧 Starting initializeNotificationToggle');
     
@@ -8978,8 +8879,8 @@ function initializeNotificationToggle() {
         toggle.checked = !toggle.checked;
         console.log('🔔 Checkbox toggled to:', toggle.checked);
         
-        // Handle the toggle - USE THE SIMPLE VERSION
-        handleNotificationTogglePhone();
+        // Handle the toggle
+        handleNotificationToggle();
     });
     
     // Add click handler to the span text
@@ -9018,6 +8919,7 @@ function initializeNotificationToggle() {
     document.body.appendChild(debugButton);
 }
 
+// ===== UTILITY FUNCTIONS =====
 async function loadNotificationState() {
     console.log('📥 Loading notification state');
     
@@ -9060,7 +8962,6 @@ async function loadNotificationState() {
 }
 
 function getCurrentUsername() {
-    // Get username from local storage
     const username = localStorage.getItem('username');
     console.log('👤 getCurrentUsername from localStorage:', username);
     
@@ -9069,7 +8970,6 @@ function getCurrentUsername() {
         return null;
     }
     
-    // Return lowercase
     const result = username.toLowerCase();
     console.log('👤 getCurrentUsername result:', result);
     return result;
@@ -9078,7 +8978,7 @@ function getCurrentUsername() {
 function showNotificationMessage(message, type = 'info') {
     console.log('💬 Showing message:', { message, type });
     
-     const bgColor = '#112240'; // Dark blue background
+    const bgColor = '#112240'; // Dark blue background
    
     const messageHTML = `
         <div id="notificationMessage" style="
@@ -9154,7 +9054,7 @@ async function syncWithBackend(username, enabled) {
     }
 }
 
-// Add this to your main app initialization
+// ===== ONESIGNAL INITIALIZATION =====
 window.OneSignal = window.OneSignal || [];
 
 function initializeOneSignal() {
@@ -9170,7 +9070,7 @@ function initializeOneSignal() {
     });
 }
 
-// Override console to capture logs
+// ===== CONSOLE OVERRIDE =====
 const originalConsoleLog = console.log;
 const originalConsoleError = console.error;
 
@@ -9194,11 +9094,12 @@ console.error = function(...args) {
     }
 };
 
-// Global functions for easy access
+// ===== GLOBAL FUNCTIONS =====
 window.showDebug = showDebugOverlay;
 window.hideDebug = hideDebugOverlay;
 window.toggleDebug = toggleDebugOverlay;
 
+// ===== INITIALIZATION =====
 // Call this when your app loads
 initializeOneSignal();
 
@@ -9219,6 +9120,10 @@ setTimeout(() => {
     setTimeout(() => {
         checkOneSignalInfo();
     }, 2000);
+    
+    // Add test buttons for phone testing
+    addTestButtons();
+    addDebugLog('📱', 'Phone test interface ready');
 }, 1000);
 
 // Add keyboard shortcut (Ctrl/Cmd + D)
@@ -9229,5 +9134,4 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-console.log('✅ Notification system with debug overlay loaded successfully!');
-
+console.log('✅ Consolidated notification system loaded successfully!');
