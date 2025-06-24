@@ -10372,10 +10372,28 @@ function addMobileTestButtons() {
         testPanel.style.display = 'none';
     };
     
-    // Add to your test buttons
-const fixUserBtn = document.createElement('button');
-fixUserBtn.textContent = '🔧 Fix User';
-fixUserBtn.style.cssText = `
+// Replace the Fix User button with these new ones:
+
+// Simple Check Button
+const simpleCheckBtn = document.createElement('button');
+simpleCheckBtn.textContent = '🔍 Simple';
+simpleCheckBtn.style.cssText = `
+    background: #607D8B;
+    color: white;
+    border: none;
+    padding: 10px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    cursor: pointer;
+    flex: 1;
+    min-width: 80px;
+`;
+simpleCheckBtn.onclick = simpleOneSignalCheck;
+
+// Fix V2 Button  
+const fixV2Btn = document.createElement('button');
+fixV2Btn.textContent = '🔧 Fix V2';
+fixV2Btn.style.cssText = `
     background: #FF5722;
     color: white;
     border: none;
@@ -10386,16 +10404,39 @@ fixUserBtn.style.cssText = `
     flex: 1;
     min-width: 80px;
 `;
-fixUserBtn.onclick = async function() {
-    addDebugLog('🔧', 'Fixing existing user...');
+fixV2Btn.onclick = async function() {
     try {
-        const result = await fixExistingUser();
-        addDebugLog('✅', 'User fixed:', result);
+        const result = await fixExistingUserV2();
+        addDebugLog('✅', 'Fix V2 result:', result);
     } catch (error) {
-        addDebugLog('❌', 'Fix failed:', error.toString());
+        addDebugLog('❌', 'Fix V2 failed:', error.toString());
     }
 };
-// Add to your panel
+
+// Force Create Button
+const forceCreateBtn = document.createElement('button');
+forceCreateBtn.textContent = '🆕 Force';
+forceCreateBtn.style.cssText = `
+    background: #795548;
+    color: white;
+    border: none;
+    padding: 10px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    cursor: pointer;
+    flex: 1;
+    min-width: 80px;
+`;
+forceCreateBtn.onclick = async function() {
+    try {
+        const result = await forceCreateNewUser();
+        addDebugLog('✅', 'Force create result:', result);
+    } catch (error) {
+        addDebugLog('❌', 'Force create failed:', error.toString());
+    }
+};
+
+// Add all three to your panel
 
     addDebugLog('🔧', 'Adding buttons to panel...');
     testPanel.appendChild(testUserBtn);
@@ -10404,8 +10445,10 @@ fixUserBtn.onclick = async function() {
     testPanel.appendChild(infoBtn);
     testPanel.appendChild(testNotifyBtn);
     testPanel.appendChild(hideBtn);
-    testPanel.appendChild(fixUserBtn);
-    
+    testPanel.appendChild(simpleCheckBtn);
+testPanel.appendChild(fixV2Btn);  
+testPanel.appendChild(forceCreateBtn);
+   
     addDebugLog('🔧', 'Adding panel to document body...');
     try {
         document.body.appendChild(testPanel);
@@ -10475,3 +10518,210 @@ async function fixExistingUser() {
         throw error;
     }
 }
+
+// ===== FIXED ONESIGNAL v16 FUNCTIONS =====
+
+// ===== CORRECT API METHODS FOR v16 =====
+async function getOneSignalUserId() {
+    try {
+        // Try different v16 methods
+        if (OneSignal.User && OneSignal.User.onesignalId) {
+            return OneSignal.User.onesignalId;
+        }
+        
+        if (OneSignal.User && typeof OneSignal.User.getOnesignalId === 'function') {
+            return await OneSignal.User.getOnesignalId();
+        }
+        
+        // Alternative method
+        if (OneSignal.getUserId) {
+            return await OneSignal.getUserId();
+        }
+        
+        // Try accessing the ID directly
+        const userId = OneSignal.User?.onesignalId || OneSignal.User?.id;
+        return userId || null;
+        
+    } catch (error) {
+        addDebugLog('❌', 'Error getting OneSignal ID:', error.toString());
+        return null;
+    }
+}
+
+// ===== IMPROVED FIX EXISTING USER =====
+async function fixExistingUserV2() {
+    const username = getCurrentUsername();
+    addDebugLog('🔧', 'Fixing existing user for:', username);
+    
+    try {
+        // First, check what OneSignal methods are available
+        addDebugLog('🔍', 'OneSignal User object:', {
+            hasUser: !!OneSignal.User,
+            userKeys: OneSignal.User ? Object.keys(OneSignal.User) : 'No User object',
+            hasGetId: !!(OneSignal.User && OneSignal.User.getOnesignalId),
+            hasOnesignalId: !!(OneSignal.User && OneSignal.User.onesignalId)
+        });
+        
+        // Try to get OneSignal ID using different methods
+        let onesignalId = await getOneSignalUserId();
+        addDebugLog('🆔', 'OneSignal ID attempt 1:', onesignalId);
+        
+        // If no ID found, try to get it from subscription status
+        if (!onesignalId) {
+            try {
+                const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
+                addDebugLog('📊', 'Subscription status:', isOptedIn);
+                
+                if (isOptedIn) {
+                    // Try to get subscription ID instead
+                    const subId = await OneSignal.User.PushSubscription.id;
+                    addDebugLog('📱', 'Subscription ID:', subId);
+                    
+                    // For now, use this as the user ID
+                    onesignalId = subId;
+                }
+            } catch (subError) {
+                addDebugLog('❌', 'Subscription check error:', subError.toString());
+            }
+        }
+        
+        if (onesignalId) {
+            addDebugLog('✅', 'Found OneSignal ID:', onesignalId);
+            
+            // Try to set external ID (if method exists)
+            try {
+                if (OneSignal.User && OneSignal.User.addAlias) {
+                    await OneSignal.User.addAlias('external_id', username.toLowerCase());
+                    addDebugLog('✅', 'External ID set via addAlias');
+                } else if (OneSignal.User && OneSignal.User.setExternalUserId) {
+                    await OneSignal.User.setExternalUserId(username.toLowerCase());
+                    addDebugLog('✅', 'External ID set via setExternalUserId');
+                } else {
+                    addDebugLog('⚠️', 'No method found to set external ID');
+                }
+            } catch (aliasError) {
+                addDebugLog('⚠️', 'External ID setting failed:', aliasError.toString());
+            }
+            
+            // Update backend with the existing OneSignal ID
+            await updateBackendNotificationStatus(username, true, onesignalId);
+            addDebugLog('✅', 'Backend updated');
+            
+            return { success: true, onesignalId, method: 'existing_user_fixed' };
+        } else {
+            addDebugLog('❌', 'No OneSignal ID found - user may not be subscribed');
+            
+            // Try to create a fresh subscription
+            addDebugLog('🔄', 'Attempting fresh subscription...');
+            await OneSignal.User.PushSubscription.optIn();
+            
+            // Wait and try again
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            onesignalId = await getOneSignalUserId();
+            
+            if (onesignalId) {
+                addDebugLog('✅', 'New subscription created:', onesignalId);
+                await updateBackendNotificationStatus(username, true, onesignalId);
+                return { success: true, onesignalId, method: 'new_subscription' };
+            } else {
+                throw new Error('Could not create or find OneSignal subscription');
+            }
+        }
+    } catch (error) {
+        addDebugLog('❌', 'Fix existing user error:', error.toString());
+        throw error;
+    }
+}
+
+// ===== SIMPLE ONESIGNAL STATUS CHECK =====
+async function simpleOneSignalCheck() {
+    addDebugLog('🔍', 'Simple OneSignal check...');
+    
+    try {
+        // Check what's available
+        addDebugLog('📊', 'OneSignal availability:', {
+            oneSignalExists: typeof OneSignal !== 'undefined',
+            hasUser: !!(OneSignal && OneSignal.User),
+            hasPushSubscription: !!(OneSignal && OneSignal.User && OneSignal.User.PushSubscription)
+        });
+        
+        if (!OneSignal || !OneSignal.User) {
+            addDebugLog('❌', 'OneSignal User API not available');
+            return;
+        }
+        
+        // Check subscription status
+        try {
+            const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
+            addDebugLog('📱', 'Is opted in:', isOptedIn);
+        } catch (error) {
+            addDebugLog('❌', 'Error checking opt-in status:', error.toString());
+        }
+        
+        // Try to get any available IDs
+        const userId = await getOneSignalUserId();
+        addDebugLog('🆔', 'User ID result:', userId);
+        
+        // Check browser permission
+        addDebugLog('🔐', 'Browser permission:', Notification.permission);
+        
+    } catch (error) {
+        addDebugLog('❌', 'Simple check error:', error.toString());
+    }
+}
+
+// ===== FORCE CREATE NEW USER =====
+async function forceCreateNewUser() {
+    const username = getCurrentUsername();
+    addDebugLog('🆕', 'Force creating new user for:', username);
+    
+    try {
+        // Step 1: Get browser permission
+        let permission = Notification.permission;
+        if (permission !== 'granted') {
+            permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                throw new Error('Notification permission denied');
+            }
+        }
+        addDebugLog('✅', 'Browser permission:', permission);
+        
+        // Step 2: Try to opt in
+        addDebugLog('🔔', 'Attempting OneSignal opt-in...');
+        await OneSignal.User.PushSubscription.optIn();
+        addDebugLog('✅', 'Opt-in completed');
+        
+        // Step 3: Wait for registration
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        
+        // Step 4: Check status
+        const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
+        addDebugLog('📊', 'Final opt-in status:', isOptedIn);
+        
+        if (isOptedIn) {
+            const userId = await getOneSignalUserId();
+            addDebugLog('🆔', 'New user ID:', userId);
+            
+            if (userId) {
+                // Update backend
+                await updateBackendNotificationStatus(username, true, userId);
+                addDebugLog('✅', 'New user created and backend updated');
+                return { success: true, onesignalId: userId };
+            }
+        }
+        
+        throw new Error('User creation failed - no ID generated');
+        
+    } catch (error) {
+        addDebugLog('❌', 'Force create error:', error.toString());
+        throw error;
+    }
+}
+
+// ===== EXPORT NEW FUNCTIONS =====
+window.fixExistingUserV2 = fixExistingUserV2;
+window.simpleOneSignalCheck = simpleOneSignalCheck;
+window.forceCreateNewUser = forceCreateNewUser;
+window.getOneSignalUserId = getOneSignalUserId;
+
+console.log('✅ Fixed OneSignal v16 functions loaded!');
