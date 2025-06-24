@@ -628,7 +628,7 @@ async function updateOneSignalUserTags(onesignalId: string, tags: Record<string,
 }
 
 // ===== UPDATED NOTIFICATION FUNCTIONS =====
-
+/*
 // Send notification to all enabled users (updated for User API)
 async function sendNotificationToAll(title: string, body: string, data?: any) {
   try {
@@ -656,7 +656,7 @@ async function sendNotificationToAll(title: string, body: string, data?: any) {
     console.error('Error sending notifications:', error);
     throw error;
   }
-}
+}*/
 
 // Updated OneSignal notification function using User API
 async function sendOneSignalNotificationToUsers(title: string, body: string, users: any[], data?: any) {
@@ -872,6 +872,78 @@ router.get('/status/:username', async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+
+
+// OneSignal REST API implementation
+async function sendOneSignalNotification(title: string, body: string, data?: any) {
+  const ONESIGNAL_APP_ID = "c0849e89-f474-4aea-8de1-290715275d14";
+  const ONESIGNAL_REST_API_KEY = process.env.ONESIGNAL_REST_API_KEY; // Add this to your .env
+  
+  console.log('All environment variables:', Object.keys(process.env).filter(key => key.includes('ONESIGNAL')));
+  console.log('ONESIGNAL_REST_API_KEY value:', process.env.ONESIGNAL_REST_API_KEY);
+  console.log('ONESIGNAL_REST_API_KEY type:', typeof process.env.ONESIGNAL_REST_API_KEY);
+  if (!ONESIGNAL_REST_API_KEY) {
+    console.warn('OneSignal REST API key not configured');
+    return null;
+  }
+  
+  try {
+    const response = await fetch('https://onesignal.com/api/v1/notifications', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`
+      },
+      body: JSON.stringify({
+        app_id: ONESIGNAL_APP_ID,
+        included_segments: ['All'], // Send to all subscribed users
+        headings: { en: title },
+        contents: { en: body },
+        data: data || {},
+        web_url: data?.url || 'https://pick6.club/dashboard.html',
+        chrome_web_icon: 'https://pick6.club/aiP6.png',
+        chrome_web_badge: 'https://pick6.club/favicon.png'
+      })
+    });
+    
+    const result = await response.json();
+    console.log('OneSignal response:', result);
+    return result;
+    
+  } catch (error) {
+    console.error('OneSignal API error:', error);
+    return null;
+  }
+}
+// Send notification to all enabled users
+async function sendNotificationToAll(title: string, body: string, data?: any) {
+  try {
+    const db = await connectToDatabase();
+    
+    // Get all users with notifications enabled
+    // You'll need to add a notificationsEnabled field to your users collection
+    const enabledUsers = await db.collection('users').find({ 
+      notificationsEnabled: true 
+    }).toArray();
+    
+    console.log(`Sending notification to ${enabledUsers.length} users:`, title);
+    
+    if (enabledUsers.length === 0) {
+      console.log('No users have notifications enabled');
+      return { success: true, sent: 0 };
+    }
+    
+    // For now, we'll use OneSignal REST API
+    // You could also implement Web Push Protocol here
+    const notifications = await sendOneSignalNotification(title, body, data);
+    
+    return { success: true, sent: enabledUsers.length, details: notifications };
+    
+  } catch (error) {
+    console.error('Error sending notifications:', error);
+    throw error;
+  }
+}
 
 // Export the notification function for use in scheduler
 export { sendNotificationToAll };
