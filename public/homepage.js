@@ -13,7 +13,7 @@ setTimeout(() => {
 });
 
 // Wait 3 seconds before adding test buttons
-setTimeout(ensureTestButtons, 3000);
+//setTimeout(ensureTestButtons, 3000);
 
 /*
 // Check if running as PWA and add appropriate spacing
