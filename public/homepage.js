@@ -15,46 +15,45 @@ const ONESIGNAL_CONFIG = {
     allowLocalhostAsSecureOrigin: true
 };
 
-// ===== FIXED v16 USER ID ACCESS =====
+// ===== FIXED v16 USER ID ACCESS (DOC-ALIGNED) =====
 async function getOneSignalUserIdV16() {
     try {
-        addDebugLog('🔍', 'Getting OneSignal user ID (v16 fixed method)...');
+        addDebugLog('🔍', 'Getting OneSignal user ID (v16 SDK method per docs)...');
         
-        // In v16, there are multiple ways to get the ID - try them all
+        // Per docs: "Users will be created alongside the push Subscriptions"
+        // Primary method: OneSignal.User.onesignalId (recommended in v16)
         let userId = null;
         
-        // Method 1: Direct property access (most common in v16)
+        // Method 1: Direct onesignalId access (v16 standard)
         if (OneSignal.User && OneSignal.User.onesignalId) {
             userId = OneSignal.User.onesignalId;
-            addDebugLog('✅', 'Got ID via OneSignal.User.onesignalId:', userId);
+            addDebugLog('✅', 'Got OneSignal ID via User.onesignalId:', userId);
+            return userId;
         }
         
-        // Method 2: Try subscription ID if no user ID
-        if (!userId && OneSignal.User && OneSignal.User.PushSubscription) {
+        // Method 2: Check if user has external_id set (per docs recommendation)
+        if (OneSignal.User && OneSignal.User.externalId) {
+            userId = OneSignal.User.externalId;
+            addDebugLog('✅', 'Got external_id (recommended identifier):', userId);
+            return userId;
+        }
+        
+        // Method 3: Fallback to subscription ID if available
+        if (OneSignal.User && OneSignal.User.PushSubscription) {
             try {
                 const subId = await OneSignal.User.PushSubscription.id;
                 if (subId) {
                     userId = subId;
-                    addDebugLog('✅', 'Got ID via PushSubscription.id:', userId);
+                    addDebugLog('✅', 'Got subscription ID as fallback:', userId);
+                    return userId;
                 }
             } catch (subError) {
                 addDebugLog('⚠️', 'Could not get subscription ID:', subError.toString());
             }
         }
         
-        // Method 3: Check if there's an external ID set
-        if (!userId && OneSignal.User && OneSignal.User.externalId) {
-            userId = OneSignal.User.externalId;
-            addDebugLog('✅', 'Got external ID:', userId);
-        }
-        
-        if (userId) {
-            addDebugLog('🎉', 'Successfully retrieved user ID:', userId);
-            return userId;
-        } else {
-            addDebugLog('ℹ️', 'No user ID found - user may not be subscribed yet');
-            return null;
-        }
+        addDebugLog('ℹ️', 'No user ID found - user may not be subscribed yet');
+        return null;
         
     } catch (error) {
         addDebugLog('❌', 'Error getting OneSignal user ID:', error.toString());
@@ -420,14 +419,14 @@ async function verifyInitializationFixed() {
     }
 }
 
-// ===== FIXED SUBSCRIPTION FUNCTIONS =====
+// ===== DOC-ALIGNED SUBSCRIPTION FUNCTIONS =====
 async function subscribeToNotificationsV16() {
-    addDebugLog('🔔', 'Starting subscription (v16 fixed)...');
+    addDebugLog('🔔', 'Starting subscription (per v16 SDK docs)...');
     
     try {
-        // Step 1: Check browser permission
+        // Step 1: Check browser permission first
         let permission = Notification.permission;
-        addDebugLog('🔐', 'Browser permission:', permission);
+        addDebugLog('🔐', 'Browser permission status:', permission);
         
         if (permission === 'denied') {
             throw new Error('Notifications blocked in browser settings');
@@ -442,7 +441,7 @@ async function subscribeToNotificationsV16() {
         
         // Step 2: Check current subscription status
         const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
-        addDebugLog('📊', 'Current subscription status:', isOptedIn);
+        addDebugLog('📊', 'Current opt-in status:', isOptedIn);
         
         if (isOptedIn) {
             const userId = await getOneSignalUserIdV16();
@@ -450,12 +449,12 @@ async function subscribeToNotificationsV16() {
             return { success: true, onesignalId: userId, alreadySubscribed: true };
         }
         
-        // Step 3: Subscribe
-        addDebugLog('📱', 'Calling optIn()...');
+        // Step 3: Subscribe using v16 SDK (per docs: "Users will be created alongside")
+        addDebugLog('📱', 'Calling PushSubscription.optIn() - SDK will create user automatically...');
         await OneSignal.User.PushSubscription.optIn();
         
-        // Step 4: Wait for subscription to process
-        addDebugLog('⏳', 'Waiting for subscription to process...');
+        // Step 4: Wait for subscription to process and user creation
+        addDebugLog('⏳', 'Waiting for user creation and subscription processing...');
         await new Promise(resolve => setTimeout(resolve, 3000));
         
         // Step 5: Verify subscription
@@ -463,19 +462,19 @@ async function subscribeToNotificationsV16() {
         addDebugLog('📊', 'Final subscription status:', finalOptedIn);
         
         if (!finalOptedIn) {
-            throw new Error('Subscription failed');
+            throw new Error('Subscription failed - optIn did not complete');
         }
         
-        // Step 6: Get the user ID using FIXED v16 method
+        // Step 6: Get the OneSignal ID (should be available after automatic user creation)
         const userId = await getOneSignalUserIdV16();
-        addDebugLog('🆔', 'New user ID (v16 fixed):', userId);
+        addDebugLog('🆔', 'OneSignal ID after automatic user creation:', userId);
         
-        // Don't fail if no ID yet - sometimes it takes time
+        // Per docs: User creation is automatic, so don't fail if ID takes time
         if (!userId) {
-            addDebugLog('⚠️', 'No ID yet, but subscription appears successful');
+            addDebugLog('⚠️', 'User ID not immediately available - this is normal for new subscriptions');
         }
         
-        addDebugLog('🎉', 'Subscription completed!');
+        addDebugLog('🎉', 'Subscription completed via v16 SDK!');
         return { success: true, onesignalId: userId, alreadySubscribed: false };
         
     } catch (error) {
@@ -841,7 +840,7 @@ function addMobileTestButtons() {
         max-width: 300px;
     `;
     
-    // Test Status Button
+    // Test Status Button - FIXED to use correct function name
     const testBtn = document.createElement('button');
     testBtn.textContent = '🧪 Test';
     testBtn.style.cssText = `
@@ -855,9 +854,9 @@ function addMobileTestButtons() {
         flex: 1;
         min-width: 80px;
     `;
-    testBtn.onclick = testOneSignalStatus;
+    testBtn.onclick = testOneSignalStatusV16; // FIXED: Use correct function name
     
-    // Subscribe Button
+    // Subscribe Button - FIXED to use correct function name
     const subBtn = document.createElement('button');
     subBtn.textContent = '🔔 Sub';
     subBtn.style.cssText = `
@@ -873,14 +872,14 @@ function addMobileTestButtons() {
     `;
     subBtn.onclick = async function() {
         try {
-            const result = await subscribeToNotifications();
+            const result = await subscribeToNotificationsV16(); // FIXED: Use correct function name
             addDebugLog('✅', 'Manual subscription result:', result);
         } catch (error) {
             addDebugLog('❌', 'Manual subscription failed:', error.toString());
         }
     };
 
-    // Unsubscribe Button
+    // Unsubscribe Button - FIXED to use correct function name
     const unsubBtn = document.createElement('button');
     unsubBtn.textContent = '🔕 Unsub';
     unsubBtn.style.cssText = `
@@ -896,14 +895,14 @@ function addMobileTestButtons() {
     `;
     unsubBtn.onclick = async function() {
         try {
-            const result = await unsubscribeFromNotifications();
+            const result = await unsubscribeFromNotificationsV16(); // FIXED: Use correct function name
             addDebugLog('✅', 'Manual unsubscription result:', result);
         } catch (error) {
             addDebugLog('❌', 'Manual unsubscription failed:', error.toString());
         }
     };
 
-    // Toggle Button
+    // Toggle Button - FIXED to use correct function name
     const toggleBtn = document.createElement('button');
     toggleBtn.textContent = '🔄 Toggle';
     toggleBtn.style.cssText = `
@@ -917,7 +916,7 @@ function addMobileTestButtons() {
         flex: 1;
         min-width: 80px;
     `;
-    toggleBtn.onclick = handleNotificationToggle;
+    toggleBtn.onclick = handleNotificationToggleV16; // FIXED: Use correct function name
 
     // Hide Panel Button
     const hideBtn = document.createElement('button');
@@ -983,7 +982,7 @@ async function initOnPageLoad() {
             
             // Run a status test after initialization
             setTimeout(() => {
-                testOneSignalStatus();
+                testOneSignalStatusV16(); // FIXED: Use correct function name
             }, 2000);
             
             // Add test buttons after another delay
@@ -997,17 +996,23 @@ async function initOnPageLoad() {
     }
 }
 
-// ===== EXPORT GLOBAL FUNCTIONS =====
+// ===== EXPORT GLOBAL FUNCTIONS WITH FIXED NAMES =====
+// Main v16 functions (corrected names)
 window.initializeOneSignalV16 = initializeOneSignalV16;
-window.subscribeToNotifications = subscribeToNotifications;
-window.unsubscribeFromNotifications = unsubscribeFromNotifications;
-window.testOneSignalStatus = testOneSignalStatus;
-window.handleNotificationToggle = handleNotificationToggle;
+window.subscribeToNotificationsV16 = subscribeToNotificationsV16;
+window.unsubscribeFromNotificationsV16 = unsubscribeFromNotificationsV16;
+window.testOneSignalStatusV16 = testOneSignalStatusV16;
+window.handleNotificationToggleV16 = handleNotificationToggleV16;
+window.getOneSignalUserIdV16 = getOneSignalUserIdV16;
+
+// UI and utility functions
 window.initializeNotificationToggle = initializeNotificationToggle;
 window.loadNotificationState = loadNotificationState;
 window.updateBackendNotificationStatus = updateBackendNotificationStatus;
 window.getCurrentUsername = getCurrentUsername;
 window.showNotificationMessage = showNotificationMessage;
+
+// Debug functions
 window.addDebugLog = addDebugLog;
 window.showDebugOverlay = showDebugOverlay;
 window.hideDebugOverlay = hideDebugOverlay;
@@ -1015,11 +1020,16 @@ window.toggleDebugOverlay = toggleDebugOverlay;
 window.clearDebugLog = clearDebugLog;
 window.addMobileTestButtons = addMobileTestButtons;
 
-// ===== LEGACY SUPPORT =====
-// These provide backward compatibility with your existing code
+// ===== BACKWARD COMPATIBILITY ALIASES =====
+// These provide aliases for your existing code that might be calling the old names
+window.subscribeToNotifications = subscribeToNotificationsV16;
+window.unsubscribeFromNotifications = unsubscribeFromNotificationsV16;
+window.testOneSignalStatus = testOneSignalStatusV16;
+window.handleNotificationToggle = handleNotificationToggleV16;
+
+// Legacy support functions
 window.syncWithBackend = updateBackendNotificationStatus;
-window.handleNotificationToggleV16 = handleNotificationToggle;
-window.getOneSignalInfo = testOneSignalStatus;
+window.getOneSignalInfo = testOneSignalStatusV16;
 
 // ===== AUTO-START INITIALIZATION =====
 // Start initialization immediately
@@ -1051,7 +1061,6 @@ setTimeout(() => {
 console.log('✅ Complete OneSignal v16 System loaded and ready!');
 
 // ===== END OF ONESIGNAL SYSTEM =====
-
 
 /*// Initialize notification toggle on page load
 document.addEventListener('DOMContentLoaded', function() {
