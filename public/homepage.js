@@ -11,7 +11,64 @@ setTimeout(() => {
 }, 500);
 
 });
+// ===== DEBUG BUTTON (TOP RIGHT) =====
+function addDebugButton() {
+    const debugButton = document.createElement('button');
+    debugButton.textContent = '🐛';
+    debugButton.style.cssText = `
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 10001;
+        background: #33d9ff;
+        color: black;
+        border: none;
+        padding: 15px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 16px;
+        width: 50px;
+        height: 50px;
+    `;
+    debugButton.onclick = toggleDebugOverlay;
+    document.body.appendChild(debugButton);
+}
 
+// ===== INITIALIZATION =====
+function initializeMobileDebugSystem() {
+    console.log('🚀 Initializing mobile debug system...');
+    
+    // Create debug overlay
+    createDebugOverlay();
+    
+    // Add debug button
+    addDebugButton();
+    
+    // Add test buttons after a short delay
+    setTimeout(() => {
+        addMobileTestButtons();
+        addDebugLog('🎉', 'Mobile debug system ready!');
+    }, 1000);
+}
+
+// ===== GLOBAL FUNCTIONS =====
+window.showDebugOverlay = showDebugOverlay;
+window.hideDebugOverlay = hideDebugOverlay;
+window.toggleDebugOverlay = toggleDebugOverlay;
+window.clearDebugLog = clearDebugLog;
+window.addDebugLog = addDebugLog;
+window.addMobileTestButtons = addMobileTestButtons;
+window.getOneSignalInfo = getOneSignalInfo;
+window.initializeMobileDebugSystem = initializeMobileDebugSystem;
+
+// Auto-initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeMobileDebugSystem);
+} else {
+    initializeMobileDebugSystem();
+}
+
+console.log('✅ Mobile debug system loaded!');
 // Wait 3 seconds before adding test buttons
 //setTimeout(ensureTestButtons, 3000);
 
@@ -10364,61 +10421,3 @@ function getOneSignalInfo() {
     });
 }
 
-// ===== DEBUG BUTTON (TOP RIGHT) =====
-function addDebugButton() {
-    const debugButton = document.createElement('button');
-    debugButton.textContent = '🐛';
-    debugButton.style.cssText = `
-        position: fixed;
-        top: 10px;
-        left: 10px;
-        z-index: 10001;
-        background: #33d9ff;
-        color: black;
-        border: none;
-        padding: 15px;
-        border-radius: 50%;
-        cursor: pointer;
-        font-size: 16px;
-        width: 50px;
-        height: 50px;
-    `;
-    debugButton.onclick = toggleDebugOverlay;
-    document.body.appendChild(debugButton);
-}
-
-// ===== INITIALIZATION =====
-function initializeMobileDebugSystem() {
-    console.log('🚀 Initializing mobile debug system...');
-    
-    // Create debug overlay
-    createDebugOverlay();
-    
-    // Add debug button
-    addDebugButton();
-    
-    // Add test buttons after a short delay
-    setTimeout(() => {
-        addMobileTestButtons();
-        addDebugLog('🎉', 'Mobile debug system ready!');
-    }, 1000);
-}
-
-// ===== GLOBAL FUNCTIONS =====
-window.showDebugOverlay = showDebugOverlay;
-window.hideDebugOverlay = hideDebugOverlay;
-window.toggleDebugOverlay = toggleDebugOverlay;
-window.clearDebugLog = clearDebugLog;
-window.addDebugLog = addDebugLog;
-window.addMobileTestButtons = addMobileTestButtons;
-window.getOneSignalInfo = getOneSignalInfo;
-window.initializeMobileDebugSystem = initializeMobileDebugSystem;
-
-// Auto-initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeMobileDebugSystem);
-} else {
-    initializeMobileDebugSystem();
-}
-
-console.log('✅ Mobile debug system loaded!');
