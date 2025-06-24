@@ -9996,3 +9996,429 @@ if (document.readyState === 'loading') {
         }
     }, 1000);
 }
+
+// ===== DEBUG OVERLAY FOR MOBILE =====
+function createDebugOverlay() {
+    console.log('🔧 createDebugOverlay called');
+    
+    // Remove any existing overlay
+    const existing = document.getElementById('simpleDebugOverlay');
+    if (existing) {
+        existing.remove();
+        console.log('🗑️ Removed existing overlay');
+    }
+    
+    // Create the overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'simpleDebugOverlay';
+    overlay.innerHTML = `
+        <div style="
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 350px;
+            max-height: 80vh;
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid #33d9ff;
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            z-index: 99999;
+            overflow: hidden;
+        ">
+            <div style="
+                background: #33d9ff;
+                color: #000;
+                padding: 8px 12px;
+                font-weight: bold;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            ">
+                <span>🐛 Debug Console</span>
+                <div>
+                    <button onclick="clearDebugLog()" style="
+                        background: none;
+                        border: none;
+                        color: #000;
+                        cursor: pointer;
+                        padding: 2px 6px;
+                        margin: 0 2px;
+                        border-radius: 3px;
+                        font-size: 12px;
+                    ">Clear</button>
+                    <button onclick="hideDebugOverlay()" style="
+                        background: none;
+                        border: none;
+                        color: #000;
+                        cursor: pointer;
+                        padding: 2px 6px;
+                        border-radius: 3px;
+                        font-size: 12px;
+                    ">×</button>
+                </div>
+            </div>
+            <div id="simpleDebugContent" style="
+                padding: 10px;
+                max-height: calc(80vh - 50px);
+                overflow-y: auto;
+                line-height: 1.3;
+            ">
+                <div style="color: #33d9ff;">[${new Date().toLocaleTimeString()}] 🚀 Debug overlay created!</div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    console.log('✅ Debug overlay added to DOM');
+    
+    return overlay;
+}
+
+function addDebugLog(emoji, message, data = null) {
+    console.log('📝 addDebugLog:', emoji, message, data);
+    
+    const content = document.getElementById('simpleDebugContent');
+    if (!content) {
+        console.error('❌ Debug content not found');
+        return;
+    }
+    
+    const timestamp = new Date().toLocaleTimeString();
+    let logEntry = `<div style="margin-bottom: 5px; padding: 3px 0; border-bottom: 1px solid #333;">`;
+    logEntry += `<span style="color: #888;">[${timestamp}]</span> `;
+    logEntry += `<span style="color: #33d9ff;">${emoji}</span> `;
+    logEntry += `<span style="color: #fff;">${message}</span>`;
+    
+    if (data) {
+        logEntry += `<br><span style="color: #90EE90; margin-left: 20px; font-size: 10px;">`;
+        logEntry += typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+        logEntry += `</span>`;
+    }
+    
+    logEntry += `</div>`;
+    
+    content.innerHTML += logEntry;
+    content.scrollTop = content.scrollHeight;
+    
+    console.log('✅ Log entry added to debug overlay');
+}
+
+function showDebugOverlay() {
+    console.log('👁️ showDebugOverlay called');
+    
+    let overlay = document.getElementById('simpleDebugOverlay');
+    if (!overlay) {
+        console.log('🔧 Creating new overlay');
+        overlay = createDebugOverlay();
+    }
+    
+    overlay.style.display = 'block';
+    addDebugLog('👁️', 'Debug overlay shown');
+    console.log('✅ Debug overlay should now be visible');
+}
+
+function hideDebugOverlay() {
+    console.log('🙈 hideDebugOverlay called');
+    const overlay = document.getElementById('simpleDebugOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+        console.log('✅ Debug overlay hidden');
+    }
+}
+
+function clearDebugLog() {
+    console.log('🧹 clearDebugLog called');
+    const content = document.getElementById('simpleDebugContent');
+    if (content) {
+        content.innerHTML = '<div style="color: #33d9ff;">[' + new Date().toLocaleTimeString() + '] 🧹 Log cleared</div>';
+        console.log('✅ Debug log cleared');
+    }
+}
+
+function toggleDebugOverlay() {
+    const overlay = document.getElementById('simpleDebugOverlay');
+    if (overlay && overlay.style.display !== 'none') {
+        hideDebugOverlay();
+    } else {
+        showDebugOverlay();
+    }
+}
+
+// ===== MOBILE TEST BUTTONS =====
+function addMobileTestButtons() {
+    addDebugLog('🔧', 'Adding mobile test buttons...');
+    
+    // Check if panel already exists
+    const existingPanel = document.getElementById('mobileTestPanel');
+    if (existingPanel) {
+        addDebugLog('⚠️', 'Test panel already exists, removing it');
+        existingPanel.remove();
+    }
+    
+    addDebugLog('🔧', 'Creating test panel...');
+    const testPanel = document.createElement('div');
+    testPanel.id = 'mobileTestPanel';
+    testPanel.style.cssText = `
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        background: rgba(0, 0, 0, 0.9);
+        border: 2px solid #33d9ff;
+        border-radius: 10px;
+        padding: 10px;
+        z-index: 10000;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        max-width: 300px;
+    `;
+    
+    // Test User Creation Button
+    const testUserBtn = document.createElement('button');
+    testUserBtn.textContent = '👤 Test User';
+    testUserBtn.style.cssText = `
+        background: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 12px;
+        border-radius: 5px;
+        font-size: 12px;
+        cursor: pointer;
+        flex: 1;
+        min-width: 80px;
+    `;
+    testUserBtn.onclick = function() {
+        addDebugLog('🧪', 'Testing user creation...');
+        if (typeof testOneSignalUserCreation === 'function') {
+            testOneSignalUserCreation();
+        } else {
+            addDebugLog('❌', 'testOneSignalUserCreation function not found');
+        }
+    };
+    
+    // Test Toggle Button
+    const toggleBtn = document.createElement('button');
+    toggleBtn.textContent = '🔔 Toggle';
+    toggleBtn.style.cssText = `
+        background: #FF9800;
+        color: white;
+        border: none;
+        padding: 10px 12px;
+        border-radius: 5px;
+        font-size: 12px;
+        cursor: pointer;
+        flex: 1;
+        min-width: 80px;
+    `;
+    toggleBtn.onclick = function() {
+        addDebugLog('🧪', 'Testing notification toggle...');
+        if (typeof handleNotificationToggleV16 === 'function') {
+            handleNotificationToggleV16();
+        } else {
+            addDebugLog('❌', 'handleNotificationToggleV16 function not found');
+        }
+    };
+
+    // Check User Button
+    const checkUserBtn = document.createElement('button');
+    checkUserBtn.textContent = '🔍 Check';
+    checkUserBtn.style.cssText = `
+        background: #2196F3;
+        color: white;
+        border: none;
+        padding: 10px 12px;
+        border-radius: 5px;
+        font-size: 12px;
+        cursor: pointer;
+        flex: 1;
+        min-width: 80px;
+    `;
+    checkUserBtn.onclick = async function() {
+        addDebugLog('🧪', 'Checking existing user...');
+        const username = getCurrentUsername();
+        if (username) {
+            try {
+                const result = await checkExistingOneSignalUser(username);
+                addDebugLog('✅', 'Check user result:', result);
+            } catch (error) {
+                addDebugLog('❌', 'Check user error:', error.toString());
+            }
+        } else {
+            addDebugLog('❌', 'No username found');
+        }
+    };
+
+    // OneSignal Info Button
+    const infoBtn = document.createElement('button');
+    infoBtn.textContent = '📊 Info';
+    infoBtn.style.cssText = `
+        background: #9C27B0;
+        color: white;
+        border: none;
+        padding: 10px 12px;
+        border-radius: 5px;
+        font-size: 12px;
+        cursor: pointer;
+        flex: 1;
+        min-width: 80px;
+    `;
+    infoBtn.onclick = function() {
+        addDebugLog('🧪', 'Getting OneSignal info...');
+        getOneSignalInfo();
+    };
+
+    // Test Notification Button
+    const testNotifyBtn = document.createElement('button');
+    testNotifyBtn.textContent = '📱 Test Notify';
+    testNotifyBtn.style.cssText = `
+        background: #E91E63;
+        color: white;
+        border: none;
+        padding: 10px 12px;
+        border-radius: 5px;
+        font-size: 12px;
+        cursor: pointer;
+        flex: 1;
+        min-width: 80px;
+    `;
+    testNotifyBtn.onclick = async function() {
+        addDebugLog('🧪', 'Testing notification send...');
+        try {
+            const response = await fetch('/api/notifications/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const result = await response.json();
+            addDebugLog('📱', 'Test notification result:', result);
+        } catch (error) {
+            addDebugLog('❌', 'Test notification error:', error.toString());
+        }
+    };
+
+    // Hide Panel Button
+    const hideBtn = document.createElement('button');
+    hideBtn.textContent = '❌';
+    hideBtn.style.cssText = `
+        background: #666;
+        color: white;
+        border: none;
+        padding: 10px 12px;
+        border-radius: 5px;
+        font-size: 12px;
+        cursor: pointer;
+        width: 40px;
+    `;
+    hideBtn.onclick = function() {
+        addDebugLog('🔧', 'Hide button clicked');
+        testPanel.style.display = 'none';
+    };
+    
+    addDebugLog('🔧', 'Adding buttons to panel...');
+    testPanel.appendChild(testUserBtn);
+    testPanel.appendChild(toggleBtn);
+    testPanel.appendChild(checkUserBtn);
+    testPanel.appendChild(infoBtn);
+    testPanel.appendChild(testNotifyBtn);
+    testPanel.appendChild(hideBtn);
+    
+    addDebugLog('🔧', 'Adding panel to document body...');
+    try {
+        document.body.appendChild(testPanel);
+        addDebugLog('✅', 'Mobile test panel added successfully!');
+    } catch (error) {
+        addDebugLog('❌', 'Error adding panel to body', error.toString());
+    }
+}
+
+// ===== ONESIGNAL INFO FUNCTION =====
+function getOneSignalInfo() {
+    addDebugLog('🔍', 'Getting OneSignal info...');
+    
+    if (typeof OneSignal === 'undefined') {
+        addDebugLog('❌', 'OneSignal not loaded');
+        return;
+    }
+    
+    addDebugLog('✅', 'OneSignal is available');
+    addDebugLog('🔐', 'Browser permission:', Notification.permission);
+    
+    // Check OneSignal status
+    OneSignal.User.PushSubscription.optedIn.then(isOptedIn => {
+        addDebugLog('📊', 'OneSignal opted in:', isOptedIn);
+    }).catch(error => {
+        addDebugLog('❌', 'Error checking opt-in status:', error.toString());
+    });
+    
+    OneSignal.User.getOnesignalId().then(id => {
+        addDebugLog('🆔', 'OneSignal ID:', id);
+    }).catch(error => {
+        addDebugLog('❌', 'Error getting OneSignal ID:', error.toString());
+    });
+    
+    OneSignal.User.PushSubscription.id.then(subId => {
+        addDebugLog('📱', 'Subscription ID:', subId);
+    }).catch(error => {
+        addDebugLog('❌', 'Error getting subscription ID:', error.toString());
+    });
+}
+
+// ===== DEBUG BUTTON (TOP RIGHT) =====
+function addDebugButton() {
+    const debugButton = document.createElement('button');
+    debugButton.textContent = '🐛';
+    debugButton.style.cssText = `
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 10001;
+        background: #33d9ff;
+        color: black;
+        border: none;
+        padding: 15px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 16px;
+        width: 50px;
+        height: 50px;
+    `;
+    debugButton.onclick = toggleDebugOverlay;
+    document.body.appendChild(debugButton);
+}
+
+// ===== INITIALIZATION =====
+function initializeMobileDebugSystem() {
+    console.log('🚀 Initializing mobile debug system...');
+    
+    // Create debug overlay
+    createDebugOverlay();
+    
+    // Add debug button
+    addDebugButton();
+    
+    // Add test buttons after a short delay
+    setTimeout(() => {
+        addMobileTestButtons();
+        addDebugLog('🎉', 'Mobile debug system ready!');
+    }, 1000);
+}
+
+// ===== GLOBAL FUNCTIONS =====
+window.showDebugOverlay = showDebugOverlay;
+window.hideDebugOverlay = hideDebugOverlay;
+window.toggleDebugOverlay = toggleDebugOverlay;
+window.clearDebugLog = clearDebugLog;
+window.addDebugLog = addDebugLog;
+window.addMobileTestButtons = addMobileTestButtons;
+window.getOneSignalInfo = getOneSignalInfo;
+window.initializeMobileDebugSystem = initializeMobileDebugSystem;
+
+// Auto-initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeMobileDebugSystem);
+} else {
+    initializeMobileDebugSystem();
+}
+
+console.log('✅ Mobile debug system loaded!');
