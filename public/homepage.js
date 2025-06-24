@@ -239,7 +239,61 @@ function getOneSignalConfig() {
             "https://www.pick6.club"
         ]
     };
+}// ===== WAIT FOR USER API (MISSING FROM CONSOLIDATED VERSION) =====
+async function waitForUserAPI() {
+    return new Promise((resolve, reject) => {
+        let attempts = 0;
+        const maxAttempts = 20;
+        
+        const checkUserAPI = () => {
+            attempts++;
+            addDebugLog('🔍', `User API check ${attempts}/${maxAttempts}`);
+            
+            // Check if User API is available
+            if (!OneSignal.User) {
+                if (attempts >= maxAttempts) {
+                    reject(new Error('OneSignal User API not available'));
+                    return;
+                }
+                setTimeout(checkUserAPI, 500);
+                return;
+            }
+            
+            // Check if PushSubscription API is available
+            if (!OneSignal.User.PushSubscription) {
+                if (attempts >= maxAttempts) {
+                    reject(new Error('OneSignal PushSubscription API not available'));
+                    return;
+                }
+                setTimeout(checkUserAPI, 500);
+                return;
+            }
+            
+            // Check if key methods are available
+            const requiredMethods = ['optIn', 'optOut', 'optedIn'];
+            const missingMethods = requiredMethods.filter(method => 
+                typeof OneSignal.User.PushSubscription[method] === 'undefined'
+            );
+            
+            if (missingMethods.length > 0) {
+                addDebugLog('⚠️', 'Missing PushSubscription methods:', missingMethods);
+                if (attempts >= maxAttempts) {
+                    reject(new Error(`Missing methods: ${missingMethods.join(', ')}`));
+                    return;
+                }
+                setTimeout(checkUserAPI, 500);
+                return;
+            }
+            
+            addDebugLog('✅', 'User API is ready');
+            resolve();
+        };
+        
+        checkUserAPI();
+    });
 }
+
+// ===== UPDATED INITIALIZATION WITH PROPER WAITING =====
 async function initializeOneSignal() {
     addDebugLog('🚀', 'Starting OneSignal initialization (NO auto-subscribe)...');
     
@@ -260,6 +314,26 @@ async function initializeOneSignal() {
             }
         });
         
+        addDebugLog('✅', 'OneSignal.init() completed');
+        
+        // THIS WAS MISSING - Wait for User API to be ready
+        addDebugLog('⏳', 'Waiting for User API to be ready...');
+        await waitForUserAPI();
+        
+        // Add event listeners (optional but good to have)
+        try {
+            OneSignal.User.PushSubscription.addEventListener('change', (event) => {
+                addDebugLog('🔄', 'Push subscription changed:', {
+                    previous: event.previous?.id || 'none',
+                    current: event.current?.id || 'none',
+                    optedIn: event.current?.optedIn || false
+                });
+            });
+            addDebugLog('✅', 'Event listeners set up');
+        } catch (error) {
+            addDebugLog('⚠️', 'Error setting up event listeners:', error.toString());
+        }
+        
         addDebugLog('✅', 'OneSignal initialized (no auto-subscribe)');
         return true;
         
@@ -268,7 +342,6 @@ async function initializeOneSignal() {
         throw error;
     }
 }
-
 // ===== GET ONESIGNAL USER ID =====
 async function getOneSignalUserId() {
     try {
