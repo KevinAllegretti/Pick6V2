@@ -9079,7 +9079,37 @@ function addTestButtons() {
     
     addDebugLog('📱', 'Phone test buttons setup complete');
 }
-
+function checkAvailableOneSignalMethods() {
+    addDebugLog('🔍', 'Checking available OneSignal methods...');
+    
+    if (!OneSignal) {
+        addDebugLog('❌', 'OneSignal not available');
+        return;
+    }
+    
+    const methods = [
+        'showSlidedownPrompt',
+        'showNativePrompt', 
+        'registerForPushNotifications',
+        'Slidedown',
+        'config',
+        '_vapidPublicKey'
+    ];
+    
+    methods.forEach(method => {
+        const available = OneSignal[method] !== undefined;
+        const type = typeof OneSignal[method];
+        addDebugLog('🔧', `OneSignal.${method}:`, `${available ? 'Available' : 'Missing'} (${type})`);
+    });
+    
+    if (OneSignal.Slidedown) {
+        addDebugLog('🔧', 'OneSignal.Slidedown methods:', Object.keys(OneSignal.Slidedown));
+    }
+    
+    if (OneSignal.config) {
+        addDebugLog('🔧', 'OneSignal.config keys:', Object.keys(OneSignal.config));
+    }
+}
 // ===== MAIN NOTIFICATION TOGGLE =====
 async function handleNotificationToggle() {
     addDebugLog('📱', 'Notification toggle called');
@@ -9473,9 +9503,6 @@ window.showDebug = showDebugOverlay;
 window.hideDebug = hideDebugOverlay;
 window.toggleDebug = toggleDebugOverlay;
 
-// ===== INITIALIZATION =====
-// Call this when your app loads
-initializeOneSignal();
 
 // Create the overlay immediately
 console.log('🔧 Creating debug overlay on load...');
