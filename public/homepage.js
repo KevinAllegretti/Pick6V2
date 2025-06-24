@@ -419,15 +419,21 @@ async function verifyInitializationFixed() {
     }
 }
 
-// ===== DOC-ALIGNED SUBSCRIPTION FUNCTIONS =====
+// ===== SMART SUBSCRIPTION FUNCTIONS =====
 async function subscribeToNotificationsV16() {
-    addDebugLog('🔔', 'Starting subscription (per v16 SDK docs)...');
+    addDebugLog('🔔', 'Smart subscribe: Check if already subscribed first...');
     
     try {
-        // Step 1: Check browser permission first
-        let permission = Notification.permission;
-        addDebugLog('🔐', 'Browser permission status:', permission);
+        // Step 1: Check if already subscribed (if so, just return success)
+        const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
+        if (isOptedIn) {
+            const userId = await getOneSignalUserIdV16();
+            addDebugLog('✅', 'Already subscribed - no action needed:', userId);
+            return { success: true, onesignalId: userId, alreadySubscribed: true };
+        }
         
+        // Step 2: Check browser permission
+        let permission = Notification.permission;
         if (permission === 'denied') {
             throw new Error('Notifications blocked in browser settings');
         }
@@ -439,73 +445,52 @@ async function subscribeToNotificationsV16() {
             }
         }
         
-        // Step 2: Check current subscription status
-        const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
-        addDebugLog('📊', 'Current opt-in status:', isOptedIn);
-        
-        if (isOptedIn) {
-            const userId = await getOneSignalUserIdV16();
-            addDebugLog('ℹ️', 'Already subscribed with ID:', userId);
-            return { success: true, onesignalId: userId, alreadySubscribed: true };
-        }
-        
-        // Step 3: Subscribe using v16 SDK (per docs: "Users will be created alongside")
-        addDebugLog('📱', 'Calling PushSubscription.optIn() - SDK will create user automatically...');
+        // Step 3: Subscribe (OneSignal will create user automatically)
+        addDebugLog('📱', 'Subscribing to OneSignal...');
         await OneSignal.User.PushSubscription.optIn();
         
-        // Step 4: Wait for subscription to process and user creation
-        addDebugLog('⏳', 'Waiting for user creation and subscription processing...');
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        
-        // Step 5: Verify subscription
+        // Step 4: Wait and verify
+        await new Promise(resolve => setTimeout(resolve, 2000));
         const finalOptedIn = await OneSignal.User.PushSubscription.optedIn;
-        addDebugLog('📊', 'Final subscription status:', finalOptedIn);
         
         if (!finalOptedIn) {
-            throw new Error('Subscription failed - optIn did not complete');
+            throw new Error('Subscription failed');
         }
         
-        // Step 6: Get the OneSignal ID (should be available after automatic user creation)
         const userId = await getOneSignalUserIdV16();
-        addDebugLog('🆔', 'OneSignal ID after automatic user creation:', userId);
+        addDebugLog('🎉', 'Successfully subscribed with ID:', userId);
         
-        // Per docs: User creation is automatic, so don't fail if ID takes time
-        if (!userId) {
-            addDebugLog('⚠️', 'User ID not immediately available - this is normal for new subscriptions');
-        }
-        
-        addDebugLog('🎉', 'Subscription completed via v16 SDK!');
         return { success: true, onesignalId: userId, alreadySubscribed: false };
         
     } catch (error) {
-        addDebugLog('❌', 'Subscription failed:', error.toString());
+        addDebugLog('❌', 'Subscribe failed:', error.toString());
         throw error;
     }
 }
 
 async function unsubscribeFromNotificationsV16() {
-    addDebugLog('🔕', 'Starting unsubscription (v16 fixed)...');
+    addDebugLog('🔕', 'Smart unsubscribe: Check if subscribed first...');
     
     try {
+        // Step 1: Check if actually subscribed
         const wasOptedIn = await OneSignal.User.PushSubscription.optedIn;
-        
         if (!wasOptedIn) {
-            addDebugLog('ℹ️', 'User was not subscribed');
+            addDebugLog('✅', 'Not subscribed - no action needed');
             return { success: true, wasSubscribed: false };
         }
         
+        // Step 2: Get ID before unsubscribing
         const onesignalId = await getOneSignalUserIdV16();
-        addDebugLog('🆔', 'User ID before unsubscribe (v16 fixed):', onesignalId);
         
-        // Unsubscribe
+        // Step 3: Unsubscribe
+        addDebugLog('📱', 'Unsubscribing from OneSignal...');
         await OneSignal.User.PushSubscription.optOut();
         
-        addDebugLog('✅', 'Unsubscription completed');
-        
+        addDebugLog('✅', 'Successfully unsubscribed');
         return { success: true, wasSubscribed: true, onesignalId };
         
     } catch (error) {
-        addDebugLog('❌', 'Unsubscription failed:', error.toString());
+        addDebugLog('❌', 'Unsubscribe failed:', error.toString());
         throw error;
     }
 }
@@ -568,9 +553,9 @@ function showNotificationMessage(message, type = 'info') {
     }, 4000);
 }
 
-// ===== FIXED NOTIFICATION TOGGLE HANDLER =====
+// ===== SIMPLE NOTIFICATION TOGGLE HANDLER =====
 async function handleNotificationToggleV16() {
-    addDebugLog('📱', 'Notification toggle (v16 fixed)...');
+    addDebugLog('📱', 'Notification toggle...');
     
     const toggle = document.getElementById('notificationCheck');
     const isEnabled = toggle?.checked || false;
@@ -583,54 +568,60 @@ async function handleNotificationToggleV16() {
         return;
     }
     
-    // Check PWA mode
+    // Check PWA mode for enabling notifications
     const isPWA = window.navigator.standalone === true || 
                   window.matchMedia('(display-mode: standalone)').matches;
     
     if (!isPWA && isEnabled) {
-        addDebugLog('🌐', 'Redirecting browser user to install');
+        addDebugLog('🌐', 'Browser users need to install PWA first');
         if (toggle) toggle.checked = false;
         window.location.href = `/login.html?showInstall=true&returnTo=${encodeURIComponent(window.location.href)}`;
         return;
     }
     
-    if (isEnabled) {
-        try {
+    try {
+        if (isEnabled) {
+            // ENABLE: Subscribe to OneSignal + Update backend
             addDebugLog('🔛', 'Enabling notifications...');
+            
             const result = await subscribeToNotificationsV16();
             
+            // Update backend to enabled
+            await updateBackendNotificationStatus(username, true, result.onesignalId);
+            
+            // Store locally
             localStorage.setItem('notificationsEnabled', 'true');
             if (result.onesignalId) {
                 localStorage.setItem('onesignalUserId', result.onesignalId);
             }
             
-            // Update backend
-            await updateBackendNotificationStatus(username, true, result.onesignalId);
-            
             const message = result.alreadySubscribed ? 
                 'Notifications already enabled!' : 
-                'Notifications enabled successfully!';
+                'Notifications enabled!';
             showNotificationMessage(message, 'success');
             
-        } catch (error) {
-            addDebugLog('❌', 'Error enabling notifications:', error.toString());
-            if (toggle) toggle.checked = false;
-            showNotificationMessage('Error: ' + error.message, 'error');
-        }
-    } else {
-        try {
+        } else {
+            // DISABLE: Unsubscribe from OneSignal + Update backend
             addDebugLog('🔕', 'Disabling notifications...');
+            
             const result = await unsubscribeFromNotificationsV16();
             
-            localStorage.setItem('notificationsEnabled', 'false');
+            // Update backend to disabled
             await updateBackendNotificationStatus(username, false, result.onesignalId);
             
-            showNotificationMessage('Notifications disabled', 'success');
+            // Store locally
+            localStorage.setItem('notificationsEnabled', 'false');
             
-        } catch (error) {
-            addDebugLog('❌', 'Error disabling notifications:', error.toString());
-            showNotificationMessage('Error updating settings', 'error');
+            showNotificationMessage('Notifications disabled', 'success');
         }
+        
+    } catch (error) {
+        addDebugLog('❌', 'Toggle failed:', error.toString());
+        
+        // Reset toggle to previous state on error
+        if (toggle) toggle.checked = !isEnabled;
+        
+        showNotificationMessage('Error: ' + error.message, 'error');
     }
 }
 
