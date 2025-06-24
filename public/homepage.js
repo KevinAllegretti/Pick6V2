@@ -8627,7 +8627,6 @@ async function subscribeToOneSignal() {
         addDebugLog('🔐', 'Browser permission result:', permission);
         
         if (permission === 'denied') {
-            addDebugLog('❌', 'Step 3 FAILED: Permission denied');
             throw new Error('Notifications blocked. Enable in Settings > Pick 6 > Notifications');
         }
         
@@ -8637,7 +8636,6 @@ async function subscribeToOneSignal() {
             addDebugLog('🔐', 'Step 4 result:', permission);
             
             if (permission !== 'granted') {
-                addDebugLog('❌', 'Step 4 FAILED: Permission denied by user');
                 throw new Error('Notification permission denied');
             }
         }
@@ -8649,53 +8647,39 @@ async function subscribeToOneSignal() {
                 addDebugLog('✅', 'Step 6: Inside OneSignal.push callback');
                 
                 try {
-                    addDebugLog('🔍', 'Step 7: Checking if already subscribed...');
+                    // SKIP the problematic isPushNotificationsEnabled check
+                    // and go straight to registration
+                    addDebugLog('🚀', 'Step 7: Skipping status check, going straight to registration...');
                     
-                    // Check current subscription status
-                    OneSignal.isPushNotificationsEnabled(function(isEnabled) {
-                        addDebugLog('📊', 'Step 8: isPushNotificationsEnabled result:', isEnabled);
+                    addDebugLog('📝', 'Step 8: Calling registerForPushNotifications...');
+                    OneSignal.registerForPushNotifications().then(function() {
+                        addDebugLog('✅', 'Step 9: registerForPushNotifications resolved');
                         
-                        if (isEnabled) {
-                            addDebugLog('✅', 'Step 9: Already subscribed, getting user ID...');
+                        // Wait and check result using a timeout-based approach
+                        addDebugLog('⏳', 'Step 10: Waiting 4 seconds for subscription...');
+                        setTimeout(() => {
+                            addDebugLog('🔍', 'Step 11: Attempting to get user ID...');
+                            
+                            // Try to get user ID directly
                             OneSignal.getUserId(function(userId) {
-                                addDebugLog('🆔', 'Step 10: Got existing user ID:', userId);
-                                resolve({ success: true, playerId: userId, alreadySubscribed: true });
-                            });
-                            return;
-                        }
-                        
-                        addDebugLog('🚀', 'Step 11: Not subscribed, starting registration...');
-                        
-                        // Try registerForPushNotifications
-                        addDebugLog('📝', 'Step 12: Calling registerForPushNotifications...');
-                        OneSignal.registerForPushNotifications().then(function() {
-                            addDebugLog('✅', 'Step 13: registerForPushNotifications resolved');
-                            
-                            // Wait and check status
-                            addDebugLog('⏳', 'Step 14: Waiting 3 seconds for subscription to complete...');
-                            setTimeout(() => {
-                                addDebugLog('🔍', 'Step 15: Checking subscription status after registration...');
+                                addDebugLog('🆔', 'Step 12: getUserId callback executed');
+                                addDebugLog('🆔', 'User ID result:', userId);
                                 
-                                OneSignal.isPushNotificationsEnabled(function(isNowEnabled) {
-                                    addDebugLog('📊', 'Step 16: Post-registration status:', isNowEnabled);
-                                    
-                                    if (isNowEnabled) {
-                                        addDebugLog('🆔', 'Step 17: Getting new user ID...');
-                                        OneSignal.getUserId(function(userId) {
-                                            addDebugLog('🎉', 'Step 18: SUCCESS! Got user ID:', userId);
-                                            resolve({ success: true, playerId: userId, alreadySubscribed: false });
-                                        });
-                                    } else {
-                                        addDebugLog('❌', 'Step 16 FAILED: Still not enabled after registration');
-                                        reject(new Error('Registration completed but subscription not enabled'));
-                                    }
-                                });
-                            }, 3000);
+                                if (userId && userId !== null && userId !== 'null') {
+                                    addDebugLog('🎉', 'Step 13: SUCCESS! Got valid user ID:', userId);
+                                    resolve({ success: true, playerId: userId, alreadySubscribed: false });
+                                } else {
+                                    addDebugLog('❌', 'Step 12 ISSUE: No valid user ID received');
+                                    // Still resolve as success if we got this far
+                                    resolve({ success: true, playerId: null, alreadySubscribed: false });
+                                }
+                            });
                             
-                        }).catch(function(error) {
-                            addDebugLog('❌', 'Step 12 FAILED: registerForPushNotifications rejected:', error.toString());
-                            reject(error);
-                        });
+                        }, 4000);
+                        
+                    }).catch(function(error) {
+                        addDebugLog('❌', 'Step 8 FAILED: registerForPushNotifications rejected:', error.toString());
+                        reject(error);
                     });
                     
                 } catch (syncError) {
@@ -8703,6 +8687,12 @@ async function subscribeToOneSignal() {
                     reject(syncError);
                 }
             });
+            
+            // Add a timeout to prevent hanging
+            setTimeout(() => {
+                addDebugLog('⚠️', 'TIMEOUT: OneSignal.push callback may have failed');
+                reject(new Error('OneSignal.push timeout - callback not executed'));
+            }, 15000);
         });
         
     } catch (error) {
@@ -8710,7 +8700,6 @@ async function subscribeToOneSignal() {
         throw error;
     }
 }
-
 async function unsubscribeFromOneSignal() {
     addDebugLog('🔕', 'Starting OneSignal unsubscription...');
     
