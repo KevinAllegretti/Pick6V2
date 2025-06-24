@@ -8582,19 +8582,20 @@ function toggleDebugOverlay() {
 
 // ===== ONESIGNAL SUBSCRIPTION FUNCTIONS =====
 async function waitForOneSignalReady() {
-    addDebugLog('⏳', 'Waiting for OneSignal to be ready...');
+    addDebugLog('⏳', 'Waiting for OneSignal v16 to be ready...');
     
     return new Promise((resolve, reject) => {
         let attempts = 0;
-        const maxAttempts = 30; // 30 seconds timeout
+        const maxAttempts = 30;
         
-        const checkReady = () => {
+        const checkReady = async () => {
             attempts++;
-            addDebugLog('🔍', `OneSignal ready check attempt ${attempts}/${maxAttempts}`);
+            addDebugLog('🔍', `OneSignal v16 ready check attempt ${attempts}/${maxAttempts}`);
             
+            // Check if OneSignal exists
             if (typeof OneSignal === 'undefined') {
+                addDebugLog('❌', 'OneSignal object not found');
                 if (attempts >= maxAttempts) {
-                    addDebugLog('❌', 'OneSignal never loaded');
                     reject(new Error('OneSignal not available'));
                     return;
                 }
@@ -8602,11 +8603,33 @@ async function waitForOneSignalReady() {
                 return;
             }
             
-            // OneSignal is loaded, now check if it's initialized
-            OneSignal.push(function() {
-                addDebugLog('✅', 'OneSignal is ready!');
+            // Check if User API is available (v16 indicator)
+            if (!OneSignal.User || !OneSignal.User.PushSubscription) {
+                addDebugLog('⚠️', 'OneSignal User API not available yet');
+                if (attempts >= maxAttempts) {
+                    reject(new Error('OneSignal User API not available'));
+                    return;
+                }
+                setTimeout(checkReady, 1000);
+                return;
+            }
+            
+            addDebugLog('✅', 'OneSignal v16 User API available');
+            
+            // Check if OneSignal is initialized
+            try {
+                // Try to access a User property to test if initialized
+                await OneSignal.User.getOnesignalId();
+                addDebugLog('✅', 'OneSignal v16 is fully ready!');
                 resolve();
-            });
+            } catch (error) {
+                addDebugLog('⏳', 'OneSignal User API exists but not initialized yet...');
+                if (attempts >= maxAttempts) {
+                    reject(new Error('OneSignal initialization timeout'));
+                    return;
+                }
+                setTimeout(checkReady, 1000);
+            }
         };
         
         checkReady();
@@ -8614,89 +8637,76 @@ async function waitForOneSignalReady() {
 }
 
 async function subscribeToOneSignal() {
-    addDebugLog('🔔', 'Starting OneSignal subscription...');
+    addDebugLog('🔔', 'Starting OneSignal v16 User Model subscription...');
     
     try {
-        addDebugLog('⏳', 'Step 1: Waiting for OneSignal ready...');
+        // Wait for OneSignal v16 to be ready
         await waitForOneSignalReady();
-        addDebugLog('✅', 'Step 2: OneSignal is ready!');
+        addDebugLog('✅', 'OneSignal v16 ready!');
         
         // Check browser permission first
-        addDebugLog('🔐', 'Step 3: Checking browser permission...');
         let permission = Notification.permission;
-        addDebugLog('🔐', 'Browser permission result:', permission);
+        addDebugLog('🔐', 'Browser permission:', permission);
         
         if (permission === 'denied') {
-            throw new Error('Notifications blocked. Enable in Settings > Pick 6 > Notifications');
+            throw new Error('Notifications blocked in browser settings');
         }
         
         if (permission === 'default') {
-            addDebugLog('❓', 'Step 4: Requesting browser permission...');
+            addDebugLog('❓', 'Requesting browser permission...');
             permission = await Notification.requestPermission();
-            addDebugLog('🔐', 'Step 4 result:', permission);
+            addDebugLog('🔐', 'Permission result:', permission);
             
             if (permission !== 'granted') {
                 throw new Error('Notification permission denied');
             }
         }
         
-        addDebugLog('✅', 'Step 5: Browser permission OK, entering OneSignal.push...');
+        addDebugLog('✅', 'Browser permission granted');
         
-        return new Promise((resolve, reject) => {
-            OneSignal.push(function() {
-                addDebugLog('✅', 'Step 6: Inside OneSignal.push callback');
-                
-                try {
-                    // SKIP the problematic isPushNotificationsEnabled check
-                    // and go straight to registration
-                    addDebugLog('🚀', 'Step 7: Skipping status check, going straight to registration...');
-                    
-                    addDebugLog('📝', 'Step 8: Calling registerForPushNotifications...');
-                    OneSignal.registerForPushNotifications().then(function() {
-                        addDebugLog('✅', 'Step 9: registerForPushNotifications resolved');
-                        
-                        // Wait and check result using a timeout-based approach
-                        addDebugLog('⏳', 'Step 10: Waiting 4 seconds for subscription...');
-                        setTimeout(() => {
-                            addDebugLog('🔍', 'Step 11: Attempting to get user ID...');
-                            
-                            // Try to get user ID directly
-                            OneSignal.getUserId(function(userId) {
-                                addDebugLog('🆔', 'Step 12: getUserId callback executed');
-                                addDebugLog('🆔', 'User ID result:', userId);
-                                
-                                if (userId && userId !== null && userId !== 'null') {
-                                    addDebugLog('🎉', 'Step 13: SUCCESS! Got valid user ID:', userId);
-                                    resolve({ success: true, playerId: userId, alreadySubscribed: false });
-                                } else {
-                                    addDebugLog('❌', 'Step 12 ISSUE: No valid user ID received');
-                                    // Still resolve as success if we got this far
-                                    resolve({ success: true, playerId: null, alreadySubscribed: false });
-                                }
-                            });
-                            
-                        }, 4000);
-                        
-                    }).catch(function(error) {
-                        addDebugLog('❌', 'Step 8 FAILED: registerForPushNotifications rejected:', error.toString());
-                        reject(error);
-                    });
-                    
-                } catch (syncError) {
-                    addDebugLog('❌', 'Error in OneSignal.push callback:', syncError.toString());
-                    reject(syncError);
-                }
-            });
+        // Check current subscription status using v16 API
+        addDebugLog('🔍', 'Checking current subscription status...');
+        try {
+            const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
+            addDebugLog('📊', 'Current opted-in status:', isOptedIn);
             
-            // Add a timeout to prevent hanging
-            setTimeout(() => {
-                addDebugLog('⚠️', 'TIMEOUT: OneSignal.push callback may have failed');
-                reject(new Error('OneSignal.push timeout - callback not executed'));
-            }, 15000);
-        });
+            if (isOptedIn) {
+                const userId = await OneSignal.User.getOnesignalId();
+                addDebugLog('✅', 'Already subscribed with ID:', userId);
+                return { success: true, playerId: userId, alreadySubscribed: true };
+            }
+        } catch (statusError) {
+            addDebugLog('⚠️', 'Status check failed, proceeding with opt-in:', statusError.message);
+        }
+        
+        // Opt in using v16 User Model API
+        addDebugLog('📝', 'Calling OneSignal.User.PushSubscription.optIn()...');
+        await OneSignal.User.PushSubscription.optIn();
+        addDebugLog('✅', 'OptIn call completed');
+        
+        // Wait for subscription to process
+        addDebugLog('⏳', 'Waiting for subscription to complete...');
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Verify subscription and get user ID
+        addDebugLog('🔍', 'Verifying subscription...');
+        const isNowOptedIn = await OneSignal.User.PushSubscription.optedIn;
+        const userId = await OneSignal.User.getOnesignalId();
+        
+        addDebugLog('📊', 'Final status:', { optedIn: isNowOptedIn, userId });
+        
+        if (isNowOptedIn && userId) {
+            addDebugLog('🎉', 'SUCCESS! Subscription completed with ID:', userId);
+            return { success: true, playerId: userId, alreadySubscribed: false };
+        } else if (userId) {
+            addDebugLog('⚠️', 'Got user ID but opt-in status unclear:', userId);
+            return { success: true, playerId: userId, alreadySubscribed: false };
+        } else {
+            throw new Error('Subscription completed but no user ID received');
+        }
         
     } catch (error) {
-        addDebugLog('❌', 'OneSignal subscription error:', error.toString());
+        addDebugLog('❌', 'v16 subscription error:', error.toString());
         throw error;
     }
 }
@@ -9231,37 +9241,34 @@ async function syncWithBackend(username, enabled, playerId = null) {
 // ===== ONESIGNAL INITIALIZATION =====
 window.OneSignal = window.OneSignal || [];
 
-function initializeOneSignal() {
-    console.log('🔧 Initializing OneSignal...');
+async function initializeOneSignal() {
+    console.log('🔧 Initializing OneSignal v16 (User Model)...');
     
-    OneSignal.push(function() {
-        console.log('🔧 OneSignal.init called');
-        
-        OneSignal.init({
+    try {
+        // Initialize OneSignal with the User Model
+        await OneSignal.init({
             appId: "c0849e89-f474-4aea-8de1-290715275d14",
-            safari_web_id: "web.onesignal.auto.your-safari-id", // Optional for Safari
-            notifyButton: {
-                enable: false // We're using our own toggle
-            },
-            allowLocalhostAsSecureOrigin: true, // For testing
-            autoResubscribe: true,
-            autoRegister: false // We'll handle registration manually
+            safari_web_id: "web.onesignal.auto.2fc72fe0-a0df-475b-ad9a-b2dac840a493",
+            allowLocalhostAsSecureOrigin: true
         });
         
-        console.log('✅ OneSignal initialized');
-        addDebugLog('✅', 'OneSignal initialized successfully');
+        console.log('✅ OneSignal v16 User Model initialized');
+        addDebugLog('✅', 'OneSignal v16 User Model initialized successfully');
         
-        // Set up event listeners
-        OneSignal.on('subscriptionChange', function(isSubscribed) {
-            addDebugLog('🔔', 'OneSignal subscription changed', isSubscribed);
+        // Set up User Model event listeners
+        OneSignal.User.PushSubscription.addEventListener('change', (event) => {
+            addDebugLog('🔔', 'Push subscription changed', {
+                previous: event.previous?.id || 'none',
+                current: event.current?.id || 'none',
+                optedIn: event.current?.optedIn || false
+            });
         });
         
-        OneSignal.on('notificationPermissionChange', function(permissionChange) {
-            addDebugLog('🔐', 'OneSignal permission changed', permissionChange);
-        });
-    });
+    } catch (error) {
+        console.error('❌ OneSignal initialization failed:', error);
+        addDebugLog('❌', 'OneSignal initialization failed', error.toString());
+    }
 }
-
 // ===== CONSOLE OVERRIDE =====
 const originalConsoleLog = console.log;
 const originalConsoleError = console.error;
@@ -9299,20 +9306,23 @@ initializeOneSignal();
 console.log('🔧 Creating debug overlay on load...');
 createDebugOverlay();
 
-// Show it after a delay
-setTimeout(() => {
-    showDebugOverlay();
-    addDebugLog('🚀', 'Debug system initialized');
-    addDebugLog('🔍', 'OneSignal check', {
-        available: typeof OneSignal !== 'undefined',
-        permission: Notification.permission
-    });
+// Replace your current initialization with this
+(async function() {
+    console.log('🔧 Starting OneSignal v16 initialization...');
+    await initializeOneSignal();
     
-    // Check OneSignal info after initialization
+    // Create debug overlay after initialization
     setTimeout(() => {
-        checkOneSignalInfo();
-    }, 2000);
-}, 1000);
+        createDebugOverlay();
+        showDebugOverlay();
+        addDebugLog('🚀', 'Debug system initialized for v16');
+        
+        // Check v16 capabilities
+        setTimeout(() => {
+            checkOneSignalInfo();
+        }, 2000);
+    }, 1000);
+})();
 
 // Add test buttons with longer delay to ensure DOM is ready
 function ensureTestButtons() {
