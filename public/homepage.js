@@ -4,6 +4,641 @@ const vendingSpotlightIntervals = new Map();
 const currentVendingModes = new Map();
 const vendingSpotlightDataCache = new Map();// Call this function when the page loads
 
+
+// ===== CONSOLIDATED ONESIGNAL v16 SYSTEM =====
+
+console.log('🔧 Loading Consolidated OneSignal v16 System...');
+
+// ===== CONFIGURATION =====
+const ONESIGNAL_CONFIG = {
+    appId: "c0849e89-f474-4aea-8de1-290715275d14",
+    safari_web_id: "web.onesignal.auto.2fc72fe0-a0df-475b-ad9a-b2dac840a493",
+    allowLocalhostAsSecureOrigin: true
+};
+
+// ===== DEBUG LOGGING =====
+function addDebugLog(emoji, message, data = null) {
+    const timestamp = new Date().toLocaleTimeString();
+    console.log(`${emoji} [${timestamp}] ${message}`, data || '');
+    
+    try {
+        const content = document.getElementById('simpleDebugContent');
+        if (content) {
+            let logEntry = `<div style="margin-bottom: 5px; padding: 3px 0; border-bottom: 1px solid #333;">`;
+            logEntry += `<span style="color: #888;">[${timestamp}]</span> `;
+            logEntry += `<span style="color: #33d9ff;">${emoji}</span> `;
+            logEntry += `<span style="color: #fff;">${message}</span>`;
+            
+            if (data) {
+                logEntry += `<br><span style="color: #90EE90; margin-left: 20px; font-size: 10px;">`;
+                logEntry += typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+                logEntry += `</span>`;
+            }
+            
+            logEntry += `</div>`;
+            content.innerHTML += logEntry;
+            content.scrollTop = content.scrollHeight;
+        }
+    } catch (e) {
+        // Ignore if debug overlay not available
+    }
+}
+
+// ===== DEBUG OVERLAY =====
+function createDebugOverlay() {
+    const existing = document.getElementById('simpleDebugOverlay');
+    if (existing) existing.remove();
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'simpleDebugOverlay';
+    overlay.innerHTML = `
+        <div style="
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 350px;
+            max-height: 80vh;
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid #33d9ff;
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            z-index: 99999;
+            overflow: hidden;
+        ">
+            <div style="
+                background: #33d9ff;
+                color: #000;
+                padding: 8px 12px;
+                font-weight: bold;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            ">
+                <span>🐛 Debug Console</span>
+                <div>
+                    <button onclick="clearDebugLog()" style="
+                        background: none;
+                        border: none;
+                        color: #000;
+                        cursor: pointer;
+                        padding: 2px 6px;
+                        margin: 0 2px;
+                        border-radius: 3px;
+                        font-size: 12px;
+                    ">Clear</button>
+                    <button onclick="hideDebugOverlay()" style="
+                        background: none;
+                        border: none;
+                        color: #000;
+                        cursor: pointer;
+                        padding: 2px 6px;
+                        border-radius: 3px;
+                        font-size: 12px;
+                    ">×</button>
+                </div>
+            </div>
+            <div id="simpleDebugContent" style="
+                padding: 10px;
+                max-height: calc(80vh - 50px);
+                overflow-y: auto;
+                line-height: 1.3;
+            ">
+                <div style="color: #33d9ff;">[${new Date().toLocaleTimeString()}] 🚀 Debug overlay created!</div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    return overlay;
+}
+
+function showDebugOverlay() {
+    let overlay = document.getElementById('simpleDebugOverlay');
+    if (!overlay) overlay = createDebugOverlay();
+    overlay.style.display = 'block';
+    addDebugLog('👁️', 'Debug overlay shown');
+}
+
+function hideDebugOverlay() {
+    const overlay = document.getElementById('simpleDebugOverlay');
+    if (overlay) overlay.style.display = 'none';
+}
+
+function clearDebugLog() {
+    const content = document.getElementById('simpleDebugContent');
+    if (content) {
+        content.innerHTML = '<div style="color: #33d9ff;">[' + new Date().toLocaleTimeString() + '] 🧹 Log cleared</div>';
+    }
+}
+
+function toggleDebugOverlay() {
+    const overlay = document.getElementById('simpleDebugOverlay');
+    if (overlay && overlay.style.display !== 'none') {
+        hideDebugOverlay();
+    } else {
+        showDebugOverlay();
+    }
+}
+
+// ===== UTILITY FUNCTIONS =====
+function getCurrentUsername() {
+    const username = localStorage.getItem('username');
+    if (!username) {
+        addDebugLog('❌', 'Username not found in localStorage');
+        return null;
+    }
+    return username.toLowerCase();
+}
+
+function showNotificationMessage(message, type = 'info') {
+    const bgColor = '#112240';
+   
+    const messageHTML = `
+        <div id="notificationMessage" style="
+            position: fixed;
+            top: 64px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: ${bgColor};
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 2px solid #33d9ff;
+            font-weight: bold;
+            z-index: 10001;
+            max-width: 90%;
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.4;
+        ">${message}</div>
+    `;
+    
+    const existing = document.getElementById('notificationMessage');
+    if (existing) existing.remove();
+    
+    document.body.insertAdjacentHTML('beforeend', messageHTML);
+    
+    setTimeout(() => {
+        const messageEl = document.getElementById('notificationMessage');
+        if (messageEl) messageEl.remove();
+    }, 4000);
+}
+
+// ===== ONESIGNAL INITIALIZATION (NO AUTO-SUBSCRIBE) =====
+async function waitForOneSignalScript() {
+    addDebugLog('⏳', 'Waiting for OneSignal script to load...');
+    
+    return new Promise((resolve, reject) => {
+        let attempts = 0;
+        const maxAttempts = 30;
+        
+        const checkScript = () => {
+            attempts++;
+            
+            if (typeof OneSignal === 'undefined') {
+                if (attempts >= maxAttempts) {
+                    reject(new Error('OneSignal script never loaded'));
+                    return;
+                }
+                setTimeout(checkScript, 1000);
+                return;
+            }
+            
+            if (typeof OneSignal.init === 'function') {
+                addDebugLog('✅', 'OneSignal v16 script loaded successfully');
+                resolve();
+            } else {
+                if (attempts >= maxAttempts) {
+                    reject(new Error('Wrong OneSignal version - v16 init method not found'));
+                    return;
+                }
+                setTimeout(checkScript, 1000);
+            }
+        };
+        
+        checkScript();
+    });
+}
+
+async function initializeOneSignal() {
+    addDebugLog('🚀', 'Starting OneSignal initialization (NO auto-subscribe)...');
+    
+    try {
+        await waitForOneSignalScript();
+        
+        addDebugLog('🔧', 'Calling OneSignal.init()...');
+        
+        await OneSignal.init({
+            appId: ONESIGNAL_CONFIG.appId,
+            safari_web_id: ONESIGNAL_CONFIG.safari_web_id,
+            allowLocalhostAsSecureOrigin: ONESIGNAL_CONFIG.allowLocalhostAsSecureOrigin,
+            autoRegister: false, // NO auto-registration
+            autoResubscribe: false, // NO auto-resubscribe
+            notifyButton: {
+                enable: false // NO notify button
+            }
+        });
+        
+        addDebugLog('✅', 'OneSignal initialized (no auto-subscribe)');
+        return true;
+        
+    } catch (error) {
+        addDebugLog('❌', 'OneSignal initialization failed:', error.toString());
+        throw error;
+    }
+}
+
+// ===== GET ONESIGNAL USER ID =====
+async function getOneSignalUserId() {
+    try {
+        if (!OneSignal?.User) {
+            addDebugLog('⚠️', 'OneSignal.User not available');
+            return null;
+        }
+        
+        // Try to get onesignalId
+        if (OneSignal.User.onesignalId) {
+            addDebugLog('✅', 'Got OneSignal ID via User.onesignalId:', OneSignal.User.onesignalId);
+            return OneSignal.User.onesignalId;
+        }
+        
+        // Try external ID
+        if (OneSignal.User.externalId) {
+            addDebugLog('✅', 'Got external_id:', OneSignal.User.externalId);
+            return OneSignal.User.externalId;
+        }
+        
+        // Try subscription ID
+        if (OneSignal.User.PushSubscription) {
+            try {
+                const subId = await OneSignal.User.PushSubscription.id;
+                if (subId) {
+                    addDebugLog('✅', 'Got subscription ID:', subId);
+                    return subId;
+                }
+            } catch (subError) {
+                addDebugLog('⚠️', 'Could not get subscription ID:', subError.toString());
+            }
+        }
+        
+        addDebugLog('ℹ️', 'No user ID found - user not subscribed');
+        return null;
+        
+    } catch (error) {
+        addDebugLog('❌', 'Error getting OneSignal user ID:', error.toString());
+        return null;
+    }
+}
+
+// ===== BACKEND COMMUNICATION =====
+async function updateBackendNotificationStatus(username, enabled, onesignalId = null) {
+    addDebugLog('🔄', 'Updating backend:', { username, enabled, onesignalId });
+    
+    try {
+        const response = await fetch(`/users/notifications/toggle/${username}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                enabled: enabled,
+                playerId: onesignalId 
+            })
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(`Backend update failed: ${response.statusText} - ${errorData.error || 'Unknown error'}`);
+        }
+        
+        const result = await response.json();
+        addDebugLog('✅', 'Backend updated successfully:', result);
+        return result;
+        
+    } catch (error) {
+        addDebugLog('❌', 'Backend update failed:', error.toString());
+        throw error;
+    }
+}
+
+// ===== SIMPLIFIED TOGGLE HANDLER =====
+async function handleNotificationToggle() {
+    addDebugLog('📱', '=== NOTIFICATION TOGGLE TRIGGERED ===');
+    
+    const toggle = document.getElementById('notificationCheck');
+    const isEnabled = toggle?.checked || false;
+    const username = getCurrentUsername();
+    
+    addDebugLog('🔍', 'Toggle state:', { isEnabled, username, toggleExists: !!toggle });
+    
+    if (!username) {
+        addDebugLog('❌', 'No username found');
+        showNotificationMessage('Please log in first', 'error');
+        if (toggle) toggle.checked = false;
+        return;
+    }
+    
+    // Check PWA mode for enabling notifications
+    const isPWA = window.navigator.standalone === true || 
+                  window.matchMedia('(display-mode: standalone)').matches;
+    
+    addDebugLog('🔍', 'PWA status:', isPWA);
+    
+    if (!isPWA && isEnabled) {
+        addDebugLog('🌐', 'Browser users need PWA - redirecting');
+        if (toggle) toggle.checked = false;
+        window.location.href = `/login.html?showInstall=true&returnTo=${encodeURIComponent(window.location.href)}`;
+        return;
+    }
+    
+    try {
+        if (isEnabled) {
+            // ENABLE: Create user + subscription, update backend to enabled
+            addDebugLog('🔛', 'ENABLING notifications...');
+            
+            // Check browser permission first
+            let permission = Notification.permission;
+            addDebugLog('🔍', 'Current permission:', permission);
+            
+            if (permission === 'denied') {
+                throw new Error('Notifications blocked in browser settings');
+            }
+            
+            if (permission === 'default') {
+                addDebugLog('📱', 'Requesting permission...');
+                permission = await Notification.requestPermission();
+                addDebugLog('📱', 'Permission result:', permission);
+                
+                if (permission !== 'granted') {
+                    throw new Error('User denied permission');
+                }
+            }
+            
+            // Subscribe to OneSignal (creates user + subscription)
+            addDebugLog('📱', 'Subscribing to OneSignal...');
+            await OneSignal.User.PushSubscription.optIn();
+            
+            // Wait a moment for subscription to process
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Verify subscription
+            const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
+            addDebugLog('🔍', 'Subscription verified:', isOptedIn);
+            
+            if (!isOptedIn) {
+                throw new Error('Subscription failed');
+            }
+            
+            // Get the OneSignal user ID
+            const onesignalId = await getOneSignalUserId();
+            addDebugLog('🆔', 'OneSignal ID:', onesignalId);
+            
+            // Update backend to enabled
+            await updateBackendNotificationStatus(username, true, onesignalId);
+            
+            // Store locally
+            localStorage.setItem('notificationsEnabled', 'true');
+            if (onesignalId) {
+                localStorage.setItem('onesignalUserId', onesignalId);
+            }
+            
+            addDebugLog('🎉', 'Notifications enabled successfully!');
+            showNotificationMessage('Notifications enabled!', 'success');
+            
+        } else {
+            // DISABLE: Only update backend flag (keep subscription active)
+            addDebugLog('🔕', 'DISABLING notifications (keeping subscription)...');
+            
+            // Get current OneSignal ID (should still exist)
+            const onesignalId = await getOneSignalUserId();
+            
+            // Update backend to disabled (but keep the onesignalId)
+            await updateBackendNotificationStatus(username, false, onesignalId);
+            
+            // Store locally
+            localStorage.setItem('notificationsEnabled', 'false');
+            
+            addDebugLog('✅', 'Notifications disabled (subscription kept)');
+            showNotificationMessage('Notifications disabled', 'success');
+        }
+        
+    } catch (error) {
+        addDebugLog('❌', 'Toggle failed:', error.toString());
+        
+        // Reset toggle to previous state on error
+        if (toggle) toggle.checked = !isEnabled;
+        
+        showNotificationMessage('Error: ' + error.message, 'error');
+    }
+}
+
+// ===== LOAD NOTIFICATION STATE =====
+async function loadNotificationState() {
+    addDebugLog('📥', 'Loading notification state...');
+    
+    const username = getCurrentUsername();
+    const toggle = document.getElementById('notificationCheck');
+    
+    if (!username || !toggle) {
+        addDebugLog('❌', 'Missing username or toggle for loading state');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/users/notifications/status/${username}`);
+        const result = await response.json();
+        
+        addDebugLog('📡', 'Backend response:', result);
+        
+        if (result.success) {
+            toggle.checked = result.notificationsEnabled;
+            addDebugLog('✅', 'Set toggle from backend:', result.notificationsEnabled);
+        } else {
+            const localState = localStorage.getItem('notificationsEnabled') === 'true';
+            toggle.checked = localState;
+            addDebugLog('📱', 'Set toggle from localStorage:', localState);
+        }
+    } catch (error) {
+        addDebugLog('❌', 'Error loading notification state:', error);
+        const localState = localStorage.getItem('notificationsEnabled') === 'true';
+        toggle.checked = localState;
+        addDebugLog('📱', 'Fallback to localStorage:', localState);
+    }
+}
+
+// ===== INITIALIZE TOGGLE =====
+function initializeNotificationToggle() {
+    addDebugLog('🔧', 'Initializing notification toggle...');
+    
+    const toggle = document.getElementById('notificationCheck');
+    const label = document.querySelector('label[for="notificationCheck"]');
+    
+    addDebugLog('🔍', 'Found elements:', { toggle: !!toggle, label: !!label });
+    
+    if (!toggle) {
+        addDebugLog('❌', 'Toggle element not found!');
+        return;
+    }
+    
+    if (!label) {
+        addDebugLog('❌', 'Label element not found!');
+        return;
+    }
+    
+    // Load current state
+    loadNotificationState();
+    
+    // Remove any existing event listeners by cloning the elements
+    const newLabel = label.cloneNode(true);
+    const newToggle = toggle.cloneNode(true);
+    
+    label.parentNode.replaceChild(newLabel, label);
+    toggle.parentNode.replaceChild(newToggle, toggle);
+    
+    // Add click handler to the label
+    newLabel.addEventListener('click', function(e) {
+        addDebugLog('🔘', 'Label clicked!');
+        e.preventDefault();
+        
+        // Manually toggle the checkbox
+        newToggle.checked = !newToggle.checked;
+        addDebugLog('🔔', 'Checkbox toggled to:', newToggle.checked);
+        
+        // Handle the toggle
+        handleNotificationToggle();
+    });
+    
+    // Also listen to direct checkbox changes
+    newToggle.addEventListener('change', function(e) {
+        addDebugLog('🔔', 'Checkbox change event:', e.target.checked);
+        // The label click already handles this, but this catches direct clicks on checkbox
+        handleNotificationToggle();
+    });
+    
+    addDebugLog('✅', 'Toggle event listeners added successfully');
+}
+
+// ===== TEST FUNCTION =====
+async function testOneSignalStatus() {
+    addDebugLog('🧪', 'Testing OneSignal status...');
+    
+    try {
+        if (typeof OneSignal === 'undefined') {
+            throw new Error('OneSignal not loaded');
+        }
+        
+        addDebugLog('✅', 'OneSignal object available');
+        
+        if (!OneSignal.User) {
+            throw new Error('OneSignal.User not available');
+        }
+        
+        addDebugLog('✅', 'OneSignal.User available');
+        
+        if (!OneSignal.User.PushSubscription) {
+            throw new Error('OneSignal.User.PushSubscription not available');
+        }
+        
+        addDebugLog('✅', 'OneSignal.User.PushSubscription available');
+        
+        const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
+        addDebugLog('📊', 'Current subscription status:', isOptedIn);
+        
+        const onesignalId = await getOneSignalUserId();
+        addDebugLog('🆔', 'Current OneSignal ID:', onesignalId || 'null');
+        
+        addDebugLog('🎉', 'All tests passed!');
+        
+    } catch (error) {
+        addDebugLog('❌', 'Test failed:', error.toString());
+    }
+}
+
+// ===== MAIN INITIALIZATION =====
+async function initOnPageLoad() {
+    addDebugLog('🌐', 'Page loaded, starting initialization...');
+    
+    try {
+        if (document.readyState === 'loading') {
+            await new Promise(resolve => {
+                document.addEventListener('DOMContentLoaded', resolve);
+            });
+        }
+        
+        addDebugLog('📄', 'DOM ready');
+        
+        // Create debug overlay
+        setTimeout(() => {
+            if (!document.getElementById('simpleDebugOverlay')) {
+                createDebugOverlay();
+            }
+            showDebugOverlay();
+        }, 1000);
+        
+        // Initialize OneSignal (NO auto-subscribe)
+        const initSuccess = await initializeOneSignal();
+        
+        if (initSuccess) {
+            addDebugLog('🎉', 'OneSignal initialized successfully (no auto-subscribe)!');
+            
+            // Wait for elements to be available before setting up toggle
+            setTimeout(() => {
+                initializeNotificationToggle();
+            }, 2000);
+        }
+        
+    } catch (error) {
+        addDebugLog('❌', 'Page initialization failed:', error.toString());
+    }
+}
+
+// ===== EXPORT GLOBAL FUNCTIONS =====
+window.handleNotificationToggle = handleNotificationToggle;
+window.initializeNotificationToggle = initializeNotificationToggle;
+window.loadNotificationState = loadNotificationState;
+window.testOneSignalStatus = testOneSignalStatus;
+window.getOneSignalUserId = getOneSignalUserId;
+window.updateBackendNotificationStatus = updateBackendNotificationStatus;
+window.getCurrentUsername = getCurrentUsername;
+window.showNotificationMessage = showNotificationMessage;
+
+// Debug functions
+window.addDebugLog = addDebugLog;
+window.showDebugOverlay = showDebugOverlay;
+window.hideDebugOverlay = hideDebugOverlay;
+window.toggleDebugOverlay = toggleDebugOverlay;
+window.clearDebugLog = clearDebugLog;
+
+// ===== AUTO-START INITIALIZATION =====
+initOnPageLoad();
+
+// Add debug button
+setTimeout(() => {
+    const debugButton = document.createElement('button');
+    debugButton.textContent = '🐛';
+    debugButton.style.cssText = `
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 10001;
+        background: #33d9ff;
+        color: black;
+        border: none;
+        padding: 15px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 16px;
+        width: 50px;
+        height: 50px;
+    `;
+    debugButton.onclick = toggleDebugOverlay;
+    document.body.appendChild(debugButton);
+}, 2000);
+
+console.log('✅ Consolidated OneSignal v16 System loaded!');
+/*
 // ===== COMPLETE FIXED ONESIGNAL v16 SYSTEM =====
 
 console.log('🔧 Loading Complete Fixed OneSignal v16 System...');
@@ -1050,77 +1685,7 @@ setTimeout(() => {
 }, 2000);
 
 console.log('✅ Complete OneSignal v16 System loaded and ready!');
-
-// ===== END OF ONESIGNAL SYSTEM =====
-
-/*// Initialize notification toggle on page load
-document.addEventListener('DOMContentLoaded', function() {
-setTimeout(() => {
-    console.log('⏰ Timeout fired - trying initialization as backup');
-    initializeNotificationToggle();
-}, 500);
-
-});
-// ===== DEBUG BUTTON (TOP RIGHT) =====
-function addDebugButton() {
-    const debugButton = document.createElement('button');
-    debugButton.textContent = '🐛';
-    debugButton.style.cssText = `
-        position: fixed;
-        top: 10px;
-        left: 10px;
-        z-index: 10001;
-        background: #33d9ff;
-        color: black;
-        border: none;
-        padding: 15px;
-        border-radius: 50%;
-        cursor: pointer;
-        font-size: 16px;
-        width: 50px;
-        height: 50px;
-    `;
-    debugButton.onclick = toggleDebugOverlay;
-    document.body.appendChild(debugButton);
-}
-
-// ===== INITIALIZATION =====
-function initializeMobileDebugSystem() {
-    console.log('🚀 Initializing mobile debug system...');
-    
-    // Create debug overlay
-    createDebugOverlay();
-    
-    // Add debug button
-    addDebugButton();
-    
-    // Add test buttons after a short delay
-    setTimeout(() => {
-        addMobileTestButtons();
-        addDebugLog('🎉', 'Mobile debug system ready!');
-    }, 1000);
-}
-
-// ===== GLOBAL FUNCTIONS =====
-window.showDebugOverlay = showDebugOverlay;
-window.hideDebugOverlay = hideDebugOverlay;
-window.toggleDebugOverlay = toggleDebugOverlay;
-window.clearDebugLog = clearDebugLog;
-window.addDebugLog = addDebugLog;
-window.addMobileTestButtons = addMobileTestButtons;
-window.getOneSignalInfo = getOneSignalInfo;
-window.initializeMobileDebugSystem = initializeMobileDebugSystem;
-
-// Auto-initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeMobileDebugSystem);
-} else {
-    initializeMobileDebugSystem();
-}
 */
-console.log('✅ Mobile debug system loaded!');
-// Wait 3 seconds before adding test buttons
-//setTimeout(ensureTestButtons, 3000);
 
 /*
 // Check if running as PWA and add appropriate spacing
@@ -9535,6 +10100,14 @@ async function syncWithBackend(username, enabled) {
         return false;
     }
 }
+
+
+
+
+
+
+
+
 /*
 // ===== CONSOLIDATED NOTIFICATION SYSTEM WITH PROPER ONESIGNAL SUBSCRIPTION =====
 
