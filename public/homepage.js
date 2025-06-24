@@ -3,7 +3,1000 @@
 const vendingSpotlightIntervals = new Map();
 const currentVendingModes = new Map();
 const vendingSpotlightDataCache = new Map();// Call this function when the page loads
-// Initialize notification toggle on page load
+
+
+// ===== COMPLETE ONESIGNAL v16 SYSTEM - PASTE AT TOP OF FILE =====
+
+console.log('🔧 Loading Complete OneSignal v16 System...');
+
+// ===== CONFIGURATION =====
+const ONESIGNAL_CONFIG = {
+    appId: "c0849e89-f474-4aea-8de1-290715275d14",
+    safari_web_id: "web.onesignal.auto.2fc72fe0-a0df-475b-ad9a-b2dac840a493",
+    allowLocalhostAsSecureOrigin: true
+};
+
+// ===== DEBUG LOGGING =====
+function addDebugLog(emoji, message, data = null) {
+    const timestamp = new Date().toLocaleTimeString();
+    console.log(`${emoji} [${timestamp}] ${message}`, data || '');
+    
+    // Try to add to debug overlay if it exists
+    try {
+        const content = document.getElementById('simpleDebugContent');
+        if (content) {
+            let logEntry = `<div style="margin-bottom: 5px; padding: 3px 0; border-bottom: 1px solid #333;">`;
+            logEntry += `<span style="color: #888;">[${timestamp}]</span> `;
+            logEntry += `<span style="color: #33d9ff;">${emoji}</span> `;
+            logEntry += `<span style="color: #fff;">${message}</span>`;
+            
+            if (data) {
+                logEntry += `<br><span style="color: #90EE90; margin-left: 20px; font-size: 10px;">`;
+                logEntry += typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+                logEntry += `</span>`;
+            }
+            
+            logEntry += `</div>`;
+            content.innerHTML += logEntry;
+            content.scrollTop = content.scrollHeight;
+        }
+    } catch (e) {
+        // Ignore if debug overlay not available
+    }
+}
+
+// ===== DEBUG OVERLAY =====
+function createDebugOverlay() {
+    console.log('🔧 createDebugOverlay called');
+    
+    // Remove any existing overlay
+    const existing = document.getElementById('simpleDebugOverlay');
+    if (existing) {
+        existing.remove();
+        console.log('🗑️ Removed existing overlay');
+    }
+    
+    // Create the overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'simpleDebugOverlay';
+    overlay.innerHTML = `
+        <div style="
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 350px;
+            max-height: 80vh;
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid #33d9ff;
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            z-index: 99999;
+            overflow: hidden;
+        ">
+            <div style="
+                background: #33d9ff;
+                color: #000;
+                padding: 8px 12px;
+                font-weight: bold;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            ">
+                <span>🐛 Debug Console</span>
+                <div>
+                    <button onclick="clearDebugLog()" style="
+                        background: none;
+                        border: none;
+                        color: #000;
+                        cursor: pointer;
+                        padding: 2px 6px;
+                        margin: 0 2px;
+                        border-radius: 3px;
+                        font-size: 12px;
+                    ">Clear</button>
+                    <button onclick="hideDebugOverlay()" style="
+                        background: none;
+                        border: none;
+                        color: #000;
+                        cursor: pointer;
+                        padding: 2px 6px;
+                        border-radius: 3px;
+                        font-size: 12px;
+                    ">×</button>
+                </div>
+            </div>
+            <div id="simpleDebugContent" style="
+                padding: 10px;
+                max-height: calc(80vh - 50px);
+                overflow-y: auto;
+                line-height: 1.3;
+            ">
+                <div style="color: #33d9ff;">[${new Date().toLocaleTimeString()}] 🚀 Debug overlay created!</div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    console.log('✅ Debug overlay added to DOM');
+    
+    return overlay;
+}
+
+function showDebugOverlay() {
+    console.log('👁️ showDebugOverlay called');
+    
+    let overlay = document.getElementById('simpleDebugOverlay');
+    if (!overlay) {
+        console.log('🔧 Creating new overlay');
+        overlay = createDebugOverlay();
+    }
+    
+    overlay.style.display = 'block';
+    addDebugLog('👁️', 'Debug overlay shown');
+    console.log('✅ Debug overlay should now be visible');
+}
+
+function hideDebugOverlay() {
+    console.log('🙈 hideDebugOverlay called');
+    const overlay = document.getElementById('simpleDebugOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+        console.log('✅ Debug overlay hidden');
+    }
+}
+
+function clearDebugLog() {
+    console.log('🧹 clearDebugLog called');
+    const content = document.getElementById('simpleDebugContent');
+    if (content) {
+        content.innerHTML = '<div style="color: #33d9ff;">[' + new Date().toLocaleTimeString() + '] 🧹 Log cleared</div>';
+        console.log('✅ Debug log cleared');
+    }
+}
+
+function toggleDebugOverlay() {
+    const overlay = document.getElementById('simpleDebugOverlay');
+    if (overlay && overlay.style.display !== 'none') {
+        hideDebugOverlay();
+    } else {
+        showDebugOverlay();
+    }
+}
+
+// ===== WAIT FOR ONESIGNAL SCRIPT =====
+async function waitForOneSignalScript() {
+    addDebugLog('⏳', 'Waiting for OneSignal script to load...');
+    
+    return new Promise((resolve, reject) => {
+        let attempts = 0;
+        const maxAttempts = 30;
+        
+        const checkScript = () => {
+            attempts++;
+            addDebugLog('🔍', `Script check attempt ${attempts}/${maxAttempts}`);
+            
+            // Check if OneSignal is available
+            if (typeof OneSignal === 'undefined') {
+                if (attempts >= maxAttempts) {
+                    reject(new Error('OneSignal script never loaded'));
+                    return;
+                }
+                setTimeout(checkScript, 1000);
+                return;
+            }
+            
+            // Check if it has the v16 init method
+            if (typeof OneSignal.init === 'function') {
+                addDebugLog('✅', 'OneSignal v16 script loaded successfully');
+                resolve();
+            } else {
+                addDebugLog('❌', 'OneSignal loaded but missing v16 init method');
+                if (attempts >= maxAttempts) {
+                    reject(new Error('Wrong OneSignal version - v16 init method not found'));
+                    return;
+                }
+                setTimeout(checkScript, 1000);
+            }
+        };
+        
+        checkScript();
+    });
+}
+
+// ===== WAIT FOR USER API =====
+async function waitForUserAPI() {
+    return new Promise((resolve, reject) => {
+        let attempts = 0;
+        const maxAttempts = 20;
+        
+        const checkUserAPI = () => {
+            attempts++;
+            addDebugLog('🔍', `User API check ${attempts}/${maxAttempts}`);
+            
+            // Check if User API is available
+            if (!OneSignal.User) {
+                if (attempts >= maxAttempts) {
+                    reject(new Error('OneSignal User API not available'));
+                    return;
+                }
+                setTimeout(checkUserAPI, 500);
+                return;
+            }
+            
+            // Check if PushSubscription API is available
+            if (!OneSignal.User.PushSubscription) {
+                if (attempts >= maxAttempts) {
+                    reject(new Error('OneSignal PushSubscription API not available'));
+                    return;
+                }
+                setTimeout(checkUserAPI, 500);
+                return;
+            }
+            
+            // Check if key methods are available
+            const requiredMethods = ['optIn', 'optOut', 'optedIn'];
+            const missingMethods = requiredMethods.filter(method => 
+                typeof OneSignal.User.PushSubscription[method] === 'undefined'
+            );
+            
+            if (missingMethods.length > 0) {
+                addDebugLog('⚠️', 'Missing PushSubscription methods:', missingMethods);
+                if (attempts >= maxAttempts) {
+                    reject(new Error(`Missing methods: ${missingMethods.join(', ')}`));
+                    return;
+                }
+                setTimeout(checkUserAPI, 500);
+                return;
+            }
+            
+            addDebugLog('✅', 'User API is ready');
+            resolve();
+        };
+        
+        checkUserAPI();
+    });
+}
+
+// ===== ONESIGNAL v16 INITIALIZATION =====
+async function initializeOneSignalV16() {
+    addDebugLog('🚀', 'Starting OneSignal v16 initialization...');
+    
+    try {
+        // Step 1: Wait for script to be available
+        await waitForOneSignalScript();
+        
+        // Step 2: Initialize OneSignal
+        addDebugLog('🔧', 'Calling OneSignal.init()...');
+        
+        await OneSignal.init({
+            appId: ONESIGNAL_CONFIG.appId,
+            safari_web_id: ONESIGNAL_CONFIG.safari_web_id,
+            allowLocalhostAsSecureOrigin: ONESIGNAL_CONFIG.allowLocalhostAsSecureOrigin,
+            
+            // Add additional v16 configuration
+            autoRegister: false, // We'll handle registration manually
+            autoResubscribe: true,
+            
+            // Service worker configuration
+            serviceWorkerParam: {
+                scope: '/'
+            },
+            
+            // Notification configuration
+            notifyButton: {
+                enable: false // We're handling this manually
+            }
+        });
+        
+        addDebugLog('✅', 'OneSignal.init() completed');
+        
+        // Step 3: Wait for User API to be ready
+        addDebugLog('⏳', 'Waiting for User API to be ready...');
+        await waitForUserAPI();
+        
+        // Step 4: Set up event listeners
+        addDebugLog('🔧', 'Setting up event listeners...');
+        setupEventListeners();
+        
+        // Step 5: Verify initialization
+        addDebugLog('🔍', 'Verifying initialization...');
+        await verifyInitialization();
+        
+        addDebugLog('🎉', 'OneSignal v16 initialization completed successfully!');
+        return true;
+        
+    } catch (error) {
+        addDebugLog('❌', 'OneSignal initialization failed:', error.toString());
+        throw error;
+    }
+}
+
+// ===== SET UP EVENT LISTENERS =====
+function setupEventListeners() {
+    try {
+        // Subscription change listener
+        OneSignal.User.PushSubscription.addEventListener('change', (event) => {
+            addDebugLog('🔄', 'Push subscription changed:', {
+                previous: event.previous?.id || 'none',
+                current: event.current?.id || 'none',
+                optedIn: event.current?.optedIn || false
+            });
+        });
+        
+        addDebugLog('✅', 'Event listeners set up successfully');
+    } catch (error) {
+        addDebugLog('⚠️', 'Error setting up event listeners:', error.toString());
+    }
+}
+
+// ===== VERIFY INITIALIZATION =====
+async function verifyInitialization() {
+    try {
+        // Test basic User API access
+        const hasUser = !!OneSignal.User;
+        const hasPushSubscription = !!(OneSignal.User && OneSignal.User.PushSubscription);
+        
+        addDebugLog('📊', 'Initialization verification:', {
+            hasUser,
+            hasPushSubscription,
+            browserPermission: Notification.permission
+        });
+        
+        // Try to get current subscription status (this should work even if not subscribed)
+        try {
+            const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
+            addDebugLog('✅', 'Successfully checked subscription status:', isOptedIn);
+        } catch (statusError) {
+            addDebugLog('⚠️', 'Could not check subscription status:', statusError.toString());
+        }
+        
+        // Try to get OneSignal ID (might be null if not subscribed, but should not error)
+        try {
+            const onesignalId = await OneSignal.User.getOnesignalId();
+            addDebugLog('✅', 'Successfully accessed getOnesignalId:', onesignalId || 'null (not subscribed)');
+        } catch (idError) {
+            addDebugLog('⚠️', 'Could not access getOnesignalId:', idError.toString());
+        }
+        
+        addDebugLog('✅', 'Initialization verification completed');
+        
+    } catch (error) {
+        addDebugLog('❌', 'Verification failed:', error.toString());
+        throw error;
+    }
+}
+
+// ===== SUBSCRIPTION FUNCTIONS =====
+async function subscribeToNotifications() {
+    addDebugLog('🔔', 'Starting subscription process...');
+    
+    try {
+        // Check browser permission first
+        let permission = Notification.permission;
+        addDebugLog('🔐', 'Current browser permission:', permission);
+        
+        if (permission === 'denied') {
+            throw new Error('Notifications are blocked in browser settings');
+        }
+        
+        if (permission === 'default') {
+            addDebugLog('❓', 'Requesting browser permission...');
+            permission = await Notification.requestPermission();
+            addDebugLog('🔐', 'Permission result:', permission);
+            
+            if (permission !== 'granted') {
+                throw new Error('User denied notification permission');
+            }
+        }
+        
+        // Check if already subscribed
+        const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
+        if (isOptedIn) {
+            addDebugLog('ℹ️', 'User is already subscribed');
+            const onesignalId = await OneSignal.User.getOnesignalId();
+            return { success: true, onesignalId, alreadySubscribed: true };
+        }
+        
+        // Subscribe to OneSignal
+        addDebugLog('📱', 'Calling OneSignal.User.PushSubscription.optIn()...');
+        await OneSignal.User.PushSubscription.optIn();
+        
+        // Wait for subscription to be processed
+        addDebugLog('⏳', 'Waiting for subscription to be processed...');
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Verify subscription
+        const finalOptedIn = await OneSignal.User.PushSubscription.optedIn;
+        if (!finalOptedIn) {
+            throw new Error('Subscription was not successful');
+        }
+        
+        const onesignalId = await OneSignal.User.getOnesignalId();
+        if (!onesignalId) {
+            throw new Error('No OneSignal ID generated');
+        }
+        
+        addDebugLog('🎉', 'Subscription successful!', { onesignalId });
+        
+        return { success: true, onesignalId, alreadySubscribed: false };
+        
+    } catch (error) {
+        addDebugLog('❌', 'Subscription failed:', error.toString());
+        throw error;
+    }
+}
+
+async function unsubscribeFromNotifications() {
+    addDebugLog('🔕', 'Starting unsubscription process...');
+    
+    try {
+        const wasOptedIn = await OneSignal.User.PushSubscription.optedIn;
+        
+        if (!wasOptedIn) {
+            addDebugLog('ℹ️', 'User was not subscribed');
+            return { success: true, wasSubscribed: false };
+        }
+        
+        const onesignalId = await OneSignal.User.getOnesignalId();
+        addDebugLog('🆔', 'User ID before unsubscribe:', onesignalId);
+        
+        // Unsubscribe
+        await OneSignal.User.PushSubscription.optOut();
+        
+        addDebugLog('✅', 'Unsubscription completed');
+        
+        return { success: true, wasSubscribed: true, onesignalId };
+        
+    } catch (error) {
+        addDebugLog('❌', 'Unsubscription failed:', error.toString());
+        throw error;
+    }
+}
+
+// ===== UTILITY FUNCTIONS =====
+function getCurrentUsername() {
+    const username = localStorage.getItem('username');
+    console.log('👤 getCurrentUsername from localStorage:', username);
+    
+    if (!username) {
+        console.error('❌ Username not found in localStorage');
+        return null;
+    }
+    
+    const result = username.toLowerCase();
+    console.log('👤 getCurrentUsername result:', result);
+    return result;
+}
+
+function showNotificationMessage(message, type = 'info') {
+    console.log('💬 Showing message:', { message, type });
+    
+    const bgColor = '#112240'; // Dark blue background
+   
+    const messageHTML = `
+        <div id="notificationMessage" style="
+            position: fixed;
+            top: 64px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: ${bgColor};
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 2px solid #33d9ff;
+            font-weight: bold;
+            z-index: 10001;
+            max-width: 90%;
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.4;
+        ">${message}</div>
+    `;
+    
+    const existing = document.getElementById('notificationMessage');
+    if (existing) {
+        console.log('🗑️ Removing existing message');
+        existing.remove();
+    }
+    
+    document.body.insertAdjacentHTML('beforeend', messageHTML);
+    console.log('✅ Message added to DOM');
+    
+    setTimeout(() => {
+        const messageEl = document.getElementById('notificationMessage');
+        if (messageEl) {
+            console.log('🗑️ Removing message after timeout');
+            messageEl.remove();
+        }
+    }, 4000);
+}
+
+// ===== NOTIFICATION TOGGLE HANDLER =====
+async function handleNotificationToggle() {
+    addDebugLog('📱', 'Notification toggle called');
+    
+    const toggle = document.getElementById('notificationCheck');
+    const isEnabled = toggle ? toggle.checked : false;
+    const username = getCurrentUsername();
+    
+    addDebugLog('📊', 'Toggle state', { isEnabled, username });
+    
+    if (!username) {
+        addDebugLog('❌', 'No username found');
+        showNotificationMessage('Error: Please log in first', 'error');
+        if (toggle) toggle.checked = !isEnabled;
+        return;
+    }
+    
+    // Check PWA mode
+    const isPWA = window.navigator.standalone === true || 
+                  window.matchMedia('(display-mode: standalone)').matches;
+    
+    addDebugLog('📱', 'PWA Mode', isPWA);
+    
+    if (!isPWA && isEnabled) {
+        addDebugLog('🌐', 'Browser user - redirecting to install');
+        if (toggle) toggle.checked = false;
+        window.location.href = `/login.html?showInstall=true&returnTo=${encodeURIComponent(window.location.href)}`;
+        return;
+    }
+    
+    if (isEnabled) {
+        addDebugLog('🔛', 'Enabling notifications');
+        
+        try {
+            const result = await subscribeToNotifications();
+            
+            // Update local storage
+            localStorage.setItem('notificationsEnabled', 'true');
+            if (result.onesignalId) {
+                localStorage.setItem('onesignalUserId', result.onesignalId);
+            }
+            
+            // Update backend
+            await updateBackendNotificationStatus(username, true, result.onesignalId);
+            
+            if (result.alreadySubscribed) {
+                showNotificationMessage('Notifications already enabled!', 'success');
+            } else {
+                showNotificationMessage('Notifications enabled successfully!', 'success');
+            }
+            addDebugLog('🎉', 'Notifications enabled successfully!');
+            
+        } catch (error) {
+            addDebugLog('❌', 'Error enabling notifications:', error.toString());
+            if (toggle) toggle.checked = false;
+            showNotificationMessage('Error enabling notifications: ' + error.message, 'error');
+        }
+        
+    } else {
+        // Disabling notifications
+        addDebugLog('🔕', 'Disabling notifications');
+        
+        try {
+            const result = await unsubscribeFromNotifications();
+            
+            localStorage.setItem('notificationsEnabled', 'false');
+            await updateBackendNotificationStatus(username, false, result.onesignalId);
+            
+            showNotificationMessage('Notifications disabled', 'success');
+            addDebugLog('✅', 'Notifications disabled');
+            
+        } catch (error) {
+            addDebugLog('❌', 'Error disabling notifications:', error.toString());
+            showNotificationMessage('Error updating notification settings', 'error');
+        }
+    }
+}
+
+// ===== BACKEND COMMUNICATION =====
+async function updateBackendNotificationStatus(username, enabled, onesignalId = null) {
+    addDebugLog('🔄', 'Updating backend notification status:', { username, enabled, onesignalId });
+    
+    try {
+        const response = await fetch(`/users/notifications/toggle/${username}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                enabled: enabled,
+                playerId: onesignalId 
+            })
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(`Backend update failed: ${response.statusText} - ${errorData.error || 'Unknown error'}`);
+        }
+        
+        const result = await response.json();
+        addDebugLog('✅', 'Backend updated successfully:', result);
+        
+        return result;
+        
+    } catch (error) {
+        addDebugLog('❌', 'Backend update failed:', error.toString());
+        throw error;
+    }
+}
+
+async function loadNotificationState() {
+    console.log('📥 Loading notification state');
+    
+    const username = getCurrentUsername();
+    const toggle = document.getElementById('notificationCheck');
+    
+    console.log('👤 Username:', username);
+    console.log('🔘 Toggle element:', !!toggle);
+    
+    if (!username || !toggle) {
+        console.error('❌ Missing username or toggle for loading state');
+        return;
+    }
+    
+    try {
+        console.log('🌐 Fetching notification status from backend');
+        const response = await fetch(`/users/notifications/status/${username}`);
+        const result = await response.json();
+        
+        console.log('📡 Backend response:', result);
+        
+        if (result.success) {
+            toggle.checked = result.notificationsEnabled;
+            console.log('✅ Set toggle from backend:', result.notificationsEnabled);
+        } else {
+            const localState = localStorage.getItem('notificationsEnabled') === 'true';
+            toggle.checked = localState;
+            console.log('📱 Set toggle from localStorage:', localState);
+        }
+    } catch (error) {
+        console.error('❌ Error loading notification state:', error);
+        const localState = localStorage.getItem('notificationsEnabled') === 'true';
+        toggle.checked = localState;
+        console.log('📱 Fallback to localStorage:', localState);
+    }
+}
+
+// ===== TEST FUNCTIONS =====
+async function testOneSignalStatus() {
+    addDebugLog('🧪', 'Testing OneSignal status...');
+    
+    try {
+        if (typeof OneSignal === 'undefined') {
+            throw new Error('OneSignal not loaded');
+        }
+        
+        addDebugLog('✅', 'OneSignal object available');
+        
+        // Test User API
+        if (!OneSignal.User) {
+            throw new Error('OneSignal.User not available');
+        }
+        
+        addDebugLog('✅', 'OneSignal.User available');
+        
+        // Test PushSubscription API
+        if (!OneSignal.User.PushSubscription) {
+            throw new Error('OneSignal.User.PushSubscription not available');
+        }
+        
+        addDebugLog('✅', 'OneSignal.User.PushSubscription available');
+        
+        // Test methods
+        const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
+        addDebugLog('📊', 'Current subscription status:', isOptedIn);
+        
+        const onesignalId = await OneSignal.User.getOnesignalId();
+        addDebugLog('🆔', 'Current OneSignal ID:', onesignalId || 'null');
+        
+        addDebugLog('🎉', 'All tests passed!');
+        
+    } catch (error) {
+        addDebugLog('❌', 'Test failed:', error.toString());
+    }
+}
+
+// ===== NOTIFICATION TOGGLE INITIALIZATION =====
+function initializeNotificationToggle() {
+    console.log('🔧 Starting initializeNotificationToggle');
+    
+    const toggle = document.getElementById('notificationCheck');
+    const label = document.querySelector('label[for="notificationCheck"]');
+    const container = document.getElementById('notificationOption');
+    const span = document.querySelector('#notificationOption span');
+    
+    console.log('🔍 Found elements:', {
+        toggle: !!toggle,
+        label: !!label,
+        container: !!container,
+        span: !!span
+    });
+    
+    if (!toggle || !label) {
+        console.error('❌ Missing elements - toggle or label not found');
+        return;
+    }
+    
+    console.log('✅ Elements found, setting up event listeners');
+    
+    // Load current state
+    loadNotificationState();
+    
+    // Add click handler to the label (the visual toggle)
+    label.addEventListener('click', function(e) {
+        console.log('🔘 Label clicked');
+        e.preventDefault(); // Prevent default label behavior
+        
+        // Manually toggle the checkbox
+        toggle.checked = !toggle.checked;
+        console.log('🔔 Checkbox toggled to:', toggle.checked);
+        
+        // Handle the toggle
+        handleNotificationToggle();
+    });
+    
+    // Add click handler to the span text
+    if (span) {
+        span.addEventListener('click', function(e) {
+            console.log('📝 Span clicked');
+            label.click(); // Trigger the label click
+        });
+    }
+    
+    // Also listen to the actual checkbox change (as backup)
+    toggle.addEventListener('change', function(e) {
+        console.log('🔔 Checkbox change event fired, checked:', e.target.checked);
+        // Don't call handleNotificationToggle here to avoid double-firing
+    });
+    
+    console.log('✅ Event listeners added successfully');
+}
+
+// ===== MOBILE TEST BUTTONS =====
+function addMobileTestButtons() {
+    addDebugLog('🔧', 'Adding mobile test buttons...');
+    
+    // Check if panel already exists
+    const existingPanel = document.getElementById('mobileTestPanel');
+    if (existingPanel) {
+        addDebugLog('⚠️', 'Test panel already exists, removing it');
+        existingPanel.remove();
+    }
+    
+    addDebugLog('🔧', 'Creating test panel...');
+    const testPanel = document.createElement('div');
+    testPanel.id = 'mobileTestPanel';
+    testPanel.style.cssText = `
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        background: rgba(0, 0, 0, 0.9);
+        border: 2px solid #33d9ff;
+        border-radius: 10px;
+        padding: 10px;
+        z-index: 10000;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        max-width: 300px;
+    `;
+    
+    // Test Status Button
+    const testBtn = document.createElement('button');
+    testBtn.textContent = '🧪 Test';
+    testBtn.style.cssText = `
+        background: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 12px;
+        border-radius: 5px;
+        font-size: 12px;
+        cursor: pointer;
+        flex: 1;
+        min-width: 80px;
+    `;
+    testBtn.onclick = testOneSignalStatus;
+    
+    // Subscribe Button
+    const subBtn = document.createElement('button');
+    subBtn.textContent = '🔔 Sub';
+    subBtn.style.cssText = `
+        background: #FF9800;
+        color: white;
+        border: none;
+        padding: 10px 12px;
+        border-radius: 5px;
+        font-size: 12px;
+        cursor: pointer;
+        flex: 1;
+        min-width: 80px;
+    `;
+    subBtn.onclick = async function() {
+        try {
+            const result = await subscribeToNotifications();
+            addDebugLog('✅', 'Manual subscription result:', result);
+        } catch (error) {
+            addDebugLog('❌', 'Manual subscription failed:', error.toString());
+        }
+    };
+
+    // Unsubscribe Button
+    const unsubBtn = document.createElement('button');
+    unsubBtn.textContent = '🔕 Unsub';
+    unsubBtn.style.cssText = `
+        background: #f44336;
+        color: white;
+        border: none;
+        padding: 10px 12px;
+        border-radius: 5px;
+        font-size: 12px;
+        cursor: pointer;
+        flex: 1;
+        min-width: 80px;
+    `;
+    unsubBtn.onclick = async function() {
+        try {
+            const result = await unsubscribeFromNotifications();
+            addDebugLog('✅', 'Manual unsubscription result:', result);
+        } catch (error) {
+            addDebugLog('❌', 'Manual unsubscription failed:', error.toString());
+        }
+    };
+
+    // Toggle Button
+    const toggleBtn = document.createElement('button');
+    toggleBtn.textContent = '🔄 Toggle';
+    toggleBtn.style.cssText = `
+        background: #9C27B0;
+        color: white;
+        border: none;
+        padding: 10px 12px;
+        border-radius: 5px;
+        font-size: 12px;
+        cursor: pointer;
+        flex: 1;
+        min-width: 80px;
+    `;
+    toggleBtn.onclick = handleNotificationToggle;
+
+    // Hide Panel Button
+    const hideBtn = document.createElement('button');
+    hideBtn.textContent = '❌';
+    hideBtn.style.cssText = `
+        background: #666;
+        color: white;
+        border: none;
+        padding: 10px 12px;
+        border-radius: 5px;
+        font-size: 12px;
+        cursor: pointer;
+        width: 40px;
+    `;
+    hideBtn.onclick = function() {
+        addDebugLog('🔧', 'Hide button clicked');
+        testPanel.style.display = 'none';
+    };
+    
+    addDebugLog('🔧', 'Adding buttons to panel...');
+    testPanel.appendChild(testBtn);
+    testPanel.appendChild(subBtn);
+    testPanel.appendChild(unsubBtn);
+    testPanel.appendChild(toggleBtn);
+    testPanel.appendChild(hideBtn);
+   
+    addDebugLog('🔧', 'Adding panel to document body...');
+    try {
+        document.body.appendChild(testPanel);
+        addDebugLog('✅', 'Mobile test panel added successfully!');
+    } catch (error) {
+        addDebugLog('❌', 'Error adding panel to body', error.toString());
+    }
+}
+
+// ===== MAIN INITIALIZATION =====
+async function initOnPageLoad() {
+    addDebugLog('🌐', 'Page loaded, starting initialization...');
+    
+    try {
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            await new Promise(resolve => {
+                document.addEventListener('DOMContentLoaded', resolve);
+            });
+        }
+        
+        addDebugLog('📄', 'DOM ready');
+        
+        // Create debug overlay first
+        setTimeout(() => {
+            if (!document.getElementById('simpleDebugOverlay')) {
+                createDebugOverlay();
+            }
+            showDebugOverlay();
+        }, 1000);
+        
+        // Initialize OneSignal
+        const initSuccess = await initializeOneSignalV16();
+        
+        if (initSuccess) {
+            addDebugLog('🎉', 'OneSignal initialization successful!');
+            
+            // Run a status test after initialization
+            setTimeout(() => {
+                testOneSignalStatus();
+            }, 2000);
+            
+            // Add test buttons after another delay
+            setTimeout(() => {
+                addMobileTestButtons();
+            }, 3000);
+        }
+        
+    } catch (error) {
+        addDebugLog('❌', 'Page initialization failed:', error.toString());
+    }
+}
+
+// ===== EXPORT GLOBAL FUNCTIONS =====
+window.initializeOneSignalV16 = initializeOneSignalV16;
+window.subscribeToNotifications = subscribeToNotifications;
+window.unsubscribeFromNotifications = unsubscribeFromNotifications;
+window.testOneSignalStatus = testOneSignalStatus;
+window.handleNotificationToggle = handleNotificationToggle;
+window.initializeNotificationToggle = initializeNotificationToggle;
+window.loadNotificationState = loadNotificationState;
+window.updateBackendNotificationStatus = updateBackendNotificationStatus;
+window.getCurrentUsername = getCurrentUsername;
+window.showNotificationMessage = showNotificationMessage;
+window.addDebugLog = addDebugLog;
+window.showDebugOverlay = showDebugOverlay;
+window.hideDebugOverlay = hideDebugOverlay;
+window.toggleDebugOverlay = toggleDebugOverlay;
+window.clearDebugLog = clearDebugLog;
+window.addMobileTestButtons = addMobileTestButtons;
+
+// ===== LEGACY SUPPORT =====
+// These provide backward compatibility with your existing code
+window.syncWithBackend = updateBackendNotificationStatus;
+window.handleNotificationToggleV16 = handleNotificationToggle;
+window.getOneSignalInfo = testOneSignalStatus;
+
+// ===== AUTO-START INITIALIZATION =====
+// Start initialization immediately
+initOnPageLoad();
+
+// Add debug button
+setTimeout(() => {
+    const debugButton = document.createElement('button');
+    debugButton.textContent = '🐛';
+    debugButton.style.cssText = `
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 10001;
+        background: #33d9ff;
+        color: black;
+        border: none;
+        padding: 15px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 16px;
+        width: 50px;
+        height: 50px;
+    `;
+    debugButton.onclick = toggleDebugOverlay;
+    document.body.appendChild(debugButton);
+}, 2000);
+
+console.log('✅ Complete OneSignal v16 System loaded and ready!');
+
+// ===== END OF ONESIGNAL SYSTEM =====
+
+
+/*// Initialize notification toggle on page load
 document.addEventListener('DOMContentLoaded', function() {
 setTimeout(() => {
     console.log('⏰ Timeout fired - trying initialization as backup');
@@ -67,7 +1060,7 @@ if (document.readyState === 'loading') {
 } else {
     initializeMobileDebugSystem();
 }
-
+*/
 console.log('✅ Mobile debug system loaded!');
 // Wait 3 seconds before adding test buttons
 //setTimeout(ensureTestButtons, 3000);
@@ -9621,1107 +10614,5 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault();
         toggleDebugOverlay();
     }
-});
+});*/
 
-console.log('✅ Consolidated notification system loaded successfully!'); */
-// ===== ONESIGNAL USER CREATION WITH v16 SDK (FIXED) =====
-
-console.log('🔧 Creating OneSignal User Creation System...');
-
-// ===== CONFIGURATION =====
-const ONESIGNAL_CONFIG = {
-    appId: "c0849e89-f474-4aea-8de1-290715275d14",
-    safari_web_id: "web.onesignal.auto.2fc72fe0-a0df-475b-ad9a-b2dac840a493",
-    allowLocalhostAsSecureOrigin: true
-};
-
-// ===== ONESIGNAL v16 INITIALIZATION =====
-async function initializeOneSignalV16() {
-    addDebugLog('🚀', 'Initializing OneSignal v16...');
-    
-    try {
-        await waitForOneSignalScript();
-        
-        // Initialize with v16 User Model
-        await OneSignal.init({
-            appId: ONESIGNAL_CONFIG.appId,
-            safari_web_id: ONESIGNAL_CONFIG.safari_web_id,
-            allowLocalhostAsSecureOrigin: ONESIGNAL_CONFIG.allowLocalhostAsSecureOrigin
-        });
-        
-        addDebugLog('✅', 'OneSignal v16 initialized successfully');
-        
-        // Set up event listeners
-        OneSignal.User.PushSubscription.addEventListener('change', handleSubscriptionChange);
-        
-        return true;
-    } catch (error) {
-        addDebugLog('❌', 'OneSignal initialization failed:', error.toString());
-        return false;
-    }
-}
-
-// ===== SUBSCRIPTION CHANGE HANDLER =====
-function handleSubscriptionChange(event) {
-    addDebugLog('🔄', 'Subscription changed:', {
-        previous: event.previous?.id || 'none',
-        current: event.current?.id || 'none',
-        optedIn: event.current?.optedIn || false
-    });
-}
-
-// ===== GET BROWSER TYPE FOR SUBSCRIPTION TYPE =====
-function getBrowserPushType() {
-    const userAgent = navigator.userAgent.toLowerCase();
-    
-    if (userAgent.includes('chrome') && !userAgent.includes('edg')) {
-        return 'ChromePush';
-    } else if (userAgent.includes('firefox')) {
-        return 'FirefoxPush';
-    } else if (userAgent.includes('safari') && !userAgent.includes('chrome')) {
-        return 'SafariPush';
-    } else if (userAgent.includes('edg')) {
-        return 'EdgePush';
-    } else {
-        return 'ChromePush'; // Default fallback
-    }
-}
-
-// ===== CREATE USER AND SUBSCRIPTION =====
-async function createOneSignalUserAndSubscription(username) {
-    addDebugLog('👤', 'Creating OneSignal user and subscription for:', username);
-    
-    try {
-        // Step 1: Get browser permission
-        let permission = Notification.permission;
-        if (permission !== 'granted') {
-            permission = await Notification.requestPermission();
-            if (permission !== 'granted') {
-                throw new Error('Notification permission denied');
-            }
-        }
-        addDebugLog('✅', 'Browser permission granted');
-        
-        // Step 2: Subscribe using OneSignal v16 SDK
-        addDebugLog('🔔', 'Starting OneSignal subscription...');
-        
-        // Use the v16 opt-in method
-        await OneSignal.User.PushSubscription.optIn();
-        addDebugLog('✅', 'OneSignal subscription created');
-        
-        // Step 3: Wait for subscription to be ready and get details
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Give time for subscription to register
-        
-        const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
-        if (!isOptedIn) {
-            throw new Error('Subscription not confirmed');
-        }
-        
-        // Step 4: Get subscription details
-        const onesignalId = await OneSignal.User.getOnesignalId();
-        const pushSubscription = await OneSignal.User.PushSubscription.id;
-        
-        addDebugLog('📊', 'Subscription details:', {
-            onesignalId,
-            pushSubscription,
-            isOptedIn
-        });
-        
-        // Step 5: Get push subscription details from browser
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
-        
-        if (!subscription) {
-            throw new Error('No browser push subscription found');
-        }
-        
-        // Step 6: Create user via backend API call
-        const userCreationResult = await createUserViaAPI(username, onesignalId, subscription);
-        
-        addDebugLog('🎉', 'User and subscription created successfully:', userCreationResult);
-        
-        return {
-            success: true,
-            onesignalId,
-            pushSubscription,
-            userCreationResult
-        };
-        
-    } catch (error) {
-        addDebugLog('❌', 'Error creating user and subscription:', error.toString());
-        throw error;
-    }
-}
-
-// ===== CREATE USER VIA SERVER API (FIXED) =====
-async function createUserViaAPI(username, onesignalId, browserSubscription) {
-    addDebugLog('🌐', 'Creating user via OneSignal API...');
-    
-    try {
-        // Extract subscription details
-        const p256dh = browserSubscription.getKey('p256dh');
-        const auth = browserSubscription.getKey('auth');
-        
-        // Convert keys to base64
-        const p256dhBase64 = btoa(String.fromCharCode(...new Uint8Array(p256dh)));
-        const authBase64 = btoa(String.fromCharCode(...new Uint8Array(auth)));
-        
-        // Prepare user data according to OneSignal User API
-        const userData = {
-            identity: {
-                external_id: username.toLowerCase(), // Use username as external ID
-                onesignal_id: onesignalId
-            },
-            properties: {
-                tags: {
-                    app_name: "Pick 6",
-                    user_type: "player",
-                    platform: "web"
-                },
-                language: navigator.language || 'en',
-                timezone_id: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                first_active: Math.floor(Date.now() / 1000),
-                last_active: Math.floor(Date.now() / 1000)
-            },
-            subscriptions: [
-                {
-                    type: getBrowserPushType(), // Dynamic browser detection
-                    token: browserSubscription.endpoint,
-                    enabled: true,
-                    web_auth: authBase64,
-                    web_p256: p256dhBase64,
-                    notification_types: 1 // Push notifications enabled
-                }
-            ]
-        };
-        
-        addDebugLog('📤', 'Sending user data to backend:', userData);
-        
-        // Call the correct backend endpoint for creating users
-        const response = await fetch('/api/notifications/onesignal/create-user', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                username: username.toLowerCase(),
-                userData: userData
-            })
-        });
-        
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(`Backend API call failed: ${response.statusText} - ${errorData.error || 'Unknown error'}`);
-        }
-        
-        const result = await response.json();
-        addDebugLog('✅', 'User created via API:', result);
-        
-        return result;
-        
-    } catch (error) {
-        addDebugLog('❌', 'API user creation failed:', error.toString());
-        throw error;
-    }
-}
-
-// ===== UPDATED NOTIFICATION TOGGLE HANDLER (FIXED) =====
-async function handleNotificationToggleV16() {
-    addDebugLog('📱', 'Notification toggle called (v16)');
-    
-    const toggle = document.getElementById('notificationCheck');
-    const isEnabled = toggle ? toggle.checked : false;
-    const username = getCurrentUsername();
-    
-    addDebugLog('📊', 'Toggle state', { isEnabled, username });
-    
-    if (!username) {
-        addDebugLog('❌', 'No username found');
-        showNotificationMessage('Error: Please log in first', 'error');
-        if (toggle) toggle.checked = !isEnabled;
-        return;
-    }
-    
-    // Check PWA mode
-    const isPWA = window.navigator.standalone === true || 
-                  window.matchMedia('(display-mode: standalone)').matches;
-    
-    addDebugLog('📱', 'PWA Mode', isPWA);
-    
-    if (!isPWA && isEnabled) {
-        addDebugLog('🌐', 'Browser user - redirecting to install');
-        if (toggle) toggle.checked = false;
-        window.location.href = `/login.html?showInstall=true&returnTo=${encodeURIComponent(window.location.href)}`;
-        return;
-    }
-    
-    if (isEnabled) {
-        addDebugLog('🔛', 'Enabling notifications with user creation');
-        
-        try {
-            // Check if user already exists first
-            const existingUser = await checkExistingOneSignalUser(username);
-            let result;
-            
-            if (existingUser) {
-                addDebugLog('ℹ️', 'User already exists, just enabling...');
-                // Just enable notifications for existing user
-                result = {
-                    success: true,
-                    onesignalId: existingUser,
-                    userCreationResult: { success: true, message: 'Existing user enabled' }
-                };
-                
-                // Make sure OneSignal is opted in
-                try {
-                    await OneSignal.User.PushSubscription.optIn();
-                } catch (optInError) {
-                    addDebugLog('⚠️', 'OptIn error for existing user:', optInError.toString());
-                }
-            } else {
-                addDebugLog('🆕', 'Creating new user...');
-                // Create new OneSignal user and subscription
-                result = await createOneSignalUserAndSubscription(username);
-            }
-            
-            // Update local storage
-            localStorage.setItem('notificationsEnabled', 'true');
-            localStorage.setItem('onesignalUserId', result.onesignalId);
-            
-            // Update backend with toggle endpoint
-            await updateBackendNotificationStatus(username, true, result.onesignalId);
-            
-            showNotificationMessage('Notifications enabled successfully!', 'success');
-            addDebugLog('🎉', 'Notifications enabled with user creation complete');
-            
-        } catch (error) {
-            addDebugLog('❌', 'Error enabling notifications:', error.toString());
-            if (toggle) toggle.checked = false;
-            showNotificationMessage('Error enabling notifications: ' + error.message, 'error');
-        }
-        
-    } else {
-        // Disabling notifications
-        addDebugLog('🔕', 'Disabling notifications');
-        
-        try {
-            // Opt out from OneSignal
-            await OneSignal.User.PushSubscription.optOut();
-            
-            localStorage.setItem('notificationsEnabled', 'false');
-            await updateBackendNotificationStatus(username, false);
-            
-            showNotificationMessage('Notifications disabled', 'success');
-            addDebugLog('✅', 'Notifications disabled');
-            
-        } catch (error) {
-            addDebugLog('❌', 'Error disabling notifications:', error.toString());
-            showNotificationMessage('Error updating notification settings', 'error');
-        }
-    }
-}
-
-// ===== UPDATE BACKEND NOTIFICATION STATUS =====
-async function updateBackendNotificationStatus(username, enabled, onesignalId = null) {
-    addDebugLog('🔄', 'Updating backend notification status:', { username, enabled, onesignalId });
-    
-    try {
-        const response = await fetch(`/api/notifications/toggle/${username}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ 
-                enabled: enabled,
-                playerId: onesignalId 
-            })
-        });
-        
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(`Backend update failed: ${response.statusText} - ${errorData.error || 'Unknown error'}`);
-        }
-        
-        const result = await response.json();
-        addDebugLog('✅', 'Backend updated successfully:', result);
-        
-        return result;
-        
-    } catch (error) {
-        addDebugLog('❌', 'Backend update failed:', error.toString());
-        throw error;
-    }
-}
-
-// ===== CHECK EXISTING USER (FIXED) =====
-async function checkExistingOneSignalUser(username) {
-    addDebugLog('🔍', 'Checking for existing OneSignal user:', username);
-    
-    try {
-        const response = await fetch(`/api/notifications/onesignal/check-user/${username}`);
-        
-        if (!response.ok) {
-            addDebugLog('⚠️', 'Check user API error:', response.statusText);
-            return null;
-        }
-        
-        const result = await response.json();
-        
-        if (result.exists) {
-            addDebugLog('✅', 'Existing user found:', result.onesignalId);
-            return result.onesignalId;
-        } else {
-            addDebugLog('ℹ️', 'No existing user found');
-            return null;
-        }
-    } catch (error) {
-        addDebugLog('⚠️', 'Error checking existing user:', error.toString());
-        return null;
-    }
-}
-
-// ===== SYNC WITH BACKEND (LEGACY SUPPORT) =====
-async function syncWithBackend(username, enabled, playerId = null) {
-    // This function exists for backward compatibility
-    return await updateBackendNotificationStatus(username, enabled, playerId);
-}
-
-// ===== IMPROVED ERROR HANDLING FOR DEBUGGING =====
-function addSafeDebugLog(emoji, message, data = null) {
-    try {
-        if (typeof addDebugLog === 'function') {
-            addDebugLog(emoji, message, data);
-        } else {
-            console.log(`${emoji} ${message}`, data || '');
-        }
-    } catch (error) {
-        console.log(`${emoji} ${message}`, data || '');
-    }
-}
-
-// ===== TEST FUNCTION =====
-async function testOneSignalUserCreation() {
-    addDebugLog('🧪', 'Testing OneSignal user creation...');
-    
-    const username = getCurrentUsername();
-    if (!username) {
-        addDebugLog('❌', 'No username for testing');
-        return;
-    }
-    
-    try {
-        const result = await createOneSignalUserAndSubscription(username);
-        addDebugLog('✅', 'Test completed successfully:', result);
-        showNotificationMessage('Test user creation completed!', 'success');
-    } catch (error) {
-        addDebugLog('❌', 'Test failed:', error.toString());
-        showNotificationMessage('Test failed: ' + error.message, 'error');
-    }
-}
-
-// ===== EXPORT FUNCTIONS =====
-window.createOneSignalUserAndSubscription = createOneSignalUserAndSubscription;
-window.handleNotificationToggleV16 = handleNotificationToggleV16;
-window.initializeOneSignalV16 = initializeOneSignalV16;
-window.testOneSignalUserCreation = testOneSignalUserCreation;
-window.checkExistingOneSignalUser = checkExistingOneSignalUser;
-window.updateBackendNotificationStatus = updateBackendNotificationStatus;
-
-// ===== REPLACE ORIGINAL FUNCTIONS =====
-// Replace the original handlers with v16 versions
-window.handleNotificationToggle = handleNotificationToggleV16;
-
-// Add debug alias
-window.addSafeDebugLog = addSafeDebugLog;
-
-console.log('✅ OneSignal v16 User Creation System loaded (FIXED)!');
-
-// ===== INITIALIZATION CHECK =====
-// Auto-initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-            if (typeof addDebugLog === 'function') {
-                addDebugLog('🚀', 'DOM ready, OneSignal system available');
-            }
-        }, 1000);
-    });
-} else {
-    setTimeout(() => {
-        if (typeof addDebugLog === 'function') {
-            addDebugLog('🚀', 'OneSignal system ready');
-        }
-    }, 1000);
-}
-
-// ===== DEBUG OVERLAY FOR MOBILE =====
-function createDebugOverlay() {
-    console.log('🔧 createDebugOverlay called');
-    
-    // Remove any existing overlay
-    const existing = document.getElementById('simpleDebugOverlay');
-    if (existing) {
-        existing.remove();
-        console.log('🗑️ Removed existing overlay');
-    }
-    
-    // Create the overlay
-    const overlay = document.createElement('div');
-    overlay.id = 'simpleDebugOverlay';
-    overlay.innerHTML = `
-        <div style="
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            width: 350px;
-            max-height: 80vh;
-            background: rgba(0, 0, 0, 0.95);
-            border: 2px solid #33d9ff;
-            border-radius: 10px;
-            color: #fff;
-            font-family: 'Courier New', monospace;
-            font-size: 11px;
-            z-index: 99999;
-            overflow: hidden;
-        ">
-            <div style="
-                background: #33d9ff;
-                color: #000;
-                padding: 8px 12px;
-                font-weight: bold;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            ">
-                <span>🐛 Debug Console</span>
-                <div>
-                    <button onclick="clearDebugLog()" style="
-                        background: none;
-                        border: none;
-                        color: #000;
-                        cursor: pointer;
-                        padding: 2px 6px;
-                        margin: 0 2px;
-                        border-radius: 3px;
-                        font-size: 12px;
-                    ">Clear</button>
-                    <button onclick="hideDebugOverlay()" style="
-                        background: none;
-                        border: none;
-                        color: #000;
-                        cursor: pointer;
-                        padding: 2px 6px;
-                        border-radius: 3px;
-                        font-size: 12px;
-                    ">×</button>
-                </div>
-            </div>
-            <div id="simpleDebugContent" style="
-                padding: 10px;
-                max-height: calc(80vh - 50px);
-                overflow-y: auto;
-                line-height: 1.3;
-            ">
-                <div style="color: #33d9ff;">[${new Date().toLocaleTimeString()}] 🚀 Debug overlay created!</div>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(overlay);
-    console.log('✅ Debug overlay added to DOM');
-    
-    return overlay;
-}
-
-function addDebugLog(emoji, message, data = null) {
-    console.log('📝 addDebugLog:', emoji, message, data);
-    
-    const content = document.getElementById('simpleDebugContent');
-    if (!content) {
-        console.error('❌ Debug content not found');
-        return;
-    }
-    
-    const timestamp = new Date().toLocaleTimeString();
-    let logEntry = `<div style="margin-bottom: 5px; padding: 3px 0; border-bottom: 1px solid #333;">`;
-    logEntry += `<span style="color: #888;">[${timestamp}]</span> `;
-    logEntry += `<span style="color: #33d9ff;">${emoji}</span> `;
-    logEntry += `<span style="color: #fff;">${message}</span>`;
-    
-    if (data) {
-        logEntry += `<br><span style="color: #90EE90; margin-left: 20px; font-size: 10px;">`;
-        logEntry += typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
-        logEntry += `</span>`;
-    }
-    
-    logEntry += `</div>`;
-    
-    content.innerHTML += logEntry;
-    content.scrollTop = content.scrollHeight;
-    
-    console.log('✅ Log entry added to debug overlay');
-}
-
-function showDebugOverlay() {
-    console.log('👁️ showDebugOverlay called');
-    
-    let overlay = document.getElementById('simpleDebugOverlay');
-    if (!overlay) {
-        console.log('🔧 Creating new overlay');
-        overlay = createDebugOverlay();
-    }
-    
-    overlay.style.display = 'block';
-    addDebugLog('👁️', 'Debug overlay shown');
-    console.log('✅ Debug overlay should now be visible');
-}
-
-function hideDebugOverlay() {
-    console.log('🙈 hideDebugOverlay called');
-    const overlay = document.getElementById('simpleDebugOverlay');
-    if (overlay) {
-        overlay.style.display = 'none';
-        console.log('✅ Debug overlay hidden');
-    }
-}
-
-function clearDebugLog() {
-    console.log('🧹 clearDebugLog called');
-    const content = document.getElementById('simpleDebugContent');
-    if (content) {
-        content.innerHTML = '<div style="color: #33d9ff;">[' + new Date().toLocaleTimeString() + '] 🧹 Log cleared</div>';
-        console.log('✅ Debug log cleared');
-    }
-}
-
-function toggleDebugOverlay() {
-    const overlay = document.getElementById('simpleDebugOverlay');
-    if (overlay && overlay.style.display !== 'none') {
-        hideDebugOverlay();
-    } else {
-        showDebugOverlay();
-    }
-}
-
-// ===== MOBILE TEST BUTTONS =====
-function addMobileTestButtons() {
-    addDebugLog('🔧', 'Adding mobile test buttons...');
-    
-    // Check if panel already exists
-    const existingPanel = document.getElementById('mobileTestPanel');
-    if (existingPanel) {
-        addDebugLog('⚠️', 'Test panel already exists, removing it');
-        existingPanel.remove();
-    }
-    
-    addDebugLog('🔧', 'Creating test panel...');
-    const testPanel = document.createElement('div');
-    testPanel.id = 'mobileTestPanel';
-    testPanel.style.cssText = `
-        position: fixed;
-        bottom: 10px;
-        left: 10px;
-        background: rgba(0, 0, 0, 0.9);
-        border: 2px solid #33d9ff;
-        border-radius: 10px;
-        padding: 10px;
-        z-index: 10000;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        max-width: 300px;
-    `;
-    
-    // Test User Creation Button
-    const testUserBtn = document.createElement('button');
-    testUserBtn.textContent = '👤 Test User';
-    testUserBtn.style.cssText = `
-        background: #4CAF50;
-        color: white;
-        border: none;
-        padding: 10px 12px;
-        border-radius: 5px;
-        font-size: 12px;
-        cursor: pointer;
-        flex: 1;
-        min-width: 80px;
-    `;
-    testUserBtn.onclick = function() {
-        addDebugLog('🧪', 'Testing user creation...');
-        if (typeof testOneSignalUserCreation === 'function') {
-            testOneSignalUserCreation();
-        } else {
-            addDebugLog('❌', 'testOneSignalUserCreation function not found');
-        }
-    };
-    
-    // Test Toggle Button
-    const toggleBtn = document.createElement('button');
-    toggleBtn.textContent = '🔔 Toggle';
-    toggleBtn.style.cssText = `
-        background: #FF9800;
-        color: white;
-        border: none;
-        padding: 10px 12px;
-        border-radius: 5px;
-        font-size: 12px;
-        cursor: pointer;
-        flex: 1;
-        min-width: 80px;
-    `;
-    toggleBtn.onclick = function() {
-        addDebugLog('🧪', 'Testing notification toggle...');
-        if (typeof handleNotificationToggleV16 === 'function') {
-            handleNotificationToggleV16();
-        } else {
-            addDebugLog('❌', 'handleNotificationToggleV16 function not found');
-        }
-    };
-
-    // Check User Button
-    const checkUserBtn = document.createElement('button');
-    checkUserBtn.textContent = '🔍 Check';
-    checkUserBtn.style.cssText = `
-        background: #2196F3;
-        color: white;
-        border: none;
-        padding: 10px 12px;
-        border-radius: 5px;
-        font-size: 12px;
-        cursor: pointer;
-        flex: 1;
-        min-width: 80px;
-    `;
-    checkUserBtn.onclick = async function() {
-        addDebugLog('🧪', 'Checking existing user...');
-        const username = getCurrentUsername();
-        if (username) {
-            try {
-                const result = await checkExistingOneSignalUser(username);
-                addDebugLog('✅', 'Check user result:', result);
-            } catch (error) {
-                addDebugLog('❌', 'Check user error:', error.toString());
-            }
-        } else {
-            addDebugLog('❌', 'No username found');
-        }
-    };
-
-    // OneSignal Info Button
-    const infoBtn = document.createElement('button');
-    infoBtn.textContent = '📊 Info';
-    infoBtn.style.cssText = `
-        background: #9C27B0;
-        color: white;
-        border: none;
-        padding: 10px 12px;
-        border-radius: 5px;
-        font-size: 12px;
-        cursor: pointer;
-        flex: 1;
-        min-width: 80px;
-    `;
-    infoBtn.onclick = function() {
-        addDebugLog('🧪', 'Getting OneSignal info...');
-        getOneSignalInfo();
-    };
-
-    // Test Notification Button
-    const testNotifyBtn = document.createElement('button');
-    testNotifyBtn.textContent = '📱 Test Notify';
-    testNotifyBtn.style.cssText = `
-        background: #E91E63;
-        color: white;
-        border: none;
-        padding: 10px 12px;
-        border-radius: 5px;
-        font-size: 12px;
-        cursor: pointer;
-        flex: 1;
-        min-width: 80px;
-    `;
-    testNotifyBtn.onclick = async function() {
-        addDebugLog('🧪', 'Testing notification send...');
-        try {
-            const response = await fetch('/api/notifications/test', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-            const result = await response.json();
-            addDebugLog('📱', 'Test notification result:', result);
-        } catch (error) {
-            addDebugLog('❌', 'Test notification error:', error.toString());
-        }
-    };
-
-    // Hide Panel Button
-    const hideBtn = document.createElement('button');
-    hideBtn.textContent = '❌';
-    hideBtn.style.cssText = `
-        background: #666;
-        color: white;
-        border: none;
-        padding: 10px 12px;
-        border-radius: 5px;
-        font-size: 12px;
-        cursor: pointer;
-        width: 40px;
-    `;
-    hideBtn.onclick = function() {
-        addDebugLog('🔧', 'Hide button clicked');
-        testPanel.style.display = 'none';
-    };
-    
-// Replace the Fix User button with these new ones:
-
-// Simple Check Button
-const simpleCheckBtn = document.createElement('button');
-simpleCheckBtn.textContent = '🔍 Simple';
-simpleCheckBtn.style.cssText = `
-    background: #607D8B;
-    color: white;
-    border: none;
-    padding: 10px 12px;
-    border-radius: 5px;
-    font-size: 12px;
-    cursor: pointer;
-    flex: 1;
-    min-width: 80px;
-`;
-simpleCheckBtn.onclick = simpleOneSignalCheck;
-
-// Fix V2 Button  
-const fixV2Btn = document.createElement('button');
-fixV2Btn.textContent = '🔧 Fix V2';
-fixV2Btn.style.cssText = `
-    background: #FF5722;
-    color: white;
-    border: none;
-    padding: 10px 12px;
-    border-radius: 5px;
-    font-size: 12px;
-    cursor: pointer;
-    flex: 1;
-    min-width: 80px;
-`;
-fixV2Btn.onclick = async function() {
-    try {
-        const result = await fixExistingUserV2();
-        addDebugLog('✅', 'Fix V2 result:', result);
-    } catch (error) {
-        addDebugLog('❌', 'Fix V2 failed:', error.toString());
-    }
-};
-
-// Force Create Button
-const forceCreateBtn = document.createElement('button');
-forceCreateBtn.textContent = '🆕 Force';
-forceCreateBtn.style.cssText = `
-    background: #795548;
-    color: white;
-    border: none;
-    padding: 10px 12px;
-    border-radius: 5px;
-    font-size: 12px;
-    cursor: pointer;
-    flex: 1;
-    min-width: 80px;
-`;
-forceCreateBtn.onclick = async function() {
-    try {
-        const result = await forceCreateNewUser();
-        addDebugLog('✅', 'Force create result:', result);
-    } catch (error) {
-        addDebugLog('❌', 'Force create failed:', error.toString());
-    }
-};
-
-// Add all three to your panel
-
-    addDebugLog('🔧', 'Adding buttons to panel...');
-    testPanel.appendChild(testUserBtn);
-    testPanel.appendChild(toggleBtn);
-    testPanel.appendChild(checkUserBtn);
-    testPanel.appendChild(infoBtn);
-    testPanel.appendChild(testNotifyBtn);
-    testPanel.appendChild(hideBtn);
-    testPanel.appendChild(simpleCheckBtn);
-testPanel.appendChild(fixV2Btn);  
-testPanel.appendChild(forceCreateBtn);
-   
-    addDebugLog('🔧', 'Adding panel to document body...');
-    try {
-        document.body.appendChild(testPanel);
-        addDebugLog('✅', 'Mobile test panel added successfully!');
-    } catch (error) {
-        addDebugLog('❌', 'Error adding panel to body', error.toString());
-    }
-}
-
-// ===== ONESIGNAL INFO FUNCTION =====
-function getOneSignalInfo() {
-    addDebugLog('🔍', 'Getting OneSignal info...');
-    
-    if (typeof OneSignal === 'undefined') {
-        addDebugLog('❌', 'OneSignal not loaded');
-        return;
-    }
-    
-    addDebugLog('✅', 'OneSignal is available');
-    addDebugLog('🔐', 'Browser permission:', Notification.permission);
-    
-    // Check OneSignal status
-    OneSignal.User.PushSubscription.optedIn.then(isOptedIn => {
-        addDebugLog('📊', 'OneSignal opted in:', isOptedIn);
-    }).catch(error => {
-        addDebugLog('❌', 'Error checking opt-in status:', error.toString());
-    });
-    
-    OneSignal.User.getOnesignalId().then(id => {
-        addDebugLog('🆔', 'OneSignal ID:', id);
-    }).catch(error => {
-        addDebugLog('❌', 'Error getting OneSignal ID:', error.toString());
-    });
-    
-    OneSignal.User.PushSubscription.id.then(subId => {
-        addDebugLog('📱', 'Subscription ID:', subId);
-    }).catch(error => {
-        addDebugLog('❌', 'Error getting subscription ID:', error.toString());
-    });
-}
-
-// ===== FIX EXISTING USER =====
-async function fixExistingUser() {
-    const username = getCurrentUsername();
-    addDebugLog('🔧', 'Fixing existing user for:', username);
-    
-    try {
-        // Get current OneSignal ID if available
-        const onesignalId = await OneSignal.User.getOnesignalId();
-        addDebugLog('🆔', 'Current OneSignal ID:', onesignalId);
-        
-        if (onesignalId) {
-            // Set external ID to link this subscription to your username
-            await OneSignal.User.addAlias('external_id', username.toLowerCase());
-            addDebugLog('✅', 'External ID set to:', username.toLowerCase());
-            
-            // Update backend
-            await updateBackendNotificationStatus(username, true, onesignalId);
-            addDebugLog('✅', 'Backend updated');
-            
-            return { success: true, onesignalId };
-        } else {
-            throw new Error('No OneSignal ID found');
-        }
-    } catch (error) {
-        addDebugLog('❌', 'Fix existing user error:', error.toString());
-        throw error;
-    }
-}
-
-// ===== FIXED ONESIGNAL v16 FUNCTIONS =====
-
-// ===== CORRECT API METHODS FOR v16 =====
-async function getOneSignalUserId() {
-    try {
-        // Try different v16 methods
-        if (OneSignal.User && OneSignal.User.onesignalId) {
-            return OneSignal.User.onesignalId;
-        }
-        
-        if (OneSignal.User && typeof OneSignal.User.getOnesignalId === 'function') {
-            return await OneSignal.User.getOnesignalId();
-        }
-        
-        // Alternative method
-        if (OneSignal.getUserId) {
-            return await OneSignal.getUserId();
-        }
-        
-        // Try accessing the ID directly
-        const userId = OneSignal.User?.onesignalId || OneSignal.User?.id;
-        return userId || null;
-        
-    } catch (error) {
-        addDebugLog('❌', 'Error getting OneSignal ID:', error.toString());
-        return null;
-    }
-}
-
-// ===== IMPROVED FIX EXISTING USER =====
-async function fixExistingUserV2() {
-    const username = getCurrentUsername();
-    addDebugLog('🔧', 'Fixing existing user for:', username);
-    
-    try {
-        // First, check what OneSignal methods are available
-        addDebugLog('🔍', 'OneSignal User object:', {
-            hasUser: !!OneSignal.User,
-            userKeys: OneSignal.User ? Object.keys(OneSignal.User) : 'No User object',
-            hasGetId: !!(OneSignal.User && OneSignal.User.getOnesignalId),
-            hasOnesignalId: !!(OneSignal.User && OneSignal.User.onesignalId)
-        });
-        
-        // Try to get OneSignal ID using different methods
-        let onesignalId = await getOneSignalUserId();
-        addDebugLog('🆔', 'OneSignal ID attempt 1:', onesignalId);
-        
-        // If no ID found, try to get it from subscription status
-        if (!onesignalId) {
-            try {
-                const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
-                addDebugLog('📊', 'Subscription status:', isOptedIn);
-                
-                if (isOptedIn) {
-                    // Try to get subscription ID instead
-                    const subId = await OneSignal.User.PushSubscription.id;
-                    addDebugLog('📱', 'Subscription ID:', subId);
-                    
-                    // For now, use this as the user ID
-                    onesignalId = subId;
-                }
-            } catch (subError) {
-                addDebugLog('❌', 'Subscription check error:', subError.toString());
-            }
-        }
-        
-        if (onesignalId) {
-            addDebugLog('✅', 'Found OneSignal ID:', onesignalId);
-            
-            // Try to set external ID (if method exists)
-            try {
-                if (OneSignal.User && OneSignal.User.addAlias) {
-                    await OneSignal.User.addAlias('external_id', username.toLowerCase());
-                    addDebugLog('✅', 'External ID set via addAlias');
-                } else if (OneSignal.User && OneSignal.User.setExternalUserId) {
-                    await OneSignal.User.setExternalUserId(username.toLowerCase());
-                    addDebugLog('✅', 'External ID set via setExternalUserId');
-                } else {
-                    addDebugLog('⚠️', 'No method found to set external ID');
-                }
-            } catch (aliasError) {
-                addDebugLog('⚠️', 'External ID setting failed:', aliasError.toString());
-            }
-            
-            // Update backend with the existing OneSignal ID
-            await updateBackendNotificationStatus(username, true, onesignalId);
-            addDebugLog('✅', 'Backend updated');
-            
-            return { success: true, onesignalId, method: 'existing_user_fixed' };
-        } else {
-            addDebugLog('❌', 'No OneSignal ID found - user may not be subscribed');
-            
-            // Try to create a fresh subscription
-            addDebugLog('🔄', 'Attempting fresh subscription...');
-            await OneSignal.User.PushSubscription.optIn();
-            
-            // Wait and try again
-            await new Promise(resolve => setTimeout(resolve, 3000));
-            onesignalId = await getOneSignalUserId();
-            
-            if (onesignalId) {
-                addDebugLog('✅', 'New subscription created:', onesignalId);
-                await updateBackendNotificationStatus(username, true, onesignalId);
-                return { success: true, onesignalId, method: 'new_subscription' };
-            } else {
-                throw new Error('Could not create or find OneSignal subscription');
-            }
-        }
-    } catch (error) {
-        addDebugLog('❌', 'Fix existing user error:', error.toString());
-        throw error;
-    }
-}
-
-// ===== SIMPLE ONESIGNAL STATUS CHECK =====
-async function simpleOneSignalCheck() {
-    addDebugLog('🔍', 'Simple OneSignal check...');
-    
-    try {
-        // Check what's available
-        addDebugLog('📊', 'OneSignal availability:', {
-            oneSignalExists: typeof OneSignal !== 'undefined',
-            hasUser: !!(OneSignal && OneSignal.User),
-            hasPushSubscription: !!(OneSignal && OneSignal.User && OneSignal.User.PushSubscription)
-        });
-        
-        if (!OneSignal || !OneSignal.User) {
-            addDebugLog('❌', 'OneSignal User API not available');
-            return;
-        }
-        
-        // Check subscription status
-        try {
-            const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
-            addDebugLog('📱', 'Is opted in:', isOptedIn);
-        } catch (error) {
-            addDebugLog('❌', 'Error checking opt-in status:', error.toString());
-        }
-        
-        // Try to get any available IDs
-        const userId = await getOneSignalUserId();
-        addDebugLog('🆔', 'User ID result:', userId);
-        
-        // Check browser permission
-        addDebugLog('🔐', 'Browser permission:', Notification.permission);
-        
-    } catch (error) {
-        addDebugLog('❌', 'Simple check error:', error.toString());
-    }
-}
-
-// ===== FORCE CREATE NEW USER =====
-async function forceCreateNewUser() {
-    const username = getCurrentUsername();
-    addDebugLog('🆕', 'Force creating new user for:', username);
-    
-    try {
-        // Step 1: Get browser permission
-        let permission = Notification.permission;
-        if (permission !== 'granted') {
-            permission = await Notification.requestPermission();
-            if (permission !== 'granted') {
-                throw new Error('Notification permission denied');
-            }
-        }
-        addDebugLog('✅', 'Browser permission:', permission);
-        
-        // Step 2: Try to opt in
-        addDebugLog('🔔', 'Attempting OneSignal opt-in...');
-        await OneSignal.User.PushSubscription.optIn();
-        addDebugLog('✅', 'Opt-in completed');
-        
-        // Step 3: Wait for registration
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        
-        // Step 4: Check status
-        const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
-        addDebugLog('📊', 'Final opt-in status:', isOptedIn);
-        
-        if (isOptedIn) {
-            const userId = await getOneSignalUserId();
-            addDebugLog('🆔', 'New user ID:', userId);
-            
-            if (userId) {
-                // Update backend
-                await updateBackendNotificationStatus(username, true, userId);
-                addDebugLog('✅', 'New user created and backend updated');
-                return { success: true, onesignalId: userId };
-            }
-        }
-        
-        throw new Error('User creation failed - no ID generated');
-        
-    } catch (error) {
-        addDebugLog('❌', 'Force create error:', error.toString());
-        throw error;
-    }
-}
-
-// ===== EXPORT NEW FUNCTIONS =====
-window.fixExistingUserV2 = fixExistingUserV2;
-window.simpleOneSignalCheck = simpleOneSignalCheck;
-window.forceCreateNewUser = forceCreateNewUser;
-window.getOneSignalUserId = getOneSignalUserId;
-
-console.log('✅ Fixed OneSignal v16 functions loaded!');
