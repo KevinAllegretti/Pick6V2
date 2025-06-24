@@ -8931,7 +8931,7 @@ function checkOneSignalInfo() {
 function testOneSignalSubscription() {
     addDebugLog('🧪', 'Testing OneSignal subscription...');
     
-    subscribeToOneSignal()
+    subscribeToOneSignalWithVAPID()
         .then(result => {
             addDebugLog('✅', 'Test subscription completed successfully', result);
             showNotificationMessage('Test subscription completed!', 'success');
@@ -9097,7 +9097,7 @@ async function handleNotificationToggle() {
             
             // Subscribe to OneSignal
             addDebugLog('🔔', 'Subscribing to OneSignal...');
-            const subscriptionResult = await subscribeToOneSignal();
+            const subscriptionResult = await subscribeToOneSignalWithVAPID();
             addDebugLog('📡', 'OneSignal subscription result', subscriptionResult);
             
             if (!subscriptionResult.success) {
