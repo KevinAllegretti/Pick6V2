@@ -8943,6 +8943,7 @@ function testOneSignalSubscription() {
 }
 
 // ===== TEST BUTTONS FOR PHONE =====
+// ===== TEST BUTTONS FOR PHONE =====
 function addTestButtons() {
     addDebugLog('🔧', 'addTestButtons function called');
     
@@ -8987,47 +8988,47 @@ function addTestButtons() {
         width: 100%;
     `;
     testBtn.onclick = testOneSignalSubscription;
-    // Add these buttons to your test panel
-const vapidBtn = document.createElement('button');
-vapidBtn.textContent = '🔑 VAPID Test';
-vapidBtn.style.cssText = `
-    background: #8b5cf6;
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 5px;
-    font-size: 14px;
-    cursor: pointer;
-    width: 100%;
-`;
-vapidBtn.onclick = function() {
-    subscribeToOneSignalWithVAPID()
-        .then(result => {
-            addDebugLog('✅', 'VAPID subscription completed', result);
-            showNotificationMessage('VAPID subscription completed!', 'success');
-        })
-        .catch(error => {
-            addDebugLog('❌', 'VAPID subscription failed', error.toString());
-            showNotificationMessage('VAPID subscription failed: ' + error.message, 'error');
-        });
-};
+    
+    // VAPID Test Button
+    const vapidBtn = document.createElement('button');
+    vapidBtn.textContent = '🔑 VAPID';
+    vapidBtn.style.cssText = `
+        background: #8b5cf6;
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 5px;
+        font-size: 14px;
+        cursor: pointer;
+        width: 100%;
+    `;
+    vapidBtn.onclick = function() {
+        subscribeToOneSignalWithVAPID()
+            .then(result => {
+                addDebugLog('✅', 'VAPID subscription completed', result);
+                showNotificationMessage('VAPID subscription completed!', 'success');
+            })
+            .catch(error => {
+                addDebugLog('❌', 'VAPID subscription failed', error.toString());
+                showNotificationMessage('VAPID subscription failed: ' + error.message, 'error');
+            });
+    };
 
-const methodsBtn = document.createElement('button');
-methodsBtn.textContent = '🔧 Methods';
-methodsBtn.style.cssText = `
-    background: #06b6d4;
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 5px;
-    font-size: 14px;
-    cursor: pointer;
-    width: 100%;
-`;
-methodsBtn.onclick = checkAvailableOneSignalMethods;
-
-testPanel.appendChild(vapidBtn);
-testPanel.appendChild(methodsBtn);
+    // Methods Check Button
+    const methodsBtn = document.createElement('button');
+    methodsBtn.textContent = '🔧 Methods';
+    methodsBtn.style.cssText = `
+        background: #06b6d4;
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 5px;
+        font-size: 14px;
+        cursor: pointer;
+        width: 100%;
+    `;
+    methodsBtn.onclick = checkAvailableOneSignalMethods;
+    
     // Check OneSignal Button
     const checkBtn = document.createElement('button');
     checkBtn.textContent = '🔍 Check OS';
@@ -9063,6 +9064,8 @@ testPanel.appendChild(methodsBtn);
     
     addDebugLog('🔧', 'Adding buttons to panel...');
     testPanel.appendChild(testBtn);
+    testPanel.appendChild(vapidBtn);      // NEW
+    testPanel.appendChild(methodsBtn);    // NEW  
     testPanel.appendChild(checkBtn);
     testPanel.appendChild(hideBtn);
     
