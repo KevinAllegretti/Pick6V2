@@ -8581,61 +8581,98 @@ function toggleDebugOverlay() {
 }
 
 // ===== ONESIGNAL SUBSCRIPTION FUNCTIONS =====
-async function waitForOneSignalReady() {
-    addDebugLog('⏳', 'Waiting for OneSignal v16 to be ready...');
+async function waitForOneSignalScript() {
+    addDebugLog('⏳', 'Waiting for OneSignal script to load...');
     
     return new Promise((resolve, reject) => {
         let attempts = 0;
         const maxAttempts = 30;
         
+        const checkScript = () => {
+            attempts++;
+            addDebugLog('🔍', `Script load check attempt ${attempts}/${maxAttempts}`);
+            
+            if (typeof OneSignal === 'undefined') {
+                if (attempts >= maxAttempts) {
+                    reject(new Error('OneSignal script never loaded'));
+                    return;
+                }
+                setTimeout(checkScript, 1000);
+                return;
+            }
+            
+            // Check if it's the v16 version
+            if (OneSignal.init && typeof OneSignal.init === 'function') {
+                addDebugLog('✅', 'OneSignal v16 script loaded');
+                resolve();
+            } else {
+                addDebugLog('❌', 'OneSignal loaded but wrong version');
+                if (attempts >= maxAttempts) {
+                    reject(new Error('Wrong OneSignal version'));
+                    return;
+                }
+                setTimeout(checkScript, 1000);
+            }
+        };
+        
+        checkScript();
+    });
+}
+
+async function waitForOneSignalReady() {
+    addDebugLog('⏳', 'Waiting for OneSignal v16 to be fully ready...');
+    
+    return new Promise((resolve, reject) => {
+        let attempts = 0;
+        const maxAttempts = 15; // Shorter timeout since init should be done
+        
         const checkReady = async () => {
             attempts++;
-            addDebugLog('🔍', `OneSignal v16 ready check attempt ${attempts}/${maxAttempts}`);
+            addDebugLog('🔍', `OneSignal ready check ${attempts}/${maxAttempts}`);
             
-            // Check if OneSignal exists
             if (typeof OneSignal === 'undefined') {
-                addDebugLog('❌', 'OneSignal object not found');
+                addDebugLog('❌', 'OneSignal not found');
                 if (attempts >= maxAttempts) {
                     reject(new Error('OneSignal not available'));
                     return;
                 }
-                setTimeout(checkReady, 1000);
+                setTimeout(checkReady, 500);
                 return;
             }
             
-            // Check if User API is available (v16 indicator)
             if (!OneSignal.User || !OneSignal.User.PushSubscription) {
-                addDebugLog('⚠️', 'OneSignal User API not available yet');
+                addDebugLog('⚠️', 'OneSignal User API not available');
                 if (attempts >= maxAttempts) {
                     reject(new Error('OneSignal User API not available'));
                     return;
                 }
-                setTimeout(checkReady, 1000);
+                setTimeout(checkReady, 500);
                 return;
             }
             
-            addDebugLog('✅', 'OneSignal v16 User API available');
-            
-            // Check if OneSignal is initialized
+            // Test if we can actually call the User API
             try {
-                // Try to access a User property to test if initialized
-                await OneSignal.User.getOnesignalId();
-                addDebugLog('✅', 'OneSignal v16 is fully ready!');
-                resolve();
+                const testCall = OneSignal.User.getOnesignalId();
+                // If it's a promise, it's working
+                if (testCall && typeof testCall.then === 'function') {
+                    addDebugLog('✅', 'OneSignal v16 User API is fully ready!');
+                    resolve();
+                } else {
+                    throw new Error('User API not returning promises');
+                }
             } catch (error) {
-                addDebugLog('⏳', 'OneSignal User API exists but not initialized yet...');
+                addDebugLog('⚠️', `User API test failed: ${error.message}`);
                 if (attempts >= maxAttempts) {
-                    reject(new Error('OneSignal initialization timeout'));
+                    reject(new Error('OneSignal User API not functional'));
                     return;
                 }
-                setTimeout(checkReady, 1000);
+                setTimeout(checkReady, 500);
             }
         };
         
         checkReady();
     });
 }
-
 async function subscribeToOneSignal() {
     addDebugLog('🔔', 'Starting OneSignal v16 User Model subscription...');
     
@@ -9245,6 +9282,10 @@ async function initializeOneSignal() {
     console.log('🔧 Initializing OneSignal v16 (User Model)...');
     
     try {
+        // Wait for script to load first
+        await waitForOneSignalScript();
+        addDebugLog('✅', 'OneSignal script ready, starting initialization...');
+        
         // Initialize OneSignal with the User Model
         await OneSignal.init({
             appId: "c0849e89-f474-4aea-8de1-290715275d14",
@@ -9254,6 +9295,14 @@ async function initializeOneSignal() {
         
         console.log('✅ OneSignal v16 User Model initialized');
         addDebugLog('✅', 'OneSignal v16 User Model initialized successfully');
+        
+        // Verify initialization worked
+        try {
+            const testId = await OneSignal.User.getOnesignalId();
+            addDebugLog('✅', 'Initialization verified - can access User API');
+        } catch (verifyError) {
+            addDebugLog('⚠️', 'Init completed but User API test failed:', verifyError.message);
+        }
         
         // Set up User Model event listeners
         OneSignal.User.PushSubscription.addEventListener('change', (event) => {
@@ -9267,6 +9316,7 @@ async function initializeOneSignal() {
     } catch (error) {
         console.error('❌ OneSignal initialization failed:', error);
         addDebugLog('❌', 'OneSignal initialization failed', error.toString());
+        throw error;
     }
 }
 // ===== CONSOLE OVERRIDE =====
@@ -9307,13 +9357,30 @@ console.log('🔧 Creating debug overlay on load...');
 createDebugOverlay();
 
 // Replace your current initialization with this
+// ===== INITIALIZATION =====
+// Wait for DOM and OneSignal script to be ready
 (async function() {
-    console.log('🔧 Starting OneSignal v16 initialization...');
-    await initializeOneSignal();
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+        await new Promise(resolve => {
+            document.addEventListener('DOMContentLoaded', resolve);
+        });
+    }
     
-    // Create debug overlay after initialization
+    addDebugLog('✅', 'DOM ready, starting OneSignal initialization...');
+    
+    try {
+        await initializeOneSignal();
+        addDebugLog('🎉', 'OneSignal initialization completed successfully');
+    } catch (error) {
+        addDebugLog('❌', 'OneSignal initialization failed:', error.toString());
+    }
+    
+    // Create debug overlay after initialization attempt
     setTimeout(() => {
-        createDebugOverlay();
+        if (!document.getElementById('simpleDebugOverlay')) {
+            createDebugOverlay();
+        }
         showDebugOverlay();
         addDebugLog('🚀', 'Debug system initialized for v16');
         
