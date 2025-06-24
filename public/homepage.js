@@ -434,7 +434,7 @@ async function handleNotificationToggle() {
     }
 }
 
-// ===== LOAD NOTIFICATION STATE =====
+// ===== IMPROVED LOAD NOTIFICATION STATE =====
 async function loadNotificationState() {
     addDebugLog('📥', 'Loading notification state...');
     
@@ -447,21 +447,30 @@ async function loadNotificationState() {
     }
     
     try {
+        addDebugLog('🌐', 'Fetching from backend...');
         const response = await fetch(`/users/notifications/status/${username}`);
         const result = await response.json();
         
         addDebugLog('📡', 'Backend response:', result);
         
-        if (result.success) {
+        if (result.success && typeof result.notificationsEnabled === 'boolean') {
             toggle.checked = result.notificationsEnabled;
             addDebugLog('✅', 'Set toggle from backend:', result.notificationsEnabled);
+            
+            // Also sync localStorage with backend
+            localStorage.setItem('notificationsEnabled', result.notificationsEnabled.toString());
+            
         } else {
+            addDebugLog('⚠️', 'Backend response invalid, trying localStorage...');
             const localState = localStorage.getItem('notificationsEnabled') === 'true';
             toggle.checked = localState;
             addDebugLog('📱', 'Set toggle from localStorage:', localState);
         }
+        
+        addDebugLog('🔍', 'Final toggle state:', toggle.checked);
+        
     } catch (error) {
-        addDebugLog('❌', 'Error loading notification state:', error);
+        addDebugLog('❌', 'Error loading from backend:', error.toString());
         const localState = localStorage.getItem('notificationsEnabled') === 'true';
         toggle.checked = localState;
         addDebugLog('📱', 'Fallback to localStorage:', localState);
@@ -584,9 +593,14 @@ async function initOnPageLoad() {
             addDebugLog('🎉', 'OneSignal initialized successfully (no auto-subscribe)!');
             
             // Wait for elements to be available before setting up toggle
-            setTimeout(() => {
-                initializeNotificationToggle();
-            }, 2000);
+          // In initOnPageLoad, change this part:
+setTimeout(() => {
+    initializeNotificationToggle();
+    // Load state after toggle is set up
+    setTimeout(() => {
+        loadNotificationState();
+    }, 500);
+}, 2000);
         }
         
     } catch (error) {
