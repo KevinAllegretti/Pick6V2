@@ -584,7 +584,7 @@ async function initOnPageLoad() {
                 createDebugOverlay();
             }
             showDebugOverlay();
-        }, 1000);
+        }, 100);
         
         // Initialize OneSignal (NO auto-subscribe)
         const initSuccess = await initializeOneSignal();
@@ -599,8 +599,8 @@ setTimeout(() => {
     // Load state after toggle is set up
     setTimeout(() => {
         loadNotificationState();
-    }, 500);
-}, 2000);
+    }, 100);
+}, 100);
         }
         
     } catch (error) {
