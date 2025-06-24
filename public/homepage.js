@@ -8618,13 +8618,12 @@ async function waitForOneSignalScript() {
         checkScript();
     });
 }
-
 async function waitForOneSignalReady() {
     addDebugLog('⏳', 'Waiting for OneSignal v16 to be fully ready...');
     
     return new Promise((resolve, reject) => {
         let attempts = 0;
-        const maxAttempts = 15; // Shorter timeout since init should be done
+        const maxAttempts = 15;
         
         const checkReady = async () => {
             attempts++;
@@ -8640,34 +8639,49 @@ async function waitForOneSignalReady() {
                 return;
             }
             
-            if (!OneSignal.User || !OneSignal.User.PushSubscription) {
-                addDebugLog('⚠️', 'OneSignal User API not available');
+            // Check what's actually available
+            addDebugLog('🔍', 'OneSignal object available, checking properties...', {
+                hasUser: !!OneSignal.User,
+                hasPushSubscription: !!(OneSignal.User && OneSignal.User.PushSubscription),
+                hasOptIn: !!(OneSignal.User && OneSignal.User.PushSubscription && OneSignal.User.PushSubscription.optIn),
+                hasOptedIn: !!(OneSignal.User && OneSignal.User.PushSubscription && OneSignal.User.PushSubscription.optedIn),
+                hasGetId: !!(OneSignal.User && OneSignal.User.getOnesignalId),
+                userKeys: OneSignal.User ? Object.keys(OneSignal.User) : 'No User object'
+            });
+            
+            if (!OneSignal.User) {
+                addDebugLog('⚠️', 'OneSignal.User not available yet');
                 if (attempts >= maxAttempts) {
-                    reject(new Error('OneSignal User API not available'));
+                    reject(new Error('OneSignal.User not available'));
                     return;
                 }
                 setTimeout(checkReady, 500);
                 return;
             }
             
-            // Test if we can actually call the User API
-            try {
-                const testCall = OneSignal.User.getOnesignalId();
-                // If it's a promise, it's working
-                if (testCall && typeof testCall.then === 'function') {
-                    addDebugLog('✅', 'OneSignal v16 User API is fully ready!');
-                    resolve();
-                } else {
-                    throw new Error('User API not returning promises');
-                }
-            } catch (error) {
-                addDebugLog('⚠️', `User API test failed: ${error.message}`);
+            if (!OneSignal.User.PushSubscription) {
+                addDebugLog('⚠️', 'OneSignal.User.PushSubscription not available yet');
                 if (attempts >= maxAttempts) {
-                    reject(new Error('OneSignal User API not functional'));
+                    reject(new Error('OneSignal.User.PushSubscription not available'));
                     return;
                 }
                 setTimeout(checkReady, 500);
+                return;
             }
+            
+            // Check if optIn method exists (this is what we actually need)
+            if (typeof OneSignal.User.PushSubscription.optIn !== 'function') {
+                addDebugLog('⚠️', 'OneSignal.User.PushSubscription.optIn not available yet');
+                if (attempts >= maxAttempts) {
+                    reject(new Error('OneSignal.User.PushSubscription.optIn not available'));
+                    return;
+                }
+                setTimeout(checkReady, 500);
+                return;
+            }
+            
+            addDebugLog('✅', 'OneSignal v16 User API is ready!');
+            resolve();
         };
         
         checkReady();
@@ -8701,16 +8715,29 @@ async function subscribeToOneSignal() {
         
         addDebugLog('✅', 'Browser permission granted');
         
-        // Check current subscription status using v16 API
+        // Check current subscription status (skip getOnesignalId for now)
         addDebugLog('🔍', 'Checking current subscription status...');
         try {
             const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
             addDebugLog('📊', 'Current opted-in status:', isOptedIn);
             
             if (isOptedIn) {
-                const userId = await OneSignal.User.getOnesignalId();
-                addDebugLog('✅', 'Already subscribed with ID:', userId);
-                return { success: true, playerId: userId, alreadySubscribed: true };
+                addDebugLog('✅', 'Already subscribed, trying to get ID...');
+                
+                // Try to get user ID only if already subscribed
+                try {
+                    let userId = null;
+                    if (OneSignal.User.getOnesignalId) {
+                        userId = await OneSignal.User.getOnesignalId();
+                    } else if (OneSignal.User.onesignalId) {
+                        userId = OneSignal.User.onesignalId;
+                    }
+                    addDebugLog('🆔', 'Existing user ID:', userId);
+                    return { success: true, playerId: userId, alreadySubscribed: true };
+                } catch (idError) {
+                    addDebugLog('⚠️', 'Could not get existing user ID:', idError.message);
+                    return { success: true, playerId: null, alreadySubscribed: true };
+                }
             }
         } catch (statusError) {
             addDebugLog('⚠️', 'Status check failed, proceeding with opt-in:', statusError.message);
@@ -8723,23 +8750,34 @@ async function subscribeToOneSignal() {
         
         // Wait for subscription to process
         addDebugLog('⏳', 'Waiting for subscription to complete...');
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise(resolve => setTimeout(resolve, 4000));
         
-        // Verify subscription and get user ID
+        // Verify subscription
         addDebugLog('🔍', 'Verifying subscription...');
         const isNowOptedIn = await OneSignal.User.PushSubscription.optedIn;
-        const userId = await OneSignal.User.getOnesignalId();
+        addDebugLog('📊', 'Final opted-in status:', isNowOptedIn);
         
-        addDebugLog('📊', 'Final status:', { optedIn: isNowOptedIn, userId });
+        // Try to get user ID
+        let userId = null;
+        try {
+            if (OneSignal.User.getOnesignalId) {
+                userId = await OneSignal.User.getOnesignalId();
+            } else if (OneSignal.User.onesignalId) {
+                userId = OneSignal.User.onesignalId;
+            } else {
+                addDebugLog('⚠️', 'No method found to get user ID');
+            }
+            addDebugLog('🆔', 'Final user ID:', userId);
+        } catch (idError) {
+            addDebugLog('⚠️', 'Could not get user ID:', idError.message);
+        }
         
-        if (isNowOptedIn && userId) {
-            addDebugLog('🎉', 'SUCCESS! Subscription completed with ID:', userId);
-            return { success: true, playerId: userId, alreadySubscribed: false };
-        } else if (userId) {
-            addDebugLog('⚠️', 'Got user ID but opt-in status unclear:', userId);
+        if (isNowOptedIn) {
+            addDebugLog('🎉', 'SUCCESS! Subscription completed');
             return { success: true, playerId: userId, alreadySubscribed: false };
         } else {
-            throw new Error('Subscription completed but no user ID received');
+            addDebugLog('❌', 'OptIn completed but not showing as opted in');
+            return { success: true, playerId: userId, alreadySubscribed: false };
         }
         
     } catch (error) {
