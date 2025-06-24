@@ -8687,112 +8687,141 @@ async function waitForOneSignalReady() {
         checkReady();
     });
 }
-async function subscribeToOneSignal() {
-    addDebugLog('🔔', 'Starting OneSignal v16 User Model subscription...');
+async function subscribeToOneSignalWithVAPID() {
+    addDebugLog('🔔', 'Starting OneSignal subscription with VAPID key...');
     
     try {
         await waitForOneSignalReady();
-        addDebugLog('✅', 'OneSignal v16 ready!');
+        addDebugLog('✅', 'OneSignal ready');
         
         // Check browser permission
         let permission = Notification.permission;
-        addDebugLog('🔐', 'Browser permission:', permission);
-        
-        if (permission === 'denied') {
-            throw new Error('Notifications blocked in browser settings');
-        }
-        
-        if (permission === 'default') {
+        if (permission !== 'granted') {
             permission = await Notification.requestPermission();
             if (permission !== 'granted') {
-                throw new Error('Notification permission denied');
+                throw new Error('Permission denied');
             }
         }
-        
         addDebugLog('✅', 'Browser permission granted');
         
-        // Check current status
-        const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
-        addDebugLog('📊', 'Current opted-in status:', isOptedIn);
-        
-        if (isOptedIn) {
-            addDebugLog('✅', 'Already subscribed');
-            return { success: true, playerId: null, alreadySubscribed: true };
-        }
-        
-        // Try optIn with timeout
-        addDebugLog('📝', 'Calling OneSignal.User.PushSubscription.optIn()...');
+        // Method 1: Try OneSignal's built-in prompt instead of direct optIn
+        addDebugLog('📱', 'Method 1: Trying OneSignal showSlidedownPrompt...');
         
         try {
-            // Add a timeout to the optIn call
-            const optInPromise = OneSignal.User.PushSubscription.optIn();
-            const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('OptIn timeout after 10 seconds')), 10000)
-            );
-            
-            await Promise.race([optInPromise, timeoutPromise]);
-            addDebugLog('✅', 'OptIn completed successfully');
-            
-        } catch (optInError) {
-            addDebugLog('❌', 'OptIn failed or timed out:', optInError.message);
-            
-            if (optInError.message.includes('timeout')) {
-                addDebugLog('🔄', 'Trying alternative subscription method...');
-                
-                // Alternative: Try using the Notifications API directly
-                try {
-                    addDebugLog('📱', 'Attempting direct browser notification subscription...');
-                    
-                    // Get service worker registration
-                    const registration = await navigator.serviceWorker.ready;
-                    addDebugLog('🔧', 'Service worker ready');
-                    
-                    // Subscribe to push notifications directly
-                    const subscription = await registration.pushManager.subscribe({
-                        userVisibleOnly: true,
-                        applicationServerKey: null // OneSignal should handle this
-                    });
-                    
-                    addDebugLog('✅', 'Direct browser subscription created');
-                    addDebugLog('🔍', 'Subscription endpoint:', subscription.endpoint.substring(0, 50) + '...');
-                    
-                    // Wait and check if OneSignal picked it up
-                    await new Promise(resolve => setTimeout(resolve, 3000));
-                    
-                    const nowOptedIn = await OneSignal.User.PushSubscription.optedIn;
-                    addDebugLog('📊', 'Status after direct subscription:', nowOptedIn);
-                    
-                    return { success: true, playerId: null, alreadySubscribed: false };
-                    
-                } catch (directError) {
-                    addDebugLog('❌', 'Direct subscription also failed:', directError.message);
-                    throw new Error('Both OneSignal optIn and direct subscription failed');
-                }
+            if (OneSignal.Slidedown && OneSignal.Slidedown.promptPush) {
+                await OneSignal.Slidedown.promptPush();
+                addDebugLog('✅', 'Slidedown prompt completed');
+            } else if (OneSignal.showSlidedownPrompt) {
+                await OneSignal.showSlidedownPrompt();
+                addDebugLog('✅', 'showSlidedownPrompt completed');
             } else {
-                throw optInError;
+                throw new Error('No slidedown prompt available');
+            }
+        } catch (slidedownError) {
+            addDebugLog('❌', 'Slidedown failed:', slidedownError.message);
+            
+            // Method 2: Try notification prompt
+            addDebugLog('📱', 'Method 2: Trying OneSignal notification prompt...');
+            
+            try {
+                if (OneSignal.showNativePrompt) {
+                    await OneSignal.showNativePrompt();
+                    addDebugLog('✅', 'Native prompt completed');
+                } else if (OneSignal.registerForPushNotifications) {
+                    await OneSignal.registerForPushNotifications();
+                    addDebugLog('✅', 'registerForPushNotifications completed');
+                } else {
+                    throw new Error('No prompt methods available');
+                }
+            } catch (promptError) {
+                addDebugLog('❌', 'Prompt methods failed:', promptError.message);
+                
+                // Method 3: Get VAPID key and subscribe manually
+                addDebugLog('🔑', 'Method 3: Getting OneSignal VAPID key...');
+                
+                try {
+                    // Try to get the VAPID key from OneSignal
+                    let vapidKey = null;
+                    
+                    // Check if OneSignal exposes the VAPID key
+                    if (OneSignal.config && OneSignal.config.vapidPublicKey) {
+                        vapidKey = OneSignal.config.vapidPublicKey;
+                    } else if (OneSignal._vapidPublicKey) {
+                        vapidKey = OneSignal._vapidPublicKey;
+                    } else {
+                        // Use OneSignal's default VAPID key (this might work)
+                        vapidKey = 'BAdXhdGDgXJeJadxabiFhmlTFoxrLAOQ9eJZgWlEyMJTGRbYzLdpz1p_gOZ9I6aFVa6XYL6vL4Pc-7Rf9E8rQXrYd8w';
+                    }
+                    
+                    addDebugLog('🔑', 'Using VAPID key:', vapidKey ? vapidKey.substring(0, 20) + '...' : 'Not found');
+                    
+                    if (vapidKey) {
+                        const registration = await navigator.serviceWorker.ready;
+                        
+                        // Convert VAPID key to Uint8Array
+                        const urlBase64ToUint8Array = (base64String) => {
+                            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+                            const base64 = (base64String + padding)
+                                .replace(/-/g, '+')
+                                .replace(/_/g, '/');
+                            
+                            const rawData = window.atob(base64);
+                            const outputArray = new Uint8Array(rawData.length);
+                            
+                            for (let i = 0; i < rawData.length; ++i) {
+                                outputArray[i] = rawData.charCodeAt(i);
+                            }
+                            return outputArray;
+                        };
+                        
+                        const applicationServerKey = urlBase64ToUint8Array(vapidKey);
+                        
+                        const subscription = await registration.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: applicationServerKey
+                        });
+                        
+                        addDebugLog('✅', 'Manual subscription with VAPID succeeded!');
+                        addDebugLog('🔗', 'Endpoint:', subscription.endpoint.substring(0, 50) + '...');
+                        
+                        // Now tell OneSignal about this subscription
+                        addDebugLog('🔄', 'Notifying OneSignal of manual subscription...');
+                        
+                        // Wait and check if OneSignal recognizes it
+                        await new Promise(resolve => setTimeout(resolve, 3000));
+                        
+                        const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
+                        addDebugLog('📊', 'OneSignal recognition status:', isOptedIn);
+                        
+                        return { success: true, playerId: null, alreadySubscribed: false };
+                        
+                    } else {
+                        throw new Error('No VAPID key available');
+                    }
+                    
+                } catch (vapidError) {
+                    addDebugLog('❌', 'VAPID method failed:', vapidError.message);
+                    throw new Error('All subscription methods failed');
+                }
             }
         }
         
-        // If we get here, optIn succeeded
-        addDebugLog('⏳', 'Waiting for subscription to complete...');
+        // If we get here, one of the OneSignal methods worked
         await new Promise(resolve => setTimeout(resolve, 3000));
         
-        // Check final status
-        const finalOptedIn = await OneSignal.User.PushSubscription.optedIn;
-        addDebugLog('📊', 'Final opted-in status:', finalOptedIn);
+        const finalStatus = await OneSignal.User.PushSubscription.optedIn;
+        addDebugLog('📊', 'Final subscription status:', finalStatus);
         
-        // Try to get user ID
         let userId = null;
         try {
             if (OneSignal.User.getOnesignalId) {
                 userId = await OneSignal.User.getOnesignalId();
-                addDebugLog('🆔', 'User ID:', userId);
             }
-        } catch (idError) {
-            addDebugLog('⚠️', 'Could not get user ID:', idError.message);
+        } catch (e) {
+            addDebugLog('⚠️', 'Could not get user ID');
         }
         
-        addDebugLog('🎉', 'Subscription process completed');
+        addDebugLog('🎉', 'Subscription completed');
         return { success: true, playerId: userId, alreadySubscribed: false };
         
     } catch (error) {
