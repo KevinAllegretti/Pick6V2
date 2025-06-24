@@ -222,22 +222,41 @@ async function waitForOneSignalScript() {
     });
 }
 
+function getOneSignalConfig() {
+    const currentDomain = window.location.hostname;
+    const currentOrigin = window.location.origin;
+    
+    addDebugLog('🌐', 'Current domain:', currentDomain);
+    addDebugLog('🌐', 'Current origin:', currentOrigin);
+    
+    return {
+        appId: "c0849e89-f474-4aea-8de1-290715275d14",
+        safari_web_id: "web.onesignal.auto.2fc72fe0-a0df-475b-ad9a-b2dac840a493",
+        allowLocalhostAsSecureOrigin: true,
+        // Add current origin to allowed origins
+        allowedOrigins: [
+            "https://pick6.club",
+            "https://www.pick6.club"
+        ]
+    };
+}
 async function initializeOneSignal() {
     addDebugLog('🚀', 'Starting OneSignal initialization (NO auto-subscribe)...');
     
     try {
         await waitForOneSignalScript();
         
-        addDebugLog('🔧', 'Calling OneSignal.init()...');
+        const config = getOneSignalConfig();
+        addDebugLog('🔧', 'Using config:', config);
         
         await OneSignal.init({
-            appId: ONESIGNAL_CONFIG.appId,
-            safari_web_id: ONESIGNAL_CONFIG.safari_web_id,
-            allowLocalhostAsSecureOrigin: ONESIGNAL_CONFIG.allowLocalhostAsSecureOrigin,
-            autoRegister: false, // NO auto-registration
-            autoResubscribe: false, // NO auto-resubscribe
+            appId: config.appId,
+            safari_web_id: config.safari_web_id,
+            allowLocalhostAsSecureOrigin: config.allowLocalhostAsSecureOrigin,
+            autoRegister: false,
+            autoResubscribe: false,
             notifyButton: {
-                enable: false // NO notify button
+                enable: false
             }
         });
         
