@@ -10372,6 +10372,31 @@ function addMobileTestButtons() {
         testPanel.style.display = 'none';
     };
     
+    // Add to your test buttons
+const fixUserBtn = document.createElement('button');
+fixUserBtn.textContent = '🔧 Fix User';
+fixUserBtn.style.cssText = `
+    background: #FF5722;
+    color: white;
+    border: none;
+    padding: 10px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    cursor: pointer;
+    flex: 1;
+    min-width: 80px;
+`;
+fixUserBtn.onclick = async function() {
+    addDebugLog('🔧', 'Fixing existing user...');
+    try {
+        const result = await fixExistingUser();
+        addDebugLog('✅', 'User fixed:', result);
+    } catch (error) {
+        addDebugLog('❌', 'Fix failed:', error.toString());
+    }
+};
+// Add to your panel
+
     addDebugLog('🔧', 'Adding buttons to panel...');
     testPanel.appendChild(testUserBtn);
     testPanel.appendChild(toggleBtn);
@@ -10379,6 +10404,7 @@ function addMobileTestButtons() {
     testPanel.appendChild(infoBtn);
     testPanel.appendChild(testNotifyBtn);
     testPanel.appendChild(hideBtn);
+    testPanel.appendChild(fixUserBtn);
     
     addDebugLog('🔧', 'Adding panel to document body...');
     try {
@@ -10421,3 +10447,31 @@ function getOneSignalInfo() {
     });
 }
 
+// ===== FIX EXISTING USER =====
+async function fixExistingUser() {
+    const username = getCurrentUsername();
+    addDebugLog('🔧', 'Fixing existing user for:', username);
+    
+    try {
+        // Get current OneSignal ID if available
+        const onesignalId = await OneSignal.User.getOnesignalId();
+        addDebugLog('🆔', 'Current OneSignal ID:', onesignalId);
+        
+        if (onesignalId) {
+            // Set external ID to link this subscription to your username
+            await OneSignal.User.addAlias('external_id', username.toLowerCase());
+            addDebugLog('✅', 'External ID set to:', username.toLowerCase());
+            
+            // Update backend
+            await updateBackendNotificationStatus(username, true, onesignalId);
+            addDebugLog('✅', 'Backend updated');
+            
+            return { success: true, onesignalId };
+        } else {
+            throw new Error('No OneSignal ID found');
+        }
+    } catch (error) {
+        addDebugLog('❌', 'Fix existing user error:', error.toString());
+        throw error;
+    }
+}
