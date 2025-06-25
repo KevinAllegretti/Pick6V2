@@ -979,14 +979,21 @@ router.post('/pick-won', async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
-
-// Enable/disable notifications for a user (updated)
+// Add more detailed logging to your /toggle/:username route
 router.post('/toggle/:username', async (req, res) => {
   const { username } = req.params;
-  const { enabled, playerId } = req.body; // playerId is the OneSignal ID
+  const { enabled, playerId } = req.body;
+  
+  console.log('🔧 [BACKEND] Toggle request received:', { 
+    username, 
+    enabled, 
+    playerId,
+    requestBody: req.body 
+  });
   
   try {
     const db = await connectToDatabase();
+    console.log('🔌 [BACKEND] Database connected successfully');
     
     const updateData: any = { 
       notificationsEnabled: enabled,
@@ -995,34 +1002,118 @@ router.post('/toggle/:username', async (req, res) => {
     
     if (playerId) {
       updateData.onesignalId = playerId;
+      console.log('✅ [BACKEND] Including OneSignal ID in update:', playerId);
+    } else {
+      console.log('⚠️ [BACKEND] No OneSignal ID provided in request');
     }
     
-    await db.collection('users').updateOne(
+    console.log('📝 [BACKEND] Update data:', updateData);
+    console.log('🔍 [BACKEND] Looking for user with username:', username.toLowerCase());
+    
+    // Check if user exists first
+    const existingUser = await db.collection('users').findOne({ 
+      username: username.toLowerCase() 
+    });
+    
+    if (!existingUser) {
+      console.log('❌ [BACKEND] User not found:', username.toLowerCase());
+      return res.status(404).json({ 
+        success: false, 
+        error: `User ${username} not found in database` 
+      });
+    }
+    
+    console.log('👤 [BACKEND] Found existing user:', {
+      username: existingUser.username,
+      currentNotificationsEnabled: existingUser.notificationsEnabled,
+      currentOnesignalId: existingUser.onesignalId,
+      hasOtherFields: Object.keys(existingUser).length
+    });
+    
+    // Perform the update
+    const updateResult = await db.collection('users').updateOne(
       { username: username.toLowerCase() },
       { $set: updateData }
     );
     
+    console.log('📊 [BACKEND] Update result:', {
+      matchedCount: updateResult.matchedCount,
+      modifiedCount: updateResult.modifiedCount,
+      acknowledged: updateResult.acknowledged
+    });
+    
+    if (updateResult.matchedCount === 0) {
+      console.log('❌ [BACKEND] No documents matched the username:', username.toLowerCase());
+      return res.status(404).json({ 
+        success: false, 
+        error: 'User not found during update' 
+      });
+    }
+    
+    if (updateResult.modifiedCount === 0) {
+      console.log('⚠️ [BACKEND] Document matched but not modified (data might be the same)');
+    } else {
+      console.log('✅ [BACKEND] Document successfully updated');
+    }
+    
+    // Verify the update by reading the user again
+    const updatedUser = await db.collection('users').findOne({ 
+      username: username.toLowerCase() 
+    });
+    
+    console.log('🔍 [BACKEND] User after update:', {
+      username: updatedUser?.username,
+      notificationsEnabled: updatedUser?.notificationsEnabled,
+      onesignalId: updatedUser?.onesignalId,
+      notificationUpdated: updatedUser?.notificationUpdated
+    });
+    
     // Update OneSignal tags if we have an ID
     if (playerId && ONESIGNAL_CONFIG.restApiKey) {
       try {
+        console.log('🏷️ [BACKEND] Updating OneSignal tags...');
         await updateOneSignalUserTags(playerId, {
           notifications_enabled: enabled,
-          last_updated: Math.floor(Date.now() / 1000)
+          last_updated: Math.floor(Date.now() / 1000),
+          username: username.toLowerCase()
         });
+        console.log('✅ [BACKEND] OneSignal tags updated successfully');
       } catch (tagError) {
-        console.warn('Failed to update OneSignal tags:', tagError);
+        console.warn('⚠️ [BACKEND] Failed to update OneSignal tags:', tagError);
+      }
+    } else {
+      if (!playerId) {
+        console.log('⚠️ [BACKEND] No OneSignal ID provided for tag update');
+      }
+      if (!ONESIGNAL_CONFIG.restApiKey) {
+        console.log('⚠️ [BACKEND] OneSignal REST API key not configured');
       }
     }
     
+    console.log('🎉 [BACKEND] Toggle operation completed successfully');
+    
     res.json({ 
       success: true, 
-      message: `Notifications ${enabled ? 'enabled' : 'disabled'} for ${username}` 
+      message: `Notifications ${enabled ? 'enabled' : 'disabled'} for ${username}`,
+      updateResult: {
+        matchedCount: updateResult.matchedCount,
+        modifiedCount: updateResult.modifiedCount
+      },
+      userData: {
+        notificationsEnabled: updatedUser?.notificationsEnabled,
+        hasOnesignalId: !!updatedUser?.onesignalId
+      }
     });
+    
   } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error('❌ [BACKEND] Toggle operation failed:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      stack: error.stack
+    });
   }
 });
-
 // Get notification status for a user (unchanged)
 router.get('/status/:username', async (req, res) => {
   const { username } = req.params;
