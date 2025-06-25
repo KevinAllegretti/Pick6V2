@@ -525,7 +525,7 @@ async function handleNotificationToggle() {
 }*/
 
 
-// ===== ENHANCED TOGGLE HANDLER (FIXED) =====
+// ===== ENHANCED TOGGLE HANDLER WITH BETTER ONESIGNAL ID WAITING =====
 async function handleNotificationToggle() {
     addDebugLog('📱', '=== NOTIFICATION TOGGLE TRIGGERED ===');
     
@@ -557,57 +557,29 @@ async function handleNotificationToggle() {
     
     try {
         if (isEnabled) {
-            // ENABLE: Make sure we have OneSignal ID first
-            addDebugLog('🔛', 'ENABLING notifications - getting OneSignal ID first...');
+            // ENABLE: Wait for OneSignal ID with better retry logic
+            addDebugLog('🔛', 'ENABLING notifications - waiting for OneSignal ID...');
             
-            // Wait a bit more for OneSignal to be fully ready
-            let onesignalId = await getOneSignalUserId();
+            const onesignalId = await waitForOneSignalId();
             
-            // If no ID yet, wait longer and try again
-            if (!onesignalId) {
-                addDebugLog('⏳', 'No OneSignal ID yet, waiting 3 seconds...');
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                onesignalId = await getOneSignalUserId();
-            }
-            
-            // If still no ID, try to trigger OneSignal registration
-            if (!onesignalId) {
-                addDebugLog('🔄', 'Still no OneSignal ID, checking subscription status...');
-                
-                try {
-                    const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
-                    addDebugLog('📊', 'Current OneSignal status:', { optedIn: isOptedIn });
-                    
-                    if (!isOptedIn) {
-                        addDebugLog('🔔', 'Attempting to opt in to push notifications...');
-                        await OneSignal.User.PushSubscription.optIn();
-                        
-                        // Wait for opt-in to complete
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                        onesignalId = await getOneSignalUserId();
-                    }
-                } catch (optInError) {
-                    addDebugLog('❌', 'OneSignal opt-in failed:', optInError.toString());
-                }
-            }
-            
-            addDebugLog('🆔', 'Final OneSignal ID for save:', onesignalId);
-            
-            // Update backend with OneSignal ID (even if null - we'll handle it)
-            await updateBackendNotificationStatus(username, true, onesignalId);
-            
-            localStorage.setItem('notificationsEnabled', 'true');
             if (onesignalId) {
+                addDebugLog('🆔', 'Got OneSignal ID for backend:', onesignalId);
+                await updateBackendNotificationStatus(username, true, onesignalId);
+                localStorage.setItem('notificationsEnabled', 'true');
                 localStorage.setItem('onesignalUserId', onesignalId);
                 addDebugLog('🎉', 'Notifications enabled with OneSignal ID!');
                 showNotificationMessage('Notifications enabled!', 'success');
             } else {
-                addDebugLog('⚠️', 'Notifications enabled but no OneSignal ID yet');
-                showNotificationMessage('Notifications enabled (may need to refresh for full setup)', 'success');
+                // Fallback: Enable without OneSignal ID but warn user
+                addDebugLog('⚠️', 'No OneSignal ID available, enabling with fallback');
+                await updateBackendNotificationStatus(username, true, null);
+                localStorage.setItem('notificationsEnabled', 'true');
+                addDebugLog('⚠️', 'Notifications enabled but no OneSignal ID');
+                showNotificationMessage('Notifications enabled (limited functionality - try refreshing)', 'warning');
             }
             
         } else {
-            // DISABLE: Just update backend flag to disabled
+            // DISABLE: Get current OneSignal ID if available
             addDebugLog('🔕', 'DISABLING notifications...');
             
             const onesignalId = await getOneSignalUserId();
@@ -626,6 +598,126 @@ async function handleNotificationToggle() {
         if (toggle) toggle.checked = !isEnabled;
         
         showNotificationMessage('Error: ' + error.message, 'error');
+    }
+}
+
+// ===== WAIT FOR ONESIGNAL ID WITH RETRY LOGIC =====
+async function waitForOneSignalId(maxWaitTime = 15000) {
+    addDebugLog('⏳', 'Starting to wait for OneSignal ID...');
+    
+    const startTime = Date.now();
+    const checkInterval = 1000; // Check every 1 second
+    
+    return new Promise(async (resolve) => {
+        const checkForId = async () => {
+            const elapsed = Date.now() - startTime;
+            
+            if (elapsed >= maxWaitTime) {
+                addDebugLog('⏰', 'Timeout waiting for OneSignal ID');
+                resolve(null);
+                return;
+            }
+            
+            try {
+                // Check if OneSignal is ready
+                if (!OneSignal || !OneSignal.User || !OneSignal.User.PushSubscription) {
+                    addDebugLog('⏳', `OneSignal not ready yet (${Math.round(elapsed/1000)}s)`);
+                    setTimeout(checkForId, checkInterval);
+                    return;
+                }
+                
+                // Try to get the OneSignal ID
+                let onesignalId = await getOneSignalUserId();
+                
+                if (onesignalId) {
+                    addDebugLog('✅', `Got OneSignal ID after ${Math.round(elapsed/1000)}s:`, onesignalId);
+                    resolve(onesignalId);
+                    return;
+                }
+                
+                // If no ID yet, check subscription status and try to opt in if needed
+                const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
+                addDebugLog('🔍', `Checking subscription status (${Math.round(elapsed/1000)}s):`, isOptedIn);
+                
+                if (!isOptedIn) {
+                    addDebugLog('🔔', 'Not opted in yet, attempting to opt in...');
+                    try {
+                        await OneSignal.User.PushSubscription.optIn();
+                        addDebugLog('✅', 'Opt-in completed, waiting for ID...');
+                        
+                        // Wait a bit for the opt-in to generate an ID
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        onesignalId = await getOneSignalUserId();
+                        
+                        if (onesignalId) {
+                            addDebugLog('🎉', 'Got OneSignal ID after opt-in:', onesignalId);
+                            resolve(onesignalId);
+                            return;
+                        }
+                    } catch (optInError) {
+                        addDebugLog('❌', 'Opt-in failed:', optInError.toString());
+                    }
+                }
+                
+                // Continue waiting
+                addDebugLog('⏳', `Still waiting for OneSignal ID... (${Math.round(elapsed/1000)}s)`);
+                setTimeout(checkForId, checkInterval);
+                
+            } catch (error) {
+                addDebugLog('❌', 'Error while waiting for OneSignal ID:', error.toString());
+                setTimeout(checkForId, checkInterval);
+            }
+        };
+        
+        // Start checking
+        checkForId();
+    });
+}
+
+// ===== IMPROVED ONESIGNAL ID RETRIEVAL =====
+async function getOneSignalUserId() {
+    try {
+        if (!OneSignal?.User) {
+            return null;
+        }
+        
+        // Method 1: Direct onesignalId access
+        let userId = OneSignal.User.onesignalId;
+        if (userId && userId.trim() !== '') {
+            return userId;
+        }
+        
+        // Method 2: Try external ID
+        userId = OneSignal.User.externalId;
+        if (userId && userId.trim() !== '') {
+            return userId;
+        }
+        
+        // Method 3: Try subscription ID (if it's a property, not a method)
+        if (OneSignal.User.PushSubscription) {
+            try {
+                // Try as property first
+                userId = OneSignal.User.PushSubscription.id;
+                if (userId && userId.trim() !== '') {
+                    return userId;
+                }
+                
+                // Try as async method if property doesn't work
+                if (typeof OneSignal.User.PushSubscription.id === 'function') {
+                    userId = await OneSignal.User.PushSubscription.id();
+                    if (userId && userId.trim() !== '') {
+                        return userId;
+                    }
+                }
+            } catch (subError) {
+                // Ignore subscription errors
+            }
+        }
+        
+        return null;
+        
+    } catch (error) {
+        return null;
     }
 }
 
