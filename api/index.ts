@@ -46,12 +46,11 @@ app.use(express.json());
 
 // WWW to non-WWW redirect middleware
 app.use((req, res, next) => {
-  // Check if the original request was to www.pick6.club
-  const isWwwRequest = req.headers.host === 'www.pick6.club' || 
-                       req.headers['x-forwarded-host'] === 'www.pick6.club' ||
-                       req.headers['x-forwarded-server'] === 'www.pick6.club';
+  // Only redirect if the original server was www.pick6.club AND we're not already on pick6.club
+  const originalServer = req.headers['x-forwarded-server'];
+  const currentHost = req.headers.host || req.headers['x-forwarded-host'];
   
-  if (isWwwRequest) {
+  if (originalServer === 'www.pick6.club' && currentHost !== 'pick6.club') {
     console.log('Redirecting www to non-www');
     return res.redirect(301, `https://pick6.club${req.url}`);
   }
