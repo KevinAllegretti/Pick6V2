@@ -22,7 +22,7 @@ function getOneSignalConfig() {
         allowLocalhostAsSecureOrigin: true
     };
 }
-
+/*
 // ===== DEBUG LOGGING =====
 function addDebugLog(emoji, message, data = null) {
     const timestamp = new Date().toLocaleTimeString();
@@ -49,8 +49,8 @@ function addDebugLog(emoji, message, data = null) {
     } catch (e) {
         // Ignore if debug overlay not available
     }
-}
-
+}*/
+/*
 // ===== DEBUG OVERLAY =====
 function createDebugOverlay() {
     const existing = document.getElementById('simpleDebugOverlay');
@@ -119,9 +119,9 @@ function createDebugOverlay() {
     
     document.body.appendChild(overlay);
     return overlay;
-}
+}*/
 
-
+/*
 function showDebugOverlay() {
     let overlay = document.getElementById('simpleDebugOverlay');
     if (!overlay) overlay = createDebugOverlay();
@@ -148,7 +148,7 @@ function toggleDebugOverlay() {
     } else {
         showDebugOverlay();
     }
-}
+}*/
 
 // ===== UTILITY FUNCTIONS =====
 function getCurrentUsername() {
@@ -191,7 +191,7 @@ function showNotificationMessage(message, type = 'info') {
     setTimeout(() => {
         const messageEl = document.getElementById('notificationMessage');
         if (messageEl) messageEl.remove();
-    }, 1000);
+    }, 500);
 }
 
 // ===== ONESIGNAL SCRIPT WAITING =====
@@ -674,8 +674,8 @@ async function initOnPageLoad() {
                 initializeNotificationToggle();
                 setTimeout(() => {
                     loadNotificationState();
-                }, 300);
-            }, 400);
+                }, 200);
+            }, 300);
         }
         
     } catch (error) {
@@ -693,16 +693,18 @@ window.updateBackendNotificationStatus = updateBackendNotificationStatus;
 window.getCurrentUsername = getCurrentUsername;
 window.showNotificationMessage = showNotificationMessage;
 
+/*
 // Debug functions
 window.addDebugLog = addDebugLog;
 window.showDebugOverlay = showDebugOverlay;
 window.hideDebugOverlay = hideDebugOverlay;
 window.toggleDebugOverlay = toggleDebugOverlay;
 window.clearDebugLog = clearDebugLog;
-
+*/
 // ===== AUTO-START INITIALIZATION =====
 initOnPageLoad();
 
+/*
 // Add debug button
 setTimeout(() => {
     const debugButton = document.createElement('button');
@@ -725,7 +727,7 @@ setTimeout(() => {
     debugButton.onclick = toggleDebugOverlay;
     document.body.appendChild(debugButton);
 }, 2000);
-
+*/
 console.log('✅ OneSignal v16 System loaded with AUTO-REGISTRATION enabled!');// ===== CONSOLIDATED ONESIGNAL v16 SYSTEM =====
 
 /*
