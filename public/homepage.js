@@ -539,7 +539,7 @@ async function loadNotificationState() {
     
     try {
         addDebugLog('🌐', 'Fetching from backend...');
-        const response = await fetch(`/users/notifications/status/${username}`);
+        const response = await fetch(`/api/notifications/status/${username}`);
         const result = await response.json();
         
         addDebugLog('📡', 'Backend response:', result);
