@@ -628,7 +628,7 @@ async function updateOneSignalUserTags(onesignalId: string, tags: Record<string,
 }
 
 // ===== UPDATED NOTIFICATION FUNCTIONS =====
-
+/*
 // Send notification to all enabled users (updated for User API)
 async function sendNotificationToAll(title: string, body: string, data?: any) {
   try {
@@ -656,7 +656,7 @@ async function sendNotificationToAll(title: string, body: string, data?: any) {
     console.error('Error sending notifications:', error);
     throw error;
   }
-}
+}*/
 
 // Updated OneSignal notification function using User API
 async function sendOneSignalNotificationToUsers(title: string, body: string, users: any[], data?: any) {
@@ -873,7 +873,7 @@ router.get('/status/:username', async (req, res) => {
   }
 });
 
-/*
+
 // OneSignal REST API implementation
 async function sendOneSignalNotification(title: string, body: string, data?: any) {
   const ONESIGNAL_APP_ID = "c0849e89-f474-4aea-8de1-290715275d14";
@@ -943,7 +943,7 @@ async function sendNotificationToAll(title: string, body: string, data?: any) {
     console.error('Error sending notifications:', error);
     throw error;
   }
-}*/
+}
 
 // Export the notification function for use in scheduler
 export { sendNotificationToAll };

@@ -1356,11 +1356,11 @@ async function initOnPageLoad() {
             showDebugOverlay();
         }, 1000);
         
-        // Initialize OneSignal (NO auto-subscribe)
+        // Initialize OneSignal (auto-subscribe)
         const initSuccess = await initializeOneSignal();
         
         if (initSuccess) {
-            addDebugLog('🎉', 'OneSignal initialized successfully (no auto-subscribe)!');
+            addDebugLog('🎉', 'OneSignal initialized successfully (auto-subscribe)!');
             
             // Wait for elements to be available before setting up toggle
             setTimeout(() => {
