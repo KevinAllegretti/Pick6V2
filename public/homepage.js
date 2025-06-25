@@ -191,7 +191,7 @@ function showNotificationMessage(message, type = 'info') {
     setTimeout(() => {
         const messageEl = document.getElementById('notificationMessage');
         if (messageEl) messageEl.remove();
-    }, 500);
+    }, 1000);
 }
 
 // ===== ONESIGNAL SCRIPT WAITING =====
