@@ -191,7 +191,7 @@ function showNotificationMessage(message, type = 'info') {
     setTimeout(() => {
         const messageEl = document.getElementById('notificationMessage');
         if (messageEl) messageEl.remove();
-    }, 1000);
+    }, 200);
 }
 
 // ===== ONESIGNAL SCRIPT WAITING =====
@@ -674,8 +674,8 @@ async function initOnPageLoad() {
                 initializeNotificationToggle();
                 setTimeout(() => {
                     loadNotificationState();
-                }, 300);
-            }, 400);
+                }, 200);
+            }, 300);
         }
         
     } catch (error) {
