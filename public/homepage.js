@@ -5,7 +5,7 @@ const currentVendingModes = new Map();
 const vendingSpotlightDataCache = new Map();// Call this function when the page loads
 
 // ===== CONSOLIDATED ONESIGNAL v16 SYSTEM WITH AUTO-REGISTRATION =====
-
+/*
 console.log('🔧 Loading OneSignal v16 System with Auto-Registration...');
 
 // ===== CONFIGURATION =====
@@ -1417,9 +1417,13 @@ setTimeout(() => {
 }, 2000);
 
 console.log('✅ Consolidated OneSignal v16 System loaded!');
+*/
 /*
 // ===== COMPLETE FIXED ONESIGNAL v16 SYSTEM =====
 
+
+
+//TES TEST ETST EST ETS EST  TESTTESTTEST
 console.log('🔧 Loading Complete Fixed OneSignal v16 System...');
 
 // ===== CONFIGURATION =====

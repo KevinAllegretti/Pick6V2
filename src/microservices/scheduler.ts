@@ -34,14 +34,14 @@ cron.schedule('15 10 * * 4', () => {
     'Don\'t forget to submit your picks before Thursday deadline!',
     { type: 'picks_reminder', url: 'https://pick6.club/dashboard.html' } // Full URL here
   );
-});
+});/*
 
   sendNotificationToAll(
     '⏰ Picks Due @ 7:00 PM!',
     'Don\'t forget to submit your picks before Thursday deadline!',
     { type: 'picks_reminder', url: 'https://pick6.club/dashboard.html' } // Full URL here
   );
-
+*/
 cron.schedule('0 0 * * 2', () => {
   console.log("TUESDAY It's 12:00am fetching and saving injuries");
   fetchAndSaveInjuries();
