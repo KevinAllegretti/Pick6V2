@@ -628,55 +628,116 @@ async function updateOneSignalUserTags(onesignalId: string, tags: Record<string,
 }
 
 // ===== UPDATED NOTIFICATION FUNCTIONS =====
-/*
+
+// ===== UPDATED NOTIFICATION FUNCTIONS =====
+
 // Send notification to all enabled users (updated for User API)
 async function sendNotificationToAll(title: string, body: string, data?: any) {
   try {
     const db = await connectToDatabase();
     
-    // Get all users with notifications enabled and OneSignal IDs
+    // Get all users with notifications enabled AND OneSignal IDs
     const enabledUsers = await db.collection('users').find({ 
-      notificationsEnabled: true,
-      onesignalId: { $exists: true, $ne: null }
+      notificationsEnabled: true,           // Must have notifications enabled
+      onesignalId: { 
+        $exists: true, 
+        $nin: [null, '']  // Must not be null or empty string
+      }
     }).toArray();
     
-    console.log(`Sending notification to ${enabledUsers.length} users:`, title);
+    console.log(`📱 Found ${enabledUsers.length} users with notifications enabled and OneSignal IDs`);
     
     if (enabledUsers.length === 0) {
-      console.log('No users have notifications enabled with OneSignal IDs');
-      return { success: true, sent: 0 };
+      console.log('ℹ️ No users have notifications enabled with valid OneSignal IDs');
+      return { 
+        success: true, 
+        sent: 0, 
+        message: 'No enabled users found' 
+      };
     }
     
-    // Use the new User API method
-    const notifications = await sendOneSignalNotificationToUsers(title, body, enabledUsers, data);
+    // Log some details about the users (without sensitive info)
+    console.log('📊 Users to notify:', enabledUsers.map(user => ({
+      username: user.username,
+      hasOnesignalId: !!user.onesignalId,
+      notificationsEnabled: user.notificationsEnabled
+    })));
     
-    return { success: true, sent: enabledUsers.length, details: notifications };
+    // Send via OneSignal User API
+    const notificationResult = await sendOneSignalNotificationToUsers(title, body, enabledUsers, data);
+    
+    if (notificationResult) {
+      console.log(`✅ Notification sent successfully to ${enabledUsers.length} users`);
+      return { 
+        success: true, 
+        sent: enabledUsers.length, 
+        details: notificationResult,
+        users: enabledUsers.map(u => ({ username: u.username, onesignalId: u.onesignalId }))
+      };
+    } else {
+      console.log('⚠️ Notification sending failed');
+      return { 
+        success: false, 
+        sent: 0, 
+        error: 'OneSignal notification failed',
+        enabledUsersCount: enabledUsers.length
+      };
+    }
     
   } catch (error) {
-    console.error('Error sending notifications:', error);
+    console.error('❌ Error sending notifications:', error);
     throw error;
   }
-}*/
+}
 
 // Updated OneSignal notification function using User API
 async function sendOneSignalNotificationToUsers(title: string, body: string, users: any[], data?: any) {
   if (!ONESIGNAL_CONFIG.restApiKey) {
-    console.warn('OneSignal REST API key not configured');
+    console.warn('⚠️ OneSignal REST API key not configured');
     return null;
   }
   
   try {
-    // Extract OneSignal IDs from users
+    // Extract and validate OneSignal IDs from users
     const onesignalIds = users
       .map(user => user.onesignalId)
-      .filter(id => id); // Remove any null/undefined IDs
+      .filter(id => id && id.trim() !== ''); // Remove any null/undefined/empty IDs
     
     if (onesignalIds.length === 0) {
-      console.warn('No valid OneSignal IDs found');
+      console.warn('⚠️ No valid OneSignal IDs found in user list');
       return null;
     }
     
-    console.log(`📱 Sending to ${onesignalIds.length} OneSignal users`);
+    // Validate that we have the same number of IDs as enabled users
+    if (onesignalIds.length !== users.length) {
+      console.warn(`⚠️ Mismatch: ${users.length} users but only ${onesignalIds.length} valid OneSignal IDs`);
+    }
+    
+    console.log(`📤 Sending notification to ${onesignalIds.length} OneSignal devices`);
+    console.log(`📝 Title: "${title}"`);
+    console.log(`📝 Message: "${body}"`);
+    
+    // Prepare notification payload for OneSignal User API
+    const notificationPayload = {
+      app_id: ONESIGNAL_CONFIG.appId,
+      include_aliases: {
+        "onesignal_id": onesignalIds  // Send to specific OneSignal IDs
+      },
+      target_channel: "push",
+      headings: { en: title },
+      contents: { en: body },
+      data: data || {},
+      web_url: data?.url || 'https://pick6.club/dashboard.html',
+      chrome_web_icon: 'https://pick6.club/aiP6.png',
+      chrome_web_badge: 'https://pick6.club/favicon.png'
+    };
+    
+    console.log('📡 Sending to OneSignal API with payload:', {
+      app_id: notificationPayload.app_id,
+      target_count: onesignalIds.length,
+      has_data: !!data,
+      target_channel: notificationPayload.target_channel
+    });
     
     const response = await fetch('https://api.onesignal.com/api/v1/notifications', {
       method: 'POST',
@@ -684,31 +745,145 @@ async function sendOneSignalNotificationToUsers(title: string, body: string, use
         'Content-Type': 'application/json',
         'Authorization': `Basic ${ONESIGNAL_CONFIG.restApiKey}`
       },
-      body: JSON.stringify({
-        app_id: ONESIGNAL_CONFIG.appId,
-        include_aliases: {
-          "onesignal_id": onesignalIds
-        },
-        target_channel: "push",
-        headings: { en: title },
-        contents: { en: body },
-        data: data || {},
-        web_url: data?.url || 'https://pick6.club/dashboard.html',
-        chrome_web_icon: 'https://pick6.club/aiP6.png',
-        chrome_web_badge: 'https://pick6.club/favicon.png'
-      })
+      body: JSON.stringify(notificationPayload)
     });
     
     const result = await response.json();
-    console.log('OneSignal response:', result);
+    
+    if (!response.ok) {
+      console.error('❌ OneSignal API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: result.errors?.[0]?.detail || result.error || 'Unknown error',
+        fullResponse: result
+      });
+      return null;
+    }
+    
+    console.log('✅ OneSignal response success:', {
+      id: result.id,
+      recipients: result.recipients || 'unknown',
+      external_id_count: result.external_id_count,
+      errors: result.errors
+    });
+    
     return result;
     
   } catch (error) {
-    console.error('OneSignal API error:', error);
+    console.error('❌ OneSignal API error:', error);
     return null;
   }
 }
 
+// ===== HELPER FUNCTION TO VALIDATE USER NOTIFICATION STATUS =====
+
+// Function to check and update user notification eligibility
+async function validateUserNotificationStatus(username: string): Promise<boolean> {
+  try {
+    const db = await connectToDatabase();
+    const user = await db.collection('users').findOne({ 
+      username: username.toLowerCase() 
+    });
+    
+    if (!user) {
+      console.log(`❌ User not found: ${username}`);
+      return false;
+    }
+    
+    const isEligible = user.notificationsEnabled === true && 
+                      user.onesignalId && 
+                      user.onesignalId.trim() !== '';
+    
+    console.log(`🔍 User ${username} notification eligibility:`, {
+      exists: true,
+      notificationsEnabled: user.notificationsEnabled,
+      hasOnesignalId: !!user.onesignalId,
+      eligible: isEligible
+    });
+    
+    return isEligible;
+    
+  } catch (error) {
+    console.error(`❌ Error validating user ${username}:`, error);
+    return false;
+  }
+}
+
+// Function to get notification stats
+async function getNotificationStats() {
+  try {
+    const db = await connectToDatabase();
+    
+    const totalUsers = await db.collection('users').countDocuments();
+    const enabledUsers = await db.collection('users').countDocuments({ 
+      notificationsEnabled: true 
+    });
+    const usersWithOneSignal = await db.collection('users').countDocuments({ 
+      onesignalId: { 
+        $exists: true, 
+        $nin: [null, ''] 
+      }
+    });
+    const eligibleUsers = await db.collection('users').countDocuments({ 
+      notificationsEnabled: true,
+      onesignalId: { 
+        $exists: true, 
+        $nin: [null, ''] 
+      }
+    });
+    
+    const stats = {
+      totalUsers,
+      enabledUsers,
+      usersWithOneSignal,
+      eligibleUsers,
+      enabledPercentage: totalUsers > 0 ? Math.round((enabledUsers / totalUsers) * 100) : 0,
+      eligiblePercentage: totalUsers > 0 ? Math.round((eligibleUsers / totalUsers) * 100) : 0
+    };
+    
+    console.log('📊 Notification Statistics:', stats);
+    return stats;
+    
+  } catch (error) {
+    console.error('❌ Error getting notification stats:', error);
+    return null;
+  }
+}
+
+// ===== UPDATED ROUTE HANDLERS =====
+
+// Test route with stats
+router.post('/test', async (req, res) => {
+  try {
+    // Get stats first
+    const stats = await getNotificationStats();
+    
+    const result = await sendNotificationToAll(
+      '🧪 Pick 6 Test',
+      'This is a test notification from the server!',
+      { type: 'test', url: '/dashboard.html' }
+    );
+    
+    res.json({ 
+      success: true, 
+      message: 'Test notification sent', 
+      result,
+      stats 
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Stats endpoint
+router.get('/stats', async (req, res) => {
+  try {
+    const stats = await getNotificationStats();
+    res.json({ success: true, stats });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 // ===== EXISTING ROUTES (Updated) =====
 
 router.post('/test', async (req, res) => {
@@ -872,7 +1047,7 @@ router.get('/status/:username', async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
-
+/*
 
 // OneSignal REST API implementation
 async function sendOneSignalNotification(title: string, body: string, data?: any) {
@@ -944,7 +1119,7 @@ async function sendNotificationToAll(title: string, body: string, data?: any) {
     throw error;
   }
 }
-
+*/
 // Export the notification function for use in scheduler
 export { sendNotificationToAll };
 export default router;
