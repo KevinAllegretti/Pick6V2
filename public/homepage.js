@@ -422,7 +422,7 @@ async function updateBackendNotificationStatus(username, enabled, onesignalId = 
     addDebugLog('🔄', 'Updating backend:', { username, enabled, onesignalId });
     
     try {
-        const response = await fetch(`api/users/notifications/toggle/${username}`, {
+        const response = await fetch(`/api/users/notifications/toggle/${username}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -538,7 +538,7 @@ async function loadNotificationState() {
     
     try {
         addDebugLog('🌐', 'Fetching from backend...');
-        const response = await fetch(`api/users/notifications/status/${username}`);
+        const response = await fetch(`/api/users/notifications/status/${username}`);
         const result = await response.json();
         
         addDebugLog('📡', 'Backend response:', result);
