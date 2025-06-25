@@ -674,8 +674,8 @@ async function initOnPageLoad() {
                 initializeNotificationToggle();
                 setTimeout(() => {
                     loadNotificationState();
-                }, 200);
-            }, 300);
+                }, 300);
+            }, 400);
         }
         
     } catch (error) {
