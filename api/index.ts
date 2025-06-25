@@ -41,7 +41,12 @@ app.use((req, res, next) => {
 });
 // 1. Middleware to parse JSON
 app.use(express.json());
-
+app.use((req, res, next) => {
+  if (req.headers.host === 'www.pick6.club') {
+    return res.redirect(301, `https://pick6.club${req.url}`);
+  }
+  next();
+});
 
 app.use(express.urlencoded({ extended: true }));
 require('dotenv').config();
