@@ -41,18 +41,22 @@ app.use((req, res, next) => {
 });
 // 1. Middleware to parse JSON
 app.use(express.json());
+// Add this middleware right after your CORS middleware (around line 45)
+// and BEFORE your other routes
+
+// WWW to non-WWW redirect middleware
 app.use((req, res, next) => {
-  console.log('Host header:', req.headers.host);
-  console.log('X-Forwarded-Host:', req.headers['x-forwarded-host']);
-  console.log('Full headers:', req.headers);
+  // Check if the original request was to www.pick6.club
+  const isWwwRequest = req.headers.host === 'www.pick6.club' || 
+                       req.headers['x-forwarded-host'] === 'www.pick6.club' ||
+                       req.headers['x-forwarded-server'] === 'www.pick6.club';
   
-  if (req.headers.host === 'www.pick6.club' || req.headers['x-forwarded-host'] === 'www.pick6.club') {
+  if (isWwwRequest) {
     console.log('Redirecting www to non-www');
     return res.redirect(301, `https://pick6.club${req.url}`);
   }
   next();
 });
-
 app.use(express.urlencoded({ extended: true }));
 require('dotenv').config();
 
