@@ -45,13 +45,14 @@ app.use(express.json());
 // and BEFORE your other routes
 
 // WWW to non-WWW redirect middleware
+// Add this middleware right after your CORS middleware (around line 45)
+// and BEFORE your other routes
+
+// WWW to non-WWW redirect middleware - simple version
 app.use((req, res, next) => {
-  // Only redirect if the original server was www.pick6.club AND we're not already on pick6.club
-  const originalServer = req.headers['x-forwarded-server'];
-  const currentHost = req.headers.host || req.headers['x-forwarded-host'];
-  
-  if (originalServer === 'www.pick6.club' && currentHost !== 'pick6.club') {
-    console.log('Redirecting www to non-www');
+  // Only redirect if x-forwarded-server is www.pick6.club (the original request)
+  // and the request method is GET (avoid redirecting POST/API calls)
+  if (req.headers['x-forwarded-server'] === 'www.pick6.club' && req.method === 'GET') {
     return res.redirect(301, `https://pick6.club${req.url}`);
   }
   next();
