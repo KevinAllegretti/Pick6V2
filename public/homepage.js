@@ -50,7 +50,7 @@ function addDebugLog(emoji, message, data = null) {
         // Ignore if debug overlay not available
     }
 }
-/*
+
 // ===== DEBUG OVERLAY =====
 function createDebugOverlay() {
     const existing = document.getElementById('simpleDebugOverlay');
@@ -120,8 +120,8 @@ function createDebugOverlay() {
     document.body.appendChild(overlay);
     return overlay;
 }
-*/
-/*
+
+
 function showDebugOverlay() {
     let overlay = document.getElementById('simpleDebugOverlay');
     if (!overlay) overlay = createDebugOverlay();
@@ -148,7 +148,7 @@ function toggleDebugOverlay() {
     } else {
         showDebugOverlay();
     }
-}*/
+}
 
 // ===== UTILITY FUNCTIONS =====
 function getCurrentUsername() {
@@ -416,7 +416,7 @@ async function initializeOneSignal() {
         throw error;
     }
 }
-/*
+
 // ===== BACKEND COMMUNICATION =====
 async function updateBackendNotificationStatus(username, enabled, onesignalId = null) {
     addDebugLog('🔄', 'Updating backend:', { username, enabled, onesignalId });
@@ -446,8 +446,8 @@ async function updateBackendNotificationStatus(username, enabled, onesignalId = 
         addDebugLog('❌', 'Backend update failed:', error.toString());
         throw error;
     }
-}*/
-/*
+}
+
 // ===== SIMPLE TOGGLE HANDLER (BACKEND FLAG ONLY) =====
 async function handleNotificationToggle() {
     addDebugLog('📱', '=== NOTIFICATION TOGGLE TRIGGERED ===');
@@ -522,247 +522,7 @@ async function handleNotificationToggle() {
         
         showNotificationMessage('Error: ' + error.message, 'error');
     }
-}*/
-
-
-// ===== ENHANCED TOGGLE HANDLER WITH BETTER ONESIGNAL ID WAITING =====
-async function handleNotificationToggle() {
-    addDebugLog('📱', '=== NOTIFICATION TOGGLE TRIGGERED ===');
-    
-    const toggle = document.getElementById('notificationCheck');
-    const isEnabled = toggle?.checked || false;
-    const username = getCurrentUsername();
-    
-    addDebugLog('🔍', 'Toggle state:', { isEnabled, username, toggleExists: !!toggle });
-    
-    if (!username) {
-        addDebugLog('❌', 'No username found');
-        showNotificationMessage('Please log in first', 'error');
-        if (toggle) toggle.checked = false;
-        return;
-    }
-    
-    // Check PWA mode for enabling notifications
-    const isPWA = window.navigator.standalone === true || 
-                  window.matchMedia('(display-mode: standalone)').matches;
-    
-    addDebugLog('🔍', 'PWA status:', isPWA);
-    
-    if (!isPWA && isEnabled) {
-        addDebugLog('🌐', 'Browser users need PWA - redirecting');
-        if (toggle) toggle.checked = false;
-        window.location.href = `/login.html?showInstall=true&returnTo=${encodeURIComponent(window.location.href)}`;
-        return;
-    }
-    
-    try {
-        if (isEnabled) {
-            // ENABLE: Wait for OneSignal ID with better retry logic
-            addDebugLog('🔛', 'ENABLING notifications - waiting for OneSignal ID...');
-            
-            const onesignalId = await waitForOneSignalId();
-            
-            if (onesignalId) {
-                addDebugLog('🆔', 'Got OneSignal ID for backend:', onesignalId);
-                await updateBackendNotificationStatus(username, true, onesignalId);
-                localStorage.setItem('notificationsEnabled', 'true');
-                localStorage.setItem('onesignalUserId', onesignalId);
-                addDebugLog('🎉', 'Notifications enabled with OneSignal ID!');
-                showNotificationMessage('Notifications enabled!', 'success');
-            } else {
-                // Fallback: Enable without OneSignal ID but warn user
-                addDebugLog('⚠️', 'No OneSignal ID available, enabling with fallback');
-                await updateBackendNotificationStatus(username, true, null);
-                localStorage.setItem('notificationsEnabled', 'true');
-                addDebugLog('⚠️', 'Notifications enabled but no OneSignal ID');
-                showNotificationMessage('Notifications enabled (limited functionality - try refreshing)', 'warning');
-            }
-            
-        } else {
-            // DISABLE: Get current OneSignal ID if available
-            addDebugLog('🔕', 'DISABLING notifications...');
-            
-            const onesignalId = await getOneSignalUserId();
-            await updateBackendNotificationStatus(username, false, onesignalId);
-            
-            localStorage.setItem('notificationsEnabled', 'false');
-            
-            addDebugLog('✅', 'Notifications disabled');
-            showNotificationMessage('Notifications disabled', 'success');
-        }
-        
-    } catch (error) {
-        addDebugLog('❌', 'Toggle failed:', error.toString());
-        
-        // Reset toggle to previous state on error
-        if (toggle) toggle.checked = !isEnabled;
-        
-        showNotificationMessage('Error: ' + error.message, 'error');
-    }
 }
-
-// ===== WAIT FOR ONESIGNAL ID WITH RETRY LOGIC =====
-async function waitForOneSignalId(maxWaitTime = 15000) {
-    addDebugLog('⏳', 'Starting to wait for OneSignal ID...');
-    
-    const startTime = Date.now();
-    const checkInterval = 1000; // Check every 1 second
-    
-    return new Promise(async (resolve) => {
-        const checkForId = async () => {
-            const elapsed = Date.now() - startTime;
-            
-            if (elapsed >= maxWaitTime) {
-                addDebugLog('⏰', 'Timeout waiting for OneSignal ID');
-                resolve(null);
-                return;
-            }
-            
-            try {
-                // Check if OneSignal is ready
-                if (!OneSignal || !OneSignal.User || !OneSignal.User.PushSubscription) {
-                    addDebugLog('⏳', `OneSignal not ready yet (${Math.round(elapsed/1000)}s)`);
-                    setTimeout(checkForId, checkInterval);
-                    return;
-                }
-                
-                // Try to get the OneSignal ID
-                let onesignalId = await getOneSignalUserId();
-                
-                if (onesignalId) {
-                    addDebugLog('✅', `Got OneSignal ID after ${Math.round(elapsed/1000)}s:`, onesignalId);
-                    resolve(onesignalId);
-                    return;
-                }
-                
-                // If no ID yet, check subscription status and try to opt in if needed
-                const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
-                addDebugLog('🔍', `Checking subscription status (${Math.round(elapsed/1000)}s):`, isOptedIn);
-                
-                if (!isOptedIn) {
-                    addDebugLog('🔔', 'Not opted in yet, attempting to opt in...');
-                    try {
-                        await OneSignal.User.PushSubscription.optIn();
-                        addDebugLog('✅', 'Opt-in completed, waiting for ID...');
-                        
-                        // Wait a bit for the opt-in to generate an ID
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                        onesignalId = await getOneSignalUserId();
-                        
-                        if (onesignalId) {
-                            addDebugLog('🎉', 'Got OneSignal ID after opt-in:', onesignalId);
-                            resolve(onesignalId);
-                            return;
-                        }
-                    } catch (optInError) {
-                        addDebugLog('❌', 'Opt-in failed:', optInError.toString());
-                    }
-                }
-                
-                // Continue waiting
-                addDebugLog('⏳', `Still waiting for OneSignal ID... (${Math.round(elapsed/1000)}s)`);
-                setTimeout(checkForId, checkInterval);
-                
-            } catch (error) {
-                addDebugLog('❌', 'Error while waiting for OneSignal ID:', error.toString());
-                setTimeout(checkForId, checkInterval);
-            }
-        };
-        
-        // Start checking
-        checkForId();
-    });
-}
-
-// ===== IMPROVED ONESIGNAL ID RETRIEVAL =====
-async function getOneSignalUserId() {
-    try {
-        if (!OneSignal?.User) {
-            return null;
-        }
-        
-        // Method 1: Direct onesignalId access
-        let userId = OneSignal.User.onesignalId;
-        if (userId && userId.trim() !== '') {
-            return userId;
-        }
-        
-        // Method 2: Try external ID
-        userId = OneSignal.User.externalId;
-        if (userId && userId.trim() !== '') {
-            return userId;
-        }
-        
-        // Method 3: Try subscription ID (if it's a property, not a method)
-        if (OneSignal.User.PushSubscription) {
-            try {
-                // Try as property first
-                userId = OneSignal.User.PushSubscription.id;
-                if (userId && userId.trim() !== '') {
-                    return userId;
-                }
-                
-                // Try as async method if property doesn't work
-                if (typeof OneSignal.User.PushSubscription.id === 'function') {
-                    userId = await OneSignal.User.PushSubscription.id();
-                    if (userId && userId.trim() !== '') {
-                        return userId;
-                    }
-                }
-            } catch (subError) {
-                // Ignore subscription errors
-            }
-        }
-        
-        return null;
-        
-    } catch (error) {
-        return null;
-    }
-}
-
-// ===== ENHANCED BACKEND UPDATE FUNCTION =====
-async function updateBackendNotificationStatus(username, enabled, onesignalId = null) {
-    addDebugLog('🔄', 'Updating backend:', { username, enabled, onesignalId });
-    
-    try {
-        const payload = { 
-            enabled: enabled
-        };
-        
-        // Only include playerId if we have a valid OneSignal ID
-        if (onesignalId && onesignalId.trim() !== '') {
-            payload.playerId = onesignalId;
-            addDebugLog('✅', 'Including OneSignal ID in backend update');
-        } else {
-            addDebugLog('⚠️', 'No OneSignal ID to send to backend');
-        }
-        
-        addDebugLog('📤', 'Sending to backend:', payload);
-        
-        const response = await fetch(`/users/notifications/toggle/${username}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-        
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(`Backend update failed: ${response.statusText} - ${errorData.error || 'Unknown error'}`);
-        }
-        
-        const result = await response.json();
-        addDebugLog('✅', 'Backend updated successfully:', result);
-        return result;
-        
-    } catch (error) {
-        addDebugLog('❌', 'Backend update failed:', error.toString());
-        throw error;
-    }
-}
-
 
 // ===== LOAD NOTIFICATION STATE =====
 async function loadNotificationState() {
@@ -931,17 +691,17 @@ window.getOneSignalUserId = getOneSignalUserId;
 window.updateBackendNotificationStatus = updateBackendNotificationStatus;
 window.getCurrentUsername = getCurrentUsername;
 window.showNotificationMessage = showNotificationMessage;
-/*
+
 // Debug functions
 window.addDebugLog = addDebugLog;
 window.showDebugOverlay = showDebugOverlay;
 window.hideDebugOverlay = hideDebugOverlay;
 window.toggleDebugOverlay = toggleDebugOverlay;
 window.clearDebugLog = clearDebugLog;
-*/
+
 // ===== AUTO-START INITIALIZATION =====
 initOnPageLoad();
-/*
+
 // Add debug button
 setTimeout(() => {
     const debugButton = document.createElement('button');
@@ -963,7 +723,7 @@ setTimeout(() => {
     `;
     debugButton.onclick = toggleDebugOverlay;
     document.body.appendChild(debugButton);
-}, 2000);*/
+}, 2000);
 
 console.log('✅ OneSignal v16 System loaded with AUTO-REGISTRATION enabled!');// ===== CONSOLIDATED ONESIGNAL v16 SYSTEM =====
 
