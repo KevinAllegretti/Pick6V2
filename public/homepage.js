@@ -22,7 +22,7 @@ function getOneSignalConfig() {
         allowLocalhostAsSecureOrigin: true
     };
 }
-/*
+
 // ===== DEBUG LOGGING =====
 function addDebugLog(emoji, message, data = null) {
     const timestamp = new Date().toLocaleTimeString();
@@ -49,7 +49,7 @@ function addDebugLog(emoji, message, data = null) {
     } catch (e) {
         // Ignore if debug overlay not available
     }
-}*/
+}
 /*
 // ===== DEBUG OVERLAY =====
 function createDebugOverlay() {
@@ -539,7 +539,7 @@ async function loadNotificationState() {
     
     try {
         addDebugLog('🌐', 'Fetching from backend...');
-        const response = await fetch(`/api/notifications/status/${username}`);
+        const response = await fetch(`/users/notifications/status/${username}`);
         const result = await response.json();
         
         addDebugLog('📡', 'Backend response:', result);
