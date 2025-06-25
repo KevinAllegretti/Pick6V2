@@ -49,6 +49,7 @@ app.use(express.json());
 // and BEFORE your other routes
 
 // WWW to non-WWW redirect middleware - simple version
+/*
 app.use((req, res, next) => {
   // Only redirect if x-forwarded-server is www.pick6.club (the original request)
   // and the request method is GET (avoid redirecting POST/API calls)
@@ -56,7 +57,7 @@ app.use((req, res, next) => {
     return res.redirect(301, `https://pick6.club${req.url}`);
   }
   next();
-});
+});*/
 app.use(express.urlencoded({ extended: true }));
 require('dotenv').config();
 
