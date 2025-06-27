@@ -8853,16 +8853,15 @@ async function updateGolfScoresDisplay(poolWrapper) {
   sortPlayerRowsByScore(poolWrapper);
 }
 
-
-// Pull-to-refresh functionality
+// Pull-to-refresh functionality - Updated for your app
 class PullToRefresh {
     constructor() {
         this.isRefreshing = false;
         this.startY = 0;
         this.currentY = 0;
         this.pullDistance = 0;
-        this.threshold = 100; // Distance needed to trigger refresh
-        this.maxPullDistance = 150; // Maximum pull distance
+        this.threshold = 80; // Reduced threshold for easier triggering
+        this.maxPullDistance = 120; // Reduced max distance
         this.refreshContainer = null;
         this.refreshIndicator = null;
         this.refreshText = null;
@@ -8874,6 +8873,7 @@ class PullToRefresh {
     init() {
         this.createRefreshIndicator();
         this.attachEventListeners();
+        console.log('Pull-to-refresh initialized successfully');
     }
     
     createRefreshIndicator() {
@@ -8882,19 +8882,19 @@ class PullToRefresh {
         this.refreshContainer.className = 'pull-refresh-container';
         this.refreshContainer.style.cssText = `
             position: fixed;
-            top: 0;
+            top: ${this.getSafeAreaTop()}px;
             left: 0;
             width: 100%;
-            height: 80px;
-            background: linear-gradient(135deg, #112240 0%, #1a365d 100%);
+            height: 70px;
+            background: linear-gradient(135deg, #0a0f22 0%, #17203a 100%);
             border-bottom: 2px solid #33d9ff;
             display: flex;
             align-items: center;
             justify-content: center;
             transform: translateY(-100%);
             transition: transform 0.3s ease;
-            z-index: 9999;
-            box-shadow: 0 4px 20px rgba(51, 217, 255, 0.3);
+            z-index: 10001;
+            box-shadow: 0 4px 20px rgba(51, 217, 255, 0.4);
         `;
         
         // Create the refresh content
@@ -8911,15 +8911,19 @@ class PullToRefresh {
         this.refreshIcon = document.createElement('i');
         this.refreshIcon.className = 'fas fa-arrow-down';
         this.refreshIcon.style.cssText = `
-            margin-right: 10px;
-            font-size: 18px;
+            margin-right: 12px;
+            font-size: 20px;
             transition: transform 0.3s ease;
+            text-shadow: 0 0 10px currentColor;
         `;
         
         // Create the refresh text
         this.refreshText = document.createElement('span');
         this.refreshText.textContent = 'Pull to refresh';
-        this.refreshText.style.fontSize = '16px';
+        this.refreshText.style.cssText = `
+            font-size: 16px;
+            text-shadow: 0 0 8px currentColor;
+        `;
         
         refreshContent.appendChild(this.refreshIcon);
         refreshContent.appendChild(this.refreshText);
@@ -8929,20 +8933,35 @@ class PullToRefresh {
         document.body.insertBefore(this.refreshContainer, document.body.firstChild);
     }
     
+    getSafeAreaTop() {
+        // Check for safe area and existing body::before offset
+        const isPWA = window.navigator.standalone === true || 
+                     window.matchMedia('(display-mode: standalone)').matches;
+        
+        if (isPWA && window.screen && window.screen.height >= 812) {
+            return 44; // iPhone notch offset
+        }
+        return 0;
+    }
+    
     attachEventListeners() {
         let touchStartY = 0;
         let touchCurrentY = 0;
         let isPulling = false;
+        let hasStarted = false;
         
         // Touch events for mobile
         document.addEventListener('touchstart', (e) => {
             if (this.isRefreshing) return;
             
-            // Only start if we're at the top of the page
-            if (window.scrollY === 0) {
+            // Only start if we're at the top of the page and touching near the top
+            const touchY = e.touches[0].clientY;
+            if (window.scrollY === 0 && touchY < 100) { // Only if touching top area
                 touchStartY = e.touches[0].clientY;
                 isPulling = true;
+                hasStarted = false;
                 this.startY = touchStartY;
+                console.log('Touch start detected at top of page');
             }
         }, { passive: true });
         
@@ -8954,10 +8973,15 @@ class PullToRefresh {
             
             const deltaY = touchCurrentY - touchStartY;
             
-            // Only allow pulling down
-            if (deltaY > 0 && window.scrollY === 0) {
-                e.preventDefault();
-                this.pullDistance = Math.min(deltaY * 0.5, this.maxPullDistance);
+            // Only allow pulling down and prevent normal scroll
+            if (deltaY > 10 && window.scrollY === 0) { // 10px threshold to start
+                if (!hasStarted) {
+                    hasStarted = true;
+                    console.log('Pull gesture started');
+                }
+                
+                e.preventDefault(); // Prevent normal scroll
+                this.pullDistance = Math.min(deltaY * 0.6, this.maxPullDistance);
                 this.updateIndicator();
             }
         }, { passive: false });
@@ -8965,48 +8989,25 @@ class PullToRefresh {
         document.addEventListener('touchend', () => {
             if (!isPulling || this.isRefreshing) return;
             
+            console.log('Touch end - pull distance:', this.pullDistance);
             isPulling = false;
+            hasStarted = false;
             
             if (this.pullDistance >= this.threshold) {
+                console.log('Threshold reached, triggering refresh');
                 this.triggerRefresh();
             } else {
+                console.log('Threshold not reached, resetting');
                 this.resetIndicator();
             }
         }, { passive: true });
         
-        // Mouse events for desktop testing
-        let isMousePulling = false;
-        let mouseStartY = 0;
-        
-        document.addEventListener('mousedown', (e) => {
-            if (this.isRefreshing || window.scrollY !== 0) return;
-            
-            mouseStartY = e.clientY;
-            isMousePulling = true;
-            this.startY = mouseStartY;
-        });
-        
-        document.addEventListener('mousemove', (e) => {
-            if (!isMousePulling || this.isRefreshing) return;
-            
-            const deltaY = e.clientY - mouseStartY;
-            
-            if (deltaY > 0 && window.scrollY === 0) {
+        // Add keyboard shortcut for testing (Ctrl+R alternative)
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'r' && e.shiftKey) {
                 e.preventDefault();
-                this.pullDistance = Math.min(deltaY * 0.3, this.maxPullDistance);
-                this.updateIndicator();
-            }
-        });
-        
-        document.addEventListener('mouseup', () => {
-            if (!isMousePulling || this.isRefreshing) return;
-            
-            isMousePulling = false;
-            
-            if (this.pullDistance >= this.threshold) {
+                console.log('Manual refresh triggered via Shift+Ctrl+R');
                 this.triggerRefresh();
-            } else {
-                this.resetIndicator();
             }
         });
     }
@@ -9021,46 +9022,47 @@ class PullToRefresh {
         const rotation = progress * 180;
         this.refreshIcon.style.transform = `rotate(${rotation}deg)`;
         
-        // Update text based on progress
+        // Update text and icon based on progress
         if (progress >= 1) {
             this.refreshText.textContent = 'Release to refresh';
             this.refreshIcon.className = 'fas fa-arrow-up';
+            this.refreshContainer.style.boxShadow = '0 4px 25px rgba(51, 217, 255, 0.8)';
         } else {
             this.refreshText.textContent = 'Pull to refresh';
             this.refreshIcon.className = 'fas fa-arrow-down';
+            this.refreshContainer.style.boxShadow = '0 4px 20px rgba(51, 217, 255, 0.4)';
         }
         
-        // Add glow effect when ready to refresh
-        if (progress >= 1) {
-            this.refreshContainer.style.boxShadow = '0 4px 20px rgba(51, 217, 255, 0.6)';
-        } else {
-            this.refreshContainer.style.boxShadow = '0 4px 20px rgba(51, 217, 255, 0.3)';
-        }
+        console.log('Indicator updated - progress:', progress.toFixed(2));
     }
     
     async triggerRefresh() {
         if (this.isRefreshing) return;
         
+        console.log('Starting refresh process...');
         this.isRefreshing = true;
         
         // Show the refresh indicator fully
         this.refreshContainer.style.transform = 'translateY(0%)';
+        this.refreshContainer.classList.add('refreshing');
         this.refreshIcon.className = 'fas fa-sync-alt fa-spin';
-        this.refreshText.textContent = 'Refreshing...';
+        this.refreshText.textContent = 'Refreshing data...';
         
         try {
             // Clear browser cache
             if ('caches' in window) {
+                console.log('Clearing browser cache...');
                 const cacheNames = await caches.keys();
                 await Promise.all(
                     cacheNames.map(cacheName => caches.delete(cacheName))
                 );
-                console.log('Browser cache cleared');
+                console.log('Cache cleared successfully');
             }
             
-            // Add a small delay for better UX
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Show refreshing state for better UX
+            await new Promise(resolve => setTimeout(resolve, 800));
             
+            console.log('Reloading page...');
             // Force reload with cache bypass
             window.location.reload(true);
             
@@ -9069,57 +9071,76 @@ class PullToRefresh {
             
             // Show error state briefly
             this.refreshIcon.className = 'fas fa-exclamation-triangle';
-            this.refreshText.textContent = 'Refresh failed';
+            this.refreshText.textContent = 'Refresh failed - try again';
+            this.refreshContainer.style.background = 'linear-gradient(135deg, #aa0000 0%, #ff4444 100%)';
             
             setTimeout(() => {
                 this.resetIndicator();
-            }, 1500);
+            }, 2000);
         }
     }
     
     resetIndicator() {
+        console.log('Resetting indicator');
         this.pullDistance = 0;
         this.isRefreshing = false;
+        
+        // Remove refreshing class and reset styles
+        this.refreshContainer.classList.remove('refreshing');
+        this.refreshContainer.style.background = 'linear-gradient(135deg, #0a0f22 0%, #17203a 100%)';
         
         // Animate back to hidden state
         this.refreshContainer.style.transform = 'translateY(-100%)';
         this.refreshIcon.style.transform = 'rotate(0deg)';
         this.refreshIcon.className = 'fas fa-arrow-down';
         this.refreshText.textContent = 'Pull to refresh';
-        this.refreshContainer.style.boxShadow = '0 4px 20px rgba(51, 217, 255, 0.3)';
+        this.refreshContainer.style.boxShadow = '0 4px 20px rgba(51, 217, 255, 0.4)';
     }
     
     // Public method to programmatically trigger refresh
     refresh() {
         if (!this.isRefreshing) {
+            console.log('Manual refresh triggered');
             this.pullDistance = this.threshold;
             this.triggerRefresh();
         }
     }
     
-    // Method to destroy the pull-to-refresh (if needed)
+    // Method to destroy the pull-to-refresh
     destroy() {
         if (this.refreshContainer) {
             this.refreshContainer.remove();
         }
-        // Event listeners will be automatically removed when the page reloads
+        console.log('Pull-to-refresh destroyed');
     }
 }
 
 // Initialize pull-to-refresh when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Only initialize on mobile devices or PWA
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const isPWA = window.navigator.standalone === true || 
-                  window.matchMedia('(display-mode: standalone)').matches;
-    
-    if (isMobile || isPWA) {
-        window.pullToRefresh = new PullToRefresh();
-        console.log('Pull-to-refresh initialized');
-    }
+    // Add a small delay to ensure everything is loaded
+    setTimeout(() => {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isPWA = window.navigator.standalone === true || 
+                      window.matchMedia('(display-mode: standalone)').matches;
+        
+        console.log('Device check - Mobile:', isMobile, 'PWA:', isPWA);
+        
+        // Always initialize for testing, but you can change this condition
+        if (true) { // Changed from (isMobile || isPWA) for testing
+            window.pullToRefresh = new PullToRefresh();
+            console.log('Pull-to-refresh initialized and ready!');
+            
+            // Add a test notification
+            setTimeout(() => {
+                console.log('Pull-to-refresh is active! Try pulling down from the top of the page.');
+            }, 1000);
+        } else {
+            console.log('Pull-to-refresh not initialized - not mobile/PWA');
+        }
+    }, 500);
 });
 
-// Add CSS styles for the refresh indicator
+// Enhanced CSS styles that match your theme
 const refreshStyles = document.createElement('style');
 refreshStyles.textContent = `
     .pull-refresh-container {
@@ -9138,19 +9159,37 @@ refreshStyles.textContent = `
         -ms-user-select: none;
     }
     
-    /* Add a subtle animation to the container */
+    /* Enhanced glow animation for refreshing state */
+    .pull-refresh-container.refreshing {
+        animation: refreshGlow 1.5s ease-in-out infinite;
+    }
+    
     @keyframes refreshGlow {
         0%, 100% { 
-            box-shadow: 0 4px 20px rgba(51, 217, 255, 0.3); 
+            box-shadow: 0 4px 20px rgba(51, 217, 255, 0.4); 
         }
         50% { 
-            box-shadow: 0 4px 25px rgba(51, 217, 255, 0.5); 
+            box-shadow: 0 4px 30px rgba(51, 217, 255, 0.8); 
         }
     }
     
-    .pull-refresh-container.refreshing {
-        animation: refreshGlow 2s ease-in-out infinite;
+    /* Ensure the refresh indicator appears above your navbar */
+    .pull-refresh-container {
+        z-index: 10001 !important;
+    }
+    
+    /* Add a subtle pulse effect */
+    @keyframes refreshPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .pull-refresh-container.refreshing i {
+        animation: refreshPulse 2s ease-in-out infinite;
     }
 `;
 
 document.head.appendChild(refreshStyles);
+
+console.log('Pull-to-refresh script loaded successfully!');
