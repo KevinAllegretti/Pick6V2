@@ -42,12 +42,12 @@ cron.schedule('15 10 * * 4', () => {
     { type: 'picks_reminder', url: 'https://pick6.club/dashboard.html' } // Full URL here
   );
 */
-
+/*
  sendNotificationToAll(
     'This is a test!',
     'test!',
     { type: 'picks_reminder', url: 'https://pick6.club/dashboard.html' } // Full URL here
-  );
+  );*/
 
 cron.schedule('0 0 * * 2', () => {
   console.log("TUESDAY It's 12:00am fetching and saving injuries");
