@@ -830,6 +830,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof updateNavUsername === 'function') {
       updateNavUsername();
     }*/
+   // ADD PULL-TO-REFRESH INITIALIZATION HERE
+    setTimeout(() => {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isPWA = window.navigator.standalone === true || 
+                      window.matchMedia('(display-mode: standalone)').matches;
+        
+        if (true) { // For testing - change back to (isMobile || isPWA) later
+            window.pullToRefresh = new PullToRefresh();
+            console.log('Pull-to-refresh initialized!');
+        }
+    }, 500);
   });
   
   /**
@@ -9115,30 +9126,6 @@ class PullToRefresh {
     }
 }
 
-// Initialize pull-to-refresh when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Add a small delay to ensure everything is loaded
-    setTimeout(() => {
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const isPWA = window.navigator.standalone === true || 
-                      window.matchMedia('(display-mode: standalone)').matches;
-        
-        console.log('Device check - Mobile:', isMobile, 'PWA:', isPWA);
-        
-        // Always initialize for testing, but you can change this condition
-        if (true) { // Changed from (isMobile || isPWA) for testing
-            window.pullToRefresh = new PullToRefresh();
-            console.log('Pull-to-refresh initialized and ready!');
-            
-            // Add a test notification
-            setTimeout(() => {
-                console.log('Pull-to-refresh is active! Try pulling down from the top of the page.');
-            }, 1000);
-        } else {
-            console.log('Pull-to-refresh not initialized - not mobile/PWA');
-        }
-    }, 500);
-});
 
 // Enhanced CSS styles that match your theme
 const refreshStyles = document.createElement('style');
