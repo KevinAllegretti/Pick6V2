@@ -212,7 +212,7 @@ cron.schedule('58 23 * * 1', () => {
 
 
 
-cron.schedule('46 16 * * 2', () => {
+cron.schedule('32 14 * * 5', () => {
   console.log("It's Thursday 4:00 PM");
   mockFetchNFLScores();
   //test test pm2 reload

@@ -8514,3 +8514,32 @@ white-space: normal; /* Changed from nowrap */
     font-family: 'Montserrat', 'sans-serif';
     Justify-content: center;
 }
+
+.pull-to-refresh-indicator {
+    position: absolute;
+    top: -50px; /* Initially hidden above the viewport */
+    left: 0;
+    width: 100%;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: top 0.2s ease;
+    z-index: 9998; /* Below the safe-area-inset-top but above other content */
+}
+
+.pull-to-refresh-indicator .spinner {
+    width: 25px;
+    height: 25px;
+    border: 3px solid #33d9ff;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: none; /* Hidden until a certain pull threshold */
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
