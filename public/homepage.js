@@ -831,7 +831,7 @@ document.addEventListener('DOMContentLoaded', () => {
     body.addEventListener('touchend', () => {
         if (pullDistance >= pullThreshold) {
             // Trigger the refresh
-            indicator.style.top = '20px'; // Keep the spinner visible during reload
+            indicator.style.top = '60px'; // Keep the spinner visible during reload
             spinner.style.display = 'block';
             window.location.reload();
         } else {

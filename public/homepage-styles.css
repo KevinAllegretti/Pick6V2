@@ -8517,7 +8517,7 @@ white-space: normal; /* Changed from nowrap */
 
 .pull-to-refresh-indicator {
     position: absolute;
-    top: -100px; /* Initially hidden above the viewport */
+    top: -50px; /* Initially hidden above the viewport */
     left: 0;
     width: 100%;
     height: 50px;
