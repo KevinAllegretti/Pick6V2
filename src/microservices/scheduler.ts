@@ -88,6 +88,14 @@ cron.schedule('0 0 * * 2', () => {
 });
 
 
+cron.schedule('0 19 * * 4', () => {
+  console.log("It's Thursday 7:00 PM, now saving picks to last week");
+ // savePicksToLastWeek();
+  console.log("Updating Tuesday start time to the upcoming Tuesday");
+  updateTuesdayStartTime();
+});
+
+
 cron.schedule('43 11 * * 5', () => {
   console.log("It's Thursday 4:00 PM");
   saveSurvivorPicks();
@@ -112,16 +120,6 @@ cron.schedule('0 0 * * 2', async () => {
 
 
 
-
-
-
-cron.schedule('0 19 * * 4', () => {
-  console.log("It's Thursday 7:00 PM, now saving picks to last week");
-  savePicksToLastWeek();
-  console.log("Updating Tuesday start time to the upcoming Tuesday");
-  updateTuesdayStartTime();
-});
-/*
 // Thursday 4:00pm CT
 cron.schedule('25 16 * * 3', () => {
   console.log("It's Thursday 4:00 PM");
