@@ -141,7 +141,7 @@ const options = {
   serverSelectionTimeoutMS: 5000, // Reduce the time the driver waits for server selection
   socketTimeoutMS: 45000, // Adjust socket timeout 
 };
-console.log('MONGODB_URI:', process.env.MONGODB_URI);
+//console.log('MONGODB_URI:', process.env.MONGODB_URI);
 const mongoUri = process.env.MONGODB_URI as string;
 mongoose.connect(mongoUri, options);
 

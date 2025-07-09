@@ -1600,7 +1600,7 @@ router.get('/api/getVendingSpotlight', async (req, res) => {
             targetWeek = parseInt(targetWeek);
         }
         
-        console.log(`API: Getting vending spotlight for pool ${poolName}, week ${targetWeek}`);
+        //console.log(`API: Getting vending spotlight for pool ${poolName}, week ${targetWeek}`);
         
         // Get hottest picker for this pool and week
         const hottest = await vendingCollection.findOne({
