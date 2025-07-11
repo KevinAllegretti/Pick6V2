@@ -74,21 +74,34 @@ document.getElementById('login-form').addEventListener('submit', function(event)
     });
 });
 
-// Replace your registration form handler with this debug version
+// Global flag to prevent multiple submissions
+let isRegistering = false;
+
+// Handle registration form submission
 document.getElementById('registration-form').addEventListener('submit', function(event) {
-    console.log('🔥 REGISTRATION FORM SUBMITTED');
     event.preventDefault();
     
-    // Prevent double submissions
-    const submitButton = this.querySelector('button[type="submit"]');
-    if (submitButton.disabled) {
-        console.log('⚠️ Button already disabled - preventing double submission');
+    // Prevent multiple submissions
+    if (isRegistering) {
+        console.log('⚠️ Registration already in progress - ignoring duplicate submission');
         return;
     }
     
-    // Disable submit button
-    submitButton.disabled = true;
-    submitButton.textContent = 'Creating Account...';
+    isRegistering = true;
+    console.log('🔥 REGISTRATION FORM SUBMITTED');
+    
+    const submitButton = this.querySelector('button[type="submit"], input[type="submit"]');
+    const originalButtonText = submitButton ? submitButton.textContent || submitButton.value : '';
+    
+    // Disable submit button and show loading state
+    if (submitButton) {
+        submitButton.disabled = true;
+        if (submitButton.textContent !== undefined) {
+            submitButton.textContent = 'Creating Account...';
+        } else {
+            submitButton.value = 'Creating Account...';
+        }
+    }
     
     const formData = new FormData(this);
     const object = {};
@@ -108,7 +121,6 @@ document.getElementById('registration-form').addEventListener('submit', function
     .then(response => {
         console.log('📥 Registration response received');
         console.log('📥 Response status:', response.status);
-        console.log('📥 Response headers:', response.headers);
         console.log('📥 Response timestamp:', new Date().toISOString());
         
         if (!response.ok) {
@@ -119,29 +131,144 @@ document.getElementById('registration-form').addEventListener('submit', function
     .then(data => {
         console.log('✅ Registration response data:', data);
         
-        // Re-enable submit button
-        submitButton.disabled = false;
-        submitButton.textContent = 'Create Account';
-        
         if (data.error || data.type === 'error') {
             console.log('❌ Registration failed:', data.message);
             alert(data.message);
         } else {
             console.log('✅ Registration successful:', data.message);
             alert(data.message);
+            
+            // Switch to login form
             document.querySelector('.form.register').classList.remove('active');
             document.querySelector('.form.login').classList.add('active');
+            
+            // Clear the registration form
+            this.reset();
         }
     })
     .catch(error => {
         console.error('💥 Registration Error:', error);
         console.error('💥 Error timestamp:', new Date().toISOString());
-        
-        // Re-enable submit button
-        submitButton.disabled = false;
-        submitButton.textContent = 'Create Account';
-        
         alert('An error occurred during the registration process. Please try again.');
+    })
+    .finally(() => {
+        // Always re-enable the form regardless of success or failure
+        isRegistering = false;
+        
+        if (submitButton) {
+            submitButton.disabled = false;
+            if (submitButton.textContent !== undefined) {
+                submitButton.textContent = originalButtonText;
+            } else {
+                submitButton.value = originalButtonText;
+            }
+        }
+        
+        console.log('🔄 Registration form re-enabled');
+    });
+});
+
+// Also add the same protection to login form
+let isLoggingIn = false;
+
+document.getElementById('login-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    
+    // Prevent multiple submissions
+    if (isLoggingIn) {
+        console.log('⚠️ Login already in progress - ignoring duplicate submission');
+        return;
+    }
+    
+    isLoggingIn = true;
+    console.log('🔥 LOGIN FORM SUBMITTED');
+    
+    const submitButton = this.querySelector('button[type="submit"], input[type="submit"]');
+    const originalButtonText = submitButton ? submitButton.textContent || submitButton.value : '';
+    
+    // Disable submit button
+    if (submitButton) {
+        submitButton.disabled = true;
+        if (submitButton.textContent !== undefined) {
+            submitButton.textContent = 'Signing In...';
+        } else {
+            submitButton.value = 'Signing In...';
+        }
+    }
+    
+    const formData = new FormData(this);
+    const object = {};
+    formData.forEach(function(value, key){
+        object[key] = value;
+    });
+    const json = JSON.stringify(object);
+
+    console.log('📤 Sending login request:', json);
+
+    fetch('/users/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: json,
+    })
+    .then(response => {
+        console.log('📥 Login response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('📥 Login response data:', data);
+        
+        if (data.error) {
+            alert(data.message);
+        } else if (data.redirect) {
+            // Handle redirect logic (your existing code)
+            const urlParams = new URLSearchParams(window.location.search);
+            const showInstall = urlParams.get('showInstall');
+            const returnTo = urlParams.get('returnTo');
+            
+            if (showInstall === 'true') {
+                setTimeout(() => {
+                    showInstallPrompt();
+                }, 500);
+                
+                if (returnTo) {
+                    setTimeout(() => {
+                        window.location.href = decodeURIComponent(returnTo);
+                    }, 3000);
+                } else {
+                    setTimeout(() => {
+                        window.location.href = data.redirect;
+                    }, 3000);
+                }
+            } else if (returnTo) {
+                window.location.href = decodeURIComponent(returnTo);
+            } else {
+                window.location.href = data.redirect;
+            }
+        }
+    })
+    .catch(error => {
+        console.error('💥 Login Error:', error);
+        alert('An error occurred during the login process. Please try again.');
+    })
+    .finally(() => {
+        // Always re-enable the form
+        isLoggingIn = false;
+        
+        if (submitButton) {
+            submitButton.disabled = false;
+            if (submitButton.textContent !== undefined) {
+                submitButton.textContent = originalButtonText;
+            } else {
+                submitButton.value = originalButtonText;
+            }
+        }
+        
+        console.log('🔄 Login form re-enabled');
     });
 });
 
