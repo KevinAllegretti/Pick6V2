@@ -74,13 +74,29 @@ document.getElementById('login-form').addEventListener('submit', function(event)
     });
 });
 
-// Handle registration form submission
+// Replace your registration form handler with this debug version
 document.getElementById('registration-form').addEventListener('submit', function(event) {
+    console.log('🔥 REGISTRATION FORM SUBMITTED');
     event.preventDefault();
-    var formData = new FormData(this);
-    let object = {};
+    
+    // Prevent double submissions
+    const submitButton = this.querySelector('button[type="submit"]');
+    if (submitButton.disabled) {
+        console.log('⚠️ Button already disabled - preventing double submission');
+        return;
+    }
+    
+    // Disable submit button
+    submitButton.disabled = true;
+    submitButton.textContent = 'Creating Account...';
+    
+    const formData = new FormData(this);
+    const object = {};
     formData.forEach((value, key) => object[key] = value);
-    let json = JSON.stringify(object);
+    const json = JSON.stringify(object);
+
+    console.log('📤 Sending registration request:', json);
+    console.log('📤 Request timestamp:', new Date().toISOString());
 
     fetch('/users/register', {
         method: 'POST',
@@ -89,18 +105,42 @@ document.getElementById('registration-form').addEventListener('submit', function
         },
         body: json,
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('📥 Registration response received');
+        console.log('📥 Response status:', response.status);
+        console.log('📥 Response headers:', response.headers);
+        console.log('📥 Response timestamp:', new Date().toISOString());
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
-        if (data.error) {
-            alert(data.message); // Show error message from the server
+        console.log('✅ Registration response data:', data);
+        
+        // Re-enable submit button
+        submitButton.disabled = false;
+        submitButton.textContent = 'Create Account';
+        
+        if (data.error || data.type === 'error') {
+            console.log('❌ Registration failed:', data.message);
+            alert(data.message);
         } else {
-            alert(data.message); // Success message
-            document.querySelector('.form.register').classList.remove('active'); // Hide registration form
-            document.querySelector('.form.login').classList.add('active'); // Show login form
+            console.log('✅ Registration successful:', data.message);
+            alert(data.message);
+            document.querySelector('.form.register').classList.remove('active');
+            document.querySelector('.form.login').classList.add('active');
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        console.error('💥 Registration Error:', error);
+        console.error('💥 Error timestamp:', new Date().toISOString());
+        
+        // Re-enable submit button
+        submitButton.disabled = false;
+        submitButton.textContent = 'Create Account';
+        
         alert('An error occurred during the registration process. Please try again.');
     });
 });

@@ -415,13 +415,21 @@ router.post('/register', async (req, res) => {
     }
 });*/
 
+// Add this to the very beginning of your registration route to debug
 router.post('/register', async (req, res) => {
-    console.log('Register endpoint hit with data:', req.body);
+    const requestId = Math.random().toString(36).substr(2, 9);
+    console.log(`[${requestId}] ===== REGISTRATION REQUEST START =====`);
+    console.log(`[${requestId}] Request body:`, JSON.stringify(req.body, null, 2));
+    console.log(`[${requestId}] Request headers:`, JSON.stringify(req.headers, null, 2));
+    console.log(`[${requestId}] Request method:`, req.method);
+    console.log(`[${requestId}] Request URL:`, req.url);
+    
     try {
         const { username, password } = req.body;
+        console.log(`[${requestId}] Extracted - Username: "${username}", Password: "${password ? '****' : 'undefined'}"`);
 
         if (!(username && password)) {
-            console.log('Missing input data');
+            console.log(`[${requestId}] Missing input data - returning 400`);
             return res.status(400).json({ 
                 message: "Username and password are required", 
                 type: "error" 
@@ -432,28 +440,39 @@ router.post('/register', async (req, res) => {
         const usersCollection = db.collection("users");
         const poolsCollection = db.collection("pools");
 
-        // 🔥 ADD THIS BACK - Check if username is already taken BEFORE creating user
+        console.log(`[${requestId}] Checking for existing user: "${username.toLowerCase()}"`);
+        
+        // Check if username is already taken
         const existingUser = await usersCollection.findOne({ username: username.toLowerCase() });
+        
         if (existingUser) {
-            console.log('Username already exists:', username);
+            console.log(`[${requestId}] User already exists! Returning 409`);
+            console.log(`[${requestId}] Existing user:`, JSON.stringify(existingUser, null, 2));
             return res.status(409).json({ 
                 message: "Username is already taken", 
                 type: "error" 
             });
         }
 
+        console.log(`[${requestId}] User does not exist, proceeding with creation`);
+
         // Create user with additional fields
         const encryptedPassword = await bcrypt.hash(password, saltRounds);
+        console.log(`[${requestId}] Password hashed successfully`);
+        
         const userResult = await usersCollection.insertOne({
             username: username.toLowerCase(),
             password: encryptedPassword,
-            notificationsEnabled: true, // Default to true
+            notificationsEnabled: true,
             notificationUpdated: new Date(),
             createdAt: new Date()
         });
 
+        console.log(`[${requestId}] User created with ID:`, userResult.insertedId);
+
         // Check if Global pool exists
         let globalPool = await poolsCollection.findOne({ name: "Global" });
+        console.log(`[${requestId}] Global pool exists:`, !!globalPool);
         
         // Create new member object
         const newMember = {
@@ -468,7 +487,7 @@ router.post('/register', async (req, res) => {
         };
 
         if (!globalPool) {
-            // Create Global pool
+            console.log(`[${requestId}] Creating new Global pool`);
             await poolsCollection.insertOne({
                 name: "Global",
                 isPrivate: false,
@@ -478,42 +497,51 @@ router.post('/register', async (req, res) => {
                 mode: "classic"
             });
         } else {
-            // Get count of user's existing pools for proper orderIndex
+            console.log(`[${requestId}] Adding user to existing Global pool`);
             const userPools = await poolsCollection.find({
                 'members.username': username.toLowerCase()
             }).toArray();
             
-            // Set Global pool's orderIndex to be the highest
             newMember.orderIndex = userPools.length;
 
-            // Add user to existing Global pool
             await poolsCollection.updateOne(
                 { name: "Global" },
                 { $addToSet: { members: newMember } }
             );
         }
 
+        console.log(`[${requestId}] Registration successful! Sending response`);
+        
         // Send success response
         res.status(201).json({ 
             error: false, 
             message: "User created successfully. You can now log in." 
         });
 
+        console.log(`[${requestId}] ===== REGISTRATION REQUEST END (SUCCESS) =====`);
+
     } catch (error: any) {
-        console.error('[Registration Error]', error);
+        console.error(`[${requestId}] ===== REGISTRATION ERROR =====`);
+        console.error(`[${requestId}] Error:`, error);
+        console.error(`[${requestId}] Error code:`, error.code);
+        console.error(`[${requestId}] Error message:`, error.message);
+        console.error(`[${requestId}] Stack trace:`, error.stack);
         
-        // This should now rarely happen since we check first
         if (error.code === 11000) {
+            console.log(`[${requestId}] Duplicate key error - returning 409`);
             return res.status(409).json({ 
                 message: "Username is already taken.", 
                 type: "error" 
             });
         }
         
+        console.log(`[${requestId}] Unknown error - returning 500`);
         res.status(500).json({ 
             message: "Internal Server Error", 
             type: "error" 
         });
+        
+        console.log(`[${requestId}] ===== REGISTRATION REQUEST END (ERROR) =====`);
     }
 });
 router.post('/login', async (req, res) => {
