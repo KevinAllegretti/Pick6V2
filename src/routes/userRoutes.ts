@@ -432,14 +432,6 @@ router.post('/register', async (req, res) => {
         const usersCollection = db.collection("users");
         const poolsCollection = db.collection("pools");
 
-        // Check if username is already taken
-        const existingUser = await usersCollection.findOne({ username: username.toLowerCase() });
-        if (existingUser) {
-            return res.status(409).json({ 
-                message: "Username is already taken", 
-                type: "error" 
-            });
-        }
 
         // Create user with additional fields
         const encryptedPassword = await bcrypt.hash(password, saltRounds);
