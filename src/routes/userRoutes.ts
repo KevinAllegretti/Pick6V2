@@ -432,6 +432,15 @@ router.post('/register', async (req, res) => {
         const usersCollection = db.collection("users");
         const poolsCollection = db.collection("pools");
 
+        // 🔥 ADD THIS BACK - Check if username is already taken BEFORE creating user
+        const existingUser = await usersCollection.findOne({ username: username.toLowerCase() });
+        if (existingUser) {
+            console.log('Username already exists:', username);
+            return res.status(409).json({ 
+                message: "Username is already taken", 
+                type: "error" 
+            });
+        }
 
         // Create user with additional fields
         const encryptedPassword = await bcrypt.hash(password, saltRounds);
@@ -492,19 +501,21 @@ router.post('/register', async (req, res) => {
 
     } catch (error: any) {
         console.error('[Registration Error]', error);
+        
+        // This should now rarely happen since we check first
         if (error.code === 11000) {
             return res.status(409).json({ 
                 message: "Username is already taken.", 
                 type: "error" 
             });
         }
+        
         res.status(500).json({ 
             message: "Internal Server Error", 
             type: "error" 
         });
     }
 });
-
 router.post('/login', async (req, res) => {
     console.log('Login endpoint hit with data:', req.body);
     try {
