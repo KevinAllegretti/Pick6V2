@@ -326,6 +326,7 @@ require("dotenv").config();
 const router = express.Router();
 const saltRounds = 10;
 
+/*
 router.post('/register', async (req, res) => {
     console.log('Register endpoint hit with data:', req.body);
     try {
@@ -352,7 +353,7 @@ router.post('/register', async (req, res) => {
         const userResult = await usersCollection.insertOne({
             username: username.toLowerCase(),
             password: encryptedPassword,
-        });*/
+        });
         
  const encryptedPassword = await bcrypt.hash(password, saltRounds);
         const userResult = await usersCollection.insertOne({
@@ -411,6 +412,104 @@ router.post('/register', async (req, res) => {
             return res.status(409).send("Username is already taken.");
         }
         res.status(500).json({ message: "Internal Server Error", type: "error" });
+    }
+});*/
+
+router.post('/register', async (req, res) => {
+    console.log('Register endpoint hit with data:', req.body);
+    try {
+        const { username, password } = req.body;
+
+        if (!(username && password)) {
+            console.log('Missing input data');
+            return res.status(400).json({ 
+                message: "Username and password are required", 
+                type: "error" 
+            });
+        }
+
+        const db = await connectToDatabase();
+        const usersCollection = db.collection("users");
+        const poolsCollection = db.collection("pools");
+
+        // Check if username is already taken
+        const existingUser = await usersCollection.findOne({ username: username.toLowerCase() });
+        if (existingUser) {
+            return res.status(409).json({ 
+                message: "Username is already taken", 
+                type: "error" 
+            });
+        }
+
+        // Create user with additional fields
+        const encryptedPassword = await bcrypt.hash(password, saltRounds);
+        const userResult = await usersCollection.insertOne({
+            username: username.toLowerCase(),
+            password: encryptedPassword,
+            notificationsEnabled: true, // Default to true
+            notificationUpdated: new Date(),
+            createdAt: new Date()
+        });
+
+        // Check if Global pool exists
+        let globalPool = await poolsCollection.findOne({ name: "Global" });
+        
+        // Create new member object
+        const newMember = {
+            user: userResult.insertedId,
+            username: username.toLowerCase(),
+            points: 0,
+            picks: [],
+            win: 0,
+            loss: 0,
+            push: 0,
+            orderIndex: 0
+        };
+
+        if (!globalPool) {
+            // Create Global pool
+            await poolsCollection.insertOne({
+                name: "Global",
+                isPrivate: false,
+                admin: userResult.insertedId,
+                adminUsername: "admin",
+                members: [newMember],
+                mode: "classic"
+            });
+        } else {
+            // Get count of user's existing pools for proper orderIndex
+            const userPools = await poolsCollection.find({
+                'members.username': username.toLowerCase()
+            }).toArray();
+            
+            // Set Global pool's orderIndex to be the highest
+            newMember.orderIndex = userPools.length;
+
+            // Add user to existing Global pool
+            await poolsCollection.updateOne(
+                { name: "Global" },
+                { $addToSet: { members: newMember } }
+            );
+        }
+
+        // Send success response
+        res.status(201).json({ 
+            error: false, 
+            message: "User created successfully. You can now log in." 
+        });
+
+    } catch (error: any) {
+        console.error('[Registration Error]', error);
+        if (error.code === 11000) {
+            return res.status(409).json({ 
+                message: "Username is already taken.", 
+                type: "error" 
+            });
+        }
+        res.status(500).json({ 
+            message: "Internal Server Error", 
+            type: "error" 
+        });
     }
 });
 
