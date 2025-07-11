@@ -14,7 +14,7 @@ document.getElementById('show-login').addEventListener('click', function() {
     console.log('Register form class:', document.querySelector('.form.register').className);
     console.log('Login form class:', document.querySelector('.form.login').className);
 });
-
+/*
 // Handle login form submission
 document.getElementById('login-form').addEventListener('submit', function(event) {
     event.preventDefault();
@@ -271,7 +271,7 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         console.log('🔄 Login form re-enabled');
     });
 });
-
+*/
 // Install prompt function (keep for browser users)
 function showInstallPrompt() {
     const installHTML = `
