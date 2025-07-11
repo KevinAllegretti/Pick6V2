@@ -149,7 +149,7 @@ document.getElementById('registration-form').addEventListener('submit', function
     .catch(error => {
         console.error('💥 Registration Error:', error);
         console.error('💥 Error timestamp:', new Date().toISOString());
-        alert('An error occurred during the registration process. Please try again.');
+
     })
     .finally(() => {
         // Always re-enable the form regardless of success or failure
