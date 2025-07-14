@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 import { connectToDatabase } from '../microservices/connectDB';
 
-const baseUrl = 'https://www.pick6.club'; 
+const baseUrl = 'https://pick6.club'; 
 //test
 // Function to update user points
 /*

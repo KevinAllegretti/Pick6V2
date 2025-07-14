@@ -209,7 +209,6 @@ cron.schedule('58 23 * * 1', () => {
 });*/
 
 
-
 cron.schedule('32 14 * * 5', () => {
   console.log("It's Thursday 4:00 PM");
   mockFetchNFLScores();
@@ -277,3 +276,5 @@ cron.schedule('*/20 7-19 12-15 6 *', () => {
 });
 
 //mockFetchNFLScores()
+
+//  saveSurvivorPicks();
