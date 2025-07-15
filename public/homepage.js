@@ -753,10 +753,12 @@ function adjustNavbarForPWA() {
 }*/
 
 // Check if running as PWA and add appropriate spacing
+// Check if running as PWA and add appropriate spacing
 function adjustNavbarForPWA() {
     const body = document.body;
     const chatContainer = document.querySelector('.chat-container');
     const slideOutPanel = document.querySelector('.slide-out-panel');
+    const inPoolSlideOutPanel = document.querySelector('#slideOutPanelInPool'); // Add this line
     
     // Check if running as PWA
     const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
@@ -779,9 +781,14 @@ function adjustNavbarForPWA() {
             chatContainer.style.top = `calc(75px + ${topOffset})`;
         }
         
-        // Adjust slide-out panel position
+        // Adjust main slide-out panel position
         if (slideOutPanel) {
             slideOutPanel.style.paddingTop = topOffset;
+        }
+        
+        // Adjust in-pool slide-out panel position
+        if (inPoolSlideOutPanel) {
+            inPoolSlideOutPanel.style.paddingTop = topOffset;
         }
     }
 }
@@ -2246,12 +2253,21 @@ async function showInPoolUserProfile(username) {
 // Display function with pool type awareness
 function updateProfileDisplay(userData) {
     // Get or create the panel
-    let panel = document.getElementById('slideOutPanelInPool');
+  let panel = document.getElementById('slideOutPanelInPool');
     if (!panel) {
         const template = document.getElementById('in-pool-profile-template');
         if (template) {
             document.body.appendChild(template.content.cloneNode(true));
             panel = document.getElementById('slideOutPanelInPool');
+            
+            // Apply PWA spacing immediately after creation
+            const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                          window.navigator.standalone === true;
+            if (isPWA && panel) {
+                const screenHeight = window.screen.height;
+                const topOffset = screenHeight >= 812 ? '44px' : '20px';
+                panel.style.paddingTop = topOffset;
+            }
         } else {
             console.error('Profile template not found!');
             return;
