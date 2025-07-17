@@ -27,7 +27,7 @@ cron.schedule('41 14 * * 2', () => {
   fetchAndSavePGAChampionshipOdds();
 });*/
 
-fetchAndSaveOpenChampionshipOdds();
+//fetchAndSaveOpenChampionshipOdds();
 
 cron.schedule('15 10 * * 4', () => { 
   console.log("Sending picks reminder");
