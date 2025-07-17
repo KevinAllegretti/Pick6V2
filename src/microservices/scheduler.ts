@@ -277,7 +277,7 @@ cron.schedule('*/20 7-19 12-15 6 *', () => {
  fetchAndSaveUSOpenData();
 });
 
-cron.schedule('*/20 1-17 17-20 7 *', () => {
+cron.schedule('*/20 5-17 17-20 7 *', () => {
   console.log('Fetching The Open Championship data - runs every 20 minutes from 1 AM to 6 PM during tournament days');
   fetchAndSaveOpenChampionshipData();
 });
