@@ -13,7 +13,7 @@ import { updateUserPoints, updateUserStats, saveResultsToServer,
 import { connectToDatabase } from './connectDB';
 import { eliminateUsersWithoutPicks } from './serverUtils';
 import{mockFetchNFLScores, fetchNFLScores, fetchNFLDataOneWeekOut} from './nflServices';
-import { fetchAndSaveMastersData, fetchAndSavePGAChampionshipData, fetchAndSaveUSOpenData, fetchAndSavePGAChampionshipOdds } from './golfServices';
+import { fetchAndSaveMastersData, fetchAndSavePGAChampionshipData, fetchAndSaveUSOpenData, fetchAndSavePGAChampionshipOdds, fetchAndSaveOpenChampionshipOdds, fetchAndSaveOpenChampionshipData } from './golfServices';
 import { saveVendingMachinePoints } from './serverUtils'; //last minute of game time before delete results and picks happen
 import { sendNotificationToAll } from '../routes/notificationsRoutes';
 
@@ -26,6 +26,8 @@ cron.schedule('41 14 * * 2', () => {
   console.log('Running weekly PGA Championship FanDuel odds update...');
   fetchAndSavePGAChampionshipOdds();
 });*/
+
+fetchAndSaveOpenChampionshipOdds();
 
 cron.schedule('15 10 * * 4', () => { 
   console.log("Sending picks reminder");
@@ -275,6 +277,10 @@ cron.schedule('*/20 7-19 12-15 6 *', () => {
  fetchAndSaveUSOpenData();
 });
 
+cron.schedule('*/20 7-19 17-20 7 *', () => {
+  console.log('Fetching The Open Championship data - runs every 20 minutes during tournament days');
+  fetchAndSaveOpenChampionshipData();
+});
 //mockFetchNFLScores()
 
 //  saveSurvivorPicks();

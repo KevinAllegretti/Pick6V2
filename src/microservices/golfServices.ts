@@ -1128,6 +1128,9 @@ async function processGolfPicks(golfScores: any[]) {
   }
 }*/
 // Mock leaderboard data - just basic scores for popular golfers
+
+
+
 export const mockGolfScores = [
     { name: "Scottie Scheffler", score: -12 },
     { name: "Rory McIlroy", score: -7 },
@@ -1742,6 +1745,491 @@ export async function fetchAndSaveUSOpenOdds() {
   }
 }
 
+// Function to fetch and save The Open Championship leaderboard data
+export async function fetchAndSaveOpenChampionshipData(): Promise<{ success: boolean, id?: string, status?: string, error?: any }> {
+  console.log('Fetching The Open Championship Tournament information and saving to database...');
+  
+  const tournamentId = '100'; // The Open Championship tournament ID
+  const tournamentName = 'The Open Championship';
+  const apiKey = 'e5859daf3amsha3927ab000fb4a3p1b5686jsndea26f3d7448';
+  const year = '2025';
+  
+  try {
+    const database = await connectToDatabase();
+    const openChampionshipCollection = database.collection('golfTournaments');
+    
+    console.log(`Fetching The Open Championship data with ID: ${tournamentId}...`);
+    
+    // Try to get the leaderboard for the tournament
+    const leaderboardResponse = await fetch(`https://live-golf-data.p.rapidapi.com/leaderboard?orgId=1&tournId=${tournamentId}&year=${year}`, {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
+        'x-rapidapi-key': apiKey
+      }
+    });
+    
+    // If we can get a leaderboard, process it
+    if (leaderboardResponse.ok) {
+      const leaderboardData = await leaderboardResponse.json();
+      
+      // Check if there's actual leaderboard data
+      let leaderboard: GolferData[] = [];
+      let tournamentStatus = 'upcoming';
+      
+      // Look for leaderboard data in different possible properties
+      if (Array.isArray(leaderboardData.leaderboard)) {
+        leaderboard = leaderboardData.leaderboard;
+        tournamentStatus = 'in-progress';
+      } else if (Array.isArray(leaderboardData.leaderboardRows)) {
+        leaderboard = leaderboardData.leaderboardRows;
+        tournamentStatus = 'in-progress';
+      }
+      
+      console.log(`Found ${leaderboard.length} players on leaderboard`);
+      
+      // If we have a leaderboard with players, process it
+      if (leaderboard.length > 0) {
+        // Format the leaderboard data for our database
+        const formattedLeaderboard: FormattedGolfer[] = leaderboard.map(player => {
+          // Extract score - handle different API response formats
+          let score = 0;
+          let scoreDisplay = "E"; // Default display is even par
+          
+          if (player?.total !== undefined) {
+            // Handle "E" for even par
+            if (player.total === "E") {
+              score = 0;
+              scoreDisplay = "E";
+            } else {
+              // Convert to number if it's a string with a number
+              score = typeof player.total === 'number' ? player.total : 
+                      parseInt(String(player.total).replace("+", "")) || 0;
+              
+              // Generate display format
+              scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+            }
+          } else if (player?.score !== undefined) {
+            // Parse string score ("+5", "-3", "E")
+            const scoreStr = String(player.score);
+            if (scoreStr === "E") {
+              score = 0;
+              scoreDisplay = "E";
+            } else {
+              score = parseInt(scoreStr.replace("+", "")) || 0;
+              scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+            }
+          }
+          
+          // Log each player's score for debugging
+          console.log(`${player?.firstName || ""} ${player?.lastName || ""}: Raw=${player?.total || player?.score}, Parsed=${score}, Display=${scoreDisplay}`);
+          
+          return {
+            firstName: player?.firstName || "",
+            lastName: player?.lastName || "",
+            name: `${player?.firstName || ""} ${player?.lastName || ""}`.trim(),
+            score: score,
+            scoreDisplay: scoreDisplay,
+            position: player?.position || "",
+            status: player?.status || "active"
+          };
+        });
+        
+        // Save the tournament data
+        const openDocument: TournamentDocument = {
+          tournamentName,
+          tournamentId,
+          year,
+          fetchedAt: new Date(),
+          status: tournamentStatus,
+          data: {
+            leaderboard: formattedLeaderboard
+          }
+        };
+        
+        // Use upsert to update existing record or create new one
+        const result = await openChampionshipCollection.replaceOne(
+          { 
+            tournamentId: tournamentId,
+            year: year 
+          },
+          openDocument,
+          { upsert: true }
+        );
+        
+        console.log(`\n==========================================`);
+        console.log(`THE OPEN CHAMPIONSHIP LEADERBOARD SAVED`);
+        console.log(`==========================================`);
+        console.log(`Tournament: ${tournamentName}`);
+        console.log(`Status: ${tournamentStatus}`);
+        console.log(`Players: ${formattedLeaderboard.length}`);
+        console.log(`Operation: ${result.upsertedId ? 'Created new record' : 'Updated existing record'}`);
+        
+        // Show top 5 players
+        if (formattedLeaderboard.length > 0) {
+          console.log(`\nTop 5 Players:`);
+          formattedLeaderboard.slice(0, 5).forEach((player, idx) => {
+            console.log(`${idx+1}. ${player.name.padEnd(25)} ${player.scoreDisplay}`);
+          });
+        }
+        
+        // Process golf picks with this real leaderboard data
+        await processGolfPicks(formattedLeaderboard);
+        
+        return { 
+          success: true, 
+          id: result.upsertedId?.toString() || 'updated', 
+          status: tournamentStatus 
+        };
+      }
+    }
+    
+    // If no leaderboard is available yet, proceed with scheduled info
+    console.log('No leaderboard data available. Saving tournament schedule info.');
+    
+    // Get schedule info
+    const scheduleResponse = await fetch(`https://live-golf-data.p.rapidapi.com/schedule?year=${year}`, {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
+        'x-rapidapi-key': apiKey
+      }
+    });
+    
+    if (!scheduleResponse.ok) {
+      throw new Error(`HTTP error fetching schedule! Status: ${scheduleResponse.status}`);
+    }
+    
+    const scheduleData = await scheduleResponse.json();
+    
+    // Initialize with default values for The Open Championship dates (typically mid-July)
+    const defaultTournamentInfo: any = {
+      tournId: tournamentId,
+      name: tournamentName,
+      status: 'upcoming',
+      dates: {
+        start: '2025-07-17T00:00:00Z',
+        end: '2025-07-20T00:00:00Z'
+      }
+    };
+    
+    // Find The Open Championship in the schedule
+    let openTournamentInfo: any = defaultTournamentInfo;
+    let found = false;
+    
+    if (Array.isArray(scheduleData)) {
+      const foundItem = scheduleData.find((t: any) => t.tournId === tournamentId);
+      if (foundItem) {
+        openTournamentInfo = {
+          tournId: foundItem.tournId || tournamentId,
+          name: foundItem.name || tournamentName,
+          status: foundItem.status || 'upcoming',
+          dates: {
+            start: foundItem.dates?.start || '2025-07-17T00:00:00Z',
+            end: foundItem.dates?.end || '2025-07-20T00:00:00Z'
+          }
+        };
+        found = true;
+      }
+    } else if (scheduleData && typeof scheduleData === 'object') {
+      for (const key in scheduleData) {
+        if (Array.isArray(scheduleData[key])) {
+          const foundItem = scheduleData[key].find((t: any) => t.tournId === tournamentId);
+          if (foundItem) {
+            openTournamentInfo = {
+              tournId: foundItem.tournId || tournamentId,
+              name: foundItem.name || tournamentName,
+              status: foundItem.status || 'upcoming',
+              dates: {
+                start: foundItem.dates?.start || '2025-07-17T00:00:00Z',
+                end: foundItem.dates?.end || '2025-07-20T00:00:00Z'
+              }
+            };
+            found = true;
+            break;
+          }
+        }
+      }
+    }
+    
+    if (!found) {
+      console.log('Could not find The Open Championship details in schedule. Using placeholder record.');
+    }
+    
+    // Create a document to save with the schedule information
+    const openDocument: any = {
+      tournamentName,
+      tournamentId,
+      year,
+      fetchedAt: new Date(),
+      status: 'upcoming',
+      tournamentInfo: openTournamentInfo,
+      data: { message: 'No leaderboard data available yet. Tournament is scheduled for the future.' }
+    };
+    
+    // Use upsert to update existing record or create new one
+    const result = await openChampionshipCollection.replaceOne(
+      { 
+        tournamentId: tournamentId,
+        year: year 
+      },
+      openDocument,
+      { upsert: true }
+    );
+    
+    console.log(`\n==========================================`);
+    console.log(`THE OPEN CHAMPIONSHIP INFO SAVED`);
+    console.log(`==========================================`);
+    console.log(`Tournament: ${tournamentName}`);
+    console.log(`Tournament ID: ${tournamentId}`);
+    console.log(`Year: ${year}`);
+    console.log(`Status: Upcoming - Scheduled for July 17-20, 2025`);
+    console.log(`Operation: ${result.upsertedId ? 'Created new record' : 'Updated existing record'}`);
+    
+    return { 
+      success: true, 
+      id: result.upsertedId?.toString() || 'updated', 
+      status: 'upcoming' 
+    };
+    
+  } catch (error: any) {
+    console.error('Error fetching and saving The Open Championship data:', error);
+    return { success: false, error };
+  }
+}
+
+// Function to fetch and save The Open Championship odds
+export async function fetchAndSaveOpenChampionshipOdds() {
+  console.log('Fetching The Open Championship odds from FanDuel...');
+  
+  const apiKey = 'e22c201b39907f6f0b2cb61e9edb6e64';
+  
+  try {
+    // Step 1: Get available sports
+    const sportsResponse = await fetch(`https://api.the-odds-api.com/v4/sports/?apiKey=${apiKey}`);
+    
+    if (!sportsResponse.ok) {
+      throw new Error(`HTTP error! Status: ${sportsResponse.status}`);
+    }
+    
+    const sportsData: any[] = await sportsResponse.json();
+    
+    // Find The Open Championship - look for various possible keys
+    const openChampionship = sportsData.find((sport) => 
+      sport.key.includes('open_championship') || 
+      sport.key.includes('the_open') ||
+      sport.key.includes('british_open') ||
+      sport.key.includes('golf_the_open') ||
+      (sport.title && (
+        sport.title.includes('The Open Championship') ||
+        sport.title.includes('The Open') ||
+        sport.title.includes('British Open') ||
+        sport.title.includes('Open Championship')
+      ))
+    );
+    
+    if (!openChampionship) {
+      console.log('The Open Championship not found in available tournaments.');
+      console.log('Available golf tournaments:');
+      sportsData
+        .filter(sport => sport.group === 'Golf' || sport.title.toLowerCase().includes('golf'))
+        .forEach(sport => console.log(`- ${sport.title} (key: ${sport.key})`));
+      return null;
+    }
+    
+    console.log(`Found The Open Championship: ${openChampionship.title}, key: ${openChampionship.key}`);
+    
+    // Fetch odds
+    const market = 'outrights';
+    console.log(`Fetching ${openChampionship.title} odds with market: ${market}`);
+    
+    const oddsResponse = await fetch(`https://api.the-odds-api.com/v4/sports/${openChampionship.key}/odds/?apiKey=${apiKey}&regions=us&markets=${market}&oddsFormat=american`);
+    
+    if (!oddsResponse.ok) {
+      throw new Error(`HTTP error fetching odds! Status: ${oddsResponse.status}`);
+    }
+    
+    const oddsData: any[] = await oddsResponse.json();
+    
+    if (oddsData.length === 0) {
+      console.log(`No odds data available for market '${market}'.`);
+      return null;
+    }
+    
+    console.log(`==========================================`);
+    console.log(`ODDS FOR: ${openChampionship.title.toUpperCase()}`);
+    console.log(`==========================================`);
+    console.log(`Retrieved data for ${oddsData.length} events`);
+    
+    // Process the odds data - check ALL bookmakers
+    const allBookmakers = new Set<string>();
+    let selectedBookmaker: any = null;
+    let selectedBookmakerName = '';
+    
+    // Process each event
+    oddsData.forEach((event: any) => {
+      console.log(`\nEvent: ${event.sport_key}`);
+      if (event.commence_time) {
+        console.log(`Start time: ${new Date(event.commence_time).toLocaleString()}`);
+      }
+      if (event.home_team) console.log(`Home team: ${event.home_team}`);
+      if (event.away_team) console.log(`Away team: ${event.away_team || 'N/A'}`);
+      
+      // List ALL available bookmakers
+      console.log(`\nAll available bookmakers (${event.bookmakers.length}):`);
+      event.bookmakers.forEach((bm: any) => {
+        allBookmakers.add(bm.title);
+        console.log(`- ${bm.title} (key: ${bm.key})`);
+      });
+      
+      // Look for FanDuel specifically
+      const fanduel = event.bookmakers.find((bm: any) => 
+        bm.key === 'fanduel' || 
+        bm.title.toLowerCase().includes('fanduel')
+      );
+      
+      if (fanduel) {
+        console.log('\nFOUND FANDUEL ODDS!');
+        selectedBookmaker = fanduel;
+        selectedBookmakerName = 'FanDuel';
+      } else {
+        // If no FanDuel, try other major bookmakers
+        const preferredBookmakers = [
+          { name: 'DraftKings', keys: ['draftkings'] },
+          { name: 'BetMGM', keys: ['betmgm'] },
+          { name: 'Caesars', keys: ['caesars'] },
+          { name: 'PointsBet', keys: ['pointsbet'] }
+        ];
+        
+        for (const preferred of preferredBookmakers) {
+          const bookmaker = event.bookmakers.find((bm: any) => 
+            preferred.keys.includes(bm.key.toLowerCase()) || 
+            preferred.keys.some((key: string) => bm.title.toLowerCase().includes(key))
+          );
+          
+          if (bookmaker) {
+            console.log(`\nUsing ${preferred.name} odds instead of FanDuel.`);
+            selectedBookmaker = bookmaker;
+            selectedBookmakerName = preferred.name;
+            break;
+          }
+        }
+        
+        // If still no bookmaker found, use the first one available
+        if (!selectedBookmaker && event.bookmakers.length > 0) {
+          selectedBookmaker = event.bookmakers[0];
+          selectedBookmakerName = selectedBookmaker.title;
+          console.log(`\nUsing ${selectedBookmakerName} odds as fallback.`);
+        }
+      }
+    });
+    
+    if (!selectedBookmaker) {
+      console.log('No bookmaker data found for this event.');
+      return null;
+    }
+    
+    console.log(`\nSelected Bookmaker: ${selectedBookmakerName}`);
+    if (selectedBookmaker.last_update) {
+      console.log(`Last update: ${new Date(selectedBookmaker.last_update).toLocaleString()}`);
+    }
+    
+    // Process markets from the selected bookmaker
+    console.log(`\nAvailable markets (${selectedBookmaker.markets.length}):`);
+    selectedBookmaker.markets.forEach((market: any) => {
+      console.log(`- ${market.key} (outcomes: ${market.outcomes.length})`);
+    });
+    
+    // Select the appropriate market
+    const targetMarket = selectedBookmaker.markets.find((m: any) => 
+      m.key === 'outrights' || m.key === 'h2h' || m.key.includes('winner')
+    ) || selectedBookmaker.markets[0];
+    
+    if (!targetMarket) {
+      console.log('No suitable market found.');
+      return null;
+    }
+    
+    console.log(`\nSelected Market: ${targetMarket.key}`);
+    
+    // Sort outcomes by odds
+    const sortedOutcomes = [...targetMarket.outcomes].sort((a: any, b: any) => {
+      const aOdds = parseInt(a.price);
+      const bOdds = parseInt(b.price);
+      
+      if (aOdds > 0 && bOdds > 0) {
+        return aOdds - bOdds;
+      } else if (aOdds < 0 && bOdds < 0) {
+        return bOdds - aOdds;
+      } else {
+        return aOdds < 0 ? -1 : 1;
+      }
+    });
+    
+    // Populate golfer odds array
+    const golferOdds = sortedOutcomes.map((outcome: any, idx: number) => {
+      const oddsValue = `${outcome.price > 0 ? '+' : ''}${outcome.price}`;
+      console.log(`${idx+1}. ${outcome.name.padEnd(30)}: ${oddsValue}`);
+      
+      return {
+        rank: idx + 1,
+        name: outcome.name,
+        odds: outcome.price,
+        oddsDisplay: oddsValue,
+        bookmaker: selectedBookmakerName
+      };
+    });
+    
+    if (golferOdds.length === 0) {
+      console.log('No golfer odds available.');
+      return null;
+    }
+    
+    // Save to database (using same collection name for all golf odds)
+    const database = await connectToDatabase();
+    const golfOddsCollection = database.collection('golfOdds');
+    
+    // Create document
+    const oddsDocument = {
+      tournament: openChampionship.title,
+      tournamentKey: openChampionship.key,
+      tournamentId: '100', // Add our internal tournament ID
+      bookmaker: selectedBookmakerName,
+      marketKey: targetMarket.key,
+      startTime: oddsData[0].commence_time ? new Date(oddsData[0].commence_time) : new Date(),
+      fetchedAt: new Date(),
+      golferOdds: golferOdds,
+      availableBookmakers: Array.from(allBookmakers)
+    };
+    
+    // Use upsert to update existing record or create new one
+    const result = await golfOddsCollection.replaceOne(
+      { 
+        tournamentId: '100',
+        bookmaker: selectedBookmakerName 
+      },
+      oddsDocument,
+      { upsert: true }
+    );
+    
+    console.log(`\nSaved ${selectedBookmakerName} odds for ${openChampionship.title} to database with ID: ${result.upsertedId?.toString() || 'updated'}`);
+    
+    return {
+      success: true,
+      id: result.upsertedId?.toString() || 'updated',
+      bookmaker: selectedBookmakerName,
+      tournament: openChampionship.title,
+      oddsCount: golferOdds.length
+    };
+    
+  } catch (error: any) {
+    console.error('Error fetching The Open Championship odds:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
 // Enhanced name matching function that handles accents, special characters, and name variations
 function findGolferMatch(golferName: string, golfScores: any[]): any {
   const golferNameLower = golferName.toLowerCase().trim();
