@@ -677,3 +677,47 @@ export async function mockFetchNFLScores() {
       console.error('Error in mock NFL scores:', error);
   }
 }
+
+export async function softResetAllUsersPoints(): Promise<void> {
+    console.log('🔄 STARTING SOFT RESET - Resetting points and stats only...');
+    
+    try {
+        const database = await connectToDatabase();
+        const poolsCollection = database.collection('pools');
+        
+        // Get all pools
+        const pools = await poolsCollection.find({}).toArray();
+        
+        for (const pool of pools) {
+            console.log(`Soft resetting pool: ${pool.name} (${pool.mode})`);
+            
+            const updateOperations: any = {};
+            
+            // Reset regular members stats only
+            if (pool.members && Array.isArray(pool.members)) {
+                updateOperations['members'] = pool.members.map((member: any) => ({
+                    ...member, // Keep all existing data
+                    // Reset only stats to 0
+                    points: 0,
+                    win: 0,
+                    loss: 0,
+                    push: 0,
+                }));
+            }
+          
+            // Apply updates
+            await poolsCollection.updateOne(
+                { _id: pool._id },
+                { $set: updateOperations }
+            );
+        }
+        
+        console.log('✅ SOFT RESET COMPLETED');
+        console.log(`📊 Reset stats for ${pools.length} pools`);
+        console.log('💾 Historical data (picks, results) preserved');
+        
+    } catch (error: any) {
+        console.error('❌ Error during soft reset:', error);
+        throw new Error(`Failed to soft reset users points: ${error.message}`);
+    }
+}

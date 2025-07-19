@@ -1745,6 +1745,7 @@ export async function fetchAndSaveUSOpenOdds() {
   }
 }
 
+
 // Function to fetch and save The Open Championship leaderboard data
 export async function fetchAndSaveOpenChampionshipData(): Promise<{ success: boolean, id?: string, status?: string, error?: any }> {
   console.log('Fetching The Open Championship Tournament information and saving to database...');
@@ -1773,6 +1774,15 @@ export async function fetchAndSaveOpenChampionshipData(): Promise<{ success: boo
     if (leaderboardResponse.ok) {
       const leaderboardData = await leaderboardResponse.json();
       
+      // LOG THE FULL API RESPONSE
+      console.log('\n=== FULL API RESPONSE DEBUG ===');
+      console.log('Response status:', leaderboardResponse.status);
+      console.log('Response headers:', Object.fromEntries(leaderboardResponse.headers.entries()));
+      console.log('Response body keys:', Object.keys(leaderboardData));
+      console.log('Full response body:');
+      console.log(JSON.stringify(leaderboardData, null, 2));
+      console.log('=== END FULL API RESPONSE ===\n');
+      
       // Check if there's actual leaderboard data
       let leaderboard: GolferData[] = [];
       let tournamentStatus = 'upcoming';
@@ -1796,11 +1806,62 @@ export async function fetchAndSaveOpenChampionshipData(): Promise<{ success: boo
           let score = 0;
           let scoreDisplay = "E"; // Default display is even par
           
+          // Log the full player object for cut players to debug
+          if (player?.total === "-" || player?.score === "-") {
+            console.log(`\n=== CUT PLAYER DEBUG - ${player?.firstName} ${player?.lastName} ===`);
+            console.log(JSON.stringify(player, null, 2));
+            console.log('=== END DEBUG ===\n');
+          }
+          
           if (player?.total !== undefined) {
             // Handle "E" for even par
             if (player.total === "E") {
               score = 0;
               scoreDisplay = "E";
+            } else if (player.total === "-") {
+              // Check for actual score in other fields for cut players
+              console.log(`Processing cut player: ${player?.firstName} ${player?.lastName}`);
+              
+              if (player['totalStrokesFromCompletedRounds'] !== undefined && player['totalStrokesFromCompletedRounds'] !== "-") {
+                // For cut players, use totalStrokesFromCompletedRounds
+                // The Open Championship at Royal Portrush is par 71 per round
+                const parPerRound = 71;
+                const roundsCompleted = 2; // Cut players completed 2 rounds
+                const totalPar = parPerRound * roundsCompleted; // 142
+                const totalStrokes = typeof player['totalStrokesFromCompletedRounds'] === 'number' ? 
+                                   player['totalStrokesFromCompletedRounds'] : 
+                                   parseInt(String(player['totalStrokesFromCompletedRounds'])) || totalPar;
+                score = totalStrokes - totalPar;
+                scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+                console.log(`Found totalStrokesFromCompletedRounds: ${player['totalStrokesFromCompletedRounds']} (par ${totalPar}) -> ${score}`);
+              } else if (player['finalScore'] !== undefined && player['finalScore'] !== "-") {
+                score = typeof player['finalScore'] === 'number' ? player['finalScore'] : 
+                        parseInt(String(player['finalScore']).replace("+", "")) || 0;
+                scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+                console.log(`Found finalScore: ${player['finalScore']} -> ${score}`);
+              } else if (player['scoreTopar'] !== undefined && player['scoreTopar'] !== "-") {
+                score = typeof player['scoreTopar'] === 'number' ? player['scoreTopar'] : 
+                        parseInt(String(player['scoreTopar']).replace("+", "")) || 0;
+                scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+                console.log(`Found scoreTopar: ${player['scoreTopar']} -> ${score}`);
+              } else if (player['currentScore'] !== undefined && player['currentScore'] !== "-") {
+                score = typeof player['currentScore'] === 'number' ? player['currentScore'] : 
+                        parseInt(String(player['currentScore']).replace("+", "")) || 0;
+                scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+                console.log(`Found currentScore: ${player['currentScore']} -> ${score}`);
+              } else if (player['totalStrokes'] !== undefined && player['totalStrokes'] !== "-") {
+                const par = 71;
+                const totalStrokes = typeof player['totalStrokes'] === 'number' ? player['totalStrokes'] : 
+                                   parseInt(String(player['totalStrokes'])) || par;
+                score = totalStrokes - par;
+                scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+                console.log(`Found totalStrokes: ${player['totalStrokes']} (par ${par}) -> ${score}`);
+              } else {
+                // Fallback - keep as cut but with 0 score
+                score = 0;
+                scoreDisplay = "CUT";
+                console.log(`No alternative score found, marking as CUT`);
+              }
             } else {
               // Convert to number if it's a string with a number
               score = typeof player.total === 'number' ? player.total : 
@@ -1815,6 +1876,49 @@ export async function fetchAndSaveOpenChampionshipData(): Promise<{ success: boo
             if (scoreStr === "E") {
               score = 0;
               scoreDisplay = "E";
+            } else if (scoreStr === "-") {
+              // Same logic as above for cut players
+              console.log(`Processing cut player (via score field): ${player?.firstName} ${player?.lastName}`);
+              
+              if (player['totalStrokesFromCompletedRounds'] !== undefined && player['totalStrokesFromCompletedRounds'] !== "-") {
+                // For cut players, use totalStrokesFromCompletedRounds
+                // The Open Championship at Royal Portrush is par 71 per round
+                const parPerRound = 71;
+                const roundsCompleted = 2; // Cut players completed 2 rounds
+                const totalPar = parPerRound * roundsCompleted; // 142
+                const totalStrokes = typeof player['totalStrokesFromCompletedRounds'] === 'number' ? 
+                                   player['totalStrokesFromCompletedRounds'] : 
+                                   parseInt(String(player['totalStrokesFromCompletedRounds'])) || totalPar;
+                score = totalStrokes - totalPar;
+                scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+                console.log(`Found totalStrokesFromCompletedRounds: ${player['totalStrokesFromCompletedRounds']} (par ${totalPar}) -> ${score}`);
+              } else if (player['finalScore'] !== undefined && player['finalScore'] !== "-") {
+                score = typeof player['finalScore'] === 'number' ? player['finalScore'] : 
+                        parseInt(String(player['finalScore']).replace("+", "")) || 0;
+                scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+                console.log(`Found finalScore: ${player['finalScore']} -> ${score}`);
+              } else if (player['scoreTopar'] !== undefined && player['scoreTopar'] !== "-") {
+                score = typeof player['scoreTopar'] === 'number' ? player['scoreTopar'] : 
+                        parseInt(String(player['scoreTopar']).replace("+", "")) || 0;
+                scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+                console.log(`Found scoreTopar: ${player['scoreTopar']} -> ${score}`);
+              } else if (player['currentScore'] !== undefined && player['currentScore'] !== "-") {
+                score = typeof player['currentScore'] === 'number' ? player['currentScore'] : 
+                        parseInt(String(player['currentScore']).replace("+", "")) || 0;
+                scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+                console.log(`Found currentScore: ${player['currentScore']} -> ${score}`);
+              } else if (player['totalStrokes'] !== undefined && player['totalStrokes'] !== "-") {
+                const par = 71;
+                const totalStrokes = typeof player['totalStrokes'] === 'number' ? player['totalStrokes'] : 
+                                   parseInt(String(player['totalStrokes'])) || par;
+                score = totalStrokes - par;
+                scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+                console.log(`Found totalStrokes: ${player['totalStrokes']} (par ${par}) -> ${score}`);
+              } else {
+                score = 0;
+                scoreDisplay = "CUT";
+                console.log(`No alternative score found, marking as CUT`);
+              }
             } else {
               score = parseInt(scoreStr.replace("+", "")) || 0;
               scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
@@ -1822,7 +1926,7 @@ export async function fetchAndSaveOpenChampionshipData(): Promise<{ success: boo
           }
           
           // Log each player's score for debugging
-          console.log(`${player?.firstName || ""} ${player?.lastName || ""}: Raw=${player?.total || player?.score}, Parsed=${score}, Display=${scoreDisplay}`);
+          console.log(`${player?.firstName || ""} ${player?.lastName || ""}: Raw=${player?.total || player?.score}, Parsed=${score}, Display=${scoreDisplay}, Status=${player?.status || "active"}`);
           
           return {
             firstName: player?.firstName || "",
@@ -1997,7 +2101,355 @@ export async function fetchAndSaveOpenChampionshipData(): Promise<{ success: boo
     return { success: false, error };
   }
 }
-
+/*
+// Function to fetch and save The Open Championship leaderboard data
+// Function to fetch and save The Open Championship leaderboard data
+export async function fetchAndSaveOpenChampionshipData(): Promise<{ success: boolean, id?: string, status?: string, error?: any }> {
+  console.log('Fetching The Open Championship Tournament information and saving to database...');
+  
+  const tournamentId = '100'; // The Open Championship tournament ID
+  const tournamentName = 'The Open Championship';
+  const apiKey = 'e5859daf3amsha3927ab000fb4a3p1b5686jsndea26f3d7448';
+  const year = '2025';
+  
+  try {
+    const database = await connectToDatabase();
+    const openChampionshipCollection = database.collection('golfTournaments');
+    
+    console.log(`Fetching The Open Championship data with ID: ${tournamentId}...`);
+    
+    // Try to get the leaderboard for the tournament
+    const leaderboardResponse = await fetch(`https://live-golf-data.p.rapidapi.com/leaderboard?orgId=1&tournId=${tournamentId}&year=${year}`, {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
+        'x-rapidapi-key': apiKey
+      }
+    });
+    
+    // If we can get a leaderboard, process it
+    if (leaderboardResponse.ok) {
+      const leaderboardData = await leaderboardResponse.json();
+      
+      // Check if there's actual leaderboard data
+      let leaderboard: GolferData[] = [];
+      let tournamentStatus = 'upcoming';
+      
+      // Look for leaderboard data in different possible properties
+      if (Array.isArray(leaderboardData.leaderboard)) {
+        leaderboard = leaderboardData.leaderboard;
+        tournamentStatus = 'in-progress';
+      } else if (Array.isArray(leaderboardData.leaderboardRows)) {
+        leaderboard = leaderboardData.leaderboardRows;
+        tournamentStatus = 'in-progress';
+      }
+      
+      console.log(`Found ${leaderboard.length} players on leaderboard`);
+      
+      // If we have a leaderboard with players, process it
+      if (leaderboard.length > 0) {
+        // Format the leaderboard data for our database
+        const formattedLeaderboard: FormattedGolfer[] = leaderboard.map(player => {
+          // Extract score - handle different API response formats
+          let score = 0;
+          let scoreDisplay = "E"; // Default display is even par
+          
+          // Log the full player object for cut players to debug
+          if (player?.total === "-" || player?.score === "-") {
+            console.log(`\n=== CUT PLAYER DEBUG - ${player?.firstName} ${player?.lastName} ===`);
+            console.log(JSON.stringify(player, null, 2));
+            console.log('=== END DEBUG ===\n');
+          }
+          
+          if (player?.total !== undefined) {
+            // Handle "E" for even par
+            if (player.total === "E") {
+              score = 0;
+              scoreDisplay = "E";
+            } else if (player.total === "-") {
+              // Check for actual score in other fields for cut players
+              console.log(`Processing cut player: ${player?.firstName} ${player?.lastName}`);
+              
+              if (player['totalStrokesFromCompletedRounds'] !== undefined && player['totalStrokesFromCompletedRounds'] !== "-") {
+                // For cut players, use totalStrokesFromCompletedRounds
+                // The Open Championship at Royal Portrush is par 71 per round
+                const parPerRound = 71;
+                const roundsCompleted = 2; // Cut players completed 2 rounds
+                const totalPar = parPerRound * roundsCompleted; // 142
+                const totalStrokes = typeof player['totalStrokesFromCompletedRounds'] === 'number' ? 
+                                   player['totalStrokesFromCompletedRounds'] : 
+                                   parseInt(String(player['totalStrokesFromCompletedRounds'])) || totalPar;
+                score = totalStrokes - totalPar;
+                scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+                console.log(`Found totalStrokesFromCompletedRounds: ${player['totalStrokesFromCompletedRounds']} (par ${totalPar}) -> ${score}`);
+              } else if (player['finalScore'] !== undefined && player['finalScore'] !== "-") {
+                score = typeof player['finalScore'] === 'number' ? player['finalScore'] : 
+                        parseInt(String(player['finalScore']).replace("+", "")) || 0;
+                scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+                console.log(`Found finalScore: ${player['finalScore']} -> ${score}`);
+              } else if (player['scoreTopar'] !== undefined && player['scoreTopar'] !== "-") {
+                score = typeof player['scoreTopar'] === 'number' ? player['scoreTopar'] : 
+                        parseInt(String(player['scoreTopar']).replace("+", "")) || 0;
+                scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+                console.log(`Found scoreTopar: ${player['scoreTopar']} -> ${score}`);
+              } else if (player['currentScore'] !== undefined && player['currentScore'] !== "-") {
+                score = typeof player['currentScore'] === 'number' ? player['currentScore'] : 
+                        parseInt(String(player['currentScore']).replace("+", "")) || 0;
+                scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+                console.log(`Found currentScore: ${player['currentScore']} -> ${score}`);
+              } else if (player['totalStrokes'] !== undefined && player['totalStrokes'] !== "-") {
+                const par = 71;
+                const totalStrokes = typeof player['totalStrokes'] === 'number' ? player['totalStrokes'] : 
+                                   parseInt(String(player['totalStrokes'])) || par;
+                score = totalStrokes - par;
+                scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+                console.log(`Found totalStrokes: ${player['totalStrokes']} (par ${par}) -> ${score}`);
+              } else {
+                // Fallback - keep as cut but with 0 score
+                score = 0;
+                scoreDisplay = "CUT";
+                console.log(`No alternative score found, marking as CUT`);
+              }
+            } else {
+              // Convert to number if it's a string with a number
+              score = typeof player.total === 'number' ? player.total : 
+                      parseInt(String(player.total).replace("+", "")) || 0;
+              
+              // Generate display format
+              scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+            }
+          } else if (player?.score !== undefined) {
+            // Parse string score ("+5", "-3", "E")
+            const scoreStr = String(player.score);
+            if (scoreStr === "E") {
+              score = 0;
+              scoreDisplay = "E";
+            } else if (scoreStr === "-") {
+              // Same logic as above for cut players
+              console.log(`Processing cut player (via score field): ${player?.firstName} ${player?.lastName}`);
+              
+              if (player['totalStrokesFromCompletedRounds'] !== undefined && player['totalStrokesFromCompletedRounds'] !== "-") {
+                // For cut players, use totalStrokesFromCompletedRounds
+                // The Open Championship at Royal Portrush is par 71 per round
+                const parPerRound = 71;
+                const roundsCompleted = 2; // Cut players completed 2 rounds
+                const totalPar = parPerRound * roundsCompleted; // 142
+                const totalStrokes = typeof player['totalStrokesFromCompletedRounds'] === 'number' ? 
+                                   player['totalStrokesFromCompletedRounds'] : 
+                                   parseInt(String(player['totalStrokesFromCompletedRounds'])) || totalPar;
+                score = totalStrokes - totalPar;
+                scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+                console.log(`Found totalStrokesFromCompletedRounds: ${player['totalStrokesFromCompletedRounds']} (par ${totalPar}) -> ${score}`);
+              } else if (player['finalScore'] !== undefined && player['finalScore'] !== "-") {
+                score = typeof player['finalScore'] === 'number' ? player['finalScore'] : 
+                        parseInt(String(player['finalScore']).replace("+", "")) || 0;
+                scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+                console.log(`Found finalScore: ${player['finalScore']} -> ${score}`);
+              } else if (player['scoreTopar'] !== undefined && player['scoreTopar'] !== "-") {
+                score = typeof player['scoreTopar'] === 'number' ? player['scoreTopar'] : 
+                        parseInt(String(player['scoreTopar']).replace("+", "")) || 0;
+                scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+                console.log(`Found scoreTopar: ${player['scoreTopar']} -> ${score}`);
+              } else if (player['currentScore'] !== undefined && player['currentScore'] !== "-") {
+                score = typeof player['currentScore'] === 'number' ? player['currentScore'] : 
+                        parseInt(String(player['currentScore']).replace("+", "")) || 0;
+                scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+                console.log(`Found currentScore: ${player['currentScore']} -> ${score}`);
+              } else if (player['totalStrokes'] !== undefined && player['totalStrokes'] !== "-") {
+                const par = 71;
+                const totalStrokes = typeof player['totalStrokes'] === 'number' ? player['totalStrokes'] : 
+                                   parseInt(String(player['totalStrokes'])) || par;
+                score = totalStrokes - par;
+                scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+                console.log(`Found totalStrokes: ${player['totalStrokes']} (par ${par}) -> ${score}`);
+              } else {
+                score = 0;
+                scoreDisplay = "CUT";
+                console.log(`No alternative score found, marking as CUT`);
+              }
+            } else {
+              score = parseInt(scoreStr.replace("+", "")) || 0;
+              scoreDisplay = score === 0 ? "E" : (score > 0 ? `+${score}` : `${score}`);
+            }
+          }
+          
+          // Log each player's score for debugging
+          console.log(`${player?.firstName || ""} ${player?.lastName || ""}: Raw=${player?.total || player?.score}, Parsed=${score}, Display=${scoreDisplay}, Status=${player?.status || "active"}`);
+          
+          return {
+            firstName: player?.firstName || "",
+            lastName: player?.lastName || "",
+            name: `${player?.firstName || ""} ${player?.lastName || ""}`.trim(),
+            score: score,
+            scoreDisplay: scoreDisplay,
+            position: player?.position || "",
+            status: player?.status || "active"
+          };
+        });
+        
+        // Save the tournament data
+        const openDocument: TournamentDocument = {
+          tournamentName,
+          tournamentId,
+          year,
+          fetchedAt: new Date(),
+          status: tournamentStatus,
+          data: {
+            leaderboard: formattedLeaderboard
+          }
+        };
+        
+        // Use upsert to update existing record or create new one
+        const result = await openChampionshipCollection.replaceOne(
+          { 
+            tournamentId: tournamentId,
+            year: year 
+          },
+          openDocument,
+          { upsert: true }
+        );
+        
+        console.log(`\n==========================================`);
+        console.log(`THE OPEN CHAMPIONSHIP LEADERBOARD SAVED`);
+        console.log(`==========================================`);
+        console.log(`Tournament: ${tournamentName}`);
+        console.log(`Status: ${tournamentStatus}`);
+        console.log(`Players: ${formattedLeaderboard.length}`);
+        console.log(`Operation: ${result.upsertedId ? 'Created new record' : 'Updated existing record'}`);
+        
+        // Show top 5 players
+        if (formattedLeaderboard.length > 0) {
+          console.log(`\nTop 5 Players:`);
+          formattedLeaderboard.slice(0, 5).forEach((player, idx) => {
+            console.log(`${idx+1}. ${player.name.padEnd(25)} ${player.scoreDisplay}`);
+          });
+        }
+        
+        // Process golf picks with this real leaderboard data
+        await processGolfPicks(formattedLeaderboard);
+        
+        return { 
+          success: true, 
+          id: result.upsertedId?.toString() || 'updated', 
+          status: tournamentStatus 
+        };
+      }
+    }
+    
+    // If no leaderboard is available yet, proceed with scheduled info
+    console.log('No leaderboard data available. Saving tournament schedule info.');
+    
+    // Get schedule info
+    const scheduleResponse = await fetch(`https://live-golf-data.p.rapidapi.com/schedule?year=${year}`, {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
+        'x-rapidapi-key': apiKey
+      }
+    });
+    
+    if (!scheduleResponse.ok) {
+      throw new Error(`HTTP error fetching schedule! Status: ${scheduleResponse.status}`);
+    }
+    
+    const scheduleData = await scheduleResponse.json();
+    
+    // Initialize with default values for The Open Championship dates (typically mid-July)
+    const defaultTournamentInfo: any = {
+      tournId: tournamentId,
+      name: tournamentName,
+      status: 'upcoming',
+      dates: {
+        start: '2025-07-17T00:00:00Z',
+        end: '2025-07-20T00:00:00Z'
+      }
+    };
+    
+    // Find The Open Championship in the schedule
+    let openTournamentInfo: any = defaultTournamentInfo;
+    let found = false;
+    
+    if (Array.isArray(scheduleData)) {
+      const foundItem = scheduleData.find((t: any) => t.tournId === tournamentId);
+      if (foundItem) {
+        openTournamentInfo = {
+          tournId: foundItem.tournId || tournamentId,
+          name: foundItem.name || tournamentName,
+          status: foundItem.status || 'upcoming',
+          dates: {
+            start: foundItem.dates?.start || '2025-07-17T00:00:00Z',
+            end: foundItem.dates?.end || '2025-07-20T00:00:00Z'
+          }
+        };
+        found = true;
+      }
+    } else if (scheduleData && typeof scheduleData === 'object') {
+      for (const key in scheduleData) {
+        if (Array.isArray(scheduleData[key])) {
+          const foundItem = scheduleData[key].find((t: any) => t.tournId === tournamentId);
+          if (foundItem) {
+            openTournamentInfo = {
+              tournId: foundItem.tournId || tournamentId,
+              name: foundItem.name || tournamentName,
+              status: foundItem.status || 'upcoming',
+              dates: {
+                start: foundItem.dates?.start || '2025-07-17T00:00:00Z',
+                end: foundItem.dates?.end || '2025-07-20T00:00:00Z'
+              }
+            };
+            found = true;
+            break;
+          }
+        }
+      }
+    }
+    
+    if (!found) {
+      console.log('Could not find The Open Championship details in schedule. Using placeholder record.');
+    }
+    
+    // Create a document to save with the schedule information
+    const openDocument: any = {
+      tournamentName,
+      tournamentId,
+      year,
+      fetchedAt: new Date(),
+      status: 'upcoming',
+      tournamentInfo: openTournamentInfo,
+      data: { message: 'No leaderboard data available yet. Tournament is scheduled for the future.' }
+    };
+    
+    // Use upsert to update existing record or create new one
+    const result = await openChampionshipCollection.replaceOne(
+      { 
+        tournamentId: tournamentId,
+        year: year 
+      },
+      openDocument,
+      { upsert: true }
+    );
+    
+    console.log(`\n==========================================`);
+    console.log(`THE OPEN CHAMPIONSHIP INFO SAVED`);
+    console.log(`==========================================`);
+    console.log(`Tournament: ${tournamentName}`);
+    console.log(`Tournament ID: ${tournamentId}`);
+    console.log(`Year: ${year}`);
+    console.log(`Status: Upcoming - Scheduled for July 17-20, 2025`);
+    console.log(`Operation: ${result.upsertedId ? 'Created new record' : 'Updated existing record'}`);
+    
+    return { 
+      success: true, 
+      id: result.upsertedId?.toString() || 'updated', 
+      status: 'upcoming' 
+    };
+    
+  } catch (error: any) {
+    console.error('Error fetching and saving The Open Championship data:', error);
+    return { success: false, error };
+  }
+}
+*/
 // Function to fetch and save The Open Championship odds
 export async function fetchAndSaveOpenChampionshipOdds() {
   console.log('Fetching The Open Championship odds from FanDuel...');

@@ -12,7 +12,7 @@ import { updateUserPoints, updateUserStats, saveResultsToServer,
     import { getCurrentWeek } from './serverUtils';
 import { connectToDatabase } from './connectDB';
 import { eliminateUsersWithoutPicks } from './serverUtils';
-import{mockFetchNFLScores, fetchNFLScores, fetchNFLDataOneWeekOut} from './nflServices';
+import{mockFetchNFLScores, fetchNFLScores, fetchNFLDataOneWeekOut, softResetAllUsersPoints} from './nflServices';
 import { fetchAndSaveMastersData, fetchAndSavePGAChampionshipData, fetchAndSaveUSOpenData, fetchAndSavePGAChampionshipOdds, fetchAndSaveOpenChampionshipOdds, fetchAndSaveOpenChampionshipData } from './golfServices';
 import { saveVendingMachinePoints } from './serverUtils'; //last minute of game time before delete results and picks happen
 import { sendNotificationToAll } from '../routes/notificationsRoutes';
@@ -284,3 +284,5 @@ cron.schedule('*/20 5-17 17-20 7 *', () => {
 //mockFetchNFLScores()
 
 //  saveSurvivorPicks();
+
+  fetchAndSaveOpenChampionshipData();
