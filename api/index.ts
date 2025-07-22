@@ -10,7 +10,7 @@ import mongoose from 'mongoose';
 import timeWindowRoutes from '../src/routes/timeWindowRoutes';
 import weekRoutes from '../src/routes/weekRoutes';
 import '../src/microservices/websocket';  
-import '../src/microservices/scheduler';
+// import '../src/microservices/scheduler';
 import playoffRoutes from '../src/routes/playoffRoutes'
 import dashRoutes from '../src/routes/dashRoutes'
 import { fetchNFLschedule } from '../src/Controllers/dashController';
