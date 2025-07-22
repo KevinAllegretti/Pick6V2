@@ -189,11 +189,29 @@ setInterval(async () => {
     
     // Check if gameScores arrays exist and their sizes
     try {
-      const nflServices = require('../src/microservices/nflServices');
-      const scheduler = require('../src/microservices/scheduler');
-      console.log('Global arrays memory check - this might show sizes of cached data');
+      // Check if any global arrays are loaded in memory
+      console.log('Checking for memory-consuming global variables...');
+      
+      // Try to access the modules and check their exports
+      const nflModule = require.cache[require.resolve('../src/microservices/nflServices')];
+      const schedulerModule = require.cache[require.resolve('../src/microservices/scheduler')];
+      
+      if (nflModule) {
+        console.log('NFL Services module is loaded in memory');
+      }
+      if (schedulerModule) {
+        console.log('Scheduler module is loaded in memory');
+      }
+      
+      // Check Node.js process info
+      const used = process.memoryUsage();
+      console.log('Detailed memory breakdown:');
+      for (let key in used) {
+        console.log(`${key}: ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
+      }
+      
     } catch (e: any) {
-      console.log('Could not check global arrays:', e.message);
+      console.log('Could not check memory details:', e.message);
     }
   }, 3000);
 
