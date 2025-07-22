@@ -216,6 +216,15 @@ setInterval(async () => {
       );
       console.log('Loaded microservice modules:', loadedModules.length);
       
+      // List the actual modules
+      loadedModules.forEach((module, index) => {
+        const shortPath = module.split('\\').pop() || module.split('/').pop();
+        console.log(`${index + 1}. ${shortPath}`);
+      });
+      
+      // Check for other potential memory hogs
+      console.log('Total require.cache modules loaded:', Object.keys(require.cache).length);
+      
       // Check Node.js process info
       const used = process.memoryUsage();
       console.log('Detailed memory breakdown:');
