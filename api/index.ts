@@ -6,7 +6,7 @@ import bodyParser from 'body-parser';
 import profileRoutes from '../src/routes/profileRoutes';
 import poolRoutes from '../src/routes/poolRoutes';
 import InjuryRoutes from '../src/routes/InjuryRoutes';
-// import mongoose from 'mongoose';
+ import mongoose from 'mongoose';
 import timeWindowRoutes from '../src/routes/timeWindowRoutes';
 import weekRoutes from '../src/routes/weekRoutes';
 import '../src/microservices/websocket';  
@@ -120,13 +120,13 @@ app.get('/', (req, res) => {
 })
 
 
-// const options = {
-//   serverSelectionTimeoutMS: 5000, // Reduce the time the driver waits for server selection
-//   socketTimeoutMS: 45000, // Adjust socket timeout 
-// };
-// //console.log('MONGODB_URI:', process.env.MONGODB_URI);
-// const mongoUri = process.env.MONGODB_URI as string;
-// mongoose.connect(mongoUri, options);
+const options = {
+  serverSelectionTimeoutMS: 5000, // Reduce the time the driver waits for server selection
+   socketTimeoutMS: 45000, // Adjust socket timeout 
+ };
+console.log('MONGODB_URI:', process.env.MONGODB_URI);
+ const mongoUri = process.env.MONGODB_URI as string;
+ mongoose.connect(mongoUri, options);
 
 /*
 // Draft timer checker - runs every 5 seconds
