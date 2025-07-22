@@ -225,6 +225,27 @@ setInterval(async () => {
       // Check for other potential memory hogs
       console.log('Total require.cache modules loaded:', Object.keys(require.cache).length);
       
+      // Find the biggest module categories
+      const moduleCategories = {};
+      Object.keys(require.cache).forEach(modulePath => {
+        if (modulePath.includes('node_modules')) {
+          const packageName = modulePath.split('node_modules')[1].split('/')[1] || modulePath.split('node_modules')[1].split('\\')[1];
+          if (packageName) {
+            moduleCategories[packageName] = (moduleCategories[packageName] || 0) + 1;
+          }
+        }
+      });
+      
+      // Show top 10 packages by module count
+      const sortedPackages = Object.entries(moduleCategories)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 10);
+        
+      console.log('📦 Top packages by module count:');
+      sortedPackages.forEach(([pkg, count]) => {
+        console.log(`   ${pkg}: ${count} modules`);
+      });
+      
       // Check Node.js process info
       const used = process.memoryUsage();
       console.log('Detailed memory breakdown:');
