@@ -41,23 +41,6 @@ app.use((req, res, next) => {
 });
 // 1. Middleware to parse JSON
 app.use(express.json());
-// Add this middleware right after your CORS middleware (around line 45)
-// and BEFORE your other routes
-
-// WWW to non-WWW redirect middleware
-// Add this middleware right after your CORS middleware (around line 45)
-// and BEFORE your other routes
-
-// WWW to non-WWW redirect middleware - simple version
-/*
-app.use((req, res, next) => {
-  // Only redirect if x-forwarded-server is www.pick6.club (the original request)
-  // and the request method is GET (avoid redirecting POST/API calls)
-  if (req.headers['x-forwarded-server'] === 'www.pick6.club' && req.method === 'GET') {
-    return res.redirect(301, `https://pick6.club${req.url}`);
-  }
-  next();
-});*/
 app.use(express.urlencoded({ extended: true }));
 require('dotenv').config();
 
@@ -197,4 +180,13 @@ setInterval(async () => {
       console.error('Error in draft timer checker:', error);
   }
 }, 5000);
+
+
+ setInterval(() => {
+    console.log('Mongoose connections:', mongoose.connections.length);
+    console.log('Connection state:', mongoose.connection.readyState);
+    console.log('Memory usage:', process.memoryUsage());
+  }, 30000);
+
+  
 export default app;

@@ -267,6 +267,7 @@ cron.schedule('08 17 * * 1', async () => {
   }
 });
 
+
 cron.schedule('*/20 11-23 15-18 5 *', () => {
   console.log('Fetching PGA Championship data - runs every 20 minutes');
   fetchAndSavePGAChampionshipData();
@@ -280,9 +281,8 @@ cron.schedule('*/20 7-19 12-15 6 *', () => {
 cron.schedule('*/20 5-17 17-20 7 *', () => {
   console.log('Fetching The Open Championship data - runs every 20 minutes from 1 AM to 6 PM during tournament days');
   fetchAndSaveOpenChampionshipData();
-});
+}); 
 //mockFetchNFLScores()
 
 //  saveSurvivorPicks();
 
-  fetchAndSaveOpenChampionshipData();
