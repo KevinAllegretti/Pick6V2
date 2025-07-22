@@ -10,7 +10,7 @@ import mongoose from 'mongoose';
 import timeWindowRoutes from '../src/routes/timeWindowRoutes';
 import weekRoutes from '../src/routes/weekRoutes';
 import '../src/microservices/websocket';  
-// import '../src/microservices/scheduler';
+import '../src/microservices/scheduler';
 import playoffRoutes from '../src/routes/playoffRoutes'
 import dashRoutes from '../src/routes/dashRoutes'
 import { fetchNFLschedule } from '../src/Controllers/dashController';
@@ -189,19 +189,32 @@ setInterval(async () => {
     
     // Check if gameScores arrays exist and their sizes
     try {
-      // Check if any global arrays are loaded in memory
       console.log('Checking for memory-consuming global variables...');
       
-      // Try to access the modules and check their exports
-      const nflModule = require.cache[require.resolve('../src/microservices/nflServices')];
-      const schedulerModule = require.cache[require.resolve('../src/microservices/scheduler')];
-      
-      if (nflModule) {
-        console.log('NFL Services module is loaded in memory');
+      // Actually check what's in those gameScores arrays
+      try {
+        const nflServices = require('../src/microservices/nflServices');
+        if (nflServices.getGameScoresInfo) {
+          const gameScoresInfo = nflServices.getGameScoresInfo();
+          console.log('🏈 NFL gameScores array info:', gameScoresInfo);
+          console.log(`🏈 Memory used by gameScores: ~${Math.round(gameScoresInfo.memoryEstimate / 1024)} KB`);
+        }
+      } catch (nflError) {
+        console.log('Could not access NFL Services:', nflError.message);
       }
-      if (schedulerModule) {
-        console.log('Scheduler module is loaded in memory');
+
+      try {
+        const scheduler = require('../src/microservices/scheduler');
+        console.log('Scheduler loaded - checking for gameScores array...');
+      } catch (schedError) {
+        console.log('Could not access Scheduler:', schedError.message);
       }
+
+      // Check what modules are actually loaded
+      const loadedModules = Object.keys(require.cache).filter(key => 
+        key.includes('microservices') || key.includes('nflServices') || key.includes('serverUtils')
+      );
+      console.log('Loaded microservice modules:', loadedModules.length);
       
       // Check Node.js process info
       const used = process.memoryUsage();

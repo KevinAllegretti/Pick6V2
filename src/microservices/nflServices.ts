@@ -11,6 +11,15 @@ import { updateUserPoints, updateUserStats, saveResultsToServer,
 import { eliminateUsersWithoutPicks } from './serverUtils';
 let gameScores: any[] = [];
 
+// Export a function to check gameScores size for debugging
+export function getGameScoresInfo() {
+  return {
+    length: gameScores.length,
+    memoryEstimate: JSON.stringify(gameScores).length,
+    sample: gameScores.slice(0, 2) // First 2 items to see structure
+  };
+}
+
 export   async function fetchNFLScores() {
       console.log('fetchNFLScores function started.');
       
