@@ -1,4 +1,5 @@
 // start.ts
 import './api/index.ts';
-import './src/microservices/scheduler.ts';
-import './src/microservices/serverUtils.ts';
+// Temporarily commented out to test memory usage
+// import './src/microservices/scheduler.ts';
+// import './src/microservices/serverUtils.ts';
