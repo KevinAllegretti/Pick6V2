@@ -199,14 +199,14 @@ setInterval(async () => {
           console.log('🏈 NFL gameScores array info:', gameScoresInfo);
           console.log(`🏈 Memory used by gameScores: ~${Math.round(gameScoresInfo.memoryEstimate / 1024)} KB`);
         }
-      } catch (nflError) {
+      } catch (nflError: any) {
         console.log('Could not access NFL Services:', nflError.message);
       }
 
       try {
         const scheduler = require('../src/microservices/scheduler');
         console.log('Scheduler loaded - checking for gameScores array...');
-      } catch (schedError) {
+      } catch (schedError: any) {
         console.log('Could not access Scheduler:', schedError.message);
       }
 
