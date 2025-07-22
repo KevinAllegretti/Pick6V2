@@ -186,6 +186,15 @@ setInterval(async () => {
     console.log('Mongoose connections:', mongoose.connections.length);
     console.log('Connection state:', mongoose.connection.readyState);
     console.log('Memory usage:', process.memoryUsage());
+    
+    // Check if gameScores arrays exist and their sizes
+    try {
+      const nflServices = require('../src/microservices/nflServices');
+      const scheduler = require('../src/microservices/scheduler');
+      console.log('Global arrays memory check - this might show sizes of cached data');
+    } catch (e) {
+      console.log('Could not check global arrays:', e.message);
+    }
   }, 3000);
 
 
