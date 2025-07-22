@@ -110,8 +110,8 @@ app.listen(PORT, () => {
 });
 
 
-app.use(bodyParser.json({ limit: '500mb' })); // Adjust the limit as needed
-app.use(bodyParser.urlencoded({ limit: '500mb', extended: true }));
+app.use(bodyParser.json({ limit: '10mb' })); // Reduced from 500mb
+app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
 
 
@@ -128,7 +128,7 @@ const options = {
 const mongoUri = process.env.MONGODB_URI as string;
 mongoose.connect(mongoUri, options);
 
-
+/*
 // Draft timer checker - runs every 5 seconds
 setInterval(async () => {
   try {
@@ -179,14 +179,14 @@ setInterval(async () => {
   } catch (error) {
       console.error('Error in draft timer checker:', error);
   }
-}, 5000);
+}, 5000);*/
 
 
  setInterval(() => {
     console.log('Mongoose connections:', mongoose.connections.length);
     console.log('Connection state:', mongoose.connection.readyState);
     console.log('Memory usage:', process.memoryUsage());
-  }, 30000);
+  }, 3000);
 
-  
+
 export default app;
