@@ -253,6 +253,15 @@ setInterval(async () => {
         console.log(`${key}: ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
       }
       
+      // Check if heap size limit is actually applied
+      if (process.memoryUsage && process.memoryUsage().heapTotal) {
+        console.log('V8 heap stats:');
+        console.log(`Current heap allocated: ${Math.round(process.memoryUsage().heapTotal / 1024 / 1024)} MB`);
+        // This shows if --max-old-space-size was applied
+        console.log('Node version:', process.version);
+        console.log('Node args:', process.execArgv);
+      }
+      
     } catch (e: any) {
       console.log('Could not check memory details:', e.message);
     }
