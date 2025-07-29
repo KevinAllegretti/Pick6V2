@@ -181,7 +181,7 @@ setInterval(async () => {
   }
 }, 5000);*/
 
-
+/*
  setInterval(() => {
     // console.log('Mongoose connections:', mongoose.connections.length);
     // console.log('Connection state:', mongoose.connection.readyState);
@@ -265,7 +265,7 @@ setInterval(async () => {
     } catch (e: any) {
       console.log('Could not check memory details:', e.message);
     }
-  }, 3000);
+  }, 3000);*/
 
 
 export default app;
