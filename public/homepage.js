@@ -3015,7 +3015,7 @@ async function displayAllPicks(picks, container, teamLogos) {
 
 function displayPickTimeBanner(container) {
     const bannerImage = document.createElement('img');
-    bannerImage.src = 'PickTimeNew.gif';
+    bannerImage.src = 'PickTimeNew.png';
     bannerImage.alt = 'Player Making Selection';
     bannerImage.className = 'pick-banner';
     container.appendChild(bannerImage);
